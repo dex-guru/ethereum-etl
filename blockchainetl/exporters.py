@@ -93,6 +93,9 @@ class BaseItemExporter(object):
             else:
                 value = default_value
 
+            if field_name == 'topics':
+                value = ','.join(["'{}'".format(value) for value in item[field_name]])
+
             yield field_name, value
 
 
