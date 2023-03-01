@@ -32,7 +32,18 @@ from ethereumetl.thread_local_proxy import ThreadLocalProxy
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
-@click.option('-l', '--last-synced-block-file', default='last_synced_block.txt', show_default=True, type=str, help='')
+@click.option('-l', '--last-synced-block-provider-uri', default='file://last_synced_block.txt', show_default=True, type=str,
+            help='examples:'
+            ' file://relative/path/to/file.txt'
+            ' redis://localhost:6379/0?key=last_synced_block'
+            ' postgresql://user:pass@localhost:5432/db?table_name=last_synced_block&sync_id=default'
+            ' clickhouse://default:@localhost:8123?table_name=last_synced_block&sync_id=default'
+            ' clickhouse+native://default:@localhost:9000?table_name=last_synced_block&sync_id=default'
+            ' or any SQLAlchemy supported connection string.'
+            ' Query parameters:'
+            ' table_name, sync_id - table name and primary key for SQL databases;'
+            ' key - key for Redis.'
+             )
 @click.option('--lag', default=0, show_default=True, type=int, help='The number of blocks to lag behind the network.')
 @click.option('-p', '--provider-uri', default='https://mainnet.infura.io', show_default=True, type=str,
               help='The URI of the web3 provider e.g. '
@@ -53,7 +64,7 @@ from ethereumetl.thread_local_proxy import ThreadLocalProxy
 @click.option('-w', '--max-workers', default=5, show_default=True, type=int, help='The number of workers')
 @click.option('--log-file', default=None, show_default=True, type=str, help='Log file')
 @click.option('--pid-file', default=None, show_default=True, type=str, help='pid file')
-def stream(last_synced_block_file, lag, provider_uri, output, start_block, entity_types,
+def stream(last_synced_block_provider_uri, lag, provider_uri, output, start_block, entity_types,
            period_seconds=10, batch_size=2, block_batch_size=10, max_workers=5, log_file=None, pid_file=None):
     """Streams all data types to console or Google Pub/Sub."""
     configure_logging(log_file)
@@ -76,7 +87,7 @@ def stream(last_synced_block_file, lag, provider_uri, output, start_block, entit
     )
     streamer = Streamer(
         blockchain_streamer_adapter=streamer_adapter,
-        last_synced_block_file=last_synced_block_file,
+        last_synced_block_provider_uri=last_synced_block_provider_uri,
         lag=lag,
         start_block=start_block,
         period_seconds=period_seconds,
