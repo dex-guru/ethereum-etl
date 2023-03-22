@@ -193,8 +193,7 @@ class ClickHouseItemExporter:
         return results
 
     def create_tables(self):
-        package_path = Path(__file__).parents[3]
-        sql_template = (package_path / 'schemas/clickhouse/clickhouse_schemas.sql.tpl').read_text()
+        sql_template = (Path(__file__).parent / 'clickhouse_schemas.sql.tpl').read_text()
         sql = Template(sql_template).substitute(chain_id=self.chain_id)
         for statement in sql.split(';'):
             statement = statement.strip()

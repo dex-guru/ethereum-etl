@@ -1,15 +1,14 @@
-FROM python:3.7
-MAINTAINER Evgeny Medvedev <evge.medvedev@gmail.com>
-ENV PROJECT_DIR=ethereum-etl
+FROM python:3.10
 
-RUN mkdir /$PROJECT_DIR
-WORKDIR /$PROJECT_DIR
-COPY . .
-RUN pip install --upgrade pip && pip install -e /$PROJECT_DIR/[streaming]
+RUN pip install --upgrade pip
+RUN mkdir /tmp/app
+WORKDIR /tmp/app
+COPY requirements.freeze.txt /tmp/app/
+RUN pip install --no-cache-dir -r requirements.freeze.txt
+COPY . /tmp/app
+RUN pip install --no-cache-dir '.[streaming]'
+RUN cd / && ethereumetl stream --help
 
-# Add Tini
-ENV TINI_VERSION v0.18.0
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
-RUN chmod +x /tini
-
-ENTRYPOINT ["/tini", "--", "python", "ethereumetl"]
+FROM python:3.10
+COPY --from=0 /usr/local /usr/local
+CMD ["ethereumetl", "stream", "--help"]
