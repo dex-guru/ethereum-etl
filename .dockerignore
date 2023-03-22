@@ -2,3 +2,5 @@
 last_synced_block.txt
 pid.txt
 output
+*.sh
+*/**/__pycache__
