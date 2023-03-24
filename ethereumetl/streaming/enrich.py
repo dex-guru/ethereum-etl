@@ -130,7 +130,7 @@ def enrich_token_transfers(blocks, token_transfers):
             'log_index',
             'block_number',
             'token_id',
-            'operator_id',
+            'operator_address',
         ],
         [
             ('timestamp', 'block_timestamp'),
