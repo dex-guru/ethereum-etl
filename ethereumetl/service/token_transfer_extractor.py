@@ -23,50 +23,159 @@
 
 import logging
 from builtins import map
+from typing import Iterator
+
+import eth_abi.exceptions
+from web3 import Web3
 
 from ethereumetl.domain.token_transfer import EthTokenTransfer
 from ethereumetl.utils import chunk_string, hex_to_dec, to_normalized_address
 
-# https://ethereum.stackexchange.com/questions/12553/understanding-logs-and-log-blooms
-TRANSFER_EVENT_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
 logger = logging.getLogger(__name__)
+
+# fmt: off
+
+# Standard | Signature                                                                   | Indexed Fields
+# ---------+-----------------------------------------------------------------------------+----------------
+# ERC-20   | Transfer(address indexed from, address indexed to, uint256 value)           | from, to
+# ERC-721  | Transfer(address indexed from, address indexed to, uint256 indexed tokenId) | from, to, tokenId
+# ERC-1155 | TransferSingle(address indexed operator, address indexed from,              | operator, from, to
+#          | address indexed to, uint256 id, uint256 value)                              |
+# ERC-1155 | TransferBatch(address indexed operator, address indexed from,               | operator, from, to
+#          | address indexed to, uint256[] ids, uint256[] values)                        |
+
+TRANSFER_EVENT_TOPIC = Web3.keccak(text="Transfer(address,address,uint256)").hex()
+# ERC721 uses the same event signature as ERC20 but with an extra indexed field
+ERC721_TRANSFER_EVENT_TOPIC = TRANSFER_EVENT_TOPIC
+ERC1155_SINGLE_TRANSFER_EVENT_TOPIC = Web3.keccak(text="TransferSingle(address,address,address,uint256,uint256)").hex()
+ERC1155_BATCH_TRANSFER_EVENT_TOPIC = Web3.keccak(text="TransferBatch(address,address,address,uint256[],uint256[])").hex()
+
+# fmt: on
+
+_w3 = Web3()
+
+
+def extract_erc20_transfers(receipt_log):
+    # Handle unindexed event fields
+    topics_with_data = receipt_log.topics + split_to_words(receipt_log.data)
+    # if the number of topics and fields in data part != 4, then it's a weird event
+    if len(topics_with_data) != 4:
+        logger.warning(
+            "The number of topics and data parts is not equal to 4 in log %s of transaction %s",
+            receipt_log.log_index,
+            receipt_log.transaction_hash,
+        )
+        return
+    token_transfer = EthTokenTransfer()
+    token_transfer.token_address = to_normalized_address(receipt_log.address)
+    token_transfer.from_address = word_to_address(topics_with_data[1])
+    token_transfer.to_address = word_to_address(topics_with_data[2])
+    token_transfer.value = hex_to_dec(topics_with_data[3])
+    token_transfer.transaction_hash = receipt_log.transaction_hash
+    token_transfer.log_index = receipt_log.log_index
+    token_transfer.block_number = receipt_log.block_number
+    yield token_transfer
+
+
+def extract_erc721_transfers(receipt_log):
+    topics = receipt_log.topics
+    token_transfer = EthTokenTransfer()
+    token_transfer.block_number = receipt_log.block_number
+    token_transfer.transaction_hash = receipt_log.transaction_hash
+    token_transfer.log_index = receipt_log.log_index
+    token_transfer.token_address = to_normalized_address(receipt_log.address)
+    token_transfer.from_address = word_to_address(topics[1])
+    token_transfer.to_address = word_to_address(topics[2])
+    token_transfer.token_id = hex_to_dec(topics[3])
+    token_transfer.value = 1
+    yield token_transfer
+
+
+def extract_erc1155_single_transfers(receipt_log):
+    topics = receipt_log.topics
+    token_transfer = EthTokenTransfer()
+    token_transfer.block_number = receipt_log.block_number
+    token_transfer.transaction_hash = receipt_log.transaction_hash
+    token_transfer.log_index = receipt_log.log_index
+    token_transfer.token_address = to_normalized_address(receipt_log.address)
+    token_transfer.operator_address = word_to_address(topics[1])
+    token_transfer.from_address = word_to_address(topics[2])
+    token_transfer.to_address = word_to_address(topics[3])
+    try:
+        token_transfer.token_id, token_transfer.value = _w3.codec.decode(
+            ("uint256", "uint256"),
+            _w3.to_bytes(hexstr=receipt_log.data),
+        )
+    except (eth_abi.exceptions.DecodingError, TypeError, ValueError):
+        logger.warning(
+            "Failed to decode ERC1155 single transfer event data in log %s of transaction %s",
+            receipt_log.log_index,
+            receipt_log.transaction_hash,
+        )
+    else:
+        yield token_transfer
+
+
+def extract_erc1155_batch_transfers(receipt_log):
+    try:
+        token_ids, values = _w3.codec.decode(
+            ("uint256[]", "uint256[]"),
+            _w3.to_bytes(hexstr=receipt_log.data),
+        )
+    except (eth_abi.exceptions.DecodingError, TypeError, ValueError):
+        logger.warning(
+            "Failed to decode ERC1155 batch transfer event data in log %s of transaction %s",
+            receipt_log.log_index,
+            receipt_log.transaction_hash,
+        )
+    else:
+        topics = receipt_log.topics
+        for token_id, value in zip(token_ids, values):
+            token_transfer = EthTokenTransfer()
+
+            token_transfer.block_number = receipt_log.block_number
+            token_transfer.transaction_hash = receipt_log.transaction_hash
+            token_transfer.log_index = receipt_log.log_index
+            token_transfer.token_address = to_normalized_address(receipt_log.address)
+
+            token_transfer.operator_address = word_to_address(topics[1])
+            token_transfer.from_address = word_to_address(topics[2])
+            token_transfer.to_address = word_to_address(topics[3])
+
+            token_transfer.token_id = token_id
+            token_transfer.value = value
+
+            yield token_transfer
 
 
 class EthTokenTransferExtractor(object):
-    def extract_transfer_from_log(self, receipt_log):
+    EXTRACT_BY_TOPICS_LEN_TOPIC0 = {
+        (3, TRANSFER_EVENT_TOPIC): extract_erc20_transfers,
+        (4, ERC721_TRANSFER_EVENT_TOPIC): extract_erc721_transfers,
+        (4, ERC1155_SINGLE_TRANSFER_EVENT_TOPIC): extract_erc1155_single_transfers,
+        (4, ERC1155_BATCH_TRANSFER_EVENT_TOPIC): extract_erc1155_batch_transfers,
+    }
 
+    def extract_transfers_from_log(self, receipt_log) -> Iterator[EthTokenTransfer]:
         topics = receipt_log.topics
+
         if topics is None or len(topics) < 1:
             # This is normal, topics can be empty for anonymous events
-            return None
+            return
 
-        if (topics[0]).casefold() == TRANSFER_EVENT_TOPIC:
-            # Handle unindexed event fields
-            topics_with_data = topics + split_to_words(receipt_log.data)
-            # if the number of topics and fields in data part != 4, then it's a weird event
-            if len(topics_with_data) != 4:
-                logger.warning("The number of topics and data parts is not equal to 4 in log {} of transaction {}"
-                               .format(receipt_log.log_index, receipt_log.transaction_hash))
-                return None
-
-            token_transfer = EthTokenTransfer()
-            token_transfer.token_address = to_normalized_address(receipt_log.address)
-            token_transfer.from_address = word_to_address(topics_with_data[1])
-            token_transfer.to_address = word_to_address(topics_with_data[2])
-            token_transfer.value = hex_to_dec(topics_with_data[3])
-            token_transfer.transaction_hash = receipt_log.transaction_hash
-            token_transfer.log_index = receipt_log.log_index
-            token_transfer.block_number = receipt_log.block_number
-            return token_transfer
-
-        return None
+        try:
+            extract = self.EXTRACT_BY_TOPICS_LEN_TOPIC0[(len(topics), topics[0].casefold())]
+        except KeyError:
+            return
+        else:
+            yield from extract(receipt_log)
 
 
 def split_to_words(data):
     if data and len(data) > 2:
         data_without_0x = data[2:]
         words = list(chunk_string(data_without_0x, 64))
-        words_with_0x = list(map(lambda word: '0x' + word, words))
+        words_with_0x = list(map(lambda word: "0x" + word, words))
         return words_with_0x
     return []
 
@@ -75,6 +184,6 @@ def word_to_address(param):
     if param is None:
         return None
     elif len(param) >= 40:
-        return to_normalized_address('0x' + param[-40:])
+        return to_normalized_address("0x" + param[-40:])
     else:
         return to_normalized_address(param)

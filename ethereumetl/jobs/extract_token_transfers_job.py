@@ -55,8 +55,7 @@ class ExtractTokenTransfersJob(BaseJob):
 
     def _extract_transfer(self, log_dict):
         log = self.receipt_log_mapper.dict_to_receipt_log(log_dict)
-        token_transfer = self.token_transfer_extractor.extract_transfer_from_log(log)
-        if token_transfer is not None:
+        for token_transfer in self.token_transfer_extractor.extract_transfers_from_log(log):
             self.item_exporter.export_item(self.token_transfer_mapper.token_transfer_to_dict(token_transfer))
 
     def _end(self):

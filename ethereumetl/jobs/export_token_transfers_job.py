@@ -86,8 +86,7 @@ class ExportTokenTransfersJob(BaseJob):
                 raise(e)
         for event in events:
             log = self.receipt_log_mapper.web3_dict_to_receipt_log(event)
-            token_transfer = self.token_transfer_extractor.extract_transfer_from_log(log)
-            if token_transfer is not None:
+            for token_transfer in self.token_transfer_extractor.extract_transfers_from_log(log):
                 self.item_exporter.export_item(self.token_transfer_mapper.token_transfer_to_dict(token_transfer))
 
         if self._supports_eth_newFilter:
