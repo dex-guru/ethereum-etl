@@ -198,5 +198,5 @@ class ClickHouseItemExporter:
         for statement in sql.split(';'):
             statement = statement.strip()
             if statement:
-                logging.info('executing sql statement:\n    %s', indent(statement, '    '))
+                logging.debug('executing sql statement:\n    %s', indent(statement, '    '))
                 self.connection.query(statement)

@@ -103,6 +103,8 @@ TOKEN_TRANSFERS = Table(
     Column('block_timestamp', TIMESTAMP),
     Column('block_number', BigInteger),
     Column('block_hash', String),
+    Column('token_id', Numeric(78)),  # ERC-721, ERC-1155
+    Column('operator_address', String),  # ERC-721, ERC-1155
 )
 
 TRACES = Table(

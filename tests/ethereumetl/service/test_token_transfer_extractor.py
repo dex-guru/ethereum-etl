@@ -38,7 +38,7 @@ def test_extract_transfer_from_receipt_log():
                   '0x0000000000000000000000000000000000000000000000000000000000000000']
     log.transaction_hash = '0xd62a74c7b04e8e0539398f6ba6a5eb11ad8aa862e77f0af718f0fad19b0b0480'
 
-    token_transfer = token_transfer_extractor.extract_transfer_from_log(log)
+    [token_transfer] = token_transfer_extractor.extract_transfers_from_log(log)
 
     assert token_transfer.token_address == '0x25c6413359059694a7fca8e599ae39ce1c944da2'
     assert token_transfer.from_address == '0xe9eeaec75883f0e389a78e2260bfac1776df2f1d'
@@ -46,3 +46,42 @@ def test_extract_transfer_from_receipt_log():
     assert token_transfer.value == 115792089237316195423570985008687907853269984665640564039457584007913129638936
     assert token_transfer.transaction_hash == '0xd62a74c7b04e8e0539398f6ba6a5eb11ad8aa862e77f0af718f0fad19b0b0480'
     assert token_transfer.block_number == 1061946
+
+
+def test_extract_transfer_from_receipt_log_with_nft():
+    log = EthReceiptLog()
+    log.log_index = 68
+    log.transaction_hash = (
+        "0x54c60539f2dcca7b61924440413bb29139cbaa2a2931f539e1a31edbb6d7cc2e"
+    )
+    log.transaction_index = 54
+    log.address = "0x03bf9f1f807967002c4f9feed1dd4ea542275947"
+    log.data = (
+        "0x"
+        "0000000000000000000000000000000000000000000000000000000000000003"
+        "0000000000000000000000000000000000000000000000000000000000000001"
+    )
+    log.topics = [
+        "0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62",
+        "0x000000000000000000000000fa1b15df09c2944a91a2f9f10a6133090d4119bd",
+        "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "0x000000000000000000000000fb3a85aff7cab85e7e2b7461703f57ed0105645e",
+    ]
+    log.block_number = 16896735
+
+    [token_transfer] = token_transfer_extractor.extract_transfers_from_log(log)
+
+    assert token_transfer.block_number == 16896735
+    assert token_transfer.from_address == "0x0000000000000000000000000000000000000000"
+    assert token_transfer.log_index == 68
+    assert (
+        token_transfer.operator_address == "0xfa1b15df09c2944a91a2f9f10a6133090d4119bd"
+    )
+    assert token_transfer.to_address == "0xfb3a85aff7cab85e7e2b7461703f57ed0105645e"
+    assert token_transfer.token_address == "0x03bf9f1f807967002c4f9feed1dd4ea542275947"
+    assert token_transfer.token_id == 3
+    assert (
+        token_transfer.transaction_hash
+        == "0x54c60539f2dcca7b61924440413bb29139cbaa2a2931f539e1a31edbb6d7cc2e"
+    )
+    assert token_transfer.value == 1
