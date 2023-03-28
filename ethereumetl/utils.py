@@ -23,6 +23,9 @@
 
 import itertools
 import warnings
+from datetime import datetime
+
+import pytz
 
 from ethereumetl.misc.retriable_value_error import RetriableValueError
 
@@ -132,3 +135,7 @@ def check_classic_provider_uri(chain, provider_uri):
         warnings.warn("ETC Chain not supported on Infura.io. Using https://ethereumclassic.network instead")
         return 'https://ethereumclassic.network'
     return provider_uri
+
+
+def timestamp_now() -> int:
+    return int(datetime.now(tz=pytz.UTC).timestamp())

@@ -49,20 +49,10 @@ class ClickHouseItemExporter:
         self.port = parsed.port
         self.database = parsed.path[1:].split("/")[0] if parsed.path else "default"
         self.settings = dict(parse_qs(parsed.query))
-        try:
-            self.chain_id = self.settings.pop("chain_id")[0]
-        except (KeyError, IndexError):
-            raise ValueError(
-                "No chain_id specified in connection URL query parameters. Example: "
-                "?chain_id=1"
-            )
-        self.item_type_to_table_mapping = {
-            k: f"{self.chain_id}_{v}" for k, v in item_type_to_table_mapping.items()
-        }
         self.connection = self.create_connection()
         self.tables = {}
         self.cached_batches = {}
-
+        self.item_type_to_table_mapping = item_type_to_table_mapping
         self.create_tables()
 
         ## for each time grab the schema to save a prefetch of the columns on each insert
@@ -109,21 +99,19 @@ class ClickHouseItemExporter:
                             database=self.database,
                         )
                     except clickhouse_connect.driver.exceptions.ProgrammingError as e:
-                        logging.error("Error inserting into table %s: %s", table, e)
-                        valid_table_data = []
                         for row in table_data:
                             for i, column_value in enumerate(row):
+                                column_type = column_types[i]
+                                column_name = column_names[i]
                                 if isinstance(column_value, int):
-                                    column_type = column_types[i]
                                     max_value = NUMERIC_TYPE_MAX_VALUES.get(type(column_type))
                                     if max_value is None:
                                         raise
 
                                     if column_value > max_value:
-                                        column_name = column_names[i]
                                         logging.warning(
-                                            "the row will not be inserted: too large column value:"
-                                            " table=%s column_name=%s column_type=%s"
+                                            "Insert error: too large column value:"
+                                            " table=%s column=%s column_type=%s"
                                             " column_value=%s row_data_json=%s",
                                             table,
                                             column_name,
@@ -136,18 +124,28 @@ class ClickHouseItemExporter:
                                                 }
                                             ),
                                         )
-                                        break
-                            else:  # no break
-                                valid_table_data.append(row)
-                        if valid_table_data:
-                            self.connection.insert(
-                                table,
-                                data=valid_table_data,
-                                column_names=column_names,
-                                column_types=column_types,
-                                database=self.database,
-                            )
-
+                                        raise OverflowError(
+                                            f"Too large column value: table={table} column={column_name}"
+                                        ) from e
+                                elif column_value is None and not column_type.nullable:
+                                    logging.error(
+                                        "Insert error: cannot insert null value into non-nullable column:"
+                                        " table=%s column=%s column_type=%s row_data_json=%s",
+                                        table,
+                                        column_name,
+                                        column_type.__class__.__name__,
+                                        json.dumps(
+                                            {
+                                                name: value
+                                                for name, value in zip(column_names, row)
+                                            }
+                                        ),
+                                    )
+                                    raise TypeError(
+                                        "Cannot insert null value into non-nullable column:"
+                                        f" table={table} column={column_name}"
+                                    ) from e
+                        raise
                     self.cached_batches[table] = []
                 else:
                     # insufficient size, so cache
@@ -194,7 +192,7 @@ class ClickHouseItemExporter:
 
     def create_tables(self):
         sql_template = (Path(__file__).parent / 'clickhouse_schemas.sql.tpl').read_text()
-        sql = Template(sql_template).substitute(chain_id=self.chain_id)
+        sql = Template(sql_template).substitute(self.item_type_to_table_mapping)
         for statement in sql.split(';'):
             statement = statement.strip()
             if statement:
