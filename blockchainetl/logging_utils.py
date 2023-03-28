@@ -4,6 +4,20 @@ from logging import config
 from ethereumetl.config.envs import envs
 
 
+class AddAttrsFilter(logging.Filter):
+    """
+    A logging filter that adds extra attributes to log records.
+    """
+    def __init__(self, attrs: dict):
+        super().__init__()
+        self.attrs = attrs
+
+    def filter(self, record):
+        for key, value in self.attrs.items():
+            setattr(record, key, value)
+        return True
+
+
 def logging_basic_config(filename=None):
     format = "%(asctime)s - %(name)s [%(levelname)s] - %(message)s"
     if filename is not None:
@@ -39,6 +53,16 @@ def logging_basic_config(filename=None):
                     "port": envs.LOGSTASH_PORT,
                     "database_path": None,
                     "event_ttl": 30,  # sec
+                    "filters": ["add_attrs"],
+                },
+            },
+            filters={
+                "add_attrs": {
+                    "()": AddAttrsFilter,
+                    "attrs": {
+                        "chain_id": envs.CHAIN_ID,
+                        "service_name": envs.SERVICE_NAME,
+                    },
                 },
             },
             loggers={

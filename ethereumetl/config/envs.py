@@ -38,7 +38,7 @@ class EnvsConfig(BaseSettings):
     LOGSTASH_PORT: int = 5959
     LOGSTASH_LOGGING_LEVEL: str = 'INFO'
     LOG_HANDLERS: List[str] = ['console']
-
+    SERVICE_NAME: str = ''
 
 
 envs = EnvsConfig()

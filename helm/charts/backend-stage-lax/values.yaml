@@ -24,3 +24,4 @@ raw-data-streamer:
     MAX_WORKERS: '5'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
+    SERVICE_NAME: 'raw-data-streamer'
