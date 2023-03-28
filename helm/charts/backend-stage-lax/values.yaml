@@ -1,0 +1,26 @@
+---
+image: 'registry.gitlab.com/telekomconsalting/dexguru/indexation-etl'
+imageTag: ''
+registrySecretName: registry-gitlab
+
+raw-data-streamer:
+  replicas:
+    default: 1
+  limitsCpu: 4
+  limitsMemory: 2500Mi
+  requestsCpu: 1
+  requestsMemory: 500Mi
+  strategyType: 'Recreate'
+  command: '[ "ethereumetl", "stream" ]'
+  env:
+    LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@10.0.100.39/dex_etl?table_name=last_synced_block'
+    LAG: '0'
+    OUTPUT: 'clickhouse://testuser3:testplpassword@10.0.100.39/dex_etl'
+    START_BLOCK: '1'
+    ENTITY_TYPES: 'block,transaction,log,token_transfer'
+    POLLING_PERIOD: '10'
+    BATCH_SIZE: '10'
+    BLOCK_BATCH_SIZE: '1000'
+    MAX_WORKERS: '5'
+    LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
+    LOG_HANDLERS: '["console","logstash"]'

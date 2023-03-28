@@ -24,14 +24,14 @@ from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExport
 from blockchainetl.jobs.exporters.multi_item_exporter import MultiItemExporter
 
 
-def create_item_exporters(outputs):
+def create_item_exporters(outputs, chain_id):
     split_outputs = [output.strip() for output in outputs.split(',')] if outputs else ['console']
 
-    item_exporters = [create_item_exporter(output) for output in split_outputs]
+    item_exporters = [create_item_exporter(output, chain_id) for output in split_outputs]
     return MultiItemExporter(item_exporters)
 
 
-def create_item_exporter(output):
+def create_item_exporter(output, chain_id):
     item_exporter_type = determine_item_exporter_type(output)
     if item_exporter_type == ItemExporterType.PUBSUB:
         from blockchainetl.jobs.exporters.google_pubsub_item_exporter import GooglePubSubItemExporter
@@ -95,7 +95,7 @@ def create_item_exporter(output):
         })
     elif item_exporter_type == ItemExporterType.CLICKHOUSE:
         from blockchainetl.jobs.exporters.clickhouse_exporter import ClickHouseItemExporter
-        item_exporter = ClickHouseItemExporter(output, item_type_to_table_mapping={
+        item_type_to_table_mapping = {
             'block': 'blocks',
             'transaction': 'transactions',
             'log': 'logs',
@@ -103,7 +103,12 @@ def create_item_exporter(output):
             'trace': 'traces',
             'contract': 'contracts',
             'token': 'tokens',
-        })
+        }
+        if chain_id:
+            item_type_to_table_mapping = {
+                k: f"{chain_id}_{v}" for k, v in item_type_to_table_mapping.items()
+            }
+        item_exporter = ClickHouseItemExporter(output, item_type_to_table_mapping=item_type_to_table_mapping)
     else:
         raise ValueError('Unable to determine item exporter type for output ' + output)
 

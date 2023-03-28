@@ -25,16 +25,19 @@ import logging
 import os
 import time
 from abc import ABC, abstractmethod
-from copy import deepcopy
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
-from blockchainetl.streaming.streamer_adapter_stub import StreamerAdapterStub
+from clickhouse_sqlalchemy.types import UInt32
+
 from blockchainetl.file_utils import smart_open
+from blockchainetl.streaming.streamer_adapter_stub import StreamerAdapterStub
+from ethereumetl.utils import timestamp_now
 
 
 class Streamer:
     def __init__(
             self,
+            chain_id,
             blockchain_streamer_adapter=StreamerAdapterStub(),
             last_synced_block_provider_uri='file://last_synced_block.txt',
             lag=0,
@@ -44,8 +47,9 @@ class Streamer:
             block_batch_size=10,
             retry_errors=True,
             pid_file=None):
+        self.chain_id = chain_id
         self.blockchain_streamer_adapter = blockchain_streamer_adapter
-        self.last_synced_block_provider = LastSyncedBlockProvider.from_uri(last_synced_block_provider_uri)
+        self.last_synced_block_provider = LastSyncedBlockProvider.from_uri(last_synced_block_provider_uri, chain_id)
         self.lag = lag
         self.start_block = start_block
         self.end_block = end_block
@@ -56,7 +60,6 @@ class Streamer:
 
         if self.start_block is not None:
             init_last_synced_block_provider((self.start_block or 0) - 1, self.last_synced_block_provider)
-
         self.last_synced_block = self.last_synced_block_provider.get_last_synced_block()
 
     def stream(self):
@@ -124,11 +127,16 @@ def write_last_synced_block(file, last_synced_block):
 
 
 def init_last_synced_block_provider(start_block, provider):
-    if provider.get_last_synced_block():
+    last_synced_block = provider.get_last_synced_block()
+    if last_synced_block and start_block > last_synced_block:
         raise ValueError(
-            'Last synced block data should not exist if --start-block option is specified. '
-            'Either remove the last synced block data or the --start-block option.')
-    provider.set_last_synced_block(start_block)
+           f'Last synced block number {last_synced_block} is less then --start-block {start_block}. '
+            'Either remove the last synced block data or the respecify --start-block option.')
+    if last_synced_block and last_synced_block > start_block:
+        logging.info(f'Last synced block number {last_synced_block} is greater then --start-block. '
+                     f'Using last synced block number as start block.')
+    else:
+        provider.set_last_synced_block(start_block)
 
 
 def read_last_synced_block(file):
@@ -149,49 +157,48 @@ class LastSyncedBlockProvider(ABC):
     def set_last_synced_block(self, last_synced_block): ...
 
     @classmethod
-    def from_uri(cls, uri):
+    def from_uri(cls, uri, chain_id):
         if uri.startswith('file://'):
             return LastSyncedBlockProviderFile(uri.removeprefix('file://'))
 
         parsed_uri = urlparse(uri)
         query_params = parse_qs(parsed_uri.query)
-
         table_name = query_params.pop('table_name', ['last_synced_block'])[0]
-        sync_id = query_params.pop('sync_id', ['default'])[0]
-        key = query_params.pop('key', ['last_synced_block'])[0]
-
+        redis_key = query_params.pop('key', ['last_synced_block'])[0]
         query = urlencode(query_params, encoding='utf-8')
         uri = parsed_uri._replace(query=query)
         uri = urlunparse(uri)
 
         if uri.startswith('redis://'):
-            return LastSyncedBlockProviderRedis(uri, key)
+            # 'redis://localhost:6379/0?key=last_synced_block'
+            return LastSyncedBlockProviderRedis(uri, f'{redis_key}:{chain_id}')
 
-        return LastSyncedBlockProviderSQL(uri, sync_id, table_name=table_name)
+        return LastSyncedBlockProviderSQL(uri, chain_id, table_name=table_name)
 
 
 class LastSyncedBlockProviderSQL(LastSyncedBlockProvider):
-    def __init__(self, connection_string, sync_id, table_name):
+    def __init__(self, connection_string, chain_id, table_name):
         from sqlalchemy import create_engine
-        from sqlalchemy import Column, Integer, String
+        from sqlalchemy import Column, Integer
         from sqlalchemy.ext.declarative import declarative_base
         from sqlalchemy.orm import sessionmaker
 
         self.engine = create_engine(connection_string)
         self.session = sessionmaker(bind=self.engine)()
         self.table_name = table_name
-        self.sync_id = sync_id
+        self.chain_id = chain_id
 
         Base = declarative_base()
 
         class LastSyncedBlock(Base):
             __tablename__ = self.table_name
-            id = Column(String, primary_key=True)
-            last_synced_block = Column(Integer)
+            chain_id = Column(UInt32, primary_key=True)
+            block_number = Column(Integer)
+            indexed_ts = Column(Integer)
 
             if 'clickhouse' in connection_string:
                 from clickhouse_sqlalchemy import engines
-                __table_args__ = (engines.ReplacingMergeTree(order_by='id'),)
+                __table_args__ = (engines.ReplacingMergeTree(order_by=['chain_id', 'block_number']),)
 
         self.LastSyncedBlock = LastSyncedBlock
 
@@ -199,18 +206,18 @@ class LastSyncedBlockProviderSQL(LastSyncedBlockProvider):
 
     def get_last_synced_block(self):
         last_synced_block = (
-            self.session.query(self.LastSyncedBlock).filter_by(id=self.sync_id).first()
+            self.session.query(self.LastSyncedBlock).filter_by(chain_id=self.chain_id)
+            .order_by(self.LastSyncedBlock.block_number.desc()).first()
         )
         if last_synced_block is None:
             return 0
-        return last_synced_block.last_synced_block
+        return last_synced_block.block_number
 
     def set_last_synced_block(self, last_synced_block):
-        record = self.session.query(self.LastSyncedBlock).filter_by(id=self.sync_id).first()
-        if record is None:
-            record = self.LastSyncedBlock(id=self.sync_id, last_synced_block=0)
-        record.last_synced_block = last_synced_block
-        self.session.add(record)
+        last_synced_block_record = self.LastSyncedBlock(chain_id=self.chain_id, block_number=last_synced_block,
+                                                        indexed_ts=timestamp_now())
+        last_synced_block_record.block_number = last_synced_block
+        self.session.add(last_synced_block_record)
         self.session.commit()
 
 
