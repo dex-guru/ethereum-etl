@@ -163,7 +163,7 @@ class ClickHouseItemExporter:
     def create_connection(self):
         return clickhouse_connect.create_client(host=self.host, port=self.port, username=self.username,
                                                 password=self.password, database=self.database,
-                                                settings=self.settings)
+                                                settings=self.settings, compress=False)
 
     def close(self):
         # clear the cache
