@@ -80,7 +80,8 @@ CREATE TABLE IF NOT EXISTS `${token_transfer}`
     `block_number` UInt64,
     `block_hash` String CODEC(ZSTD(1)),
     `operator_address` Nullable(String) CODEC(ZSTD(1)), // ERC721, ERC1155
-    `token_id` Nullable(UInt256)  // ERC721, ERC1155
+    `token_id` Nullable(UInt256),  // ERC721, ERC1155
+    `is_nft` Bool MATERIALIZED isNotNull(token_id) // ERC721, ERC1155
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
