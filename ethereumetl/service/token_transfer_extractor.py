@@ -66,43 +66,37 @@ def extract_erc20_transfers(receipt_log):
             receipt_log.transaction_hash,
         )
         return
-    token_transfer = EthTokenTransfer()
-    token_transfer.token_address = to_normalized_address(receipt_log.address)
-    token_transfer.from_address = word_to_address(topics_with_data[1])
-    token_transfer.to_address = word_to_address(topics_with_data[2])
-    token_transfer.value = hex_to_dec(topics_with_data[3])
-    token_transfer.transaction_hash = receipt_log.transaction_hash
-    token_transfer.log_index = receipt_log.log_index
-    token_transfer.block_number = receipt_log.block_number
+    token_transfer = EthTokenTransfer(
+        token_address=to_normalized_address(receipt_log.address),
+        from_address=word_to_address(topics_with_data[1]),
+        to_address=word_to_address(topics_with_data[2]),
+        value=hex_to_dec(topics_with_data[3]),
+        transaction_hash=receipt_log.transaction_hash,
+        log_index=receipt_log.log_index,
+        block_number=receipt_log.block_number,
+    )
     yield token_transfer
 
 
 def extract_erc721_transfers(receipt_log):
     topics = receipt_log.topics
-    token_transfer = EthTokenTransfer()
-    token_transfer.block_number = receipt_log.block_number
-    token_transfer.transaction_hash = receipt_log.transaction_hash
-    token_transfer.log_index = receipt_log.log_index
-    token_transfer.token_address = to_normalized_address(receipt_log.address)
-    token_transfer.from_address = word_to_address(topics[1])
-    token_transfer.to_address = word_to_address(topics[2])
-    token_transfer.token_id = hex_to_dec(topics[3])
-    token_transfer.value = 1
+    token_transfer = EthTokenTransfer(
+        block_number=receipt_log.block_number,
+        transaction_hash=receipt_log.transaction_hash,
+        log_index=receipt_log.log_index,
+        token_address=to_normalized_address(receipt_log.address),
+        from_address=word_to_address(topics[1]),
+        to_address=word_to_address(topics[2]),
+        token_id=hex_to_dec(topics[3]),
+        value=1,
+    )
     yield token_transfer
 
 
 def extract_erc1155_single_transfers(receipt_log):
     topics = receipt_log.topics
-    token_transfer = EthTokenTransfer()
-    token_transfer.block_number = receipt_log.block_number
-    token_transfer.transaction_hash = receipt_log.transaction_hash
-    token_transfer.log_index = receipt_log.log_index
-    token_transfer.token_address = to_normalized_address(receipt_log.address)
-    token_transfer.operator_address = word_to_address(topics[1])
-    token_transfer.from_address = word_to_address(topics[2])
-    token_transfer.to_address = word_to_address(topics[3])
     try:
-        token_transfer.token_id, token_transfer.value = _w3.codec.decode(
+        token_id, value = _w3.codec.decode(
             ("uint256", "uint256"),
             _w3.to_bytes(hexstr=receipt_log.data),
         )
@@ -113,6 +107,17 @@ def extract_erc1155_single_transfers(receipt_log):
             receipt_log.transaction_hash,
         )
     else:
+        token_transfer = EthTokenTransfer(
+            block_number=receipt_log.block_number,
+            transaction_hash=receipt_log.transaction_hash,
+            log_index=receipt_log.log_index,
+            token_address=to_normalized_address(receipt_log.address),
+            operator_address=word_to_address(topics[1]),
+            from_address=word_to_address(topics[2]),
+            to_address=word_to_address(topics[3]),
+            token_id=token_id,
+            value=value,
+        )
         yield token_transfer
 
 
@@ -131,20 +136,17 @@ def extract_erc1155_batch_transfers(receipt_log):
     else:
         topics = receipt_log.topics
         for token_id, value in zip(token_ids, values):
-            token_transfer = EthTokenTransfer()
-
-            token_transfer.block_number = receipt_log.block_number
-            token_transfer.transaction_hash = receipt_log.transaction_hash
-            token_transfer.log_index = receipt_log.log_index
-            token_transfer.token_address = to_normalized_address(receipt_log.address)
-
-            token_transfer.operator_address = word_to_address(topics[1])
-            token_transfer.from_address = word_to_address(topics[2])
-            token_transfer.to_address = word_to_address(topics[3])
-
-            token_transfer.token_id = token_id
-            token_transfer.value = value
-
+            token_transfer = EthTokenTransfer(
+                block_number=receipt_log.block_number,
+                transaction_hash=receipt_log.transaction_hash,
+                log_index=receipt_log.log_index,
+                token_address=to_normalized_address(receipt_log.address),
+                operator_address=word_to_address(topics[1]),
+                from_address=word_to_address(topics[2]),
+                to_address=word_to_address(topics[3]),
+                token_id=token_id,
+                value=value,
+            )
             yield token_transfer
 
 
