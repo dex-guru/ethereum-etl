@@ -60,12 +60,14 @@ class EthTokenService(object):
         decimals = self._get_first_result(contract.functions.decimals(), contract.functions.DECIMALS())
         total_supply = self._get_first_result(contract.functions.totalSupply())
 
-        token = EthToken()
-        token.address = token_address
-        token.symbol = symbol
-        token.name = name
-        token.decimals = decimals
-        token.total_supply = total_supply
+        token = EthToken(
+            address=token_address,
+            symbol=symbol,
+            name=name,
+            decimals=decimals,
+            total_supply=total_supply,
+            block_number=0,
+        )
 
         return token
 
