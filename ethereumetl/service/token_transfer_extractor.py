@@ -88,7 +88,7 @@ def extract_erc721_transfers(receipt_log):
         from_address=word_to_address(topics[1]),
         to_address=word_to_address(topics[2]),
         token_id=hex_to_dec(topics[3]),
-        value=1,
+        value=_w3.codec.decode_single("uint256", _w3.to_bytes(hexstr=receipt_log.data)),
     )
     yield token_transfer
 
