@@ -26,7 +26,8 @@ from builtins import map
 from typing import Iterator
 
 import eth_abi.exceptions
-from web3 import Web3
+import eth_abi
+from eth_utils import keccak, to_bytes, to_hex
 
 from ethereumetl.domain.token_transfer import EthTokenTransfer
 from ethereumetl.utils import chunk_string, hex_to_dec, to_normalized_address
@@ -44,15 +45,13 @@ logger = logging.getLogger(__name__)
 # ERC-1155 | TransferBatch(address indexed operator, address indexed from,               | operator, from, to
 #          | address indexed to, uint256[] ids, uint256[] values)                        |
 
-TRANSFER_EVENT_TOPIC = Web3.keccak(text="Transfer(address,address,uint256)").hex()
+TRANSFER_EVENT_TOPIC = to_hex(keccak(text="Transfer(address,address,uint256)"))
 # ERC721 uses the same event signature as ERC20 but with an extra indexed field
 ERC721_TRANSFER_EVENT_TOPIC = TRANSFER_EVENT_TOPIC
-ERC1155_SINGLE_TRANSFER_EVENT_TOPIC = Web3.keccak(text="TransferSingle(address,address,address,uint256,uint256)").hex()
-ERC1155_BATCH_TRANSFER_EVENT_TOPIC = Web3.keccak(text="TransferBatch(address,address,address,uint256[],uint256[])").hex()
+ERC1155_SINGLE_TRANSFER_EVENT_TOPIC = to_hex(keccak(text="TransferSingle(address,address,address,uint256,uint256)"))
+ERC1155_BATCH_TRANSFER_EVENT_TOPIC = to_hex(keccak(text="TransferBatch(address,address,address,uint256[],uint256[])"))
 
 # fmt: on
-
-_w3 = Web3()
 
 
 def extract_erc20_transfers(receipt_log):
@@ -88,7 +87,7 @@ def extract_erc721_transfers(receipt_log):
         from_address=word_to_address(topics[1]),
         to_address=word_to_address(topics[2]),
         token_id=hex_to_dec(topics[3]),
-        value=_w3.codec.decode_single("uint256", _w3.to_bytes(hexstr=receipt_log.data)),
+        value=eth_abi.decode_single("uint256", to_bytes(hexstr=receipt_log.data)),
     )
     yield token_transfer
 
@@ -96,9 +95,9 @@ def extract_erc721_transfers(receipt_log):
 def extract_erc1155_single_transfers(receipt_log):
     topics = receipt_log.topics
     try:
-        token_id, value = _w3.codec.decode(
+        token_id, value = eth_abi.decode(
             ("uint256", "uint256"),
-            _w3.to_bytes(hexstr=receipt_log.data),
+            to_bytes(hexstr=receipt_log.data),
         )
     except (eth_abi.exceptions.DecodingError, TypeError, ValueError):
         logger.warning(
@@ -123,9 +122,9 @@ def extract_erc1155_single_transfers(receipt_log):
 
 def extract_erc1155_batch_transfers(receipt_log):
     try:
-        token_ids, values = _w3.codec.decode(
+        token_ids, values = eth_abi.decode(
             ("uint256[]", "uint256[]"),
-            _w3.to_bytes(hexstr=receipt_log.data),
+            to_bytes(hexstr=receipt_log.data),
         )
     except (eth_abi.exceptions.DecodingError, TypeError, ValueError):
         logger.warning(
