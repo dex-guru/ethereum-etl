@@ -67,14 +67,18 @@ from ethereumetl.thread_local_proxy import ThreadLocalProxy
 @click.option('-w', '--max-workers', default=envs.MAX_WORKERS, show_default=True, type=int, help='The number of workers')
 @click.option('--log-file', default=None, show_default=True, type=str, help='Log file')
 @click.option('--pid-file', default=None, show_default=True, type=str, help='pid file')
+@click.option('--export-from-clickhouse', default=envs.EXPORT_FROM_CLICKHOUSE, show_default=True, type=str,
+             help='connection URL to Clickhouse containing data from previous exports, e.g. clickhouse://default:@localhost/ethereum')
 def stream(chain_id, last_synced_block_provider_uri, lag, provider_uri, output, start_block, entity_types,
-           period_seconds=10, batch_size=2, block_batch_size=10, max_workers=5, log_file=None, pid_file=None):
+           period_seconds=10, batch_size=2, block_batch_size=10, max_workers=5, log_file=None, pid_file=None,
+           export_from_clickhouse=None):
     """Streams all data types to console or Google Pub/Sub."""
     configure_logging(log_file)
     configure_signals()
     entity_types = parse_entity_types(entity_types)
 
     from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter
+    from ethereumetl.streaming.clickhouse_eth_streamer_adapter import ClickhouseEthStreamerAdapter
     from blockchainetl.streaming.streamer import Streamer
 
     # TODO: Implement fallback mechanism for provider uris instead of picking randomly
@@ -88,6 +92,13 @@ def stream(chain_id, last_synced_block_provider_uri, lag, provider_uri, output, 
         max_workers=max_workers,
         entity_types=entity_types
     )
+    if export_from_clickhouse:
+        streamer_adapter = ClickhouseEthStreamerAdapter(
+            eth_streamer_adapter=streamer_adapter,
+            clickhouse_url=export_from_clickhouse,
+            chain_id=chain_id,
+        )
+
     streamer = Streamer(
         chain_id=chain_id,
         blockchain_streamer_adapter=streamer_adapter,
