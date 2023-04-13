@@ -84,7 +84,8 @@ CREATE TABLE IF NOT EXISTS `${token_transfer}`
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
-ORDER BY (transaction_hash, log_index);
+ORDER BY (transaction_hash, log_index, token_id)
+SETTINGS allow_nullable_key=1;
 
 CREATE TABLE IF NOT EXISTS `${trace}`
 (
