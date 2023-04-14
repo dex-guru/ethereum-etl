@@ -28,10 +28,13 @@ raw-data-streamer:
     BLOCK_BATCH_SIZE:
       default: '1000'
       polygon-137: '500'
+      bsc-56: '1000'
     MAX_WORKERS:
       default: '5'
       polygon-137: '10'
       eth-1: '15'
+      bsc-56: '12'
     SKIP_NONE_RECEIPTS:
       default: 'False'
       polygon-137: 'True'
+      bsc-56: 'False'
