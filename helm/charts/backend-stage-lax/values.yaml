@@ -12,17 +12,6 @@ raw-data-streamer:
   requestsMemory: 1000Mi
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "stream" ]'
-  chainEnv:
-    BLOCK_BATCH_SIZE:
-      default: '1000'
-      polygon-137: '500'
-    MAX_WORKERS:
-      default: '5'
-      polygon-137: '10'
-      eth-1: '15'
-    SKIP_NONE_RECEIPTS:
-      default: 'False'
-      polygon-137: 'True'
   env:
     LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@10.0.100.39/dex_etl?table_name=last_synced_block'
     LAG: '0'
@@ -35,3 +24,14 @@ raw-data-streamer:
     LOG_HANDLERS: '["console","logstash"]'
     SERVICE_NAME: 'raw-data-streamer'
 
+  chainEnv:
+    BLOCK_BATCH_SIZE:
+      default: '1000'
+      polygon-137: '500'
+    MAX_WORKERS:
+      default: '5'
+      polygon-137: '10'
+      eth-1: '15'
+    SKIP_NONE_RECEIPTS:
+      default: 'False'
+      polygon-137: 'True'
