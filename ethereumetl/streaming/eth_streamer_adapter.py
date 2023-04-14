@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 
 from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExporter
 from blockchainetl.jobs.exporters.in_memory_item_exporter import InMemoryItemExporter
@@ -86,7 +87,26 @@ class EthStreamerAdapter:
         enriched_tokens = enrich_tokens(blocks, tokens) \
             if EntityType.TOKEN in self.entity_types else []
 
-        logging.info('Exporting with ' + type(self.item_exporter).__name__)
+        if enriched_blocks:
+            last_synced_block_datetime = datetime.fromtimestamp(enriched_blocks[-1]["timestamp"])
+            logging.info(f'Exporting batch {len(enriched_blocks)} with {type(self.item_exporter).__name__}, '
+                         f'blocks up to {enriched_blocks[-1]["number"]}:'
+                         f'{last_synced_block_datetime}, '
+                         f'got {len(enriched_transactions)} transactions, {len(enriched_logs)} logs, '
+                         f'{len(enriched_token_transfers)} token transfers, {len(enriched_traces)} traces, '
+                         f'{len(enriched_contracts)} contracts, {len(enriched_tokens)} tokens',
+                         extra={'last_synced_block': enriched_blocks[-1]["number"],
+                                'last_synced_block_datetime': last_synced_block_datetime,
+                                'batch_size': len(enriched_blocks), 'transactions_per_batch': len(enriched_transactions),
+                                'logs_per_batch': len(enriched_logs),
+                                'token_transfers_per_batch': len(enriched_token_transfers),
+                                'traces_per_batch': len(enriched_traces), 'contracts_per_batch': len(enriched_contracts),
+                                'tokens_per_batch': len(enriched_tokens)
+                                }
+                         )
+        else:
+            logging.info(f"No blocks to export in this batch {len(enriched_blocks)} "
+                         f"with {type(self.item_exporter).__name__}")
 
         all_items = \
             sort_by(enriched_blocks, 'number') + \

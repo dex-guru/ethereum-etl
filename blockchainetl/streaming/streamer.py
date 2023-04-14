@@ -97,8 +97,19 @@ class Streamer:
         target_block = self._calculate_target_block(current_block, self.last_synced_block)
         blocks_to_sync = max(target_block - self.last_synced_block, 0)
 
-        logging.info('Current block {}, target block {}, last synced block {}, blocks to sync {}'.format(
-            current_block, target_block, self.last_synced_block, blocks_to_sync))
+        logging.info(
+            'Current block %s, target block %s, last synced block %s, blocks to sync %s',
+            current_block,
+            target_block,
+            self.last_synced_block,
+            blocks_to_sync,
+            extra={
+                'current_block': current_block,
+                'target_block': target_block,
+                'last_synced_block': self.last_synced_block,
+                'blocks_to_sync': blocks_to_sync,
+            },
+        )
 
         if blocks_to_sync != 0:
             self.blockchain_streamer_adapter.export_all(self.last_synced_block + 1, target_block)

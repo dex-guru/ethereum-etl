@@ -25,18 +25,18 @@ CREATE TABLE IF NOT EXISTS `${transaction}`
     `to_address` Nullable(String) CODEC(ZSTD(1)),
     `value` UInt256,
     `gas` UInt64,
-    `gas_price` UInt64,
+    `gas_price` UInt256,
     `input` String CODEC(ZSTD(1)),
     `block_timestamp` UInt32,
     `max_fee_per_gas` Nullable(Int64),
     `max_priority_fee_per_gas` Nullable(Int64),
-    `transaction_type` UInt32,
+    `transaction_type` Nullable(UInt32),
     `receipt_cumulative_gas_used` UInt64,
     `receipt_gas_used` UInt64,
     `receipt_contract_address` Nullable(String) CODEC(ZSTD(1)),
     `receipt_root` Nullable(String) CODEC(ZSTD(1)),
     `receipt_status` UInt32,
-    `receipt_effective_gas_price` UInt256
+    `receipt_effective_gas_price` Nullable(UInt256)
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))

@@ -22,11 +22,13 @@
 
 
 import itertools
+import logging
 import warnings
 from datetime import datetime
 
 import pytz
 
+from ethereumetl.config.envs import envs
 from ethereumetl.misc.retriable_value_error import RetriableValueError
 
 
@@ -82,6 +84,9 @@ def rpc_response_to_result(response):
             error_message = error_message + ' Make sure Ethereum node is synced.'
             # When nodes are behind a load balancer it makes sense to retry the request in hopes it will go to other,
             # synced node
+            if envs.SKIP_NONE_RECEIPTS:
+                logging.error(error_message)
+                return None
             raise RetriableValueError(error_message)
         elif response.get('error') is not None and is_retriable_error(response.get('error').get('code')):
             raise RetriableValueError(error_message)
@@ -139,3 +144,14 @@ def check_classic_provider_uri(chain, provider_uri):
 
 def timestamp_now() -> int:
     return int(datetime.now(tz=pytz.UTC).timestamp())
+
+
+def dedup_list_of_dicts(items_list: list) -> list:
+    seen = set()
+    new_l = []
+    for d in items_list:
+        t = tuple(d.items())
+        if t not in seen:
+            seen.add(t)
+            new_l.append(d)
+    return new_l
