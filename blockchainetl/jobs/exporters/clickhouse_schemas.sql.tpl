@@ -84,7 +84,8 @@ CREATE TABLE IF NOT EXISTS `${token_transfer}`
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
-ORDER BY (transaction_hash, log_index);
+ORDER BY (transaction_hash, log_index, token_id)
+SETTINGS allow_nullable_key=1;
 
 CREATE TABLE IF NOT EXISTS `${trace}`
 (
@@ -96,13 +97,13 @@ CREATE TABLE IF NOT EXISTS `${trace}`
     `input` String CODEC(ZSTD(1)),
     `output` String CODEC(ZSTD(1)),
     `trace_type` String CODEC(ZSTD(1)),
-    `call_type` String CODEC(ZSTD(1)),
-    `reward_type` String CODEC(ZSTD(1)),
+    `call_type` Nullable(String) CODEC(ZSTD(1)),
+    `reward_type` Nullable(String) CODEC(ZSTD(1)),
     `gas` UInt64,
     `gas_used` UInt64,
     `subtraces` UInt32,
     `trace_address` String CODEC(ZSTD(1)),
-    `error` String CODEC(ZSTD(1)),
+    `error` Nullable(String) CODEC(ZSTD(1)),
     `status` UInt32,
     `block_timestamp` UInt32,
     `block_number` UInt64,
