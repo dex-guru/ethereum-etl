@@ -50,6 +50,12 @@ spec:
         {{- end }}
         {{- if index .Values .Values.appName "env" }}
           env:
+          {{- if .Values.chainName }}
+          {{- range $key, $value := (index .Values .Values.appName "chainEnv") }}
+            - name: {{ $key }}
+              value: {{ (index $value .Values.chainName) | default (index $value).default  }}
+          {{- end }}
+          {{- end }}
           {{- range $key, $value := (index .Values .Values.appName "env") }}
             - name: {{ $key }}
               value: {{ $value | quote }}

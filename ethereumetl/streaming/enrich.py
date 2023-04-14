@@ -24,6 +24,9 @@
 import itertools
 from collections import defaultdict
 
+from ethereumetl.config.envs import envs
+from ethereumetl.utils import dedup_list_of_dicts
+
 
 def join(left, right, join_fields, left_fields, right_fields):
     left_join_field, right_join_field = join_fields
@@ -58,6 +61,13 @@ def join(left, right, join_fields, left_fields, right_fields):
 
 
 def enrich_transactions(transactions, receipts):
+    transactions = dedup_list_of_dicts(transactions)
+    receipts = dedup_list_of_dicts(receipts)
+    if envs.SKIP_NONE_RECEIPTS:
+        transactions_dict = {t['hash']: t for t in transactions}
+        transactions = []
+        for receipt in receipts:
+            transactions.append(transactions_dict[receipt['transaction_hash']])
     result = list(join(
         transactions, receipts, ('hash', 'transaction_hash'),
         left_fields=[
@@ -111,7 +121,7 @@ def enrich_logs(blocks, logs):
             ('hash', 'block_hash'),
         ]))
 
-    if len(result) != len(logs):
+    if len(result) != len(logs) and not envs.SKIP_NONE_RECEIPTS:
         raise ValueError('The number of logs is wrong ' + str(result))
 
     return result
@@ -137,7 +147,7 @@ def enrich_token_transfers(blocks, token_transfers):
             ('hash', 'block_hash'),
         ]))
 
-    if len(result) != len(token_transfers):
+    if len(result) != len(token_transfers) and not envs.SKIP_NONE_RECEIPTS:
         raise ValueError('The number of token transfers is wrong ' + str(result))
 
     return result

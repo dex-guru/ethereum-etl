@@ -39,6 +39,6 @@ class EnvsConfig(BaseSettings):
     LOGSTASH_LOGGING_LEVEL: str = 'INFO'
     LOG_HANDLERS: List[str] = ['console']
     SERVICE_NAME: str = ''
-
+    SKIP_NONE_RECEIPTS: bool = False
 
 envs = EnvsConfig()
