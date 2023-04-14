@@ -63,11 +63,7 @@ spec:
               value: 'https://public-stage-lax.dexguru.biz/archive/{{ (split "-" .Values.chainName)._1 }}'
             {{- range $key, $value := (index .Values .Values.appName "chainEnv") }}
             - name: {{ $key }}
-            {{- if (index $value .Values.chainName) }}
-              value: {{  (index $value .Values.chainName | quote) | default $value.default | quote }}
-            {{- else }}
-              value: {{ $value.default | quote }}
-            {{- end }}
+              value: {{ (index $value .Values.chainName | quote) | default $value.default | quote }}
             {{- end }}
           {{- end }}
         {{- end }}
