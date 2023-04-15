@@ -65,7 +65,7 @@ spec:
             {{- range $key, $value := (index .Values .Values.appName "chainEnv") }}
             - name: {{ $key }}
               {{- range $key2, $value2 := index $value }}
-              value: {{ index $key2 $chainname | quote }}
+              value: {{ index $key2 | quote }}
               {{- end }}
             {{- end }}
           {{- end }}
