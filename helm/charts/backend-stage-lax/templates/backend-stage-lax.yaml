@@ -61,10 +61,11 @@ spec:
               value: '{{ (split "-" .Values.chainName)._1 }}'
             - name: PROVIDER_URL
               value: 'https://public-stage-lax.dexguru.biz/archive/{{ (split "-" .Values.chainName)._1 }}'
+            {{- $temp : = .Values.chainName -}}
             {{- range $key, $value := (index .Values .Values.appName "chainEnv") }}
             - name: {{ $key }}
               {{- range $key2, $value2 := $value }}
-              value: {{ index $key2 .Values.chainName }}
+              value: {{ index $key2 $temp }}
               {{- end }}
             {{- end }}
           {{- end }}
