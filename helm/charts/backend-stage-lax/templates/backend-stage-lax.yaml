@@ -62,10 +62,10 @@ spec:
             - name: PROVIDER_URL
               value: 'https://public-stage-lax.dexguru.biz/archive/{{ (split "-" .Values.chainName)._1 }}'
             {{- $temp := .Values -}}
-            {{- range $key, $value := (index $temp $temp.appName "chainEnv") }}
+            {{- range $key := (index $temp $temp.appName "chainEnv") }}
             - name: {{ $key }}
-                {{- range $value2 := ($temp $temp.appName "chainEnv" $key) }}
-                value: {{ ($value2 $temp.appName | quote) | default ($value2.default | quote) }}
+                {{- range $value := ($temp $temp.appName "chainEnv" $key) }}
+                value: {{ ($value $temp.appName | quote) | default ($value.default | quote) }}
                 {{- end }}
             {{- end }}
           {{- end }}
