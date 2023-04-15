@@ -64,7 +64,7 @@ spec:
             {{- $temp := .Values -}}
             {{- range $key := (index $temp $temp.appName "chainEnv") }}
             - name: {{ $key }}
-              value: {{ (. $temp.appName | quote) | default (. .default | quote) }}
+              value: {{ (index $temp $temp.appName "chainEnv" $key $temp.chainName | quote) | default (. .default | quote) }}
             {{- end }}
           {{- end }}
         {{- end }}
