@@ -61,12 +61,12 @@ spec:
               value: '{{ (split "-" .Values.chainName)._1 }}'
             - name: PROVIDER_URL
               value: 'https://public-stage-lax.dexguru.biz/archive/{{ (split "-" .Values.chainName)._1 }}'
-            {% for chainEnv_key in .Values .Values.appName "chainEnv" -%}
-            - name: {{ chainEnv_key }}
-                {{- range $value := (index .Values .Values.appName "chainEnv" chainEnv_key) }}
+            {{- range $key, $value := (index .Values .Values.appName "chainEnv").items }}
+            - name: {{ $key }}
+                {{- range $value := (index .Values .Values.appName "chainEnv" $key) }}
                 value: {{ $value .Values.appName | default ($value.default | quote) }}
                 {{- end }}
-            {% endfor %}
+            {{- end }}
           {{- end }}
         {{- end }}
           imagePullPolicy: IfNotPresent
