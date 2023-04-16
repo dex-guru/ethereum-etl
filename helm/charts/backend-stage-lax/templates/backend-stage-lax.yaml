@@ -67,7 +67,6 @@ spec:
 #              {{- range $key2, $value2 := index $value }}
               value: {{ index $value $chainname |quote }}
 #              value: {{ index $chainname $value2 |quote }}
-
 #              {{- end }}
             {{- end }}
           {{- end }}
