@@ -12,7 +12,9 @@ for NAMESPACE in ${KUBE_NAMESPACE}; do
     CHAIN=$(echo $NAMESPACE | sed -En "s/.*-indexation-//p")
     echo "...."
     echo "Service ${SERVICE_NAME} deploy to ${NAMESPACE} namespace"
-    echo " "
+    echo "!!!!!!!!!"
+    helm show chart ${HELM_CHART}
+    echo "!!!!!!!!!"
       if [[ "$CHAIN" ]] ; then
         helm upgrade --install ${SERVICE_NAME} ${HELM_CHART} --wait -n ${NAMESPACE} --set imageTag=${CI_COMMIT_SHORT_SHA} --set appName=${SERVICE_NAME} --set kubeNamespace=${NAMESPACE} --set chainName=${CHAIN} --history-max=2
       else
