@@ -69,8 +69,8 @@ raw-data-streamer-stage:
     entrypoint: [""]
   variables:
     SERVICE_NAME: "raw-data-streamer"
-    KUBE_NAMESPACE: stage-indexation-bsc-56 stage-indexation-polygon-137
-    # stage-indexation-eth-1 stage-indexation-canto-7700 stage-indexation-nova-42170 stage-indexation-fantom-250 stage-indexation-gnosis-100  stage-indexation-arbitrum-42161 stage-indexation-optimism-10
+    KUBE_NAMESPACE: stage-indexation-polygon-137
+    #stage-indexation-bsc-56 stage-indexation-eth-1 stage-indexation-canto-7700 stage-indexation-nova-42170 stage-indexation-fantom-250 stage-indexation-gnosis-100  stage-indexation-arbitrum-42161 stage-indexation-optimism-10
     HELM_CHART: ${HELM_CHART_STAGE_LAX}
   script:
     - helm/lax_stage_deploy.sh
