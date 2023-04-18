@@ -29,10 +29,11 @@ raw-data-streamer:
       default: '1000'
       polygon-137: '500'
       bsc-56: '1000'
+      eth-1: '200'
     MAX_WORKERS:
       default: '5'
       polygon-137: '10'
-      eth-1: '15'
+      eth-1: '5'
       bsc-56: '12'
     SKIP_NONE_RECEIPTS:
       default: 'False'
