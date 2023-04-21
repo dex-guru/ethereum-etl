@@ -19,16 +19,18 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from dataclasses import dataclass
+from typing import Optional
 
 
-class EthTokenTransfer(object):
-    def __init__(self):
-        self.token_address = None
-        self.from_address = None
-        self.to_address = None
-        self.value = None
-        self.transaction_hash = None
-        self.log_index = None
-        self.block_number = None
-        self.token_id = None  # ERC-721, ERC-1155
-        self.operator_address = None  # ERC-1155
+@dataclass
+class EthTokenTransfer:
+    token_address: str
+    from_address: str
+    to_address: str
+    value: int
+    transaction_hash: str
+    log_index: int
+    block_number: int
+    token_id: Optional[int] = None  # ERC-721, ERC-1155
+    operator_address: Optional[str] = None
