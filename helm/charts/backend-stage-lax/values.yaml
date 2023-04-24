@@ -27,14 +27,16 @@ raw-data-streamer:
   chainEnv:
     BLOCK_BATCH_SIZE:
       default: '1000'
-      polygon-137: '25'
+      polygon-137: '150'
       bsc-56: '1000'
       eth-1: '200'
+      canto-7700: '1'
     MAX_WORKERS:
       default: '5'
-      polygon-137: '4'
+      polygon-137: '10'
       eth-1: '5'
       bsc-56: '12'
+      canto-7700: '1'
     SKIP_NONE_RECEIPTS:
       default: 'False'
       polygon-137: 'True'

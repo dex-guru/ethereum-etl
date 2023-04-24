@@ -79,6 +79,14 @@ def extract_erc20_transfers(receipt_log):
 
 def extract_erc721_transfers(receipt_log):
     topics = receipt_log.topics
+    if receipt_log.data != "0x":
+        try:
+            value = eth_abi.decode_single("uint256", to_bytes(hexstr=receipt_log.data))
+        except Exception as e:
+            logger.error(f"Weren't able to decode transfer value in tx {receipt_log.transaction_hash}, e: {e}")
+            value = 0
+    else:
+        value = 0
     token_transfer = EthTokenTransfer(
         block_number=receipt_log.block_number,
         transaction_hash=receipt_log.transaction_hash,
@@ -87,7 +95,7 @@ def extract_erc721_transfers(receipt_log):
         from_address=word_to_address(topics[1]),
         to_address=word_to_address(topics[2]),
         token_id=hex_to_dec(topics[3]),
-        value=eth_abi.decode_single("uint256", to_bytes(hexstr=receipt_log.data)),
+        value=value,
     )
     yield token_transfer
 
