@@ -14,6 +14,8 @@ from clickhouse_connect.driver.models import ColumnDef
 
 import clickhouse_connect
 
+from ethereumetl.config.envs import envs
+
 
 @dataclass
 class Table:
@@ -21,7 +23,7 @@ class Table:
     column_types: List[str]
 
 
-MIN_INSERT_BATCH_SIZE = 1000
+MIN_INSERT_BATCH_SIZE = envs.MIN_INSERT_BATCH_SIZE
 
 NUMERIC_TYPE_MAX_VALUES = {
     types.UInt8: 2 ** 8 - 1,

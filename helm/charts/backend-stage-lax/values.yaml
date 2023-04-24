@@ -41,3 +41,6 @@ raw-data-streamer:
       default: 'False'
       polygon-137: 'True'
       bsc-56: 'False'
+    MIN_INSERT_BATCH_SIZE:
+      default: '1000'
+      canto-7700: '1'

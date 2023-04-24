@@ -40,5 +40,7 @@ class EnvsConfig(BaseSettings):
     LOG_HANDLERS: List[str] = ['console']
     SERVICE_NAME: str = ''
     SKIP_NONE_RECEIPTS: bool = False
+    MIN_INSERT_BATCH_SIZE: int = 1000
+
 
 envs = EnvsConfig()
