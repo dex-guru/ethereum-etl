@@ -95,24 +95,29 @@ def create_item_exporter(output, chain_id):
         })
     elif item_exporter_type == ItemExporterType.CLICKHOUSE:
         from blockchainetl.jobs.exporters.clickhouse_exporter import ClickHouseItemExporter
-        item_type_to_table_mapping = {
-            'block': 'blocks',
-            'transaction': 'transactions',
-            'log': 'logs',
-            'token_transfer': 'token_transfers',
-            'trace': 'traces',
-            'contract': 'contracts',
-            'token': 'tokens',
-        }
-        if chain_id:
-            item_type_to_table_mapping = {
-                k: f"{chain_id}_{v}" for k, v in item_type_to_table_mapping.items()
-            }
+        item_type_to_table_mapping = make_item_type_to_table_mapping(chain_id)
         item_exporter = ClickHouseItemExporter(output, item_type_to_table_mapping=item_type_to_table_mapping)
     else:
         raise ValueError('Unable to determine item exporter type for output ' + output)
 
     return item_exporter
+
+
+def make_item_type_to_table_mapping(chain_id=None):
+    item_type_to_table_mapping = {
+        'block': 'blocks',
+        'transaction': 'transactions',
+        'log': 'logs',
+        'token_transfer': 'token_transfers',
+        'trace': 'traces',
+        'contract': 'contracts',
+        'token': 'tokens',
+    }
+    if chain_id:
+        item_type_to_table_mapping = {
+            k: f"{chain_id}_{v}" for k, v in item_type_to_table_mapping.items()
+        }
+    return item_type_to_table_mapping
 
 
 def get_bucket_and_path_from_gcs_output(output):

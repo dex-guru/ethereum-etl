@@ -23,26 +23,27 @@ class ClickhouseEthStreamerAdapter:
         self,
         eth_streamer_adapter: EthStreamerAdapter,
         clickhouse_url: str,
-        chain_id: Optional[int] = None,
+        chain_id: int,
+        item_type_to_table_mapping: Optional[dict[str,str]] = None,
     ):
         self._eth_streamer_adapter = eth_streamer_adapter
         self._clickhouse_url = clickhouse_url
         self._clickhouse: Optional[clickhouse_connect.driver.HttpClient] = None
-        self._item_type_to_table_mapping = {
-            EntityType.BLOCK: 'blocks',
-            EntityType.TRANSACTION: 'transactions',
-            EntityType.RECEIPT: 'receipts',
-            EntityType.LOG: 'logs',
-            EntityType.TOKEN_TRANSFER: 'token_transfers',
-            EntityType.TRACE: 'traces',
-            EntityType.CONTRACT: 'contracts',
-            EntityType.TOKEN: 'tokens',
-        }
-        if chain_id:
+
+        if item_type_to_table_mapping is None:
             self._item_type_to_table_mapping = {
-                k: f"{chain_id}_{v}"
-                for k, v in self._item_type_to_table_mapping.items()
+                EntityType.BLOCK: 'blocks',
+                EntityType.TRANSACTION: 'transactions',
+                EntityType.RECEIPT: 'receipts',
+                EntityType.LOG: 'logs',
+                EntityType.TOKEN_TRANSFER: 'token_transfers',
+                EntityType.TRACE: 'traces',
+                EntityType.CONTRACT: 'contracts',
+                EntityType.TOKEN: 'tokens',
             }
+        else:
+            self._item_type_to_table_mapping = item_type_to_table_mapping
+
         self._chain_id = chain_id
         self._entity_types = set(eth_streamer_adapter.entity_types)
 

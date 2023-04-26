@@ -28,7 +28,10 @@ from ethereumetl.config.envs import envs
 from ethereumetl.enumeration.entity_type import EntityType
 
 from ethereumetl.providers.auto import get_provider_from_uri
-from ethereumetl.streaming.item_exporter_creator import create_item_exporters
+from ethereumetl.streaming.item_exporter_creator import (
+    create_item_exporters,
+    make_item_type_to_table_mapping,
+)
 from ethereumetl.thread_local_proxy import ThreadLocalProxy
 
 
@@ -97,6 +100,7 @@ def stream(chain_id, last_synced_block_provider_uri, lag, provider_uri, output, 
             eth_streamer_adapter=streamer_adapter,
             clickhouse_url=export_from_clickhouse,
             chain_id=chain_id,
+            item_type_to_table_mapping=make_item_type_to_table_mapping(chain_id)
         )
 
     streamer = Streamer(
