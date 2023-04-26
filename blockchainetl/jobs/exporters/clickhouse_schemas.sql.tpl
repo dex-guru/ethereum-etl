@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS `${transaction}`
     `receipt_gas_used` UInt64,
     `receipt_contract_address` Nullable(String) CODEC(ZSTD(1)),
     `receipt_root` Nullable(String) CODEC(ZSTD(1)),
-    `receipt_status` UInt32,
+    `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256)
 )
 ENGINE = ReplacingMergeTree
@@ -90,20 +90,20 @@ SETTINGS allow_nullable_key=1;
 
 CREATE TABLE IF NOT EXISTS `${trace}`
 (
-    `transaction_hash` String CODEC(ZSTD(1)),
-    `transaction_index` UInt32,
-    `from_address` String CODEC(ZSTD(1)),
+    `transaction_hash` Nullable(String) CODEC(ZSTD(1)),
+    `transaction_index` Nullable(UInt32),
+    `from_address` Nullable(String) CODEC(ZSTD(1)),
     `to_address` String CODEC(ZSTD(1)),
     `value` UInt256,
-    `input` String CODEC(ZSTD(1)),
-    `output` String CODEC(ZSTD(1)),
+    `input` Nullable(String) CODEC(ZSTD(1)),
+    `output` Nullable(String) CODEC(ZSTD(1)),
     `trace_type` String CODEC(ZSTD(1)),
     `call_type` Nullable(String) CODEC(ZSTD(1)),
     `reward_type` Nullable(String) CODEC(ZSTD(1)),
-    `gas` UInt64,
-    `gas_used` UInt64,
+    `gas` Nullable(UInt64),
+    `gas_used` Nullable(UInt64),
     `subtraces` UInt32,
-    `trace_address` String CODEC(ZSTD(1)),
+    `trace_address` Array(UInt64) CODEC(ZSTD(1)),
     `error` Nullable(String) CODEC(ZSTD(1)),
     `status` UInt32,
     `block_timestamp` UInt32,
