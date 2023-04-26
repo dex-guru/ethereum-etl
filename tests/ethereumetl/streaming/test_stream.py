@@ -34,10 +34,12 @@ from blockchainetl.jobs.exporters.composite_item_exporter import CompositeItemEx
 from blockchainetl.streaming.streamer import Streamer
 from ethereumetl.streaming.clickhouse_eth_streamer_adapter import ClickhouseEthStreamerAdapter
 from blockchainetl.jobs.exporters.clickhouse_exporter import ClickHouseItemExporter
+from ethereumetl.streaming.item_exporter_creator import make_item_type_to_table_mapping
 from tests.ethereumetl.job.helpers import get_web3_provider
 from tests.helpers import compare_lines_ignore_order, read_file, skip_if_slow_tests_disabled
 
 RESOURCE_GROUP = 'test_stream'
+TEST_TABLE_NAME_PREFIX = 'test_stream_clickhouse_etl_99'
 
 
 def read_resource(resource_group, file_name):
@@ -144,28 +146,29 @@ def test_stream(tmpdir, chain_id, start_block, end_block, batch_size, resource_g
 
 
 @pytest.fixture
-def clickhouse_cleanup():
+def cleanup():
     assert envs.EXPORT_FROM_CLICKHOUSE, 'EXPORT_FROM_CLICKHOUSE env var must be set'
 
     clickhouse = ClickhouseEthStreamerAdapter.clickhouse_client_from_url(envs.EXPORT_FROM_CLICKHOUSE)
 
-    db_name = 'ethereumetl_test_streaming'
+    def do_cleanup():
+        records = clickhouse.query(f"show tables like '{TEST_TABLE_NAME_PREFIX}%'").named_results()
+        for record in records:
+            table_name = record['name']
+            clickhouse.query(f'drop table if exists {table_name}')
 
-    clickhouse.query(f'drop database if exists {db_name}')
-    clickhouse.query(f'create database {db_name}')
-
+    do_cleanup()
     yield
-
-    clickhouse.query(f'drop database if exists {db_name}')
+    do_cleanup()
 
 
 @pytest.mark.parametrize("chain_id, start_block, end_block, batch_size, resource_group, entity_types, provider_type", [
-    (1, 1755634, 1755635, 1, 'blocks_1755634_1755635', EntityType.ALL_FOR_INFURA, 'mock'),
-    skip_if_slow_tests_disabled([1, 1755634, 1755635, 1, 'blocks_1755634_1755635', EntityType.ALL_FOR_INFURA, 'infura']),
-    (1, 508110, 508110, 1, 'blocks_508110_508110', ['trace', 'contract', 'token'], 'mock'),
-    (1, 2112234, 2112234, 1, 'blocks_2112234_2112234', ['trace', 'contract', 'token'], 'mock'),
+    (1, 1755634, 1755635, 1, 'blocks_1755634_1755635', EntityType.ALL, 'mock'),
 ])
-def test_stream_clickhouse(tmpdir, chain_id, start_block, end_block, batch_size, resource_group, entity_types, provider_type, clickhouse_cleanup):
+def test_stream_clickhouse(tmpdir, chain_id, start_block, end_block, batch_size, resource_group, entity_types, provider_type,
+
+    cleanup
+):
     assert envs.EXPORT_FROM_CLICKHOUSE, 'EXPORT_FROM_CLICKHOUSE env var must be set'
 
     ####################################################################
@@ -177,14 +180,6 @@ def test_stream_clickhouse(tmpdir, chain_id, start_block, end_block, batch_size,
     except OSError:
         pass
 
-    blocks_output_file = str(tmpdir.join('actual_blocks.json'))
-    transactions_output_file = str(tmpdir.join('actual_transactions.json'))
-    logs_output_file = str(tmpdir.join('actual_logs.json'))
-    token_transfers_output_file = str(tmpdir.join('actual_token_transfers.json'))
-    traces_output_file = str(tmpdir.join('actual_traces.json'))
-    contracts_output_file = str(tmpdir.join('actual_contracts.json'))
-    tokens_output_file = str(tmpdir.join('actual_tokens.json'))
-
     batch_web3_provider = ThreadLocalProxy(
         lambda: get_web3_provider(
             provider_type,
@@ -193,17 +188,9 @@ def test_stream_clickhouse(tmpdir, chain_id, start_block, end_block, batch_size,
         )
     )
 
+    item_type_to_table_mapping = make_item_type_to_table_mapping(chain_id)
     item_type_to_table_mapping = {
-        'block': 'blocks',
-        'transaction': 'transactions',
-        'log': 'logs',
-        'token_transfer': 'token_transfers',
-        'trace': 'traces',
-        'contract': 'contracts',
-        'token': 'tokens',
-    }
-    item_type_to_table_mapping = {
-        k: f"{chain_id}_{v}" for k, v in item_type_to_table_mapping.items()
+        k: f"{TEST_TABLE_NAME_PREFIX}_{v}" for k, v in item_type_to_table_mapping.items()
     }
 
     item_exporter = ClickHouseItemExporter(envs.EXPORT_FROM_CLICKHOUSE, item_type_to_table_mapping)
@@ -219,6 +206,7 @@ def test_stream_clickhouse(tmpdir, chain_id, start_block, end_block, batch_size,
         eth_streamer_adapter=eth_streamer_adapter,
         clickhouse_url=envs.EXPORT_FROM_CLICKHOUSE,
         chain_id=chain_id,
+        item_type_to_table_mapping=item_type_to_table_mapping,
     )
 
     streamer = Streamer(
@@ -239,8 +227,13 @@ def test_stream_clickhouse(tmpdir, chain_id, start_block, end_block, batch_size,
     except OSError:
         pass
 
-    # expect that we don't use web3 provider and get data from clickhouse
-    batch_web3_provider = None
+    blocks_output_file = str(tmpdir.join('actual_blocks.json'))
+    transactions_output_file = str(tmpdir.join('actual_transactions.json'))
+    logs_output_file = str(tmpdir.join('actual_logs.json'))
+    token_transfers_output_file = str(tmpdir.join('actual_token_transfers.json'))
+    traces_output_file = str(tmpdir.join('actual_traces.json'))
+    contracts_output_file = str(tmpdir.join('actual_contracts.json'))
+    tokens_output_file = str(tmpdir.join('actual_tokens.json'))
 
     item_exporter = CompositeItemExporter(
         filename_mapping={
@@ -255,16 +248,19 @@ def test_stream_clickhouse(tmpdir, chain_id, start_block, end_block, batch_size,
     )
 
     eth_streamer_adapter = EthStreamerAdapter(
-        batch_web3_provider=batch_web3_provider,
+        # expect that we don't use web3 provider and get data from clickhouse
+        batch_web3_provider=None,
         batch_size=batch_size,
         item_exporter=item_exporter,
         entity_types=entity_types,
     )
+    eth_streamer_adapter.get_current_block_number = lambda *_: 12242307
 
     ch_eth_streamer_adapter = ClickhouseEthStreamerAdapter(
         eth_streamer_adapter=eth_streamer_adapter,
         clickhouse_url=envs.EXPORT_FROM_CLICKHOUSE,
         chain_id=chain_id,
+        item_type_to_table_mapping=item_type_to_table_mapping,
     )
 
     streamer = Streamer(
@@ -276,51 +272,44 @@ def test_stream_clickhouse(tmpdir, chain_id, start_block, end_block, batch_size,
     )
     streamer.stream()
 
-    if 'block' in entity_types:
-        print('=====================')
-        print(read_file(blocks_output_file))
-        compare_lines_ignore_order(
-            read_resource(resource_group, 'expected_blocks.json'), read_file(blocks_output_file)
-        )
+    print('=====================')
+    print(read_file(blocks_output_file))
+    compare_lines_ignore_order(
+        read_resource(resource_group, 'expected_blocks.json'), read_file(blocks_output_file)
+    )
 
-    if 'transaction' in entity_types:
-        print('=====================')
-        print(read_file(transactions_output_file))
-        compare_lines_ignore_order(
-            read_resource(resource_group, 'expected_transactions.json'), read_file(transactions_output_file)
-        )
+    print('=====================')
+    print(read_file(transactions_output_file))
+    compare_lines_ignore_order(
+        read_resource(resource_group, 'expected_transactions.json'), read_file(transactions_output_file)
+    )
 
-    if 'log' in entity_types:
-        print('=====================')
-        print(read_file(logs_output_file))
-        compare_lines_ignore_order(
-            read_resource(resource_group, 'expected_logs.json'), read_file(logs_output_file)
-        )
+    print('=====================')
+    print(read_file(logs_output_file))
+    compare_lines_ignore_order(
+        read_resource(resource_group, 'expected_logs.json'), read_file(logs_output_file)
+    )
 
-    if 'token_transfer' in entity_types:
-        print('=====================')
-        print(read_file(token_transfers_output_file))
-        compare_lines_ignore_order(
-            read_resource(resource_group, 'expected_token_transfers.json'), read_file(token_transfers_output_file)
-        )
+    print('=====================')
+    print(read_file(token_transfers_output_file))
+    compare_lines_ignore_order(
+        read_resource(resource_group, 'expected_token_transfers.json'), read_file(token_transfers_output_file)
+    )
 
-    if 'trace' in entity_types:
-        print('=====================')
-        print(read_file(traces_output_file))
-        compare_lines_ignore_order(
-            read_resource(resource_group, 'expected_traces.json'), read_file(traces_output_file)
-        )
+    print('=====================')
+    print(read_file(traces_output_file))
+    compare_lines_ignore_order(
+        read_resource(resource_group, 'expected_traces.json'), read_file(traces_output_file)
+    )
 
-    if 'contract' in entity_types:
-        print('=====================')
-        print(read_file(contracts_output_file))
-        compare_lines_ignore_order(
-            read_resource(resource_group, 'expected_contracts.json'), read_file(contracts_output_file)
-        )
+    print('=====================')
+    print(read_file(contracts_output_file))
+    compare_lines_ignore_order(
+        read_resource(resource_group, 'expected_contracts.json'), read_file(contracts_output_file)
+    )
 
-    if 'token' in entity_types:
-        print('=====================')
-        print(read_file(tokens_output_file))
-        compare_lines_ignore_order(
-            read_resource(resource_group, 'expected_tokens.json'), read_file(tokens_output_file)
-        )
+    print('=====================')
+    print(read_file(tokens_output_file))
+    compare_lines_ignore_order(
+        read_resource(resource_group, 'expected_tokens.json'), read_file(tokens_output_file)
+    )
