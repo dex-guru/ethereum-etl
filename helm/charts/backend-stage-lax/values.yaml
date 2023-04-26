@@ -13,9 +13,9 @@ raw-data-streamer:
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "stream" ]'
   env:
-    LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@10.0.100.39/dex_etl?table_name=last_synced_block'
+    LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@10.0.200.180/dex_etl?table_name=last_synced_block'
     LAG: '0'
-    OUTPUT: 'clickhouse://testuser3:testplpassword@10.0.100.39/dex_etl'
+    OUTPUT: 'clickhouse://testuser3:testplpassword@10.0.200.180/dex_etl'
     START_BLOCK: '1'
     ENTITY_TYPES: 'block,transaction,log,token_transfer'
     POLLING_PERIOD: '2'
