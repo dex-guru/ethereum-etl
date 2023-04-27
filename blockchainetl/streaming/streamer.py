@@ -28,6 +28,7 @@ from abc import ABC, abstractmethod
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from clickhouse_sqlalchemy.types import UInt32
+from sqlalchemy.exc import PendingRollbackError
 
 from blockchainetl.file_utils import smart_open
 from blockchainetl.streaming.streamer_adapter_stub import StreamerAdapterStub
@@ -229,7 +230,11 @@ class LastSyncedBlockProviderSQL(LastSyncedBlockProvider):
                                                         indexed_ts=timestamp_now())
         last_synced_block_record.block_number = last_synced_block
         self.session.add(last_synced_block_record)
-        self.session.commit()
+        try:
+            self.session.commit()
+        except PendingRollbackError:
+            self.session.rollback()
+            logging.error('Failed to set last synced block, retrying batch', exc_info=True)
 
 
 class LastSyncedBlockProviderRedis(LastSyncedBlockProvider):
