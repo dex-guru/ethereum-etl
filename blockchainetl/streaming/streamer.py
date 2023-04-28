@@ -196,7 +196,7 @@ class LastSyncedBlockProviderSQL(LastSyncedBlockProvider):
         from sqlalchemy.orm import sessionmaker
 
         self.engine = create_engine(connection_string)
-        self.session = sessionmaker(bind=self.engine)()
+        self.session = sessionmaker(bind=self.engine)
         self.table_name = table_name
         self.chain_id = chain_id
 
@@ -217,24 +217,27 @@ class LastSyncedBlockProviderSQL(LastSyncedBlockProvider):
         Base.metadata.create_all(self.engine)
 
     def get_last_synced_block(self):
-        last_synced_block = (
-            self.session.query(self.LastSyncedBlock).filter_by(chain_id=self.chain_id)
-            .order_by(self.LastSyncedBlock.block_number.desc()).first()
-        )
+        with self.session() as session:
+            last_synced_block = (
+                session.query(self.LastSyncedBlock)
+                .filter_by(chain_id=self.chain_id)
+                .order_by(self.LastSyncedBlock.block_number.desc())
+                .first()
+            )
         if last_synced_block is None:
             return 0
         return last_synced_block.block_number
 
+
     def set_last_synced_block(self, last_synced_block):
-        last_synced_block_record = self.LastSyncedBlock(chain_id=self.chain_id, block_number=last_synced_block,
-                                                        indexed_ts=timestamp_now())
+        last_synced_block_record = self.LastSyncedBlock(
+            chain_id=self.chain_id,
+            block_number=last_synced_block,
+            indexed_ts=timestamp_now(),
+        )
         last_synced_block_record.block_number = last_synced_block
-        self.session.add(last_synced_block_record)
-        try:
-            self.session.commit()
-        except PendingRollbackError:
-            self.session.rollback()
-            logging.error('Failed to set last synced block, retrying batch', exc_info=True)
+        with self.session() as session:
+            session.add(last_synced_block_record)
 
 
 class LastSyncedBlockProviderRedis(LastSyncedBlockProvider):
