@@ -1,5 +1,4 @@
 class StreamerAdapterStub:
-
     def open(self):
         pass
 

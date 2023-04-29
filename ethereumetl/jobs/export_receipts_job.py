@@ -34,14 +34,15 @@ from ethereumetl.utils import rpc_response_batch_to_results
 # Exports receipts and logs
 class ExportReceiptsJob(BaseJob):
     def __init__(
-            self,
-            transaction_hashes_iterable,
-            batch_size,
-            batch_web3_provider,
-            max_workers,
-            item_exporter,
-            export_receipts=True,
-            export_logs=True):
+        self,
+        transaction_hashes_iterable,
+        batch_size,
+        batch_web3_provider,
+        max_workers,
+        item_exporter,
+        export_receipts=True,
+        export_logs=True,
+    ):
         self.batch_web3_provider = batch_web3_provider
         self.transaction_hashes_iterable = transaction_hashes_iterable
 

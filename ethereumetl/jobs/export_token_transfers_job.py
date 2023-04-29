@@ -20,24 +20,21 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from ethereumetl.executors.batch_work_executor import BatchWorkExecutor
 from blockchainetl.jobs.base_job import BaseJob
-from ethereumetl.mappers.token_transfer_mapper import EthTokenTransferMapper
+from ethereumetl.executors.batch_work_executor import BatchWorkExecutor
 from ethereumetl.mappers.receipt_log_mapper import EthReceiptLogMapper
-from ethereumetl.service.token_transfer_extractor import EthTokenTransferExtractor, TRANSFER_EVENT_TOPIC
+from ethereumetl.mappers.token_transfer_mapper import EthTokenTransferMapper
+from ethereumetl.service.token_transfer_extractor import (
+    TRANSFER_EVENT_TOPIC,
+    EthTokenTransferExtractor,
+)
 from ethereumetl.utils import validate_range
 
 
 class ExportTokenTransfersJob(BaseJob):
     def __init__(
-            self,
-            start_block,
-            end_block,
-            batch_size,
-            web3,
-            item_exporter,
-            max_workers,
-            tokens=None):
+        self, start_block, end_block, batch_size, web3, item_exporter, max_workers, tokens=None
+    ):
         validate_range(start_block, end_block)
         self.start_block = start_block
         self.end_block = end_block
@@ -60,7 +57,7 @@ class ExportTokenTransfersJob(BaseJob):
         self.batch_work_executor.execute(
             range(self.start_block, self.end_block + 1),
             self._export_batch,
-            total_items=self.end_block - self.start_block + 1
+            total_items=self.end_block - self.start_block + 1,
         )
 
     def _export_batch(self, block_number_batch):
@@ -69,7 +66,7 @@ class ExportTokenTransfersJob(BaseJob):
         filter_params = {
             'fromBlock': block_number_batch[0],
             'toBlock': block_number_batch[-1],
-            'topics': [TRANSFER_EVENT_TOPIC]
+            'topics': [TRANSFER_EVENT_TOPIC],
         }
 
         if self.tokens is not None and len(self.tokens) > 0:
@@ -79,15 +76,20 @@ class ExportTokenTransfersJob(BaseJob):
             event_filter = self.web3.eth.filter(filter_params)
             events = event_filter.get_all_entries()
         except ValueError as e:
-            if str(e) == "{'code': -32000, 'message': 'the method is currently not implemented: eth_newFilter'}":
+            if (
+                str(e)
+                == "{'code': -32000, 'message': 'the method is currently not implemented: eth_newFilter'}"
+            ):
                 self._supports_eth_newFilter = False
                 events = self.web3.eth.getLogs(filter_params)
             else:
-                raise(e)
+                raise (e)
         for event in events:
             log = self.receipt_log_mapper.web3_dict_to_receipt_log(event)
             for token_transfer in self.token_transfer_extractor.extract_transfers_from_log(log):
-                self.item_exporter.export_item(self.token_transfer_mapper.token_transfer_to_dict(token_transfer))
+                self.item_exporter.export_item(
+                    self.token_transfer_mapper.token_transfer_to_dict(token_transfer)
+                )
 
         if self._supports_eth_newFilter:
             self.web3.eth.uninstallFilter(event_filter.filter_id)

@@ -1,6 +1,6 @@
 from typing import List, Literal, Optional, Union
 
-from pydantic import BaseSettings, AnyUrl
+from pydantic import AnyUrl, BaseSettings
 
 from ethereumetl.enumeration.entity_type import EntityType
 

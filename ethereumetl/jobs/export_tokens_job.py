@@ -21,8 +21,8 @@
 # SOFTWARE.
 
 
-from ethereumetl.executors.batch_work_executor import BatchWorkExecutor
 from blockchainetl.jobs.base_job import BaseJob
+from ethereumetl.executors.batch_work_executor import BatchWorkExecutor
 from ethereumetl.mappers.token_mapper import EthTokenMapper
 from ethereumetl.service.eth_token_service import EthTokenService
 

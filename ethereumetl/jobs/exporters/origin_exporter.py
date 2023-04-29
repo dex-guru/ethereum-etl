@@ -13,7 +13,7 @@ MARKETPLACE_FIELDS_TO_EXPORT = [
     'title',
     'description',
     'price',
-    'currency'
+    'currency',
 ]
 
 SHOP_FIELDS_TO_EXPORT = [
@@ -32,27 +32,19 @@ SHOP_FIELDS_TO_EXPORT = [
     'option1',
     'option2',
     'option3',
-    'image'
+    'image',
 ]
+
 
 def origin_marketplace_listing_item_exporter(output):
     return CompositeItemExporter(
-        filename_mapping={
-            'origin_marketplace_listing': output
-        },
-        field_mapping={
-            'origin_marketplace_listing': MARKETPLACE_FIELDS_TO_EXPORT
-        }
+        filename_mapping={'origin_marketplace_listing': output},
+        field_mapping={'origin_marketplace_listing': MARKETPLACE_FIELDS_TO_EXPORT},
     )
+
 
 def origin_shop_product_item_exporter(output):
     return CompositeItemExporter(
-        filename_mapping={
-            'origin_shop_product': output
-        },
-        field_mapping={
-            'origin_shop_product': SHOP_FIELDS_TO_EXPORT
-        }
+        filename_mapping={'origin_shop_product': output},
+        field_mapping={'origin_shop_product': SHOP_FIELDS_TO_EXPORT},
     )
-
-

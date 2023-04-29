@@ -24,7 +24,7 @@ class ClickhouseEthStreamerAdapter:
         eth_streamer_adapter: EthStreamerAdapter,
         clickhouse_url: str,
         chain_id: int,
-        item_type_to_table_mapping: Optional[dict[str,str]] = None,
+        item_type_to_table_mapping: Optional[dict[str, str]] = None,
     ):
         self._eth_streamer_adapter = eth_streamer_adapter
         self._clickhouse_url = clickhouse_url
@@ -62,9 +62,7 @@ class ClickhouseEthStreamerAdapter:
             connect_kwargs['database'] = parsed.path[1:]
         if parsed.scheme == "https":
             connect_kwargs['secure'] = True
-        return clickhouse_connect.get_client(
-            **connect_kwargs, compress=False, query_limit=0
-        )
+        return clickhouse_connect.get_client(**connect_kwargs, compress=False, query_limit=0)
 
     def open(self):
         self._eth_streamer_adapter.open()
@@ -104,9 +102,7 @@ class ClickhouseEthStreamerAdapter:
 
         @cache
         def export_blocks_and_transactions():
-            blocks = self._select_distinct(
-                EntityType.BLOCK, start_block, end_block, 'number'
-            )
+            blocks = self._select_distinct(EntityType.BLOCK, start_block, end_block, 'number')
             transactions = self._select_distinct(
                 EntityType.TRANSACTION, start_block, end_block, 'hash'
             )
@@ -129,16 +125,12 @@ class ClickhouseEthStreamerAdapter:
                     f"Not enough data found in clickhouse: falling back to Eth node:"
                     f" entity_types=block,transaction block_range={start_block}-{end_block}"
                 )
-                blocks, transactions = eth_export_blocks_and_transactions(
-                    start_block, end_block
-                )
+                blocks, transactions = eth_export_blocks_and_transactions(start_block, end_block)
 
                 assert len(blocks) == want_block_count, "got less blocks than expected"
 
                 if EntityType.TRANSACTION in self._entity_types:
-                    transactions = enrich_transactions(
-                        transactions, export_receipts_and_logs()[0]
-                    )
+                    transactions = enrich_transactions(transactions, export_receipts_and_logs()[0])
                 return blocks, transactions
 
             for t in transactions:
@@ -154,12 +146,8 @@ class ClickhouseEthStreamerAdapter:
 
         @cache
         def export_receipts_and_logs():
-            blocks, transactions = eth_export_blocks_and_transactions(
-                start_block, end_block
-            )
-            receipts, logs = self._eth_streamer_adapter._export_receipts_and_logs(
-                transactions
-            )
+            blocks, transactions = eth_export_blocks_and_transactions(start_block, end_block)
+            receipts, logs = self._eth_streamer_adapter._export_receipts_and_logs(transactions)
             logs = enrich_logs(blocks, logs)
             return receipts, logs
 
@@ -204,9 +192,7 @@ class ClickhouseEthStreamerAdapter:
 
         @cache
         def extract_token_transfers():
-            token_transfers = self._eth_streamer_adapter._extract_token_transfers(
-                export_logs()
-            )
+            token_transfers = self._eth_streamer_adapter._extract_token_transfers(export_logs())
             token_transfers = enrich_token_transfers(
                 export_blocks_and_transactions()[0], token_transfers
             )
@@ -224,9 +210,7 @@ class ClickhouseEthStreamerAdapter:
             tokens = enrich_tokens(export_blocks_and_transactions()[0], tokens)
             return tokens
 
-        blocks = (
-            transactions
-        ) = logs = token_transfers = traces = contracts = tokens = tuple()
+        blocks = transactions = logs = token_transfers = traces = contracts = tokens = tuple()
 
         if EntityType.BLOCK in self._entity_types:
             blocks = export_blocks_and_transactions()[0]
@@ -249,9 +233,7 @@ class ClickhouseEthStreamerAdapter:
         if EntityType.TOKEN in self._entity_types:
             tokens = extract_tokens()
 
-        logging.info(
-            'Exporting with ' + type(self._eth_streamer_adapter.item_exporter).__name__
-        )
+        logging.info('Exporting with ' + type(self._eth_streamer_adapter.item_exporter).__name__)
 
         all_items = [
             *sort_by(blocks, 'number'),

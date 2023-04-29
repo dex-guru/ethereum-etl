@@ -34,7 +34,9 @@ class EthService(object):
     def get_block_range_for_date(self, date):
         start_datetime = datetime.combine(date, datetime.min.time().replace(tzinfo=timezone.utc))
         end_datetime = datetime.combine(date, datetime.max.time().replace(tzinfo=timezone.utc))
-        return self.get_block_range_for_timestamps(start_datetime.timestamp(), end_datetime.timestamp())
+        return self.get_block_range_for_timestamps(
+            start_datetime.timestamp(), end_datetime.timestamp()
+        )
 
     def get_block_range_for_timestamps(self, start_timestamp, end_timestamp):
         start_timestamp = int(start_timestamp)
@@ -43,16 +45,23 @@ class EthService(object):
             raise ValueError('start_timestamp must be greater or equal to end_timestamp')
 
         try:
-            start_block_bounds = self._graph_operations.get_bounds_for_y_coordinate(start_timestamp)
+            start_block_bounds = self._graph_operations.get_bounds_for_y_coordinate(
+                start_timestamp
+            )
         except OutOfBoundsError:
             start_block_bounds = (0, 0)
 
         try:
             end_block_bounds = self._graph_operations.get_bounds_for_y_coordinate(end_timestamp)
         except OutOfBoundsError as e:
-            raise OutOfBoundsError('The existing blocks do not completely cover the given time range') from e
+            raise OutOfBoundsError(
+                'The existing blocks do not completely cover the given time range'
+            ) from e
 
-        if start_block_bounds == end_block_bounds and start_block_bounds[0] != start_block_bounds[1]:
+        if (
+            start_block_bounds == end_block_bounds
+            and start_block_bounds[0] != start_block_bounds[1]
+        ):
             raise ValueError('The given timestamp range does not cover any blocks')
 
         start_block = start_block_bounds[1]

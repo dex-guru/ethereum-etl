@@ -51,25 +51,24 @@ def build_block_bundles(items):
     block_bundles = []
     for block_number in sorted(blocks.keys()):
         if len(blocks[block_number]) != 1:
-            raise ValueError(f'There must be a single block for a given block number, was {len(blocks[block_number])} for block number {block_number}')
-        block_bundles.append({
-            'block': blocks[block_number][0],
-            'transactions': transactions[block_number],
-            'logs': logs[block_number],
-            'token_transfers': token_transfers[block_number],
-            'traces': traces[block_number],
-        })
+            raise ValueError(
+                f'There must be a single block for a given block number, was {len(blocks[block_number])} for block number {block_number}'
+            )
+        block_bundles.append(
+            {
+                'block': blocks[block_number][0],
+                'transactions': transactions[block_number],
+                'logs': logs[block_number],
+                'token_transfers': token_transfers[block_number],
+                'traces': traces[block_number],
+            }
+        )
 
     return block_bundles
 
 
 class GcsItemExporter:
-
-    def __init__(
-            self,
-            bucket,
-            path='blocks',
-            build_block_bundles_func=build_block_bundles):
+    def __init__(self, bucket, path='blocks', build_block_bundles_func=build_block_bundles):
         self.bucket = bucket
         self.path = normalize_path(path)
         self.build_block_bundles_func = build_block_bundles_func
@@ -106,6 +105,6 @@ def normalize_path(p):
     if p.startswith('/'):
         p = p[1:]
     if p.endswith('/'):
-        p = p[:len(p) - 1]
+        p = p[: len(p) - 1]
 
     return p

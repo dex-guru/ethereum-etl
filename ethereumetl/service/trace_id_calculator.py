@@ -42,7 +42,9 @@ def calculate_trace_ids(traces):
 
 def calculate_transaction_scoped_trace_ids(traces):
     for trace in traces:
-        trace.trace_id = concat(trace.trace_type, trace.transaction_hash, trace_address_to_str(trace.trace_address))
+        trace.trace_id = concat(
+            trace.trace_type, trace.transaction_hash, trace_address_to_str(trace.trace_address)
+        )
 
 
 def calculate_block_scoped_trace_ids(traces):
@@ -57,8 +59,10 @@ def calculate_block_scoped_trace_ids(traces):
 
 
 def calculate_trace_indexes_for_single_type(traces):
-    sorted_traces = sorted(traces,
-                           key=lambda trace: (trace.reward_type, trace.from_address, trace.to_address, trace.value))
+    sorted_traces = sorted(
+        traces,
+        key=lambda trace: (trace.reward_type, trace.from_address, trace.to_address, trace.value),
+    )
 
     for index, trace in enumerate(sorted_traces):
         trace.trace_id = concat(trace.trace_type, trace.block_number, index)

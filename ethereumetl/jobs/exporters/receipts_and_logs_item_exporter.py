@@ -33,7 +33,7 @@ RECEIPT_FIELDS_TO_EXPORT = [
     'contract_address',
     'root',
     'status',
-    'effective_gas_price'
+    'effective_gas_price',
 ]
 
 LOG_FIELDS_TO_EXPORT = [
@@ -44,18 +44,12 @@ LOG_FIELDS_TO_EXPORT = [
     'block_number',
     'address',
     'data',
-    'topics'
+    'topics',
 ]
 
 
 def receipts_and_logs_item_exporter(receipts_output=None, logs_output=None):
     return CompositeItemExporter(
-        filename_mapping={
-            'receipt': receipts_output,
-            'log': logs_output
-        },
-        field_mapping={
-            'receipt': RECEIPT_FIELDS_TO_EXPORT,
-            'log': LOG_FIELDS_TO_EXPORT
-        }
+        filename_mapping={'receipt': receipts_output, 'log': logs_output},
+        field_mapping={'receipt': RECEIPT_FIELDS_TO_EXPORT, 'log': LOG_FIELDS_TO_EXPORT},
     )

@@ -39,7 +39,6 @@ import six
 
 
 class BaseItemExporter(object):
-
     def __init__(self, **kwargs):
         self._configure(kwargs)
 
@@ -96,18 +95,18 @@ class BaseItemExporter(object):
 
 
 class CsvItemExporter(BaseItemExporter):
-
     def __init__(self, file, include_headers_line=True, join_multivalued=',', **kwargs):
         self._configure(kwargs, dont_fail=True)
         if not self.encoding:
             self.encoding = 'utf-8'
         self.include_headers_line = include_headers_line
-        self.stream = io.TextIOWrapper(
-            file,
-            line_buffering=False,
-            write_through=True,
-            encoding=self.encoding
-        ) if six.PY3 else file
+        self.stream = (
+            io.TextIOWrapper(
+                file, line_buffering=False, write_through=True, encoding=self.encoding
+            )
+            if six.PY3
+            else file
+        )
         self.csv_writer = csv.writer(self.stream, **kwargs)
         self._headers_not_written = True
         self._join_multivalued = join_multivalued
@@ -133,8 +132,7 @@ class CsvItemExporter(BaseItemExporter):
                     self._write_headers_and_set_fields_to_export(item)
                     self._headers_not_written = False
 
-        fields = self._get_serialized_fields(item, default_value='',
-                                             include_empty=True)
+        fields = self._get_serialized_fields(item, default_value='', include_empty=True)
         values = list(self._build_row(x for _, x in fields))
         self.csv_writer.writerow(values)
 
@@ -159,7 +157,6 @@ class CsvItemExporter(BaseItemExporter):
 
 
 class JsonLinesItemExporter(BaseItemExporter):
-
     def __init__(self, file, **kwargs):
         self._configure(kwargs, dont_fail=True)
         self.file = file
@@ -173,8 +170,8 @@ class JsonLinesItemExporter(BaseItemExporter):
 
 
 def to_native_str(text, encoding=None, errors='strict'):
-    """ Return str representation of `text`
-    (bytes in Python 2.x and unicode in Python 3.x). """
+    """Return str representation of `text`
+    (bytes in Python 2.x and unicode in Python 3.x)."""
     if six.PY2:
         return to_bytes(text, encoding, errors)
     else:
@@ -187,8 +184,9 @@ def to_bytes(text, encoding=None, errors='strict'):
     if isinstance(text, bytes):
         return text
     if not isinstance(text, six.string_types):
-        raise TypeError('to_bytes must receive a unicode, str or bytes '
-                        'object, got %s' % type(text).__name__)
+        raise TypeError(
+            'to_bytes must receive a unicode, str or bytes ' 'object, got %s' % type(text).__name__
+        )
     if encoding is None:
         encoding = 'utf-8'
     return text.encode(encoding, errors)
@@ -200,8 +198,10 @@ def to_unicode(text, encoding=None, errors='strict'):
     if isinstance(text, six.text_type):
         return text
     if not isinstance(text, (bytes, six.text_type)):
-        raise TypeError('to_unicode must receive a bytes, str or unicode '
-                        'object, got %s' % type(text).__name__)
+        raise TypeError(
+            'to_unicode must receive a bytes, str or unicode '
+            'object, got %s' % type(text).__name__
+        )
     if encoding is None:
         encoding = 'utf-8'
     return text.decode(encoding, errors)

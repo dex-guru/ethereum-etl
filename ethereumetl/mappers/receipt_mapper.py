@@ -69,5 +69,5 @@ class EthReceiptMapper(object):
             'contract_address': receipt.contract_address,
             'root': receipt.root,
             'status': receipt.status,
-            'effective_gas_price': receipt.effective_gas_price
+            'effective_gas_price': receipt.effective_gas_price,
         }

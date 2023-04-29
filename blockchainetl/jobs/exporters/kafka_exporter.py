@@ -8,7 +8,6 @@ from blockchainetl.jobs.exporters.converters.composite_item_converter import Com
 
 
 class KafkaItemExporter:
-
     def __init__(self, output, item_type_to_topic_mapping, converters=()):
         self.item_type_to_topic_mapping = item_type_to_topic_mapping
         self.converter = CompositeItemConverter(converters)
@@ -20,7 +19,9 @@ class KafkaItemExporter:
         try:
             return output.split('/')[1]
         except KeyError:
-            raise Exception('Invalid kafka output param, It should be in format of "kafka/127.0.0.1:9092"')
+            raise Exception(
+                'Invalid kafka output param, It should be in format of "kafka/127.0.0.1:9092"'
+            )
 
     def open(self):
         pass

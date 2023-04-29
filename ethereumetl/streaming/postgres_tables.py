@@ -20,8 +20,19 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
 
-from sqlalchemy import Table, Column, Integer, BigInteger, Boolean, String, Numeric, \
-    MetaData, PrimaryKeyConstraint, VARCHAR, TIMESTAMP
+from sqlalchemy import (
+    TIMESTAMP,
+    VARCHAR,
+    BigInteger,
+    Boolean,
+    Column,
+    Integer,
+    MetaData,
+    Numeric,
+    PrimaryKeyConstraint,
+    String,
+    Table,
+)
 from sqlalchemy.dialects.postgresql import ARRAY
 
 metadata = MetaData()
@@ -29,7 +40,8 @@ metadata = MetaData()
 # SQL schema is here https://github.com/blockchain-etl/ethereum-etl-postgres/tree/master/schema
 
 BLOCKS = Table(
-    'blocks', metadata,
+    'blocks',
+    metadata,
     Column('timestamp', TIMESTAMP),
     Column('number', BigInteger),
     Column('hash', String, primary_key=True),
@@ -52,7 +64,8 @@ BLOCKS = Table(
 )
 
 TRANSACTIONS = Table(
-    'transactions', metadata,
+    'transactions',
+    metadata,
     Column('hash', String, primary_key=True),
     Column('nonce', BigInteger),
     Column('transaction_index', BigInteger),
@@ -77,7 +90,8 @@ TRANSACTIONS = Table(
 )
 
 LOGS = Table(
-    'logs', metadata,
+    'logs',
+    metadata,
     Column('log_index', BigInteger, primary_key=True),
     Column('transaction_hash', String, primary_key=True),
     Column('transaction_index', BigInteger),
@@ -93,7 +107,8 @@ LOGS = Table(
 )
 
 TOKEN_TRANSFERS = Table(
-    'token_transfers', metadata,
+    'token_transfers',
+    metadata,
     Column('token_address', String),
     Column('from_address', String),
     Column('to_address', String),
@@ -108,7 +123,8 @@ TOKEN_TRANSFERS = Table(
 )
 
 TRACES = Table(
-    'traces', metadata,
+    'traces',
+    metadata,
     Column('transaction_hash', String),
     Column('transaction_index', BigInteger),
     Column('from_address', String),
@@ -132,7 +148,8 @@ TRACES = Table(
 )
 
 TOKENS = Table(
-    'tokens', metadata,
+    'tokens',
+    metadata,
     Column('address', VARCHAR(42)),
     Column('name', String),
     Column('symbol', String),
@@ -144,7 +161,8 @@ TOKENS = Table(
 )
 
 CONTRACTS = Table(
-    'contracts', metadata,
+    'contracts',
+    metadata,
     Column('address', VARCHAR(42)),
     Column('bytecode', String),
     Column('function_sighashes', ARRAY(String)),
