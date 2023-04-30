@@ -42,7 +42,7 @@ BLOCK_FIELDS_TO_EXPORT = [
     'gas_used',
     'timestamp',
     'transaction_count',
-    'base_fee_per_gas'
+    'base_fee_per_gas',
 ]
 
 TRANSACTION_FIELDS_TO_EXPORT = [
@@ -60,18 +60,15 @@ TRANSACTION_FIELDS_TO_EXPORT = [
     'block_timestamp',
     'max_fee_per_gas',
     'max_priority_fee_per_gas',
-    'transaction_type'
+    'transaction_type',
 ]
 
 
 def blocks_and_transactions_item_exporter(blocks_output=None, transactions_output=None):
     return CompositeItemExporter(
-        filename_mapping={
-            'block': blocks_output,
-            'transaction': transactions_output
-        },
+        filename_mapping={'block': blocks_output, 'transaction': transactions_output},
         field_mapping={
             'block': BLOCK_FIELDS_TO_EXPORT,
-            'transaction': TRANSACTION_FIELDS_TO_EXPORT
-        }
+            'transaction': TRANSACTION_FIELDS_TO_EXPORT,
+        },
     )

@@ -13,6 +13,7 @@ class OriginMarketplaceListing(object):
         self.block_number = None
         self.log_index = None
 
+
 class OriginShopProduct(object):
     def __init__(self):
         self.listing_id = None

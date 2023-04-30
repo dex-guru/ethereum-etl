@@ -8,6 +8,7 @@ class AddAttrsFilter(logging.Filter):
     """
     A logging filter that adds extra attributes to log records.
     """
+
     def __init__(self, attrs: dict):
         super().__init__()
         self.attrs = attrs

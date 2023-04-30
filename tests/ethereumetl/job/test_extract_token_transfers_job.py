@@ -37,9 +37,11 @@ def read_resource(resource_group, file_name):
     return tests.resources.read_resource([RESOURCE_GROUP, resource_group], file_name)
 
 
+# fmt: off
 @pytest.mark.parametrize('resource_group', [
     'logs'
 ])
+# fmt: on
 def test_export_token_transfers_job(tmpdir, resource_group):
     output_file = str(tmpdir.join('token_transfers.csv'))
 
@@ -49,7 +51,7 @@ def test_export_token_transfers_job(tmpdir, resource_group):
         logs_iterable=logs_csv_reader,
         batch_size=2,
         item_exporter=token_transfers_item_exporter(output_file),
-        max_workers=5
+        max_workers=5,
     )
     job.run()
 

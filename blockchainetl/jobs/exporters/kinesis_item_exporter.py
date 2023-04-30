@@ -36,11 +36,10 @@ def _uuid_partition_key(_: dict) -> str:
 
 class KinesisItemExporter:
     def __init__(
-            self,
-            stream_name: str,
-            partition_key_callable: t.Callable[[dict], str] = _uuid_partition_key,
+        self,
+        stream_name: str,
+        partition_key_callable: t.Callable[[dict], str] = _uuid_partition_key,
     ):
-        import boto3
         self._stream_name = stream_name
         self._partition_key_callable = partition_key_callable
         self._kinesis_client = None  # initialized in .open

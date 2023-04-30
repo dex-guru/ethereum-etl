@@ -25,8 +25,8 @@ import logging
 from builtins import map
 from typing import Iterator
 
-import eth_abi.exceptions
 import eth_abi
+import eth_abi.exceptions
 from eth_utils import keccak, to_bytes, to_hex
 
 from ethereumetl.domain.token_transfer import EthTokenTransfer
@@ -83,7 +83,9 @@ def extract_erc721_transfers(receipt_log):
         try:
             value = eth_abi.decode_single("uint256", to_bytes(hexstr=receipt_log.data))
         except Exception as e:
-            logger.error(f"Weren't able to decode transfer value in tx {receipt_log.transaction_hash}, e: {e}")
+            logger.error(
+                f"Weren't able to decode transfer value in tx {receipt_log.transaction_hash}, e: {e}"
+            )
             value = 0
     else:
         value = 0

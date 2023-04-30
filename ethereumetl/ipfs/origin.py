@@ -9,6 +9,7 @@ logger = logging.getLogger('origin')
 IPFS_PRIMARY_GATEWAY_URL = 'https://ipfs-prod.ogn.app/ipfs'
 IPFS_SECONDARY_GATEWAY_URL = 'https://gateway.ipfs.io/ipfs'
 
+
 # Returns an IPFS client that can be used to fetch Origin Protocol's data.
 def get_origin_ipfs_client():
     return IpfsClient([IPFS_PRIMARY_GATEWAY_URL, IPFS_SECONDARY_GATEWAY_URL])
@@ -34,7 +35,9 @@ def _get_origin_shop_products(receipt_log, listing_id, ipfs_client, shop_ipfs_ha
     try:
         products = ipfs_client.get_json(products_path)
     except Exception as e:
-        logger.error("Listing {} Failed downloading product {}: {}".format(listing_id, products_path, e))
+        logger.error(
+            "Listing {} Failed downloading product {}: {}".format(listing_id, products_path, e)
+        )
         return results
 
     logger.info("Found {} products in for listing {}".format(len(products), listing_id))
@@ -87,8 +90,12 @@ def _get_origin_shop_products(receipt_log, listing_id, ipfs_client, shop_ipfs_ha
                 result.listing_id = listing_id
                 result.product_id = "{}-{}".format(listing_id, variant.get('id'))
                 result.ipfs_path = product_base_path
-                result.external_id = str(variant.get('externalId')) if variant.get('externalId') else None
-                result.parent_external_id = str(product.get('externalId')) if product.get('externalId') else None
+                result.external_id = (
+                    str(variant.get('externalId')) if variant.get('externalId') else None
+                )
+                result.parent_external_id = (
+                    str(product.get('externalId')) if product.get('externalId') else None
+                )
                 result.title = variant.get('title')
                 result.description = product.get('description')
                 result.price = variant.get('price')
@@ -101,13 +108,16 @@ def _get_origin_shop_products(receipt_log, listing_id, ipfs_client, shop_ipfs_ha
 
     return results
 
+
 # Returns a listing from the Origin Protocol marketplace.
 def get_origin_marketplace_data(receipt_log, listing_id, ipfs_client, ipfs_hash):
     # Load the listing's metadata from IPFS.
     try:
         listing_data = ipfs_client.get_json(ipfs_hash)
     except Exception as e:
-        logger.error("Extraction failed. Listing {} Listing hash {} - {}".format(listing_id, ipfs_hash, e))
+        logger.error(
+            "Extraction failed. Listing {} Listing hash {} - {}".format(listing_id, ipfs_hash, e)
+        )
         return None, []
 
     # Fill-in an OriginMarketplaceListing object based on the IPFS data.
@@ -130,10 +140,14 @@ def get_origin_marketplace_data(receipt_log, listing_id, ipfs_client, ipfs_hash)
     shop_ipfs_hash = listing_data.get('shopIpfsHash')
     if shop_ipfs_hash:
         try:
-            shop_listings = _get_origin_shop_products(receipt_log, listing_id, ipfs_client, shop_ipfs_hash)
+            shop_listings = _get_origin_shop_products(
+                receipt_log, listing_id, ipfs_client, shop_ipfs_hash
+            )
         except Exception as e:
-            logger.error("Extraction failed. Listing {} Shop hash {} - {}".format(listing_id, shop_ipfs_hash, e))
+            logger.error(
+                "Extraction failed. Listing {} Shop hash {} - {}".format(
+                    listing_id, shop_ipfs_hash, e
+                )
+            )
 
     return listing, shop_listings
-
-
