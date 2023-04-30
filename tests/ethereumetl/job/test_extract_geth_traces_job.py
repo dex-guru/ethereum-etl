@@ -36,6 +36,7 @@ def read_resource(resource_group, file_name):
     return tests.resources.read_resource([RESOURCE_GROUP, resource_group], file_name)
 
 
+# fmt: off
 @pytest.mark.parametrize('resource_group', [
     'block_without_transactions',
     'block_with_create',
@@ -43,6 +44,7 @@ def read_resource(resource_group, file_name):
     'block_with_subtraces',
     'block_with_error',
 ])
+# fmt: on
 def test_extract_traces_job(tmpdir, resource_group):
     output_file = str(tmpdir.join('actual_traces.csv'))
 
@@ -52,7 +54,7 @@ def test_extract_traces_job(tmpdir, resource_group):
         traces_iterable=traces_iterable,
         batch_size=2,
         item_exporter=traces_item_exporter(output_file),
-        max_workers=5
+        max_workers=5,
     )
     job.run()
 

@@ -21,8 +21,8 @@
 # SOFTWARE.
 
 
-import os
 import json
+import os
 
 import pytest
 
@@ -58,4 +58,6 @@ run_slow_tests = run_slow_tests_variable.lower() in ['1', 'true', 'yes']
 
 
 def skip_if_slow_tests_disabled(data):
-    return pytest.param(*data, marks=pytest.mark.skipif(not run_slow_tests, reason='Skipping slow running tests'))
+    return pytest.param(
+        *data, marks=pytest.mark.skipif(not run_slow_tests, reason='Skipping slow running tests')
+    )

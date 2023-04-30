@@ -37,20 +37,23 @@ from ethereumetl.utils import timestamp_now, HealthCheck
 
 class Streamer:
     def __init__(
-            self,
-            chain_id,
-            blockchain_streamer_adapter=StreamerAdapterStub(),
-            last_synced_block_provider_uri='file://last_synced_block.txt',
-            lag=0,
-            start_block=None,
-            end_block=None,
-            period_seconds=10,
-            block_batch_size=10,
-            retry_errors=True,
-            pid_file=None):
+        self,
+        chain_id,
+        blockchain_streamer_adapter=StreamerAdapterStub(),
+        last_synced_block_provider_uri='file://last_synced_block.txt',
+        lag=0,
+        start_block=None,
+        end_block=None,
+        period_seconds=10,
+        block_batch_size=10,
+        retry_errors=True,
+        pid_file=None,
+    ):
         self.chain_id = chain_id
         self.blockchain_streamer_adapter = blockchain_streamer_adapter
-        self.last_synced_block_provider = LastSyncedBlockProvider.from_uri(last_synced_block_provider_uri, chain_id)
+        self.last_synced_block_provider = LastSyncedBlockProvider.from_uri(
+            last_synced_block_provider_uri, chain_id
+        )
         self.lag = lag
         self.start_block = start_block
         self.end_block = end_block
@@ -60,7 +63,9 @@ class Streamer:
         self.pid_file = pid_file
 
         if self.start_block is not None:
-            init_last_synced_block_provider((self.start_block or 0) - 1, self.last_synced_block_provider)
+            init_last_synced_block_provider(
+                (self.start_block or 0) - 1, self.last_synced_block_provider
+            )
         self.last_synced_block = self.last_synced_block_provider.get_last_synced_block()
 
     def stream(self):
@@ -89,7 +94,9 @@ class Streamer:
                     raise e
 
             if synced_blocks <= 0:
-                logging.info('Nothing to sync. Sleeping for {} seconds...'.format(self.period_seconds))
+                logging.info(
+                    'Nothing to sync. Sleeping for {} seconds...'.format(self.period_seconds)
+                )
                 time.sleep(self.period_seconds)
 
     def _sync_cycle(self):
@@ -123,7 +130,9 @@ class Streamer:
     def _calculate_target_block(self, current_block, last_synced_block):
         target_block = current_block - self.lag
         target_block = min(target_block, last_synced_block + self.block_batch_size)
-        target_block = min(target_block, self.end_block) if self.end_block is not None else target_block
+        target_block = (
+            min(target_block, self.end_block) if self.end_block is not None else target_block
+        )
         return target_block
 
 
@@ -142,11 +151,14 @@ def init_last_synced_block_provider(start_block, provider):
     last_synced_block = provider.get_last_synced_block()
     if last_synced_block and start_block > last_synced_block:
         raise ValueError(
-           f'Last synced block number {last_synced_block} is less then --start-block {start_block}. '
-            'Either remove the last synced block data or the respecify --start-block option.')
+            f'Last synced block number {last_synced_block} is less then --start-block {start_block}. '
+            'Either remove the last synced block data or the respecify --start-block option.'
+        )
     if last_synced_block and last_synced_block > start_block:
-        logging.info(f'Last synced block number {last_synced_block} is greater then --start-block. '
-                     f'Using last synced block number as start block.')
+        logging.info(
+            f'Last synced block number {last_synced_block} is greater then --start-block. '
+            f'Using last synced block number as start block.'
+        )
     else:
         provider.set_last_synced_block(start_block)
 
@@ -163,10 +175,12 @@ def write_to_file(file, content):
 
 class LastSyncedBlockProvider(ABC):
     @abstractmethod
-    def get_last_synced_block(self): ...
+    def get_last_synced_block(self):
+        ...
 
     @abstractmethod
-    def set_last_synced_block(self, last_synced_block): ...
+    def set_last_synced_block(self, last_synced_block):
+        ...
 
     @classmethod
     def from_uri(cls, uri, chain_id):
@@ -190,8 +204,7 @@ class LastSyncedBlockProvider(ABC):
 
 class LastSyncedBlockProviderSQL(LastSyncedBlockProvider):
     def __init__(self, connection_string, chain_id, table_name):
-        from sqlalchemy import create_engine
-        from sqlalchemy import Column, Integer
+        from sqlalchemy import Column, Integer, create_engine
         from sqlalchemy.ext.declarative import declarative_base
         from sqlalchemy.orm import sessionmaker
 
@@ -210,7 +223,10 @@ class LastSyncedBlockProviderSQL(LastSyncedBlockProvider):
 
             if 'clickhouse' in connection_string:
                 from clickhouse_sqlalchemy import engines
-                __table_args__ = (engines.ReplacingMergeTree(order_by=['chain_id', 'block_number']),)
+
+                __table_args__ = (
+                    engines.ReplacingMergeTree(order_by=['chain_id', 'block_number']),
+                )
 
         self.LastSyncedBlock = LastSyncedBlock
 
@@ -230,11 +246,8 @@ class LastSyncedBlockProviderSQL(LastSyncedBlockProvider):
 
     @HealthCheck
     def set_last_synced_block(self, last_synced_block):
-        last_synced_block_record = self.LastSyncedBlock(
-            chain_id=self.chain_id,
-            block_number=last_synced_block,
-            indexed_ts=timestamp_now(),
-        )
+        last_synced_block_record = self.LastSyncedBlock(chain_id=self.chain_id, block_number=last_synced_block,
+                                                        indexed_ts=timestamp_now())
         last_synced_block_record.block_number = last_synced_block
         with self.session() as session:
             session.add(last_synced_block_record)

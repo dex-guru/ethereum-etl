@@ -21,23 +21,17 @@
 # SOFTWARE.
 
 
+from blockchainetl.jobs.base_job import BaseJob
 from ethereumetl.domain.contract import EthContract
 from ethereumetl.executors.batch_work_executor import BatchWorkExecutor
-from blockchainetl.jobs.base_job import BaseJob
 from ethereumetl.mappers.contract_mapper import EthContractMapper
-
 from ethereumetl.service.eth_contract_service import EthContractService
 from ethereumetl.utils import to_int_or_none
 
 
 # Extract contracts
 class ExtractContractsJob(BaseJob):
-    def __init__(
-            self,
-            traces_iterable,
-            batch_size,
-            max_workers,
-            item_exporter):
+    def __init__(self, traces_iterable, batch_size, max_workers, item_exporter):
         self.traces_iterable = traces_iterable
 
         self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers)
@@ -57,9 +51,14 @@ class ExtractContractsJob(BaseJob):
             trace['status'] = to_int_or_none(trace.get('status'))
             trace['block_number'] = to_int_or_none(trace.get('block_number'))
 
-        contract_creation_traces = [trace for trace in traces
-                                    if trace.get('trace_type') == 'create' and trace.get('to_address') is not None
-                                    and len(trace.get('to_address')) > 0 and trace.get('status') == 1]
+        contract_creation_traces = [
+            trace
+            for trace in traces
+            if trace.get('trace_type') == 'create'
+            and trace.get('to_address') is not None
+            and len(trace.get('to_address')) > 0
+            and trace.get('status') == 1
+        ]
 
         contracts = []
         for trace in contract_creation_traces:

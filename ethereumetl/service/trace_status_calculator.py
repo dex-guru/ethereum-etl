@@ -55,8 +55,11 @@ def calculate_trace_statuses_for_single_transaction(all_traces):
         if len(trace.trace_address) > 0:
             parent_trace = indexed_traces.get(trace_address_to_str(trace.trace_address[:-1]))
             if parent_trace is None:
-                raise ValueError('A parent trace for trace with trace_address {} in transaction {} is not found'
-                                 .format(trace.trace_address, trace.transaction_hash))
+                raise ValueError(
+                    'A parent trace for trace with trace_address {} in transaction {} is not found'.format(
+                        trace.trace_address, trace.transaction_hash
+                    )
+                )
             if parent_trace.status == 0:
                 trace.status = 0
 

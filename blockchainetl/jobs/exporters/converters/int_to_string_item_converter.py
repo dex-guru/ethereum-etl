@@ -35,7 +35,6 @@ from blockchainetl.jobs.exporters.converters.simple_item_converter import Simple
 
 
 class IntToStringItemConverter(SimpleItemConverter):
-
     def __init__(self, keys=None):
         self.keys = set(keys) if keys else None
 

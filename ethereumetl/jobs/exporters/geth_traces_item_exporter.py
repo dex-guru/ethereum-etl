@@ -31,10 +31,6 @@ FIELDS_TO_EXPORT = [
 
 def geth_traces_item_exporter(geth_traces_output):
     return CompositeItemExporter(
-        filename_mapping={
-            'geth_trace': geth_traces_output
-        },
-        field_mapping={
-            'geth_trace': FIELDS_TO_EXPORT
-        }
+        filename_mapping={'geth_trace': geth_traces_output},
+        field_mapping={'geth_trace': FIELDS_TO_EXPORT},
     )

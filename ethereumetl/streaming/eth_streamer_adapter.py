@@ -10,8 +10,14 @@ from ethereumetl.jobs.export_traces_job import ExportTracesJob
 from ethereumetl.jobs.extract_contracts_job import ExtractContractsJob
 from ethereumetl.jobs.extract_token_transfers_job import ExtractTokenTransfersJob
 from ethereumetl.jobs.extract_tokens_job import ExtractTokensJob
-from ethereumetl.streaming.enrich import enrich_transactions, enrich_logs, enrich_token_transfers, enrich_traces, \
-    enrich_contracts, enrich_tokens
+from ethereumetl.streaming.enrich import (
+    enrich_contracts,
+    enrich_logs,
+    enrich_token_transfers,
+    enrich_tokens,
+    enrich_traces,
+    enrich_transactions,
+)
 from ethereumetl.streaming.eth_item_id_calculator import EthItemIdCalculator
 from ethereumetl.streaming.eth_item_timestamp_calculator import EthItemTimestampCalculator
 from ethereumetl.thread_local_proxy import ThreadLocalProxy
@@ -20,12 +26,13 @@ from ethereumetl.web3_utils import build_web3
 
 class EthStreamerAdapter:
     def __init__(
-            self,
-            batch_web3_provider,
-            item_exporter=ConsoleItemExporter(),
-            batch_size=100,
-            max_workers=5,
-            entity_types=tuple(EntityType.ALL_FOR_STREAMING)):
+        self,
+        batch_web3_provider,
+        item_exporter=ConsoleItemExporter(),
+        batch_size=100,
+        max_workers=5,
+        entity_types=tuple(EntityType.ALL_FOR_STREAMING),
+    ):
         self.batch_web3_provider = batch_web3_provider
         self.item_exporter = item_exporter
         self.batch_size = batch_size
@@ -72,50 +79,64 @@ class EthStreamerAdapter:
         if self._should_export(EntityType.TOKEN):
             tokens = self._extract_tokens(contracts)
 
-        enriched_blocks = blocks \
-            if EntityType.BLOCK in self.entity_types else []
-        enriched_transactions = enrich_transactions(transactions, receipts) \
-            if EntityType.TRANSACTION in self.entity_types else []
-        enriched_logs = enrich_logs(blocks, logs) \
-            if EntityType.LOG in self.entity_types else []
-        enriched_token_transfers = enrich_token_transfers(blocks, token_transfers) \
-            if EntityType.TOKEN_TRANSFER in self.entity_types else []
-        enriched_traces = enrich_traces(blocks, traces) \
-            if EntityType.TRACE in self.entity_types else []
-        enriched_contracts = enrich_contracts(blocks, contracts) \
-            if EntityType.CONTRACT in self.entity_types else []
-        enriched_tokens = enrich_tokens(blocks, tokens) \
-            if EntityType.TOKEN in self.entity_types else []
+        enriched_blocks = blocks if EntityType.BLOCK in self.entity_types else []
+        enriched_transactions = (
+            enrich_transactions(transactions, receipts)
+            if EntityType.TRANSACTION in self.entity_types
+            else []
+        )
+        enriched_logs = enrich_logs(blocks, logs) if EntityType.LOG in self.entity_types else []
+        enriched_token_transfers = (
+            enrich_token_transfers(blocks, token_transfers)
+            if EntityType.TOKEN_TRANSFER in self.entity_types
+            else []
+        )
+        enriched_traces = (
+            enrich_traces(blocks, traces) if EntityType.TRACE in self.entity_types else []
+        )
+        enriched_contracts = (
+            enrich_contracts(blocks, contracts) if EntityType.CONTRACT in self.entity_types else []
+        )
+        enriched_tokens = (
+            enrich_tokens(blocks, tokens) if EntityType.TOKEN in self.entity_types else []
+        )
 
         if enriched_blocks:
             last_synced_block_datetime = datetime.fromtimestamp(enriched_blocks[-1]["timestamp"])
-            logging.info(f'Exporting batch {len(enriched_blocks)} with {type(self.item_exporter).__name__}, '
-                         f'blocks up to {enriched_blocks[-1]["number"]}:'
-                         f'{last_synced_block_datetime}, '
-                         f'got {len(enriched_transactions)} transactions, {len(enriched_logs)} logs, '
-                         f'{len(enriched_token_transfers)} token transfers, {len(enriched_traces)} traces, '
-                         f'{len(enriched_contracts)} contracts, {len(enriched_tokens)} tokens',
-                         extra={'last_synced_block': enriched_blocks[-1]["number"],
-                                'last_synced_block_datetime': last_synced_block_datetime,
-                                'batch_size': len(enriched_blocks), 'transactions_per_batch': len(enriched_transactions),
-                                'logs_per_batch': len(enriched_logs),
-                                'token_transfers_per_batch': len(enriched_token_transfers),
-                                'traces_per_batch': len(enriched_traces), 'contracts_per_batch': len(enriched_contracts),
-                                'tokens_per_batch': len(enriched_tokens)
-                                }
-                         )
+            logging.info(
+                f'Exporting batch {len(enriched_blocks)} with {type(self.item_exporter).__name__}, '
+                f'blocks up to {enriched_blocks[-1]["number"]}:'
+                f'{last_synced_block_datetime}, '
+                f'got {len(enriched_transactions)} transactions, {len(enriched_logs)} logs, '
+                f'{len(enriched_token_transfers)} token transfers, {len(enriched_traces)} traces, '
+                f'{len(enriched_contracts)} contracts, {len(enriched_tokens)} tokens',
+                extra={
+                    'last_synced_block': enriched_blocks[-1]["number"],
+                    'last_synced_block_datetime': last_synced_block_datetime,
+                    'batch_size': len(enriched_blocks),
+                    'transactions_per_batch': len(enriched_transactions),
+                    'logs_per_batch': len(enriched_logs),
+                    'token_transfers_per_batch': len(enriched_token_transfers),
+                    'traces_per_batch': len(enriched_traces),
+                    'contracts_per_batch': len(enriched_contracts),
+                    'tokens_per_batch': len(enriched_tokens),
+                },
+            )
         else:
-            logging.info(f"No blocks to export in this batch {len(enriched_blocks)} "
-                         f"with {type(self.item_exporter).__name__}")
+            logging.info(
+                f"No blocks to export in this batch {len(enriched_blocks)} "
+                f"with {type(self.item_exporter).__name__}"
+            )
 
-        all_items = \
-            sort_by(enriched_blocks, 'number') + \
-            sort_by(enriched_transactions, ('block_number', 'transaction_index')) + \
-            sort_by(enriched_logs, ('block_number', 'log_index')) + \
-            sort_by(enriched_token_transfers, ('block_number', 'log_index')) + \
-            sort_by(enriched_traces, ('block_number', 'trace_index')) + \
-            sort_by(enriched_contracts, ('block_number',)) + \
-            sort_by(enriched_tokens, ('block_number',))
+        all_items = (
+            sort_by(enriched_blocks, 'number')
+            + sort_by(enriched_transactions, ('block_number', 'transaction_index'))
+            + sort_by(enriched_logs, ('block_number', 'log_index'))
+            + sort_by(enriched_token_transfers, ('block_number', 'log_index'))
+            + sort_by(enriched_traces, ('block_number', 'trace_index'))
+            + sort_by(enriched_contracts, ('block_number',))
+            + sort_by(enriched_tokens, ('block_number',))
+        )
 
         self.calculate_item_ids(all_items)
         self.calculate_item_timestamps(all_items)
@@ -123,7 +144,9 @@ class EthStreamerAdapter:
         self.item_exporter.export_items(all_items)
 
     def _export_blocks_and_transactions(self, start_block, end_block):
-        blocks_and_transactions_item_exporter = InMemoryItemExporter(item_types=['block', 'transaction'])
+        blocks_and_transactions_item_exporter = InMemoryItemExporter(
+            item_types=['block', 'transaction']
+        )
         blocks_and_transactions_job = ExportBlocksJob(
             start_block=start_block,
             end_block=end_block,
@@ -132,7 +155,7 @@ class EthStreamerAdapter:
             max_workers=self.max_workers,
             item_exporter=blocks_and_transactions_item_exporter,
             export_blocks=self._should_export(EntityType.BLOCK),
-            export_transactions=self._should_export(EntityType.TRANSACTION)
+            export_transactions=self._should_export(EntityType.TRANSACTION),
         )
         blocks_and_transactions_job.run()
         blocks = blocks_and_transactions_item_exporter.get_items('block')
@@ -148,7 +171,7 @@ class EthStreamerAdapter:
             max_workers=self.max_workers,
             item_exporter=exporter,
             export_receipts=self._should_export(EntityType.RECEIPT),
-            export_logs=self._should_export(EntityType.LOG)
+            export_logs=self._should_export(EntityType.LOG),
         )
         job.run()
         receipts = exporter.get_items('receipt')
@@ -161,7 +184,8 @@ class EthStreamerAdapter:
             logs_iterable=logs,
             batch_size=self.batch_size,
             max_workers=self.max_workers,
-            item_exporter=exporter)
+            item_exporter=exporter,
+        )
         job.run()
         token_transfers = exporter.get_items('token_transfer')
         return token_transfers
@@ -174,7 +198,7 @@ class EthStreamerAdapter:
             batch_size=self.batch_size,
             web3=ThreadLocalProxy(lambda: build_web3(self.batch_web3_provider)),
             max_workers=self.max_workers,
-            item_exporter=exporter
+            item_exporter=exporter,
         )
         job.run()
         traces = exporter.get_items('trace')
@@ -186,7 +210,7 @@ class EthStreamerAdapter:
             traces_iterable=traces,
             batch_size=self.batch_size,
             max_workers=self.max_workers,
-            item_exporter=exporter
+            item_exporter=exporter,
         )
         job.run()
         contracts = exporter.get_items('contract')
@@ -198,7 +222,7 @@ class EthStreamerAdapter:
             contracts_iterable=contracts,
             web3=ThreadLocalProxy(lambda: build_web3(self.batch_web3_provider)),
             max_workers=self.max_workers,
-            item_exporter=exporter
+            item_exporter=exporter,
         )
         job.run()
         tokens = exporter.get_items('token')
@@ -209,22 +233,32 @@ class EthStreamerAdapter:
             return True
 
         if entity_type == EntityType.TRANSACTION:
-            return EntityType.TRANSACTION in self.entity_types or self._should_export(EntityType.LOG)
+            return EntityType.TRANSACTION in self.entity_types or self._should_export(
+                EntityType.LOG
+            )
 
         if entity_type == EntityType.RECEIPT:
-            return EntityType.TRANSACTION in self.entity_types or self._should_export(EntityType.TOKEN_TRANSFER)
+            return EntityType.TRANSACTION in self.entity_types or self._should_export(
+                EntityType.TOKEN_TRANSFER
+            )
 
         if entity_type == EntityType.LOG:
-            return EntityType.LOG in self.entity_types or self._should_export(EntityType.TOKEN_TRANSFER)
+            return EntityType.LOG in self.entity_types or self._should_export(
+                EntityType.TOKEN_TRANSFER
+            )
 
         if entity_type == EntityType.TOKEN_TRANSFER:
             return EntityType.TOKEN_TRANSFER in self.entity_types
 
         if entity_type == EntityType.TRACE:
-            return EntityType.TRACE in self.entity_types or self._should_export(EntityType.CONTRACT)
+            return EntityType.TRACE in self.entity_types or self._should_export(
+                EntityType.CONTRACT
+            )
 
         if entity_type == EntityType.CONTRACT:
-            return EntityType.CONTRACT in self.entity_types or self._should_export(EntityType.TOKEN)
+            return EntityType.CONTRACT in self.entity_types or self._should_export(
+                EntityType.TOKEN
+            )
 
         if entity_type == EntityType.TOKEN:
             return EntityType.TOKEN in self.entity_types

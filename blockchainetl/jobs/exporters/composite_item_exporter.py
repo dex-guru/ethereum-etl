@@ -23,7 +23,7 @@ import logging
 
 from blockchainetl.atomic_counter import AtomicCounter
 from blockchainetl.exporters import CsvItemExporter, JsonLinesItemExporter
-from blockchainetl.file_utils import get_file_handle, close_silently
+from blockchainetl.file_utils import close_silently, get_file_handle
 from blockchainetl.jobs.exporters.converters.composite_item_converter import CompositeItemConverter
 
 
@@ -76,4 +76,6 @@ class CompositeItemExporter:
             close_silently(file)
             counter = self.counter_mapping[item_type]
             if counter is not None:
-                self.logger.info('{} items exported: {}'.format(item_type, counter.increment() - 1))
+                self.logger.info(
+                    '{} items exported: {}'.format(item_type, counter.increment() - 1)
+                )

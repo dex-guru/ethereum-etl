@@ -1,6 +1,6 @@
-from typing import List, Optional
+from typing import List, Literal, Optional, Union
 
-from pydantic import BaseSettings
+from pydantic import AnyUrl, BaseSettings
 
 from ethereumetl.enumeration.entity_type import EntityType
 
@@ -41,6 +41,7 @@ class EnvsConfig(BaseSettings):
     SERVICE_NAME: str = ''
     SKIP_NONE_RECEIPTS: bool = False
     MIN_INSERT_BATCH_SIZE: int = 1000
+    EXPORT_FROM_CLICKHOUSE: Union[AnyUrl, Literal['']] = ''
     # Restart if last synced block wasn't saved for this amount of seconds
     HEALTH_CHECK_TIMEOUT: int = 600
 

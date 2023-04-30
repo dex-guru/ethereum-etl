@@ -34,7 +34,10 @@ def create_item_exporters(outputs, chain_id):
 def create_item_exporter(output, chain_id):
     item_exporter_type = determine_item_exporter_type(output)
     if item_exporter_type == ItemExporterType.PUBSUB:
-        from blockchainetl.jobs.exporters.google_pubsub_item_exporter import GooglePubSubItemExporter
+        from blockchainetl.jobs.exporters.google_pubsub_item_exporter import (
+            GooglePubSubItemExporter,
+        )
+
         enable_message_ordering = 'sorted' in output or 'ordered' in output
         item_exporter = GooglePubSubItemExporter(
             item_type_to_topic_mapping={
@@ -50,22 +53,39 @@ def create_item_exporter(output, chain_id):
             batch_max_bytes=1024 * 1024 * 5,
             batch_max_latency=2,
             batch_max_messages=1000,
-            enable_message_ordering=enable_message_ordering)
+            enable_message_ordering=enable_message_ordering,
+        )
     elif item_exporter_type == ItemExporterType.KINESIS:
         from blockchainetl.jobs.exporters.kinesis_item_exporter import KinesisItemExporter
+
         item_exporter = KinesisItemExporter(
-            stream_name=output[len('kinesis://'):],
+            stream_name=output[len('kinesis://') :],
         )
     elif item_exporter_type == ItemExporterType.POSTGRES:
+        from blockchainetl.jobs.exporters.converters.int_to_decimal_item_converter import (
+            IntToDecimalItemConverter,
+        )
+        from blockchainetl.jobs.exporters.converters.list_field_item_converter import (
+            ListFieldItemConverter,
+        )
+        from blockchainetl.jobs.exporters.converters.unix_timestamp_item_converter import (
+            UnixTimestampItemConverter,
+        )
         from blockchainetl.jobs.exporters.postgres_item_exporter import PostgresItemExporter
         from blockchainetl.streaming.postgres_utils import create_insert_statement_for_table
-        from blockchainetl.jobs.exporters.converters.unix_timestamp_item_converter import UnixTimestampItemConverter
-        from blockchainetl.jobs.exporters.converters.int_to_decimal_item_converter import IntToDecimalItemConverter
-        from blockchainetl.jobs.exporters.converters.list_field_item_converter import ListFieldItemConverter
-        from ethereumetl.streaming.postgres_tables import BLOCKS, TRANSACTIONS, LOGS, TOKEN_TRANSFERS, TRACES, TOKENS, CONTRACTS
+        from ethereumetl.streaming.postgres_tables import (
+            BLOCKS,
+            CONTRACTS,
+            LOGS,
+            TOKEN_TRANSFERS,
+            TOKENS,
+            TRACES,
+            TRANSACTIONS,
+        )
 
         item_exporter = PostgresItemExporter(
-            output, item_type_to_insert_stmt_mapping={
+            output,
+            item_type_to_insert_stmt_mapping={
                 'block': create_insert_statement_for_table(BLOCKS),
                 'transaction': create_insert_statement_for_table(TRANSACTIONS),
                 'log': create_insert_statement_for_table(LOGS),
@@ -74,45 +94,66 @@ def create_item_exporter(output, chain_id):
                 'token': create_insert_statement_for_table(TOKENS),
                 'contract': create_insert_statement_for_table(CONTRACTS),
             },
-            converters=[UnixTimestampItemConverter(), IntToDecimalItemConverter(),
-                        ListFieldItemConverter('topics', 'topic', fill=4)])
+            converters=[
+                UnixTimestampItemConverter(),
+                IntToDecimalItemConverter(),
+                ListFieldItemConverter('topics', 'topic', fill=4),
+            ],
+        )
     elif item_exporter_type == ItemExporterType.GCS:
         from blockchainetl.jobs.exporters.gcs_item_exporter import GcsItemExporter
+
         bucket, path = get_bucket_and_path_from_gcs_output(output)
         item_exporter = GcsItemExporter(bucket=bucket, path=path)
     elif item_exporter_type == ItemExporterType.CONSOLE:
         item_exporter = ConsoleItemExporter()
     elif item_exporter_type == ItemExporterType.KAFKA:
         from blockchainetl.jobs.exporters.kafka_exporter import KafkaItemExporter
-        item_exporter = KafkaItemExporter(output, item_type_to_topic_mapping={
-            'block': 'blocks',
-            'transaction': 'transactions',
-            'log': 'logs',
-            'token_transfer': 'token_transfers',
-            'trace': 'traces',
-            'contract': 'contracts',
-            'token': 'tokens',
-        })
+
+        item_exporter = KafkaItemExporter(
+            output,
+            item_type_to_topic_mapping={
+                'block': 'blocks',
+                'transaction': 'transactions',
+                'log': 'logs',
+                'token_transfer': 'token_transfers',
+                'trace': 'traces',
+                'contract': 'contracts',
+                'token': 'tokens',
+            },
+        )
     elif item_exporter_type == ItemExporterType.CLICKHOUSE:
         from blockchainetl.jobs.exporters.clickhouse_exporter import ClickHouseItemExporter
-        item_type_to_table_mapping = {
-            'block': 'blocks',
-            'transaction': 'transactions',
-            'log': 'logs',
-            'token_transfer': 'token_transfers',
-            'trace': 'traces',
-            'contract': 'contracts',
-            'token': 'tokens',
-        }
-        if chain_id:
-            item_type_to_table_mapping = {
-                k: f"{chain_id}_{v}" for k, v in item_type_to_table_mapping.items()
-            }
-        item_exporter = ClickHouseItemExporter(output, item_type_to_table_mapping=item_type_to_table_mapping)
+
+        item_type_to_table_mapping = make_item_type_to_table_mapping(chain_id)
+        item_exporter = ClickHouseItemExporter(
+            output, item_type_to_table_mapping=item_type_to_table_mapping
+        )
+    elif item_exporter_type == ItemExporterType.AMQP:
+        from blockchainetl.jobs.exporters.amqp_exporter import AMQPItemExporter
+
+        item_exporter = AMQPItemExporter(amqp_url=output, exchange=f'ethereumetl_{chain_id}')
     else:
         raise ValueError('Unable to determine item exporter type for output ' + output)
 
     return item_exporter
+
+
+def make_item_type_to_table_mapping(chain_id=None):
+    item_type_to_table_mapping = {
+        'block': 'blocks',
+        'transaction': 'transactions',
+        'log': 'logs',
+        'token_transfer': 'token_transfers',
+        'trace': 'traces',
+        'contract': 'contracts',
+        'token': 'tokens',
+    }
+    if chain_id:
+        item_type_to_table_mapping = {
+            k: f"{chain_id}_{v}" for k, v in item_type_to_table_mapping.items()
+        }
+    return item_type_to_table_mapping
 
 
 def get_bucket_and_path_from_gcs_output(output):
@@ -126,7 +167,7 @@ def get_bucket_and_path_from_gcs_output(output):
     return bucket, path
 
 
-def determine_item_exporter_type(output):
+def determine_item_exporter_type(output) -> str:
     if output is not None and output.startswith('projects'):
         return ItemExporterType.PUBSUB
     if output is not None and output.startswith('kinesis://'):
@@ -139,6 +180,8 @@ def determine_item_exporter_type(output):
         return ItemExporterType.GCS
     elif output is not None and output.startswith('clickhouse'):
         return ItemExporterType.CLICKHOUSE
+    elif output is not None and (output.startswith('amqp') or output.startswith('rabbitmq')):
+        return ItemExporterType.AMQP
     elif output is None or output == 'console':
         return ItemExporterType.CONSOLE
     else:
@@ -154,3 +197,4 @@ class ItemExporterType:
     KAFKA = 'kafka'
     CLICKHOUSE = 'clickhouse'
     UNKNOWN = 'unknown'
+    AMQP = 'amqp'

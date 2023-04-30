@@ -56,7 +56,9 @@ class EthBlockMapper(object):
 
         if 'transactions' in json_dict:
             block.transactions = [
-                self.transaction_mapper.json_dict_to_transaction(tx, block_timestamp=block.timestamp)
+                self.transaction_mapper.json_dict_to_transaction(
+                    tx, block_timestamp=block.timestamp
+                )
                 for tx in json_dict['transactions']
                 if isinstance(tx, dict)
             ]
@@ -86,5 +88,5 @@ class EthBlockMapper(object):
             'gas_used': block.gas_used,
             'timestamp': block.timestamp,
             'transaction_count': block.transaction_count,
-            'base_fee_per_gas': block.base_fee_per_gas
+            'base_fee_per_gas': block.base_fee_per_gas,
         }

@@ -86,11 +86,13 @@ class EthTraceMapper(object):
         traces = []
 
         for tx_index, tx_trace in enumerate(transaction_traces):
-            traces.extend(self._iterate_transaction_trace(
-                block_number,
-                tx_index,
-                tx_trace,
-            ))
+            traces.extend(
+                self._iterate_transaction_trace(
+                    block_number,
+                    tx_index,
+                    tx_trace,
+                )
+            )
 
         return traces
 
@@ -160,12 +162,11 @@ class EthTraceMapper(object):
         trace.trace_address = trace_address
 
         for call_index, call_trace in enumerate(calls):
-            result.extend(self._iterate_transaction_trace(
-                block_number,
-                tx_index,
-                call_trace,
-                trace_address + [call_index]
-            ))
+            result.extend(
+                self._iterate_transaction_trace(
+                    block_number, tx_index, call_trace, trace_address + [call_index]
+                )
+            )
 
         return result
 

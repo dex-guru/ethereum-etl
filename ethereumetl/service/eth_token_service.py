@@ -37,7 +37,9 @@ class EthTokenService(object):
     def get_token(self, token_address):
         checksum_address = self._web3.toChecksumAddress(token_address)
         contract = self._web3.eth.contract(address=checksum_address, abi=ERC20_ABI)
-        contract_alternative_1 = self._web3.eth.contract(address=checksum_address, abi=ERC20_ABI_ALTERNATIVE_1)
+        contract_alternative_1 = self._web3.eth.contract(
+            address=checksum_address, abi=ERC20_ABI_ALTERNATIVE_1
+        )
 
         symbol = self._get_first_result(
             contract.functions.symbol(),
@@ -57,7 +59,9 @@ class EthTokenService(object):
         if isinstance(name, bytes):
             name = self._bytes_to_string(name)
 
-        decimals = self._get_first_result(contract.functions.decimals(), contract.functions.DECIMALS())
+        decimals = self._get_first_result(
+            contract.functions.decimals(), contract.functions.DECIMALS()
+        )
         total_supply = self._get_first_result(contract.functions.totalSupply())
 
         token = EthToken(
@@ -85,7 +89,8 @@ class EthTokenService(object):
         result = call_contract_function(
             func=func,
             ignore_errors=(BadFunctionCallOutput, ContractLogicError, OverflowError, ValueError),
-            default_value=None)
+            default_value=None,
+        )
 
         if self._function_call_result_transformer is not None:
             return self._function_call_result_transformer(result)
@@ -100,7 +105,10 @@ class EthTokenService(object):
             b = b.decode('utf-8')
         except UnicodeDecodeError as e:
             if ignore_errors:
-                logger.debug('A UnicodeDecodeError exception occurred while trying to decode bytes to string', exc_info=True)
+                logger.debug(
+                    'A UnicodeDecodeError exception occurred while trying to decode bytes to string',
+                    exc_info=True,
+                )
                 b = None
             else:
                 raise e
@@ -116,8 +124,13 @@ def call_contract_function(func, ignore_errors, default_value=None):
         return result
     except Exception as ex:
         if type(ex) in ignore_errors:
-            logger.debug('An exception occurred in function {} of contract {}. '.format(func.fn_name, func.address)
-                             + 'This exception can be safely ignored.', exc_info=True)
+            logger.debug(
+                'An exception occurred in function {} of contract {}. '.format(
+                    func.fn_name, func.address
+                )
+                + 'This exception can be safely ignored.',
+                exc_info=True,
+            )
             return default_value
         else:
             raise ex

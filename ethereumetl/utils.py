@@ -56,7 +56,7 @@ def to_int_or_none(val):
 
 
 def chunk_string(string, length):
-    return (string[0 + i:length + i] for i in range(0, len(string), length))
+    return (string[0 + i : length + i] for i in range(0, len(string), length))
 
 
 def to_normalized_address(address):
@@ -90,7 +90,9 @@ def rpc_response_to_result(response):
                 logging.error(error_message)
                 return None
             raise RetriableValueError(error_message)
-        elif response.get('error') is not None and is_retriable_error(response.get('error').get('code')):
+        elif response.get('error') is not None and is_retriable_error(
+            response.get('error').get('code')
+        ):
             raise RetriableValueError(error_message)
         raise ValueError(error_message)
     return result
@@ -139,7 +141,9 @@ def pairwise(iterable):
 
 def check_classic_provider_uri(chain, provider_uri):
     if chain == 'classic' and provider_uri == 'https://mainnet.infura.io':
-        warnings.warn("ETC Chain not supported on Infura.io. Using https://ethereumclassic.network instead")
+        warnings.warn(
+            "ETC Chain not supported on Infura.io. Using https://ethereumclassic.network instead"
+        )
         return 'https://ethereumclassic.network'
     return provider_uri
 

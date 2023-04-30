@@ -26,7 +26,6 @@ from blockchainetl.jobs.exporters.converters.simple_item_converter import Simple
 
 
 class UnixTimestampItemConverter(SimpleItemConverter):
-
     def convert_field(self, key, value):
         if key is not None and key.endswith('timestamp'):
             return to_timestamp(value)

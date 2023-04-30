@@ -23,8 +23,8 @@
 
 # https://stackoverflow.com/questions/15063936/csv-error-field-larger-than-field-limit-131072
 
-import sys
 import csv
+import sys
 
 
 def set_max_field_size_limit():

@@ -44,10 +44,12 @@ def join(left, right, join_fields, left_fields, right_fields):
     right_fields_as_dict = field_list_to_dict(right_fields)
 
     left_map = defaultdict(list)
-    for item in left: left_map[item[left_join_field]].append(item)
+    for item in left:
+        left_map[item[left_join_field]].append(item)
 
     right_map = defaultdict(list)
-    for item in right: right_map[item[right_join_field]].append(item)
+    for item in right:
+        right_map[item[right_join_field]].append(item)
 
     for key in left_map.keys():
         for left_item, right_item in itertools.product(left_map[key], right_map[key]):
@@ -68,34 +70,39 @@ def enrich_transactions(transactions, receipts):
         transactions = []
         for receipt in receipts:
             transactions.append(transactions_dict[receipt['transaction_hash']])
-    result = list(join(
-        transactions, receipts, ('hash', 'transaction_hash'),
-        left_fields=[
-            'type',
-            'hash',
-            'nonce',
-            'transaction_index',
-            'from_address',
-            'to_address',
-            'value',
-            'gas',
-            'gas_price',
-            'input',
-            'block_timestamp',
-            'block_number',
-            'block_hash',
-            'max_fee_per_gas',
-            'max_priority_fee_per_gas',
-            'transaction_type'
-        ],
-        right_fields=[
-            ('cumulative_gas_used', 'receipt_cumulative_gas_used'),
-            ('gas_used', 'receipt_gas_used'),
-            ('contract_address', 'receipt_contract_address'),
-            ('root', 'receipt_root'),
-            ('status', 'receipt_status'),
-            ('effective_gas_price', 'receipt_effective_gas_price')
-        ]))
+    result = list(
+        join(
+            transactions,
+            receipts,
+            ('hash', 'transaction_hash'),
+            left_fields=[
+                'type',
+                'hash',
+                'nonce',
+                'transaction_index',
+                'from_address',
+                'to_address',
+                'value',
+                'gas',
+                'gas_price',
+                'input',
+                'block_timestamp',
+                'block_number',
+                'block_hash',
+                'max_fee_per_gas',
+                'max_priority_fee_per_gas',
+                'transaction_type',
+            ],
+            right_fields=[
+                ('cumulative_gas_used', 'receipt_cumulative_gas_used'),
+                ('gas_used', 'receipt_gas_used'),
+                ('contract_address', 'receipt_contract_address'),
+                ('root', 'receipt_root'),
+                ('status', 'receipt_status'),
+                ('effective_gas_price', 'receipt_effective_gas_price'),
+            ],
+        )
+    )
 
     if len(result) != len(transactions):
         raise ValueError('The number of transactions is wrong ' + str(result))
@@ -104,22 +111,27 @@ def enrich_transactions(transactions, receipts):
 
 
 def enrich_logs(blocks, logs):
-    result = list(join(
-        logs, blocks, ('block_number', 'number'),
-        [
-            'type',
-            'log_index',
-            'transaction_hash',
-            'transaction_index',
-            'address',
-            'data',
-            'topics',
-            'block_number'
-        ],
-        [
-            ('timestamp', 'block_timestamp'),
-            ('hash', 'block_hash'),
-        ]))
+    result = list(
+        join(
+            logs,
+            blocks,
+            ('block_number', 'number'),
+            [
+                'type',
+                'log_index',
+                'transaction_hash',
+                'transaction_index',
+                'address',
+                'data',
+                'topics',
+                'block_number',
+            ],
+            [
+                ('timestamp', 'block_timestamp'),
+                ('hash', 'block_hash'),
+            ],
+        )
+    )
 
     if len(result) != len(logs) and not envs.SKIP_NONE_RECEIPTS:
         raise ValueError('The number of logs is wrong ' + str(result))
@@ -128,24 +140,29 @@ def enrich_logs(blocks, logs):
 
 
 def enrich_token_transfers(blocks, token_transfers):
-    result = list(join(
-        token_transfers, blocks, ('block_number', 'number'),
-        [
-            'type',
-            'token_address',
-            'from_address',
-            'to_address',
-            'value',
-            'transaction_hash',
-            'log_index',
-            'block_number',
-            'token_id',
-            'operator_address',
-        ],
-        [
-            ('timestamp', 'block_timestamp'),
-            ('hash', 'block_hash'),
-        ]))
+    result = list(
+        join(
+            token_transfers,
+            blocks,
+            ('block_number', 'number'),
+            [
+                'type',
+                'token_address',
+                'from_address',
+                'to_address',
+                'value',
+                'transaction_hash',
+                'log_index',
+                'block_number',
+                'token_id',
+                'operator_address',
+            ],
+            [
+                ('timestamp', 'block_timestamp'),
+                ('hash', 'block_hash'),
+            ],
+        )
+    )
 
     if len(result) != len(token_transfers) and not envs.SKIP_NONE_RECEIPTS:
         raise ValueError('The number of token transfers is wrong ' + str(result))
@@ -154,34 +171,39 @@ def enrich_token_transfers(blocks, token_transfers):
 
 
 def enrich_traces(blocks, traces):
-    result = list(join(
-        traces, blocks, ('block_number', 'number'),
-        [
-            'type',
-            'transaction_index',
-            'from_address',
-            'to_address',
-            'value',
-            'input',
-            'output',
-            'trace_type',
-            'call_type',
-            'reward_type',
-            'gas',
-            'gas_used',
-            'subtraces',
-            'trace_address',
-            'error',
-            'status',
-            'transaction_hash',
-            'block_number',
-            'trace_id',
-            'trace_index'
-        ],
-        [
-            ('timestamp', 'block_timestamp'),
-            ('hash', 'block_hash'),
-        ]))
+    result = list(
+        join(
+            traces,
+            blocks,
+            ('block_number', 'number'),
+            [
+                'type',
+                'transaction_index',
+                'from_address',
+                'to_address',
+                'value',
+                'input',
+                'output',
+                'trace_type',
+                'call_type',
+                'reward_type',
+                'gas',
+                'gas_used',
+                'subtraces',
+                'trace_address',
+                'error',
+                'status',
+                'transaction_hash',
+                'block_number',
+                'trace_id',
+                'trace_index',
+            ],
+            [
+                ('timestamp', 'block_timestamp'),
+                ('hash', 'block_hash'),
+            ],
+        )
+    )
 
     if len(result) != len(traces):
         raise ValueError('The number of traces is wrong ' + str(result))
@@ -190,21 +212,26 @@ def enrich_traces(blocks, traces):
 
 
 def enrich_contracts(blocks, contracts):
-    result = list(join(
-        contracts, blocks, ('block_number', 'number'),
-        [
-            'type',
-            'address',
-            'bytecode',
-            'function_sighashes',
-            'is_erc20',
-            'is_erc721',
-            'block_number'
-        ],
-        [
-            ('timestamp', 'block_timestamp'),
-            ('hash', 'block_hash'),
-        ]))
+    result = list(
+        join(
+            contracts,
+            blocks,
+            ('block_number', 'number'),
+            [
+                'type',
+                'address',
+                'bytecode',
+                'function_sighashes',
+                'is_erc20',
+                'is_erc721',
+                'block_number',
+            ],
+            [
+                ('timestamp', 'block_timestamp'),
+                ('hash', 'block_hash'),
+            ],
+        )
+    )
 
     if len(result) != len(contracts):
         raise ValueError('The number of contracts is wrong ' + str(result))
@@ -213,21 +240,18 @@ def enrich_contracts(blocks, contracts):
 
 
 def enrich_tokens(blocks, tokens):
-    result = list(join(
-        tokens, blocks, ('block_number', 'number'),
-        [
-            'type',
-            'address',
-            'symbol',
-            'name',
-            'decimals',
-            'total_supply',
-            'block_number'
-        ],
-        [
-            ('timestamp', 'block_timestamp'),
-            ('hash', 'block_hash'),
-        ]))
+    result = list(
+        join(
+            tokens,
+            blocks,
+            ('block_number', 'number'),
+            ['type', 'address', 'symbol', 'name', 'decimals', 'total_supply', 'block_number'],
+            [
+                ('timestamp', 'block_timestamp'),
+                ('hash', 'block_hash'),
+            ],
+        )
+    )
 
     if len(result) != len(tokens):
         raise ValueError('The number of tokens is wrong ' + str(result))

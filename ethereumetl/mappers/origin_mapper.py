@@ -13,8 +13,9 @@ class OriginMarketplaceListingMapper(object):
             'price': listing.price,
             'currency': listing.currency,
             'block_number': listing.block_number,
-            'log_index': listing.log_index
+            'log_index': listing.log_index,
         }
+
 
 class OriginShopProductMapper(object):
     def product_to_dict(self, product):
@@ -34,5 +35,5 @@ class OriginShopProductMapper(object):
             'option3': product.option3,
             'image': product.image,
             'block_number': product.block_number,
-            'log_index': product.log_index
+            'log_index': product.log_index,
         }

@@ -32,7 +32,8 @@ class GraphOperations(object):
 
     def get_bounds_for_y_coordinate(self, y):
         """given the y coordinate, outputs a pair of x coordinates for closest points that bound the y coordinate.
-        Left and right bounds are equal in case given y is equal to one of the points y coordinate"""
+        Left and right bounds are equal in case given y is equal to one of the points y coordinate
+        """
         initial_bounds = find_best_bounds(y, self._cached_points)
         if initial_bounds is None:
             initial_bounds = self._get_first_point(), self._get_last_point()
@@ -42,7 +43,9 @@ class GraphOperations(object):
 
     def _get_bounds_for_y_coordinate_recursive(self, y, start, end):
         if y < start.y or y > end.y:
-            raise OutOfBoundsError('y coordinate {} is out of bounds for points {}-{}'.format(y, start, end))
+            raise OutOfBoundsError(
+                'y coordinate {} is out of bounds for points {}-{}'.format(y, start, end)
+            )
 
         if y == start.y:
             return start.x, start.x
@@ -82,7 +85,9 @@ class GraphOperations(object):
 
             bounds = find_best_bounds(y, all_points)
             if bounds is None:
-                raise ValueError('Unable to find bounds for points {} and y coordinate {}'.format(points, y))
+                raise ValueError(
+                    'Unable to find bounds for points {} and y coordinate {}'.format(points, y)
+                )
 
             return self._get_bounds_for_y_coordinate_recursive(y, *bounds)
 
