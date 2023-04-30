@@ -180,6 +180,7 @@ def cleanup():
 
 
 # fmt: off
+@pytest.mark.skipif(not envs.EXPORT_FROM_CLICKHOUSE, reason='EXPORT_FROM_CLICKHOUSE env var not set')
 @pytest.mark.parametrize("chain_id, start_block, end_block, batch_size, resource_group, entity_types, provider_type", [
     (1, 1755634, 1755635, 1, 'blocks_1755634_1755635', EntityType.ALL, 'mock'),
 ])
