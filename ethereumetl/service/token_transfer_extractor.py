@@ -53,6 +53,15 @@ ERC1155_BATCH_TRANSFER_EVENT_TOPIC = to_hex(keccak(text="TransferBatch(address,a
 
 # fmt: on
 
+ALL_TRANSFER_EVENT_TOPICS = frozenset(
+    (
+        TRANSFER_EVENT_TOPIC,
+        ERC721_TRANSFER_EVENT_TOPIC,
+        ERC1155_SINGLE_TRANSFER_EVENT_TOPIC,
+        ERC1155_BATCH_TRANSFER_EVENT_TOPIC,
+    )
+)
+
 
 def extract_erc20_transfers(receipt_log):
     # Handle unindexed event fields
