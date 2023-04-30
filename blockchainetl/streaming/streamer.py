@@ -32,7 +32,7 @@ from sqlalchemy.exc import PendingRollbackError
 
 from blockchainetl.file_utils import smart_open
 from blockchainetl.streaming.streamer_adapter_stub import StreamerAdapterStub
-from ethereumetl.utils import timestamp_now
+from ethereumetl.utils import timestamp_now, HealthCheck
 
 
 class Streamer:
@@ -228,7 +228,7 @@ class LastSyncedBlockProviderSQL(LastSyncedBlockProvider):
             return 0
         return last_synced_block.block_number
 
-
+    @HealthCheck
     def set_last_synced_block(self, last_synced_block):
         last_synced_block_record = self.LastSyncedBlock(
             chain_id=self.chain_id,
