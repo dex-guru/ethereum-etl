@@ -41,3 +41,29 @@ class MockBatchWeb3Provider(MockWeb3Provider):
             file_content = self.read_resource(file_name)
             web3_response.append(json.loads(file_content))
         return web3_response
+
+
+class MockBatchWeb3OrWeb3Provider:
+    def __init__(self, read_resource, write_resource, web3):
+        super().__init__(read_resource)
+        self.read_resource = read_resource
+        self.write_resource = write_resource
+        self.web3 = web3
+
+    def make_batch_request(self, text):
+        batch = json.loads(text)
+        web3_response = []
+        for req in batch:
+            method = req['method']
+            params = req['params']
+            file_name = build_file_name(method, params)
+            try:
+                file_content = self.read_resource(file_name)
+            except ValueError:
+                response = self.web3.make_request(method, params)
+                file_content = json.dumps(response)
+                print('Warning: {} not found, using real web3 response'.format(file_name))
+                self.write_resource(file_name, file_content)
+                print('Saved real web3 response to {}'.format(file_name))
+            web3_response.append(json.loads(file_content))
+        return web3_response
