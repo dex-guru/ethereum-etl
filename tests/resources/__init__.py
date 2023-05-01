@@ -33,3 +33,14 @@ def read_resource(groups, file_name):
 
     with open(fixture_file_name, encoding="utf-8") as file_handle:
         return file_handle.read()
+
+
+def write_resource(groups, file_name, content):
+    current_file_dir = os.path.dirname(__file__)
+    fixture_file_name = os.path.join(current_file_dir, *groups, file_name)
+
+    if not os.path.exists(os.path.dirname(fixture_file_name)):
+        os.makedirs(os.path.dirname(fixture_file_name))
+
+    with open(fixture_file_name, 'w', encoding="utf-8") as file_handle:
+        file_handle.write(content)

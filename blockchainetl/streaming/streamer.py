@@ -245,8 +245,9 @@ class LastSyncedBlockProviderSQL(LastSyncedBlockProvider):
         return last_synced_block.block_number
 
     def set_last_synced_block(self, last_synced_block):
-        last_synced_block_record = self.LastSyncedBlock(chain_id=self.chain_id, block_number=last_synced_block,
-                                                        indexed_ts=timestamp_now())
+        last_synced_block_record = self.LastSyncedBlock(
+            chain_id=self.chain_id, block_number=last_synced_block, indexed_ts=timestamp_now()
+        )
         last_synced_block_record.block_number = last_synced_block
         with self.session() as session:
             session.add(last_synced_block_record)
