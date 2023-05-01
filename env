@@ -1,0 +1,14 @@
+CHAIN_ID=7700
+LAST_SYNCED_BLOCK_PROVIDER=clickhouse+native://testuser3:testplpassword@10.0.200.180/dex_etl?table_name=last_synced_block
+LAG=0
+PROVIDER_URL=http://10.0.100.149:8080/archive/7700
+OUTPUT=clickhouse://testuser3:testplpassword@10.0.200.180/dex_etl
+START_BLOCK=None
+ENTITY_TYPES=block,transaction,log,token_transfer
+POLLING_PERIOD=10
+BATCH_SIZE=10
+BLOCK_BATCH_SIZE=100
+MAX_WORKERS=5
+SKIP_NONE_RECEIPTS=False
+MIN_INSERT_BATCH_SIZE=1
+HEALTH_CHECK_TIMEOUT=600
