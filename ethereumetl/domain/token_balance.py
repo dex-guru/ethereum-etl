@@ -1,9 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, TypeVar
-
-UInt256 = TypeVar('UInt256', bound=int)
-UInt64 = TypeVar('UInt64', bound=int)
-HexStr = TypeVar('HexStr', bound=str)
+from typing import Optional
 
 
 @dataclass
@@ -21,8 +17,8 @@ class TokenBalance:
             ERC20 tokens.
     """
 
-    token_address: HexStr
-    holder_address: HexStr
-    block_number: UInt64
-    value: UInt256
-    token_id: Optional[UInt256] = None
+    token_address: str
+    holder_address: str
+    block_number: int
+    value: int
+    token_id: Optional[int] = None
