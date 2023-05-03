@@ -19,6 +19,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from typing import Literal
+
 import eth_abi
 from eth_utils import keccak, to_hex
 
@@ -66,7 +68,7 @@ def generate_balance_of_json_rpc(
     contract_address: str,
     holder_address: str,
     token_id: int | None = None,
-    block: int | None = None,
+    block: int | Literal['latest'] = 'latest',
     request_id: int = 1,
 ) -> dict:
     """
@@ -74,9 +76,6 @@ def generate_balance_of_json_rpc(
         * https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_call
         * https://docs.soliditylang.org/en/latest/abi-spec.html
     """
-    if block is None:
-        block = 'latest'
-
     if token_id is None:  # ERC-20 contract
         # [ selector: 4 bytes, address: 20 bytes zero padded to 32 bytes ]
         data = ERC20_BALANCE_OF_SELECTOR + eth_abi.encode_single('address', holder_address)

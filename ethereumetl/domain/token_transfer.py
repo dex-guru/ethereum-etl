@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, TypedDict
 
 
 @dataclass
@@ -34,3 +34,15 @@ class EthTokenTransfer:
     block_number: int
     token_id: Optional[int] = None  # ERC-721, ERC-1155
     operator_address: Optional[str] = None
+
+
+class EthTokenTransferItem(TypedDict):
+    token_address: str
+    from_address: str
+    to_address: str
+    value: int
+    transaction_hash: str
+    log_index: int
+    block_number: int
+    token_id: Optional[int]
+    operator_address: Optional[str]

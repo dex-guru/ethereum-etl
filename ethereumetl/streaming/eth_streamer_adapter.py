@@ -6,6 +6,7 @@ from blockchainetl.jobs.exporters.in_memory_item_exporter import InMemoryItemExp
 from ethereumetl.enumeration.entity_type import EntityType
 from ethereumetl.jobs.export_blocks_job import ExportBlocksJob
 from ethereumetl.jobs.export_receipts_job import ExportReceiptsJob
+from ethereumetl.jobs.export_token_balances_job import ExportTokenBalancesJob
 from ethereumetl.jobs.export_traces_job import ExportTracesJob
 from ethereumetl.jobs.extract_contracts_job import ExtractContractsJob
 from ethereumetl.jobs.extract_token_transfers_job import ExtractTokenTransfersJob
@@ -189,6 +190,18 @@ class EthStreamerAdapter:
         job.run()
         token_transfers = exporter.get_items('token_transfer')
         return token_transfers
+
+    def _export_token_balances(self, token_transfers):
+        exporter = InMemoryItemExporter(item_types=['token_balance'])
+        job = ExportTokenBalancesJob(
+            token_transfers_iterable=token_transfers,
+            batch_size=self.batch_size,
+            max_workers=self.max_workers,
+            item_exporter=exporter,
+        )
+        job.run()
+        token_balances = exporter.get_items(EntityType.TOKEN_BALANCE)
+        return token_balances
 
     def _export_traces(self, start_block, end_block):
         exporter = InMemoryItemExporter(item_types=['trace'])
