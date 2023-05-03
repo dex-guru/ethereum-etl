@@ -30,7 +30,7 @@ from web3.providers.ipc import IPCProvider
 try:
     from json import JSONDecodeError
 except ImportError:
-    JSONDecodeError = ValueError
+    JSONDecodeError = ValueError  # type: ignore
 
 
 # Mostly copied from web3.py/providers/ipc.py. Supports batch requests.
