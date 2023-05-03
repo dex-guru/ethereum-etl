@@ -1,6 +1,7 @@
 import json
 from typing import Iterable, TypedDict
 
+from blockchainetl.jobs.base_job import BaseJob
 from ethereumetl.domain.token_balance import EthTokenBalance
 from ethereumetl.domain.token_transfer import EthTokenTransferItem
 from ethereumetl.executors.batch_work_executor import BatchWorkExecutor
@@ -16,7 +17,7 @@ class TokenBalanceParams(TypedDict):
     token_id: int | None
 
 
-class ExportTokenBalancesJob:
+class ExportTokenBalancesJob(BaseJob):
     def __init__(
         self,
         *,
@@ -26,13 +27,11 @@ class ExportTokenBalancesJob:
         max_workers,
         item_exporter,
     ):
-        self.token_balance_mapper = EthTokenBalanceMapper()
-        self.token_transfers_iterable = token_transfers_iterable
-        self.batch_size = batch_size
-        self.max_workers = max_workers
         self.item_exporter = item_exporter
-        self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers)
+        self.token_transfers_iterable = token_transfers_iterable
         self.batch_web3_provider = batch_web3_provider
+        self.token_balance_mapper = EthTokenBalanceMapper()
+        self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers)
 
     def _start(self):
         self.item_exporter.open()

@@ -65,6 +65,10 @@ class EthStreamerAdapter:
         if self._should_export(EntityType.TOKEN_TRANSFER):
             token_transfers = self._extract_token_transfers(logs)
 
+        token_balances = []
+        if self._should_export(EntityType.TOKEN_BALANCE):
+            token_balances = self._export_token_balances(token_transfers)
+
         # Export traces
         traces = []
         if self._should_export(EntityType.TRACE):
@@ -110,6 +114,7 @@ class EthStreamerAdapter:
                 f'{last_synced_block_datetime}, '
                 f'got {len(enriched_transactions)} transactions, {len(enriched_logs)} logs, '
                 f'{len(enriched_token_transfers)} token transfers, {len(enriched_traces)} traces, '
+                f'{len(enriched_token_balances)} token balances, '
                 f'{len(enriched_contracts)} contracts, {len(enriched_tokens)} tokens',
                 extra={
                     'last_synced_block': enriched_blocks[-1]["number"],
@@ -118,6 +123,7 @@ class EthStreamerAdapter:
                     'transactions_per_batch': len(enriched_transactions),
                     'logs_per_batch': len(enriched_logs),
                     'token_transfers_per_batch': len(enriched_token_transfers),
+                    'token_balances_per_batch': len(token_balances),
                     'traces_per_batch': len(enriched_traces),
                     'contracts_per_batch': len(enriched_contracts),
                     'tokens_per_batch': len(enriched_tokens),
@@ -198,6 +204,7 @@ class EthStreamerAdapter:
             batch_size=self.batch_size,
             max_workers=self.max_workers,
             item_exporter=exporter,
+            batch_web3_provider=self.batch_web3_provider,
         )
         job.run()
         token_balances = exporter.get_items(EntityType.TOKEN_BALANCE)
@@ -275,6 +282,9 @@ class EthStreamerAdapter:
 
         if entity_type == EntityType.TOKEN:
             return EntityType.TOKEN in self.entity_types
+
+        if entity_type == EntityType.TOKEN_BALANCE:
+            return EntityType.TOKEN_BALANCE in self.entity_types
 
         raise ValueError('Unexpected entity type ' + entity_type)
 
