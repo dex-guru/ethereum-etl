@@ -43,7 +43,7 @@ class MockBatchWeb3Provider(MockWeb3Provider):
         return web3_response
 
 
-class MockBatchWeb3OrWeb3Provider:
+class MockBatchWeb3OrWeb3Provider(MockWeb3Provider):
     def __init__(self, read_resource, write_resource, web3):
         super().__init__(read_resource)
         self.read_resource = read_resource

@@ -32,9 +32,13 @@ def get_web3_provider(
             provider = HTTPProvider(provider_url)
     elif provider_type == 'mock_or_infura':
         if read_resource_lambda is None:
-            raise ValueError("read_resource_lambda must not be None for provider type mock")
+            raise ValueError(
+                f"read_resource_lambda must not be None for provider type {provider_type}"
+            )
         if write_resource_lambda is None:
-            raise ValueError("write_resource_lambda must not be None for provider type mock")
+            raise ValueError(
+                f"write_resource_lambda must not be None for provider type {provider_type}"
+            )
 
         provider_url = os.environ.get(
             'PROVIDER_URL', 'https://mainnet.infura.io/v3/7aef3f0cd1f64408b163814b22cc643c'
