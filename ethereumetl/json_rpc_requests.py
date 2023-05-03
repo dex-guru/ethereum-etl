@@ -19,8 +19,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
-from eth_utils import is_address, keccak, to_bytes, to_hex
+import eth_abi
+from eth_utils import keccak, to_hex
 
 
 def generate_get_block_by_number_json_rpc(block_numbers, include_transactions):
@@ -62,45 +62,36 @@ ERC20_BALANCE_OF_SELECTOR = keccak(text='balanceOf(address)')[:4]
 ERC721_BALANCE_OF_SELECTOR = keccak(text='balanceOf(address,uint256)')[:4]
 
 
-def generate_get_balance_json_rpc(
+def generate_balance_of_json_rpc(
     contract_address: str,
     holder_address: str,
     token_id: int | None = None,
     block: int | None = None,
+    request_id: int = 1,
 ) -> dict:
     """
     See:
         * https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_call
         * https://docs.soliditylang.org/en/latest/abi-spec.html
-
-    `eth_abi.encode` is too slow.
     """
-    assert is_address(contract_address)
-    assert is_address(holder_address)
-
-    if token_id is None:  # ERC-20 token
-        # [ selector: 4 bytes, address: 20 bytes zero padded to 32 bytes ]
-        data = bytearray(4 + 32)
-        data[:4] = ERC20_BALANCE_OF_SELECTOR  # 4 bytes of the function signature's keccak hash
-        data[-20:] = to_bytes(hexstr=holder_address)  # 20 bytes of address
-
-    else:  # ERC-721 or ERC-1155 token
-        assert isinstance(token_id, int)
-        # [ selector: 4 bytes, address: 20 bytes zero padded to 32 bytes, token_id: uint256 ]
-        data = bytearray(4 + 32 + 32)
-        data[:4] = ERC721_BALANCE_OF_SELECTOR  # 4 bytes of the function signature's keccak hash
-        data[-32 - 20 : -32] = to_bytes(hexstr=holder_address)  # 20 bytes of address
-        data[-32:] = token_id.to_bytes(32, 'big', signed=False)  # 32 bytes of uint256
-
-    transaction = {'to': contract_address, 'data': to_hex(data)}
-
     if block is None:
         block = 'latest'
-    else:
-        assert isinstance(block, int)
-        transaction['blockNumber'] = hex(block)
 
-    return generate_json_rpc(method='eth_call', params=[transaction, block])
+    if token_id is None:  # ERC-20 contract
+        # [ selector: 4 bytes, address: 20 bytes zero padded to 32 bytes ]
+        data = ERC20_BALANCE_OF_SELECTOR + eth_abi.encode_single('address', holder_address)
+
+    else:  # ERC-721 or ERC-1155 contract
+        # [ selector: 4 bytes, address: 20 bytes zero padded to 32 bytes, token_id: uint256 ]
+        data = ERC721_BALANCE_OF_SELECTOR + eth_abi.encode(
+            ('address', 'uint256'),
+            (holder_address, token_id),
+        )
+
+    data = to_hex(data)
+    transaction = {'to': contract_address, 'data': data}
+
+    return generate_json_rpc('eth_call', [transaction, block], request_id)
 
 
 def generate_json_rpc(method, params, request_id=1):
