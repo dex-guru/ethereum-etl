@@ -77,7 +77,7 @@ test:
     - merge_requests
     - master
 
-lint-python-typing:
+lint-python-pyright:
   stage: lint
   needs:
     - build-lint
@@ -86,6 +86,27 @@ lint-python-typing:
     - pyright --pythonversion 3.10 --outputjson . > report_raw.json
   after_script:
     - pyright-to-gitlab-ci --src report_raw.json --output report.json --base_path .
+  artifacts:
+    paths:
+      - report.json
+    reports:
+      codequality: report.json
+    expire_in: 1 month
+  allow_failure: true
+  only:
+    - merge_requests
+    - master
+
+lint-python-mypy:
+  stage: lint
+  needs:
+    - build-lint
+  image: "${CI_REGISTRY_IMAGE}:lint-ci"
+  variables:
+    PYTHONHASHSEED: 0
+  script:
+    - mypy . | tee mypy-out.txt
+    - mypy-gitlab-code-quality < mypy-out.txt > report.json
   artifacts:
     paths:
       - report.json
