@@ -71,8 +71,13 @@ test:
     - name: clickhouse/clickhouse-server
       alias: clickhouse
   script:
-    - mkdir htmlcov
-    - pytest -v --color yes
+    - pytest -v --color yes --cov --cov-report term --cov-report xml:coverage.xml
+  coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
   only:
     - merge_requests
     - master
