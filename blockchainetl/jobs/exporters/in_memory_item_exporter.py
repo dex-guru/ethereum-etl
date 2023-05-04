@@ -37,6 +37,10 @@ class InMemoryItemExporter:
 
         self.items[item_type].append(item)
 
+    def export_items(self, items):
+        for item in items:
+            self.export_item(item)
+
     def close(self):
         pass
 

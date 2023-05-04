@@ -45,4 +45,5 @@ class EnvsConfig(BaseSettings):
     # Restart if last synced block wasn't saved for this amount of seconds
     HEALTH_CHECK_TIMEOUT: int = 600
 
+
 envs = EnvsConfig()

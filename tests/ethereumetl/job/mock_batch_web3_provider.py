@@ -23,7 +23,11 @@
 
 import json
 
-from tests.ethereumetl.job.mock_web3_provider import MockWeb3Provider, build_file_name
+from tests.ethereumetl.job.mock_web3_provider import (
+    MockWeb3OrWeb3Provider,
+    MockWeb3Provider,
+    build_file_name,
+)
 
 
 class MockBatchWeb3Provider(MockWeb3Provider):
@@ -43,9 +47,9 @@ class MockBatchWeb3Provider(MockWeb3Provider):
         return web3_response
 
 
-class MockBatchWeb3OrWeb3Provider(MockWeb3Provider):
+class MockBatchWeb3OrWeb3Provider(MockWeb3OrWeb3Provider):
     def __init__(self, read_resource, write_resource, web3):
-        super().__init__(read_resource)
+        super().__init__(read_resource, write_resource, web3)
         self.read_resource = read_resource
         self.write_resource = write_resource
         self.web3 = web3
@@ -61,6 +65,7 @@ class MockBatchWeb3OrWeb3Provider(MockWeb3Provider):
                 file_content = self.read_resource(file_name)
             except ValueError:
                 response = self.web3.make_request(method, params)
+                response['id'] = req.get('id')
                 file_content = json.dumps(response)
                 print('Warning: {} not found, using real web3 response'.format(file_name))
                 self.write_resource(file_name, file_content)

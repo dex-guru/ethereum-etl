@@ -120,10 +120,13 @@ class ExportOriginJob(BaseJob):
                     event_filter = self.web3.eth.filter(filter_params)
                     events = event_filter.get_all_entries()
                 except ValueError as e:
-                    if (
-                        str(e)
-                        == "{'code': -32000, 'message': 'the method is currently not implemented: eth_newFilter'}"
-                    ):
+                    if not e.args:
+                        raise
+                    error = e.args[0]
+                    if error == {
+                        'code': -32000,
+                        'message': 'the method is currently not implemented: eth_newFilter',
+                    } or (isinstance(error, dict) and error.get('code') == -32099):
                         self._supports_eth_newFilter = False
                         events = self.web3.eth.getLogs(filter_params)
                     else:

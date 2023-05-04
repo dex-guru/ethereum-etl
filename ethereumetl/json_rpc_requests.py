@@ -87,10 +87,9 @@ def generate_balance_of_json_rpc(
             (holder_address, token_id),
         )
 
-    data = to_hex(data)
-    transaction = {'to': contract_address, 'data': data}
+    transaction = {'to': contract_address, 'data': to_hex(data)}
 
-    return generate_json_rpc('eth_call', [transaction, block], request_id)
+    return generate_json_rpc('eth_call', [transaction, to_hex(block)], request_id)
 
 
 def generate_json_rpc(method, params, request_id=1):

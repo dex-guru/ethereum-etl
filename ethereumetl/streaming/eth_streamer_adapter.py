@@ -14,6 +14,7 @@ from ethereumetl.jobs.extract_tokens_job import ExtractTokensJob
 from ethereumetl.streaming.enrich import (
     enrich_contracts,
     enrich_logs,
+    enrich_token_balances,
     enrich_token_transfers,
     enrich_tokens,
     enrich_traces,
@@ -96,6 +97,11 @@ class EthStreamerAdapter:
             if EntityType.TOKEN_TRANSFER in self.entity_types
             else []
         )
+        enriched_token_balances = (
+            enrich_token_balances(blocks, token_balances)
+            if EntityType.TOKEN_BALANCE in self.entity_types
+            else []
+        )
         enriched_traces = (
             enrich_traces(blocks, traces) if EntityType.TRACE in self.entity_types else []
         )
@@ -139,6 +145,7 @@ class EthStreamerAdapter:
             + sort_by(enriched_transactions, ('block_number', 'transaction_index'))
             + sort_by(enriched_logs, ('block_number', 'log_index'))
             + sort_by(enriched_token_transfers, ('block_number', 'log_index'))
+            + sort_by(enriched_token_balances, ('block_number', 'token_address', 'address'))
             + sort_by(enriched_traces, ('block_number', 'trace_index'))
             + sort_by(enriched_contracts, ('block_number',))
             + sort_by(enriched_tokens, ('block_number',))
@@ -199,7 +206,7 @@ class EthStreamerAdapter:
     def _export_token_balances(self, token_transfers):
         exporter = InMemoryItemExporter(item_types=['token_balance'])
         job = ExportTokenBalancesJob(
-            token_transfers_iterable=token_transfers,
+            token_transfer_items_iterable=token_transfers,
             batch_size=self.batch_size,
             max_workers=self.max_workers,
             item_exporter=exporter,
@@ -267,7 +274,9 @@ class EthStreamerAdapter:
             )
 
         if entity_type == EntityType.TOKEN_TRANSFER:
-            return EntityType.TOKEN_TRANSFER in self.entity_types
+            return EntityType.TOKEN_TRANSFER in self.entity_types or self._should_export(
+                EntityType.TOKEN_BALANCE
+            )
 
         if entity_type == EntityType.TRACE:
             return EntityType.TRACE in self.entity_types or self._should_export(

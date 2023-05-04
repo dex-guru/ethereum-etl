@@ -21,12 +21,14 @@
 # SOFTWARE.
 
 import os
+from pathlib import Path
 
 import pytest
 
 import tests.resources
 from blockchainetl.jobs.exporters.clickhouse_exporter import ClickHouseItemExporter
 from blockchainetl.jobs.exporters.composite_item_exporter import CompositeItemExporter
+from blockchainetl.jobs.exporters.in_memory_item_exporter import InMemoryItemExporter
 from blockchainetl.streaming.streamer import Streamer
 from ethereumetl.config.envs import envs
 from ethereumetl.enumeration.entity_type import EntityType
@@ -35,7 +37,12 @@ from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter
 from ethereumetl.streaming.item_exporter_creator import make_item_type_to_table_mapping
 from ethereumetl.thread_local_proxy import ThreadLocalProxy
 from tests.ethereumetl.job.helpers import get_web3_provider
-from tests.helpers import compare_lines_ignore_order, read_file, skip_if_slow_tests_disabled
+from tests.helpers import (
+    compare_lines_ignore_order,
+    read_file,
+    run_slow_tests,
+    skip_if_slow_tests_disabled,
+)
 
 RESOURCE_GROUP = 'test_stream'
 TEST_TABLE_NAME_PREFIX = 'test_stream_clickhouse_etl_99'
@@ -81,6 +88,9 @@ def test_stream(
             lambda: get_web3_provider(
                 provider_type,
                 read_resource_lambda=lambda file: read_resource(resource_group, file),
+                write_resource_lambda=lambda file, content: tests.resources.write_resource(
+                    [RESOURCE_GROUP, resource_group], file, content
+                ),
                 batch=True,
             )
         ),
@@ -91,6 +101,7 @@ def test_stream(
                 'transaction': transactions_output_file,
                 'log': logs_output_file,
                 'token_transfer': token_transfers_output_file,
+                'token_balance': '/dev/null',
                 'trace': traces_output_file,
                 'contract': contracts_output_file,
                 'token': tokens_output_file,
@@ -258,16 +269,18 @@ def test_stream_clickhouse(
     transactions_output_file = str(tmpdir.join('actual_transactions.json'))
     logs_output_file = str(tmpdir.join('actual_logs.json'))
     token_transfers_output_file = str(tmpdir.join('actual_token_transfers.json'))
+    token_balances_output_file = str(tmpdir.join('actual_token_balances.json'))
     traces_output_file = str(tmpdir.join('actual_traces.json'))
     contracts_output_file = str(tmpdir.join('actual_contracts.json'))
     tokens_output_file = str(tmpdir.join('actual_tokens.json'))
 
-    item_exporter = CompositeItemExporter(
+    item_exporter = CompositeItemExporter(  # type: ignore
         filename_mapping={
             'block': blocks_output_file,
             'transaction': transactions_output_file,
             'log': logs_output_file,
             'token_transfer': token_transfers_output_file,
+            'token_balance': token_balances_output_file,
             'trace': traces_output_file,
             'contract': contracts_output_file,
             'token': tokens_output_file,
@@ -281,7 +294,7 @@ def test_stream_clickhouse(
         item_exporter=item_exporter,
         entity_types=entity_types,
     )
-    eth_streamer_adapter.get_current_block_number = lambda *_: 12242307
+    eth_streamer_adapter.get_current_block_number = lambda *_: 12242307  # type: ignore
 
     ch_eth_streamer_adapter = ClickhouseEthStreamerAdapter(
         eth_streamer_adapter=eth_streamer_adapter,
@@ -342,3 +355,51 @@ def test_stream_clickhouse(
     compare_lines_ignore_order(
         read_resource(resource_group, 'expected_tokens.json'), read_file(tokens_output_file)
     )
+
+
+@pytest.mark.skipif(not run_slow_tests, reason='slow tests not enabled')
+def test_stream_token_balances(tmp_path: Path):
+    exporter = InMemoryItemExporter(item_types=[EntityType.TOKEN_BALANCE])
+
+    streamer_adapter = EthStreamerAdapter(
+        batch_web3_provider=ThreadLocalProxy(lambda: get_web3_provider('infura', batch=True)),
+        batch_size=1,
+        item_exporter=exporter,
+        entity_types=[EntityType.TOKEN_BALANCE],
+    )
+    streamer = Streamer(
+        chain_id=1,
+        blockchain_streamer_adapter=streamer_adapter,
+        start_block=17179063,
+        end_block=17179063,
+        retry_errors=False,
+        last_synced_block_provider_uri=f"file://{tmp_path / 'last_synced_block.txt'}",
+    )
+    streamer.stream()
+
+    token_balances = sorted(
+        exporter.get_items(EntityType.TOKEN_BALANCE),
+        key=lambda x: [x['token_address'], x['holder_address']],
+    )
+
+    first_erc1155_token_balance = next(
+        token_balance for token_balance in token_balances if token_balance['token_id'] is not None
+    )
+    assert first_erc1155_token_balance == {
+        'block_hash': '0x97ebb349d7ab33966221767701765deb064362405a3a4a878d252465700ed350',
+        'block_number': 17179063,
+        'block_timestamp': 1683103055,
+        'holder_address': '0x3597770531bd28805a688003c5bc0292f4b9bf2c',
+        'item_id': (
+            'token_balance'
+            '_0xd1988bea35478229ebee68331714b215e3529510'
+            '_0x3597770531bd28805a688003c5bc0292f4b9bf2c'
+            '_2'
+        ),
+        'item_timestamp': '2023-05-03T08:37:35Z',
+        'token_address': '0xd1988bea35478229ebee68331714b215e3529510',
+        'token_id': 2,
+        'type': 'token_balance',
+        'value': 1,
+    }
+    assert len(token_balances) == 430

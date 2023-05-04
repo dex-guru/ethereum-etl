@@ -33,5 +33,6 @@ class EthTokenTransferMapper(object):
             'log_index': token_transfer.log_index,
             'block_number': token_transfer.block_number,
             'token_id': token_transfer.token_id,
+            'token_standard': token_transfer.token_standard,
             'operator_address': token_transfer.operator_address,
         }

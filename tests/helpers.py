@@ -27,23 +27,19 @@ import os
 import pytest
 
 
-def sort_json(json_string):
-    return json.dumps(json.loads(json_string), sort_keys=True)
-
-
 def compare_lines_ignore_order(expected, actual):
     expected_lines = expected.splitlines()
     actual_lines = actual.splitlines()
-    assert len(expected_lines) == len(actual_lines)
-
     try:
-        expected_lines = [sort_json(line) for line in expected_lines]
-        actual_lines = [sort_json(line) for line in actual_lines]
+        expected_lines = [json.loads(line) for line in expected_lines]
+        actual_lines = [json.loads(line) for line in actual_lines]
     except json.decoder.JSONDecodeError:
         pass
 
-    for expected_line, actual_line in zip(sorted(expected_lines), sorted(actual_lines)):
-        assert expected_line == actual_line
+    expected_lines.sort(key=lambda x: json.dumps(x, sort_keys=True))
+    actual_lines.sort(key=lambda x: json.dumps(x, sort_keys=True))
+
+    assert actual_lines == expected_lines
 
 
 def read_file(path):

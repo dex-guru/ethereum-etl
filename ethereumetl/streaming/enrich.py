@@ -23,8 +23,10 @@
 
 import itertools
 from collections import defaultdict
+from dataclasses import fields
 
 from ethereumetl.config.envs import envs
+from ethereumetl.domain.token_balance import EthTokenBalance
 from ethereumetl.utils import dedup_list_of_dicts
 
 
@@ -154,9 +156,30 @@ def enrich_token_transfers(blocks, token_transfers):
                 'transaction_hash',
                 'log_index',
                 'block_number',
+                'token_standard',
                 'token_id',
                 'operator_address',
             ],
+            [
+                ('timestamp', 'block_timestamp'),
+                ('hash', 'block_hash'),
+            ],
+        )
+    )
+
+    if len(result) != len(token_transfers) and not envs.SKIP_NONE_RECEIPTS:
+        raise ValueError('The number of token transfers is wrong ' + str(result))
+
+    return result
+
+
+def enrich_token_balances(blocks, token_transfers):
+    result = list(
+        join(
+            token_transfers,
+            blocks,
+            ('block_number', 'number'),
+            ['type', *(f.name for f in fields(EthTokenBalance))],
             [
                 ('timestamp', 'block_timestamp'),
                 ('hash', 'block_hash'),

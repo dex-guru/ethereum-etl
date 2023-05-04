@@ -82,6 +82,7 @@ def extract_erc20_transfers(receipt_log):
         transaction_hash=receipt_log.transaction_hash,
         log_index=receipt_log.log_index,
         block_number=receipt_log.block_number,
+        token_standard="ERC-20",
     )
     yield token_transfer
 
@@ -107,6 +108,7 @@ def extract_erc721_transfers(receipt_log):
         to_address=word_to_address(topics[2]),
         token_id=hex_to_dec(topics[3]),
         value=value,
+        token_standard="ERC-721",
     )
     yield token_transfer
 
@@ -135,6 +137,7 @@ def extract_erc1155_single_transfers(receipt_log):
             to_address=word_to_address(topics[3]),
             token_id=token_id,
             value=value,
+            token_standard="ERC-1155",
         )
         yield token_transfer
 
@@ -164,6 +167,7 @@ def extract_erc1155_batch_transfers(receipt_log):
                 to_address=word_to_address(topics[3]),
                 token_id=token_id,
                 value=value,
+                token_standard="ERC-1155",
             )
             yield token_transfer
 
