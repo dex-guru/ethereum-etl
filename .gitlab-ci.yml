@@ -105,8 +105,9 @@ lint-python-mypy:
   variables:
     PYTHONHASHSEED: 0
   script:
-    - mypy . | tee mypy-out.txt
-    - mypy-gitlab-code-quality < mypy-out.txt > report.json
+    - mypy . | tee mypy.log
+  after_script:
+    - mypy-gitlab-code-quality < mypy.log > report.json
   artifacts:
     paths:
       - report.json
