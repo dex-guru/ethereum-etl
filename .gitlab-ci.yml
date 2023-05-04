@@ -71,8 +71,8 @@ test:
     - name: clickhouse/clickhouse-server
       alias: clickhouse
   script:
-    - >
-      pytest
+    - >-
+        pytest
         -v
         --color yes
         --cov
