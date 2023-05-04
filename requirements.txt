@@ -81,3 +81,4 @@ redis[hiredis]==4.5.3
 pytest==7.2.2
 logstash-formatter==0.5.17
 python-logstash-async==2.5.0
+kombu==5.2.4

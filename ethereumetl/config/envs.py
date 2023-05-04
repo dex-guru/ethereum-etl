@@ -42,6 +42,7 @@ class EnvsConfig(BaseSettings):
     SKIP_NONE_RECEIPTS: bool = False
     MIN_INSERT_BATCH_SIZE: int = 1000
     EXPORT_FROM_CLICKHOUSE: Union[AnyUrl, Literal['']] = ''
-
+    # Restart if last synced block wasn't saved for this amount of seconds
+    HEALTH_CHECK_TIMEOUT: int = 600
 
 envs = EnvsConfig()

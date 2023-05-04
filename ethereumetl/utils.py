@@ -25,8 +25,10 @@ import itertools
 import logging
 import warnings
 from datetime import datetime
+from pathlib import Path
 
 import pytz
+import time
 
 from ethereumetl.config.envs import envs
 from ethereumetl.misc.retriable_value_error import RetriableValueError
@@ -159,3 +161,42 @@ def dedup_list_of_dicts(items_list: list) -> list:
             seen.add(t)
             new_l.append(d)
     return new_l
+
+
+class HealthCheck:
+    """
+    Health check decorator class. It touches the "healthy" file.
+    If the worker is not alive, K8s kills the process.
+
+    IMPORTANT:
+    This decorator should be set on the periodically called function.
+    It needs to set livenessProbe in the helm chart.
+
+    Usage:
+
+    def main():
+        while True:
+            foo()
+
+    @HealthCheck
+    def foo():
+        do_something()
+
+    if __name__ == '__main__':
+        main()
+    """
+
+    def __init__(self, func):
+        self.timeout = envs.HEALTH_CHECK_TIMEOUT
+        self._last_check = time.monotonic()
+        self.func = func
+        Path('/tmp/healthy').touch()
+
+    def im_alive(self):
+        if time.monotonic() - self._last_check > self.timeout / 3:
+            Path('/tmp/healthy').touch()
+            self._last_check = time.monotonic()
+
+    def __call__(self, *args, **kwargs):
+        self.im_alive()
+        return self.func(*args, **kwargs)

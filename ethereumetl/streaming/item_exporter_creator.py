@@ -129,6 +129,10 @@ def create_item_exporter(output, chain_id):
         item_exporter = ClickHouseItemExporter(
             output, item_type_to_table_mapping=item_type_to_table_mapping
         )
+    elif item_exporter_type == ItemExporterType.AMQP:
+        from blockchainetl.jobs.exporters.amqp_exporter import AMQPItemExporter
+
+        item_exporter = AMQPItemExporter(amqp_url=output, exchange=f'ethereumetl_{chain_id}')
     else:
         raise ValueError('Unable to determine item exporter type for output ' + output)
 
@@ -163,7 +167,7 @@ def get_bucket_and_path_from_gcs_output(output):
     return bucket, path
 
 
-def determine_item_exporter_type(output):
+def determine_item_exporter_type(output) -> str:
     if output is not None and output.startswith('projects'):
         return ItemExporterType.PUBSUB
     if output is not None and output.startswith('kinesis://'):
@@ -176,6 +180,8 @@ def determine_item_exporter_type(output):
         return ItemExporterType.GCS
     elif output is not None and output.startswith('clickhouse'):
         return ItemExporterType.CLICKHOUSE
+    elif output is not None and (output.startswith('amqp') or output.startswith('rabbitmq')):
+        return ItemExporterType.AMQP
     elif output is None or output == 'console':
         return ItemExporterType.CONSOLE
     else:
@@ -191,3 +197,4 @@ class ItemExporterType:
     KAFKA = 'kafka'
     CLICKHOUSE = 'clickhouse'
     UNKNOWN = 'unknown'
+    AMQP = 'amqp'

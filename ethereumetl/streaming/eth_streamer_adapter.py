@@ -114,7 +114,6 @@ class EthStreamerAdapter:
                 f'{last_synced_block_datetime}, '
                 f'got {len(enriched_transactions)} transactions, {len(enriched_logs)} logs, '
                 f'{len(enriched_token_transfers)} token transfers, {len(enriched_traces)} traces, '
-                f'{len(enriched_token_balances)} token balances, '
                 f'{len(enriched_contracts)} contracts, {len(enriched_tokens)} tokens',
                 extra={
                     'last_synced_block': enriched_blocks[-1]["number"],
