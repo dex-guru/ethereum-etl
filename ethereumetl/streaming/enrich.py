@@ -173,10 +173,10 @@ def enrich_token_transfers(blocks, token_transfers):
     return result
 
 
-def enrich_token_balances(blocks, token_transfers):
+def enrich_token_balances(blocks, token_balances):
     result = list(
         join(
-            token_transfers,
+            token_balances,
             blocks,
             ('block_number', 'number'),
             ['type', *(f.name for f in fields(EthTokenBalance))],
@@ -186,9 +186,6 @@ def enrich_token_balances(blocks, token_transfers):
             ],
         )
     )
-
-    if len(result) != len(token_transfers) and not envs.SKIP_NONE_RECEIPTS:
-        raise ValueError('The number of token transfers is wrong ' + str(result))
 
     return result
 
