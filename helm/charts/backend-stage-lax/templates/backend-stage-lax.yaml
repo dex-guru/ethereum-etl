@@ -59,8 +59,6 @@ spec:
               value: '{{ (split "-" .Values.chainName)._0 }}'
             - name: CHAIN_ID
               value: '{{ (split "-" .Values.chainName)._1 }}'
-            - name: PROVIDER_URL
-              value: 'http://10.0.100.149:8080/archive/{{ (split "-" .Values.chainName)._1 }}'
             {{- $chainname := .Values.chainName -}}
             {{- range $key, $value := (index .Values .Values.appName "chainEnv") }}
             - name: {{ $key }}

@@ -16,7 +16,6 @@ raw-data-streamer:
     LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@10.0.200.180/dex_etl?table_name=last_synced_block'
     LAG: '0'
     OUTPUT: 'clickhouse://testuser3:testplpassword@10.0.200.180/dex_etl'
-    START_BLOCK: '1'
     ENTITY_TYPES: 'block,transaction,log,token_transfer'
     POLLING_PERIOD: '2'
     BATCH_SIZE: '10'
@@ -25,6 +24,22 @@ raw-data-streamer:
     SERVICE_NAME: 'raw-data-streamer'
 
   chainEnv:
+    START_BLOCK:
+      default: '1'
+      acanto-7701: '1299370'
+    PROVIDER_URL:
+      default: 'http://10.0.100.149:8080/archive/1'
+      polygon-137: 'http://10.0.100.149:8080/archive/137'
+      bsc-56: 'http://10.0.100.149:8080/archive/56'
+      eth-1: 'http://10.0.100.149:8080/archive/1'
+      canto-7700: 'http://10.0.100.149:8080/archive/7700'
+      acanto-7701: 'http://canto-testnet.plexnode.wtf'
+      fantom-250: 'http://10.0.100.149:8080/archive/250'
+      optimism-10: 'http://10.0.100.149:8080/archive/10'
+      gnosis-100: 'http://10.0.100.149:8080/archive/100'
+      arbitrum-42161: 'http://10.0.100.149:8080/archive/42161'
+      nova-42170: 'http://10.0.100.149:8080/archive/42170'
+
     BLOCK_BATCH_SIZE:
       default: '1000'
       polygon-137: '150'
@@ -36,6 +51,7 @@ raw-data-streamer:
       gnosis-100: '100'
       arbitrum-42161: '100'
       nova-42170: '100'
+      acanto-7701: '100'
     MAX_WORKERS:
       default: '5'
       polygon-137: '10'
@@ -47,6 +63,7 @@ raw-data-streamer:
       gnosis-100: '5'
       arbitrum-42161: '5'
       nova-42170: '5'
+      acanto-7701: '5'
     SKIP_NONE_RECEIPTS:
       default: 'False'
       polygon-137: 'True'
@@ -58,3 +75,4 @@ raw-data-streamer:
       gnosis-100: '1'
       arbitrum-42161: '1'
       nova-42170: '1'
+      acanto-7701: '1'
