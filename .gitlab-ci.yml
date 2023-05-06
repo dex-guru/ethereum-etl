@@ -67,6 +67,7 @@ test:
   variables:
     EXPORT_FROM_CLICKHOUSE: "http://default:@clickhouse:8123"
     ETHEREUM_ETL_RUN_SLOW_TESTS: "true"
+    PROVIDER_URL: 'http://10.0.100.149:8080/archive/1'
   services:
     - name: clickhouse/clickhouse-server
       alias: clickhouse
