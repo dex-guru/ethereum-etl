@@ -186,7 +186,7 @@ def stream(
             eth_streamer_adapter=streamer_adapter,
             clickhouse_url=export_from_clickhouse,
             chain_id=chain_id,
-            item_type_to_table_mapping=make_item_type_to_table_mapping(chain_id),
+            item_type_to_table_mapping=make_item_type_to_table_mapping(chain_id)
         )
 
     streamer = Streamer(
@@ -209,11 +209,8 @@ def parse_entity_types(entity_types):
     for entity_type in entity_types:
         if entity_type not in EntityType.ALL:
             raise click.BadOptionUsage(
-                '--entity-type',
-                '{} is not an available entity type. Supply a comma separated list of types from {}'.format(
-                    entity_type, ','.join(EntityType.ALL)
-                ),
-            )
+                '--entity-type', '{} is not an available entity type. Supply a comma separated list of types from {}'
+                    .format(entity_type, ','.join(EntityType.ALL_FOR_STREAMING)))
 
     return entity_types
 
