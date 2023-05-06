@@ -24,10 +24,17 @@ import os
 
 import pytest
 
+from ethereumetl.config.envs import envs
+from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter
+from ethereumetl.thread_local_proxy import ThreadLocalProxy
+
 import tests.resources
 from blockchainetl.jobs.exporters.clickhouse_exporter import ClickHouseItemExporter
 from blockchainetl.jobs.exporters.composite_item_exporter import CompositeItemExporter
 from blockchainetl.streaming.streamer import Streamer
+from ethereumetl.streaming.clickhouse_eth_streamer_adapter import ClickhouseEthStreamerAdapter
+from blockchainetl.jobs.exporters.clickhouse_exporter import ClickHouseItemExporter
+from ethereumetl.streaming.item_exporter_creator import make_item_type_to_table_mapping
 from ethereumetl.config.envs import envs
 from ethereumetl.enumeration.entity_type import EntityType
 from ethereumetl.streaming.clickhouse_eth_streamer_adapter import ClickhouseEthStreamerAdapter
