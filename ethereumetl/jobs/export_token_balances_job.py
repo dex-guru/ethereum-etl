@@ -1,4 +1,5 @@
 import json
+import logging
 import threading
 from typing import Iterable, NamedTuple
 
@@ -56,13 +57,23 @@ class ExportTokenBalancesJob(BaseJob):
 
         for rpc_params, rpc_response in zip(all_rpc_params, rpc_responses):
             token_balance = self.make_token_balance(rpc_params, rpc_response)
+
+            try:
+                self.validate_token_balance(token_balance)
+            except ValueError as e:
+                logging.warning(
+                    'Token balance validation failed: %s. Token balance: %s. Skipping...',
+                    e,
+                    json.dumps(EthTokenBalanceMapper.token_balance_to_dict(token_balance)),
+                )
+                continue
+
             token_balance_item = self.token_balance_mapper.token_balance_to_dict(token_balance)
             self.item_exporter.export_item(token_balance_item)
 
     @staticmethod
     def make_token_balance(rpc_params: TokenBalanceParams, rpc_response: dict) -> EthTokenBalance:
         balance_value = to_int(hexstr=rpc_response['result'])
-
         token_balance = EthTokenBalance(
             token_address=rpc_params.token_address,
             holder_address=rpc_params.holder_address,
@@ -156,3 +167,11 @@ class ExportTokenBalancesJob(BaseJob):
             executor.shutdown()
 
         return responses_ordered  # type: ignore
+
+    @staticmethod
+    def validate_token_balance(token_balance: EthTokenBalance):
+        max_uint256 = 2**256 - 1
+        if token_balance.value > max_uint256:
+            raise ValueError("Token balance value exceeds max uint256")
+        if token_balance.value < 0:
+            raise ValueError("Token balance value < 0")
