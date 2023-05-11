@@ -358,15 +358,31 @@ def test_stream_clickhouse(
 
 
 @pytest.mark.skipif(not run_slow_tests, reason='slow tests not enabled')
-def test_stream_token_balances(tmp_path: Path):
+@pytest.mark.parametrize(
+    'streamer_adapter_cls', [EthStreamerAdapter, ClickhouseEthStreamerAdapter]
+)
+def test_stream_token_balances(tmp_path: Path, streamer_adapter_cls, cleanup):
     exporter = InMemoryItemExporter(item_types=[EntityType.TOKEN_BALANCE])
 
-    streamer_adapter = EthStreamerAdapter(
+    eth_streamer_adapter = EthStreamerAdapter(
         batch_web3_provider=ThreadLocalProxy(lambda: get_web3_provider('infura', batch=True)),
         batch_size=1,
         item_exporter=exporter,
         entity_types=[EntityType.TOKEN_BALANCE],
     )
+
+    if streamer_adapter_cls is EthStreamerAdapter:
+        streamer_adapter = eth_streamer_adapter
+    elif streamer_adapter_cls is ClickhouseEthStreamerAdapter:
+        streamer_adapter = ClickhouseEthStreamerAdapter(
+            eth_streamer_adapter=eth_streamer_adapter,
+            clickhouse_url=envs.EXPORT_FROM_CLICKHOUSE,
+            chain_id=1,
+            item_type_to_table_mapping=make_item_type_to_table_mapping(chain_id=1),
+        )
+    else:
+        raise NotImplementedError(f'Unknown streamer adapter class: {streamer_adapter_cls}')
+
     streamer = Streamer(
         chain_id=1,
         blockchain_streamer_adapter=streamer_adapter,

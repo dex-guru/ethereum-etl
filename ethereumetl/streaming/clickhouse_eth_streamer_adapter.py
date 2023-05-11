@@ -103,6 +103,7 @@ class ClickhouseEthStreamerAdapter:
 
         @cache
         def export_blocks_and_transactions():
+            logging.info("exporting BLOCKS and TRANSACTIONS...")
             blocks = self._select_distinct(EntityType.BLOCK, start_block, end_block, 'number')
             transactions = self._select_distinct(
                 EntityType.TRANSACTION, start_block, end_block, 'hash'
@@ -147,6 +148,7 @@ class ClickhouseEthStreamerAdapter:
 
         @cache
         def export_receipts_and_logs():
+            logging.info("exporting RECEIPTS and LOGS...")
             blocks, transactions = eth_export_blocks_and_transactions(start_block, end_block)
             receipts, logs = self._eth_streamer_adapter._export_receipts_and_logs(transactions)
             logs = enrich_logs(blocks, logs)
@@ -154,6 +156,7 @@ class ClickhouseEthStreamerAdapter:
 
         @cache
         def export_logs():
+            logging.info("exporting LOGS...")
             if blocks_previously_exported():
                 logs = self._select_distinct(
                     EntityType.LOG, start_block, end_block, 'transaction_hash,log_index'
@@ -161,7 +164,7 @@ class ClickhouseEthStreamerAdapter:
                 if len(logs) > 0:
                     for l in logs:
                         l['type'] = EntityType.LOG
-                    logs = enrich_logs(blocks, logs)
+                    logs = enrich_logs(export_blocks_and_transactions()[0], logs)
                     return logs
 
             logging.info(
@@ -169,11 +172,12 @@ class ClickhouseEthStreamerAdapter:
                 f" entity_types=receipt,log block_range={start_block}-{end_block}"
             )
             _, logs = export_receipts_and_logs()
-            logs = enrich_logs(blocks, logs)
+            logs = enrich_logs(export_blocks_and_transactions()[0], logs)
             return logs
 
         @cache
         def export_traces():
+            logging.info("exporting TRACES...")
             if blocks_previously_exported():
                 traces = self._select_distinct(
                     EntityType.TRACE, start_block, end_block, 'trace_id'
@@ -181,6 +185,7 @@ class ClickhouseEthStreamerAdapter:
                 if len(traces) > 0:
                     for t in traces:
                         t['type'] = EntityType.TRACE
+                    enrich_traces(export_blocks_and_transactions()[0], traces)
                     return traces
 
             logging.info(
@@ -193,6 +198,7 @@ class ClickhouseEthStreamerAdapter:
 
         @cache
         def extract_token_transfers():
+            logging.info("exporting TOKEN_TRANSFERS...")
             token_transfers = self._eth_streamer_adapter._extract_token_transfers(export_logs())
             token_transfers = enrich_token_transfers(
                 export_blocks_and_transactions()[0], token_transfers
@@ -201,20 +207,41 @@ class ClickhouseEthStreamerAdapter:
 
         @cache
         def extract_contracts():
+            logging.info("exporting CONTRACTS...")
             contracts = self._eth_streamer_adapter._export_contracts(export_traces())
             contracts = enrich_contracts(export_blocks_and_transactions()[0], contracts)
             return contracts
 
         @cache
         def extract_tokens():
+            logging.info("exporting TOKENS...")
             tokens = self._eth_streamer_adapter._extract_tokens(extract_contracts())
             tokens = enrich_tokens(export_blocks_and_transactions()[0], tokens)
             return tokens
 
         @cache
-        def extract_token_balances():
-            token_balances = self._eth_streamer_adapter._export_token_balances(extract_tokens())
-            enrich_token_balances(blocks, token_balances)
+        def export_token_balances():
+            logging.info("exporting TOKEN_BALANCES...")
+
+            if blocks_previously_exported():
+                balances = self._select_distinct(
+                    EntityType.TOKEN_BALANCE,
+                    start_block,
+                    end_block,
+                    'token_address,holder_address,block_number',
+                )
+                if len(balances) > 0:
+                    for b in balances:
+                        b['type'] = EntityType.TOKEN_BALANCE
+                    balances = enrich_token_balances(export_blocks_and_transactions()[0], balances)
+                    return balances
+
+            token_balances = self._eth_streamer_adapter._export_token_balances(
+                extract_token_transfers()
+            )
+            token_balances = enrich_token_balances(
+                export_blocks_and_transactions()[0], token_balances
+            )
             return token_balances
 
         blocks = ()
@@ -239,7 +266,7 @@ class ClickhouseEthStreamerAdapter:
             token_transfers = extract_token_transfers()
 
         if EntityType.TOKEN_BALANCE in self._entity_types:
-            token_balances = extract_token_balances()
+            token_balances = export_token_balances()
 
         if EntityType.TRACE in self._entity_types:
             traces = export_traces()
