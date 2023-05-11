@@ -49,10 +49,15 @@ class ClickHouseItemExporter:
         self.port = parsed.port
         self.database = parsed.path[1:].split("/")[0] if parsed.path else "default"
         self.settings = dict(parse_qs(parsed.query))
-        self.connection = self.create_connection()
+        self.connection: clickhouse_connect.driver.HttpClient | None = None
         self.tables = {}
         self.cached_batches = {}
         self.item_type_to_table_mapping = item_type_to_table_mapping
+
+    def open(self):
+        if self.connection:
+            raise RuntimeError('Connection already opened.')
+        self.connection = self.create_connection()
         self.create_tables()
 
         ## for each time grab the schema to save a prefetch of the columns on each insert
@@ -78,9 +83,6 @@ class ClickHouseItemExporter:
                 )
                 logging.debug(de)
                 pass
-
-    def open(self):
-        pass
 
     def export_items(self, items):
         items_grouped_by_table = self.group_items_by_table(items)
@@ -134,10 +136,7 @@ class ClickHouseItemExporter:
                                 column_type.__class__.__name__,
                                 column_value,
                                 json.dumps(
-                                    {
-                                        name: value
-                                        for name, value in zip(column_names, row)
-                                    }
+                                    {name: value for name, value in zip(column_names, row)}
                                 ),
                             )
                             raise OverflowError(
@@ -170,13 +169,16 @@ class ClickHouseItemExporter:
         )
 
     def close(self):
-        # clear the cache
-        logging.info("Flushing remaining batches")
-        for table, batch in self.cached_batches.items():
-            self._insert(
-                self.tables[table].column_names, self.tables[table].column_types, table, batch
-            )
-        self.connection.close()
+        try:
+            # clear the cache
+            logging.info("Flushing remaining batches")
+            for table, batch in self.cached_batches.items():
+                self._insert(
+                    self.tables[table].column_names, self.tables[table].column_types, table, batch
+                )
+        finally:
+            if self.connection:
+                self.connection.close()
 
     def group_items_by_table(self, items):
         results = collections.defaultdict(list)
@@ -204,6 +206,8 @@ class ClickHouseItemExporter:
         return results
 
     def create_tables(self):
+        if not self.connection:
+            raise RuntimeError('Connection not opened.')
         sql_template = (Path(__file__).parent / 'clickhouse_schemas.sql.tpl').read_text()
         sql = Template(sql_template).substitute(self.item_type_to_table_mapping)
         for statement in sql.split(';'):
