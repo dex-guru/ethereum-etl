@@ -1,6 +1,8 @@
-.*
-last_synced_block.txt
-pid.txt
-output
-*.sh
+*/**/__mypy_cache__
 */**/__pycache__
+*/**/last_block.txt
+*/**/last_synced_block.txt
+.*
+helm
+output
+pid.txt
