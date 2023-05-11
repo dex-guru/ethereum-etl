@@ -124,7 +124,6 @@ class ClickHouseItemExporter:
                         max_value = NUMERIC_TYPE_MAX_VALUES.get(type(column_type))
                         if max_value is None:
                             raise
-
                         if column_value > max_value:
                             logging.warning(
                                 "Insert error: too large column value:"
@@ -135,7 +134,10 @@ class ClickHouseItemExporter:
                                 column_type.__class__.__name__,
                                 column_value,
                                 json.dumps(
-                                    {name: value for name, value in zip(column_names, row)}
+                                    {
+                                        name: value
+                                        for name, value in zip(column_names, row)
+                                    }
                                 ),
                             )
                             raise OverflowError(
@@ -148,7 +150,12 @@ class ClickHouseItemExporter:
                             table,
                             column_name,
                             column_type.__class__.__name__,
-                            json.dumps({name: value for name, value in zip(column_names, row)}),
+                            json.dumps(
+                                {
+                                    name: value
+                                    for name, value in zip(column_names, row)
+                                }
+                            ),
                         )
                         raise TypeError(
                             "Cannot insert null value into non-nullable column:"

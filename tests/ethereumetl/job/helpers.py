@@ -24,7 +24,7 @@ def get_web3_provider(
             provider = MockWeb3Provider(read_resource_lambda)
     elif provider_type == 'infura':
         provider_url = os.environ.get(
-            'PROVIDER_URL', 'https://mainnet.infura.io/v3/7aef3f0cd1f64408b163814b22cc643c'
+            'PROVIDER_URL', 'http://10.0.100.149:8080/archive/1'
         )
         if batch:
             provider = BatchHTTPProvider(provider_url)
@@ -41,7 +41,7 @@ def get_web3_provider(
             )
 
         provider_url = os.environ.get(
-            'PROVIDER_URL', 'https://mainnet.infura.io/v3/7aef3f0cd1f64408b163814b22cc643c'
+            'PROVIDER_URL', 'http://10.0.100.149:8080/archive/1'
         )
         if batch:
             real_provider = BatchHTTPProvider(provider_url)

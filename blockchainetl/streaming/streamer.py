@@ -251,6 +251,7 @@ class LastSyncedBlockProviderSQL(LastSyncedBlockProvider):
         last_synced_block_record.block_number = last_synced_block
         with self.session() as session:
             session.add(last_synced_block_record)
+            session.commit()
 
 
 class LastSyncedBlockProviderRedis(LastSyncedBlockProvider):

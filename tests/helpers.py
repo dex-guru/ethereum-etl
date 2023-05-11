@@ -19,8 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
-
+import csv
 import json
 import os
 
@@ -30,16 +29,39 @@ import pytest
 def compare_lines_ignore_order(expected, actual):
     expected_lines = expected.splitlines()
     actual_lines = actual.splitlines()
+
+    actual_records = None
+    expected_records = None
+
+    # try parse lines as ndjson
     try:
-        expected_lines = [json.loads(line) for line in expected_lines]
-        actual_lines = [json.loads(line) for line in actual_lines]
+        actual_records = [json.loads(line) for line in actual_lines]
+        expected_records = [json.loads(line) for line in expected_lines]
     except json.decoder.JSONDecodeError:
         pass
 
-    expected_lines.sort(key=lambda x: json.dumps(x, sort_keys=True))
-    actual_lines.sort(key=lambda x: json.dumps(x, sort_keys=True))
+    if actual_records is None:
+        # otherwise try parse lines as csv
+        try:
+            actual_records = list(csv.DictReader(actual_lines))
+            expected_records = list(csv.DictReader(expected_lines))
+        except csv.Error:
+            pass
 
-    assert actual_lines == expected_lines
+    if actual_records is None or expected_records is None:
+        expected_lines.sort()
+        actual_lines.sort()
+
+        assert actual_lines == expected_lines
+    else:
+        actual_records.sort(key=lambda x: json.dumps(x, sort_keys=True))
+        expected_records.sort(key=lambda x: json.dumps(x, sort_keys=True))
+
+        assert actual_records == expected_records
+
+        # assert json.dumps(actual_records, sort_keys=True, indent=4) == json.dumps(
+        #     expected_records, sort_keys=True, indent=4
+        # )
 
 
 def read_file(path):
