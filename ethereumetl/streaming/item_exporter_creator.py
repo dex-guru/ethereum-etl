@@ -145,6 +145,7 @@ def make_item_type_to_table_mapping(chain_id=None):
         'transaction': 'transactions',
         'log': 'logs',
         'token_transfer': 'token_transfers',
+        'token_balance': 'token_balances',
         'trace': 'traces',
         'contract': 'contracts',
         'token': 'tokens',

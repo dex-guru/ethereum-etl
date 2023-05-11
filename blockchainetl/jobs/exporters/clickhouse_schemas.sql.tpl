@@ -88,6 +88,19 @@ PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
 ORDER BY (transaction_hash, log_index, token_id)
 SETTINGS allow_nullable_key=1;
 
+CREATE TABLE IF NOT EXISTS `${token_balance}`
+(
+    `token_address` String CODEC(ZSTD),
+    `holder_address` String CODEC(ZSTD),
+    `block_number` UInt64 CODEC(DoubleDelta),
+    `block_timestamp` UInt32 CODEC(DoubleDelta),
+    `value` UInt256 CODEC(ZSTD),
+    `token_id` Nullable(UInt256) CODEC(ZSTD)
+)
+ENGINE = ReplacingMergeTree
+PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
+ORDER BY (token_address, holder_address, block_number);
+
 CREATE TABLE IF NOT EXISTS `${trace}`
 (
     `transaction_hash` Nullable(String) CODEC(ZSTD(1)),

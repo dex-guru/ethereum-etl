@@ -403,3 +403,41 @@ def test_stream_token_balances(tmp_path: Path):
         'value': 1,
     }
     assert len(token_balances) == 430
+
+
+def test_clickhouse_exporter(tmp_path, cleanup):
+    item_type_to_table_mapping = make_item_type_to_table_mapping(chain_id=1)
+    item_type_to_table_mapping = {
+        k: f"{TEST_TABLE_NAME_PREFIX}_{v}" for k, v in item_type_to_table_mapping.items()
+    }
+    exporter = ClickHouseItemExporter(envs.EXPORT_FROM_CLICKHOUSE, item_type_to_table_mapping)
+
+    streamer_adapter = EthStreamerAdapter(
+        batch_web3_provider=ThreadLocalProxy(lambda: get_web3_provider('infura', batch=True)),
+        batch_size=100,
+        item_exporter=exporter,
+        entity_types=EntityType.ALL_FOR_INFURA,
+    )
+    streamer = Streamer(
+        chain_id=1,
+        blockchain_streamer_adapter=streamer_adapter,
+        start_block=17179063,
+        end_block=17179063,
+        retry_errors=False,
+        last_synced_block_provider_uri=f"file://{tmp_path / 'last_synced_block.txt'}",
+    )
+    streamer.stream()
+
+    with exporter.create_connection() as clickhouse:
+
+        def assert_table_not_empty(entity_type):
+            table_name = item_type_to_table_mapping[entity_type]
+            records = clickhouse.query(f"SELECT * FROM {table_name} LIMIT 1").named_results()
+            record = next(records, None)
+            assert record, f"Table {table_name} is empty"
+
+        assert_table_not_empty(EntityType.BLOCK)
+        assert_table_not_empty(EntityType.TRANSACTION)
+        assert_table_not_empty(EntityType.LOG)
+        assert_table_not_empty(EntityType.TOKEN_TRANSFER)
+        assert_table_not_empty(EntityType.TOKEN_BALANCE)
