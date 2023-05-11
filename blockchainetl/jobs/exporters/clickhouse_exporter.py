@@ -150,22 +150,13 @@ class ClickHouseItemExporter:
                             table,
                             column_name,
                             column_type.__class__.__name__,
-                            json.dumps(
-                                {
-                                    name: value
-                                    for name, value in zip(column_names, row)
-                                }
-                            ),
+                            json.dumps({name: value for name, value in zip(column_names, row)}),
                         )
                         raise TypeError(
                             "Cannot insert null value into non-nullable column:"
                             f" table={table} column={column_name}"
                         ) from e
             raise
-
-    def convert_items(self, items):
-        for item in items:
-            yield self.converter.convert_item(item)
 
     def create_connection(self):
         return clickhouse_connect.create_client(
