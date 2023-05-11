@@ -112,33 +112,16 @@ class EthStreamerAdapter:
             enrich_tokens(blocks, tokens) if EntityType.TOKEN in self.entity_types else []
         )
 
-        if enriched_blocks:
-            last_synced_block_datetime = datetime.fromtimestamp(enriched_blocks[-1]["timestamp"])
-            logging.info(
-                f'Exporting batch {len(enriched_blocks)} with {type(self.item_exporter).__name__}, '
-                f'blocks up to {enriched_blocks[-1]["number"]}:'
-                f'{last_synced_block_datetime}, '
-                f'got {len(enriched_transactions)} transactions, {len(enriched_logs)} logs, '
-                f'{len(enriched_token_transfers)} token transfers, {len(enriched_traces)} traces, '
-                f'{len(enriched_contracts)} contracts, {len(enriched_tokens)} tokens',
-                extra={
-                    'last_synced_block': enriched_blocks[-1]["number"],
-                    'last_synced_block_datetime': last_synced_block_datetime,
-                    'batch_size': len(enriched_blocks),
-                    'transactions_per_batch': len(enriched_transactions),
-                    'logs_per_batch': len(enriched_logs),
-                    'token_transfers_per_batch': len(enriched_token_transfers),
-                    'token_balances_per_batch': len(token_balances),
-                    'traces_per_batch': len(enriched_traces),
-                    'contracts_per_batch': len(enriched_contracts),
-                    'tokens_per_batch': len(enriched_tokens),
-                },
-            )
-        else:
-            logging.info(
-                f"No blocks to export in this batch {len(enriched_blocks)} "
-                f"with {type(self.item_exporter).__name__}"
-            )
+        self.log_batch_export_progress(
+            blocks=enriched_blocks,
+            contracts=enriched_contracts,
+            logs=enriched_logs,
+            token_transfers=enriched_token_transfers,
+            tokens=enriched_tokens,
+            traces=enriched_traces,
+            transactions=enriched_transactions,
+            token_balances=token_balances,
+        )
 
         all_items = (
             sort_by(enriched_blocks, 'number')
@@ -155,6 +138,46 @@ class EthStreamerAdapter:
         self.calculate_item_timestamps(all_items)
 
         self.item_exporter.export_items(all_items)
+
+    def log_batch_export_progress(
+        self,
+        *,
+        blocks,
+        contracts,
+        logs,
+        token_transfers,
+        token_balances,
+        tokens,
+        traces,
+        transactions,
+    ):
+        if blocks:
+            last_synced_block_datetime = datetime.fromtimestamp(blocks[-1]["timestamp"])
+            logging.info(
+                f'Exporting batch {len(blocks)} with {type(self.item_exporter).__name__}, '
+                f'blocks up to {blocks[-1]["number"]}:'
+                f'{last_synced_block_datetime}, '
+                f'got {len(transactions)} transactions, {len(logs)} logs, '
+                f'{len(token_transfers)} token transfers, {len(traces)} traces, '
+                f'{len(contracts)} contracts, {len(tokens)} tokens',
+                extra={
+                    'last_synced_block': blocks[-1]["number"],
+                    'last_synced_block_datetime': last_synced_block_datetime,
+                    'batch_size': len(blocks),
+                    'transactions_per_batch': len(transactions),
+                    'logs_per_batch': len(logs),
+                    'token_transfers_per_batch': len(token_transfers),
+                    'token_balances_per_batch': len(token_balances),
+                    'traces_per_batch': len(traces),
+                    'contracts_per_batch': len(contracts),
+                    'tokens_per_batch': len(tokens),
+                },
+            )
+        else:
+            logging.info(
+                f"No blocks to export in this batch {len(blocks)} "
+                f"with {type(self.item_exporter).__name__}"
+            )
 
     def _export_blocks_and_transactions(self, start_block, end_block):
         blocks_and_transactions_item_exporter = InMemoryItemExporter(

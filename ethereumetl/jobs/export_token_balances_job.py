@@ -111,7 +111,7 @@ class ExportTokenBalancesJob(BaseJob):
 
     def execute_rpcs(self, rpc_params: list[TokenBalanceParams]) -> list[dict]:
         """
-        The order of responses is guaranteed to match the order of rpc_params.
+        The order and count of the results is guaranteed to match the order of `rpc_params`.
         """
         rpc_params_indexed = list(enumerate(rpc_params))
         responses_ordered = [None] * len(rpc_params_indexed)
@@ -131,7 +131,8 @@ class ExportTokenBalancesJob(BaseJob):
 
             # Here a RetriableValueError can be raised and the BatchWorkExecutor will retry the
             # batch.
-            self.check_rpc_responses(responses)
+            for response in responses:
+                rpc_response_to_result(response)  # checks for errors
 
             response_by_rpc_id = {r['id']: r for r in responses}
             if len(response_by_rpc_id) != len(requests):
@@ -155,8 +156,3 @@ class ExportTokenBalancesJob(BaseJob):
             executor.shutdown()
 
         return responses_ordered  # type: ignore
-
-    @staticmethod
-    def check_rpc_responses(rpc_responses):
-        for rpc_response in rpc_responses:
-            rpc_response_to_result(rpc_response)  # checks for errors

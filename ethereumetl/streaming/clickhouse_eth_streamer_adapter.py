@@ -9,6 +9,7 @@ from ethereumetl.enumeration.entity_type import EntityType
 from ethereumetl.streaming.enrich import (
     enrich_contracts,
     enrich_logs,
+    enrich_token_balances,
     enrich_token_transfers,
     enrich_tokens,
     enrich_traces,
@@ -210,7 +211,20 @@ class ClickhouseEthStreamerAdapter:
             tokens = enrich_tokens(export_blocks_and_transactions()[0], tokens)
             return tokens
 
-        blocks = transactions = logs = token_transfers = traces = contracts = tokens = tuple()
+        @cache
+        def extract_token_balances():
+            token_balances = self._eth_streamer_adapter._export_token_balances(extract_tokens())
+            enrich_token_balances(blocks, token_balances)
+            return token_balances
+
+        blocks = ()
+        transactions = ()
+        logs = ()
+        token_transfers = ()
+        token_balances = ()
+        traces = ()
+        contracts = ()
+        tokens = ()
 
         if EntityType.BLOCK in self._entity_types:
             blocks = export_blocks_and_transactions()[0]
@@ -224,6 +238,9 @@ class ClickhouseEthStreamerAdapter:
         if EntityType.TOKEN_TRANSFER in self._entity_types:
             token_transfers = extract_token_transfers()
 
+        if EntityType.TOKEN_BALANCE in self._entity_types:
+            token_balances = extract_token_balances()
+
         if EntityType.TRACE in self._entity_types:
             traces = export_traces()
 
@@ -233,13 +250,23 @@ class ClickhouseEthStreamerAdapter:
         if EntityType.TOKEN in self._entity_types:
             tokens = extract_tokens()
 
-        logging.info('Exporting with ' + type(self._eth_streamer_adapter.item_exporter).__name__)
+        self._eth_streamer_adapter.log_batch_export_progress(
+            blocks=blocks,
+            contracts=contracts,
+            logs=logs,
+            token_transfers=token_transfers,
+            tokens=tokens,
+            traces=traces,
+            transactions=transactions,
+            token_balances=token_balances,
+        )
 
         all_items = [
             *sort_by(blocks, 'number'),
             *sort_by(transactions, ('block_number', 'transaction_index')),
             *sort_by(logs, ('block_number', 'log_index')),
             *sort_by(token_transfers, ('block_number', 'log_index')),
+            *sort_by(token_balances, ('block_number', 'token_address', 'address')),
             *sort_by(traces, ('block_number', 'trace_index')),
             *sort_by(contracts, ('block_number',)),
             *sort_by(tokens, ('block_number',)),
@@ -252,6 +279,8 @@ class ClickhouseEthStreamerAdapter:
 
     def close(self):
         try:
-            self._clickhouse.close()
+            if self._clickhouse:
+                self._clickhouse.close()
+                self._clickhouse = None
         finally:
             self._eth_streamer_adapter.close()
