@@ -71,6 +71,7 @@ ORDER BY (number);
 CREATE TABLE IF NOT EXISTS `${token_transfer}`
 (
     `token_address` String CODEC(ZSTD(1)),
+    `token_standard` LowCardinality(String) DEFAULT '',
     `from_address` String CODEC(ZSTD(1)),
     `to_address` String CODEC(ZSTD(1)),
     `value` UInt256,
