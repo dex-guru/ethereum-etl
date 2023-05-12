@@ -11,6 +11,7 @@ from ethereumetl.domain.token_transfer import EthTokenTransferItem
 from ethereumetl.executors.batch_work_executor import BatchWorkExecutor
 from ethereumetl.json_rpc_requests import generate_balance_of_json_rpc
 from ethereumetl.mappers.token_balance_mapper import EthTokenBalanceMapper
+from ethereumetl.misc.retriable_value_error import RetriableValueError
 from ethereumetl.utils import rpc_response_to_result
 
 
@@ -140,10 +141,20 @@ class ExportTokenBalancesJob(BaseJob):
 
             responses = self.batch_web3_provider.make_batch_request(json.dumps(requests))
 
-            # Here a RetriableValueError can be raised and the BatchWorkExecutor will retry the
-            # batch.
             for response in responses:
-                rpc_response_to_result(response)  # checks for errors
+                try:
+                    # Here a RetriableValueError can be raised and the BatchWorkExecutor will
+                    # retry the batch.
+                    rpc_response_to_result(response)
+                except RetriableValueError as e:
+                    try:
+                        request_id = response['id']
+                        request = requests[request_id]
+                    except (KeyError, TypeError, IndexError):
+                        raise e
+                    else:
+                        request_json = json.dumps(request)
+                        raise RetriableValueError(f'{e} request: {request_json}') from e
 
             response_by_rpc_id = {r['id']: r for r in responses}
             if len(response_by_rpc_id) != len(requests):
