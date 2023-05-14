@@ -155,11 +155,14 @@ class EthStreamerAdapter:
             last_synced_block_datetime = datetime.fromtimestamp(blocks[-1]["timestamp"])
             logging.info(
                 f'Exporting batch {len(blocks)} with {type(self.item_exporter).__name__}, '
-                f'blocks up to {blocks[-1]["number"]}:'
-                f'{last_synced_block_datetime}, '
-                f'got {len(transactions)} transactions, {len(logs)} logs, '
-                f'{len(token_transfers)} token transfers, {len(traces)} traces, '
-                f'{len(contracts)} contracts, {len(tokens)} tokens',
+                f'blocks up to {blocks[-1]["number"]}:{last_synced_block_datetime}, got'
+                f' {len(transactions)} transactions,'
+                f' {len(logs)} logs,'
+                f' {len(token_transfers)} token transfers,'
+                f' {len(token_balances)} token balances,'
+                f' {len(traces)} traces,'
+                f' {len(contracts)} contracts,'
+                f' {len(tokens)} tokens',
                 extra={
                     'last_synced_block': blocks[-1]["number"],
                     'last_synced_block_datetime': last_synced_block_datetime,
