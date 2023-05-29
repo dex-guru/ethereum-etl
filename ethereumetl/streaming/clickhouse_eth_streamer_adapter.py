@@ -289,7 +289,7 @@ class ClickhouseEthStreamerAdapter:
         )
 
         all_items = [
-            *sort_by(blocks, 'number'),
+            *sort_by(blocks, ('number',)),
             *sort_by(transactions, ('block_number', 'transaction_index')),
             *sort_by(logs, ('block_number', 'log_index')),
             *sort_by(token_transfers, ('block_number', 'log_index')),

@@ -124,7 +124,7 @@ class EthStreamerAdapter:
         )
 
         all_items = (
-            sort_by(enriched_blocks, 'number')
+            sort_by(enriched_blocks, ('number',))
             + sort_by(enriched_transactions, ('block_number', 'transaction_index'))
             + sort_by(enriched_logs, ('block_number', 'log_index'))
             + sort_by(enriched_token_transfers, ('block_number', 'log_index'))
