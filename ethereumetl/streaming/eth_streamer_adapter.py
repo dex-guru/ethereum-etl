@@ -335,6 +335,4 @@ class EthStreamerAdapter:
 
 
 def sort_by(arr, fields):
-    if isinstance(fields, tuple):
-        fields = tuple(fields)
     return sorted(arr, key=lambda item: tuple(item.get(f) for f in fields))
