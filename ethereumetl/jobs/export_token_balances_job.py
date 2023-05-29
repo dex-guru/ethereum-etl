@@ -98,19 +98,21 @@ class ExportTokenBalancesJob(BaseJob):
 
     @staticmethod
     def prepare_params(token_transfer: EthTokenTransferItem) -> Iterable[TokenBalanceParams]:
+        if token_transfer['token_standard'] == 'ERC-1155':
+            # ERC-1155: balanceOf(address,tokenId)
+            token_id = token_transfer['token_id']
+        elif token_transfer['token_standard'] in ('ERC-20', 'ERC-721'):
+            # ERC-20, ERC-721: balanceOf(address)
+            # Cannot get balance for a specific token_id.
+            token_id = None
+        else:
+            raise ValueError(f'Unknown token standard: {token_transfer["token_standard"]}')
+
         rpc_params = []
         for address in (token_transfer['from_address'], token_transfer['to_address']):
             if address == '0x0000000000000000000000000000000000000000':
                 # probably a mint or burn, skip
                 continue
-            if token_transfer['token_standard'] == 'ERC-1155':
-                # ERC-1155: balanceOf(address,tokenId)
-                token_id = token_transfer['token_id']
-            else:
-                assert token_transfer['token_standard'] in ('ERC-20', 'ERC-721')
-                # ERC-20, ERC-721: balanceOf(address)
-                # Cannot get balance for a specific token_id.
-                token_id = None
 
             params = TokenBalanceParams(
                 token_address=token_transfer['token_address'],
