@@ -96,6 +96,13 @@ from ethereumetl.thread_local_proxy import ThreadLocalProxy
     help='Start block',
 )
 @click.option(
+    '--end-block',
+    default=envs.END_BLOCK,
+    show_default=True,
+    type=int,
+    help='End block',
+)
+@click.option(
     '-e',
     '--entity-types',
     default=envs.ENTITY_TYPES,
@@ -150,6 +157,7 @@ def stream(
     provider_uri,
     output,
     start_block,
+    end_block,
     entity_types,
     period_seconds=10,
     batch_size=2,
@@ -195,6 +203,7 @@ def stream(
         last_synced_block_provider_uri=last_synced_block_provider_uri,
         lag=lag,
         start_block=start_block,
+        end_block=end_block,
         period_seconds=period_seconds,
         block_batch_size=block_batch_size,
         pid_file=pid_file,
