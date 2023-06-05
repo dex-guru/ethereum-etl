@@ -100,14 +100,14 @@ class ClickhouseEthStreamerAdapter:
             self._eth_streamer_adapter._export_blocks_and_transactions
         )
 
-        def _get_transactions_count_from_blocks(_blocks: tuple) -> int:
+        def get_transaction_count_from_blocks(blocks: tuple) -> int:
             if self._chain_id == 137:
                 # TODO: That's not correct, need to fix
                 # workaround for Polygon where block.transaction_count doesn't match the number
                 # of transactions in the db
                 want_transaction_count = 1
             else:
-                want_transaction_count = sum(b['transaction_count'] for b in _blocks)
+                want_transaction_count = sum(b['transaction_count'] for b in blocks)
             return want_transaction_count
 
         @cache
@@ -117,7 +117,7 @@ class ClickhouseEthStreamerAdapter:
                 EntityType.TRANSACTION, start_block, end_block, 'hash'
             )
 
-            want_transaction_count = _get_transactions_count_from_blocks(blocks)
+            want_transaction_count = get_transaction_count_from_blocks(blocks)
 
             transaction_count = len(transactions)
             block_count = len(blocks)
@@ -132,29 +132,37 @@ class ClickhouseEthStreamerAdapter:
                 )
                 blocks, transactions = eth_export_blocks_and_transactions(start_block, end_block)
 
-                want_transaction_count = _get_transactions_count_from_blocks(blocks)
+                want_transaction_count = get_transaction_count_from_blocks(blocks)
 
                 assert len(blocks) == want_block_count, "got less blocks than expected"
-                assert len(transactions) == want_transaction_count, "got less transactions than expected"
+                assert (
+                    len(transactions) == want_transaction_count
+                ), "got less transactions than expected"
 
-                return blocks, transactions, False
+                from_ch = False
+                return blocks, transactions, from_ch
+
+            from_ch = True
 
             for t in transactions:
                 t['type'] = EntityType.TRANSACTION
             for b in blocks:
                 b['type'] = EntityType.BLOCK
 
-            return blocks, transactions, True
+            return blocks, transactions, from_ch
 
         @cache
         def export_blocks_and_transactions_enriched():
             blocks, transactions, from_ch = export_blocks_and_transactions()
-            # TODO: To fill up receipt_logs_count remove after sync
-            none_value_receipt_logs_count = False
+            # TODO: To fill up receipt_log_count remove after sync
+            none_value_receipt_log_count = False
             if from_ch:
-                none_value_receipt_logs_count = any(d.get('receipt_logs_count') is None for d in transactions)
+                none_value_receipt_log_count = any(
+                    d.get('receipt_logs_count') is None for d in transactions
+                )
             if EntityType.TRANSACTION in self._entity_types and (
-                    not from_ch or none_value_receipt_logs_count):
+                not from_ch or none_value_receipt_log_count
+            ):
                 transactions = enrich_transactions(transactions, export_receipts_and_logs()[0])
                 return blocks, transactions, False
             return blocks, transactions, True
@@ -165,29 +173,31 @@ class ClickhouseEthStreamerAdapter:
 
         @cache
         def export_receipts_and_logs():
-            _blocks, _transactions, _ = export_blocks_and_transactions()
-            _receipts, _logs = self._eth_streamer_adapter._export_receipts_and_logs(_transactions)
-            _logs = enrich_logs(_blocks, _logs)
-            return _receipts, _logs
+            blocks, transactions, _ = export_blocks_and_transactions()
+            receipts, logs = self._eth_streamer_adapter._export_receipts_and_logs(transactions)
+            logs = enrich_logs(blocks, logs)
+            return receipts, logs
 
-        def _get_logs_count_from_transactions(_transactions: tuple) -> int:
-            none_value_receipt_logs_count = any(d.get('receipt_logs_count') is None for d in _transactions)
+        def get_logs_count_from_transactions(transactions: tuple) -> int:
+            none_value_receipt_logs_count = any(
+                d.get('receipt_logs_count') is None for d in transactions
+            )
             if none_value_receipt_logs_count:
                 return -1
-            want_logs_count = sum(b['receipt_logs_count'] for b in _transactions)
+            want_logs_count = sum(b['receipt_logs_count'] for b in transactions)
             return want_logs_count
 
         @cache
         def export_logs():
             if blocks_previously_exported():
-                _blocks, _transactions, from_ch = export_blocks_and_transactions_enriched()
-                want_transaction_count = _get_transactions_count_from_blocks(_blocks)
+                blocks, transactions, from_ch = export_blocks_and_transactions_enriched()
+                want_transaction_count = get_transaction_count_from_blocks(blocks)
                 if want_transaction_count == 0:
                     return ()
                 logs = self._select_distinct(
                     EntityType.LOG, start_block, end_block, 'transaction_hash,log_index'
                 )
-                want_logs_count = _get_logs_count_from_transactions(_transactions)
+                want_logs_count = get_logs_count_from_transactions(transactions)
                 if len(logs) == want_logs_count:
                     for l in logs:
                         l['type'] = EntityType.LOG
