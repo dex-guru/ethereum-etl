@@ -22,6 +22,7 @@
 
 import json
 import logging
+import uuid
 
 
 class EthItemIdCalculator:
@@ -65,6 +66,8 @@ class EthItemIdCalculator:
             and item.get('address') is not None
         ):
             return concat(item_type, item.get('block_number'), item.get('address'))
+        elif item_type == 'error':
+            return concat(item_type, item.get('block_number'), uuid.uuid4().hex)
 
         logging.warning('item_id for item {} is None'.format(json.dumps(item)))
 

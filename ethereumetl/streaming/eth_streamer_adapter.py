@@ -19,6 +19,7 @@ from ethereumetl.streaming.enrich import (
     enrich_tokens,
     enrich_traces,
     enrich_transactions,
+    enrich_errors,
 )
 from ethereumetl.streaming.eth_item_id_calculator import EthItemIdCalculator
 from ethereumetl.streaming.eth_item_timestamp_calculator import EthItemTimestampCalculator
@@ -51,6 +52,8 @@ class EthStreamerAdapter:
         return int(w3.eth.getBlock("latest").number)
 
     def export_all(self, start_block, end_block):
+        errors = []
+
         # Export blocks and transactions
         blocks, transactions = [], []
         if self._should_export(EntityType.BLOCK) or self._should_export(EntityType.TRANSACTION):
@@ -68,7 +71,8 @@ class EthStreamerAdapter:
 
         token_balances = []
         if self._should_export(EntityType.TOKEN_BALANCE):
-            token_balances = self._export_token_balances(token_transfers)
+            token_balances, token_balance_errors = self._export_token_balances(token_transfers)
+            errors.extend(token_balance_errors)
 
         # Export traces
         traces = []
@@ -111,6 +115,9 @@ class EthStreamerAdapter:
         enriched_tokens = (
             enrich_tokens(blocks, tokens) if EntityType.TOKEN in self.entity_types else []
         )
+        enriched_errors = (
+            enrich_errors(blocks, errors) if EntityType.ERROR in self.entity_types else []
+        )
 
         self.log_batch_export_progress(
             blocks=enriched_blocks,
@@ -121,6 +128,7 @@ class EthStreamerAdapter:
             traces=enriched_traces,
             transactions=enriched_transactions,
             token_balances=token_balances,
+            errors=enriched_errors,
         )
 
         all_items = (
@@ -132,6 +140,7 @@ class EthStreamerAdapter:
             + sort_by(enriched_traces, ('block_number', 'trace_index'))
             + sort_by(enriched_contracts, ('block_number',))
             + sort_by(enriched_tokens, ('block_number',))
+            + sort_by(enriched_errors, ('block_number',))
         )
 
         self.calculate_item_ids(all_items)
@@ -150,19 +159,23 @@ class EthStreamerAdapter:
         tokens,
         traces,
         transactions,
+        errors,
     ):
         if blocks:
             last_synced_block_datetime = datetime.fromtimestamp(blocks[-1]["timestamp"])
             logging.info(
-                f'Exporting batch {len(blocks)} with {type(self.item_exporter).__name__}, '
-                f'blocks up to {blocks[-1]["number"]}:{last_synced_block_datetime}, got'
-                f' {len(transactions)} transactions,'
-                f' {len(logs)} logs,'
-                f' {len(token_transfers)} token transfers,'
-                f' {len(token_balances)} token balances,'
-                f' {len(traces)} traces,'
-                f' {len(contracts)} contracts,'
-                f' {len(tokens)} tokens',
+                (
+                    f'Exporting batch {len(blocks)} with {type(self.item_exporter).__name__}, '
+                    f'blocks up to {blocks[-1]["number"]}:{last_synced_block_datetime}, got'
+                    f' {len(transactions)} transactions,'
+                    f' {len(logs)} logs,'
+                    f' {len(token_transfers)} token transfers,'
+                    f' {len(token_balances)} token balances,'
+                    f' {len(traces)} traces,'
+                    f' {len(contracts)} contracts,'
+                    f' {len(tokens)} tokens'
+                    f' {len(errors)} tokens'
+                ),
                 extra={
                     'last_synced_block': blocks[-1]["number"],
                     'last_synced_block_datetime': last_synced_block_datetime,
@@ -174,6 +187,7 @@ class EthStreamerAdapter:
                     'traces_per_batch': len(traces),
                     'contracts_per_batch': len(contracts),
                     'tokens_per_batch': len(tokens),
+                    'errors_per_batch': len(errors),
                 },
             )
         else:
@@ -230,7 +244,7 @@ class EthStreamerAdapter:
         return token_transfers
 
     def _export_token_balances(self, token_transfers):
-        exporter = InMemoryItemExporter(item_types=['token_balance'])
+        exporter = InMemoryItemExporter(item_types=['token_balance', 'error'])
         job = ExportTokenBalancesJob(
             token_transfer_items_iterable=token_transfers,
             batch_size=self.batch_size,
@@ -240,7 +254,8 @@ class EthStreamerAdapter:
         )
         job.run()
         token_balances = exporter.get_items(EntityType.TOKEN_BALANCE)
-        return token_balances
+        errors = exporter.get_items(EntityType.ERROR)
+        return token_balances, errors
 
     def _export_traces(self, start_block, end_block):
         exporter = InMemoryItemExporter(item_types=['trace'])
@@ -319,6 +334,9 @@ class EthStreamerAdapter:
 
         if entity_type == EntityType.TOKEN_BALANCE:
             return EntityType.TOKEN_BALANCE in self.entity_types
+
+        if entity_type == EntityType.ERROR:
+            return EntityType.ERROR in self.entity_types
 
         raise ValueError('Unexpected entity type ' + entity_type)
 

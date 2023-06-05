@@ -26,6 +26,7 @@ from collections import defaultdict
 from dataclasses import fields
 
 from ethereumetl.config.envs import envs
+from ethereumetl.domain.error import EthError
 from ethereumetl.domain.token_balance import EthTokenBalance
 from ethereumetl.utils import dedup_list_of_dicts
 
@@ -276,4 +277,20 @@ def enrich_tokens(blocks, tokens):
     if len(result) != len(tokens):
         raise ValueError('The number of tokens is wrong ' + str(result))
 
+    return result
+
+
+def enrich_errors(blocks, errors):
+    result = list(
+        join(
+            errors,
+            blocks,
+            ('block_number', 'number'),
+            ['type', *(f.name for f in fields(EthError))],
+            [
+                ('timestamp', 'block_timestamp'),
+                ('hash', 'block_hash'),
+            ],
+        )
+    )
     return result

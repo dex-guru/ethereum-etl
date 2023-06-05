@@ -153,3 +153,15 @@ CREATE TABLE IF NOT EXISTS `${contract}`
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (address, block_number);
+
+CREATE TABLE IF NOT EXISTS `${error}`
+(
+    `timestamp` UInt32 CODEC(Delta, LZ4),
+    `block_number` UInt64 CODEC(Delta, LZ4),
+    `block_timestamp` UInt32 CODEC(Delta, LZ4),
+    `kind` LowCardinality(String),
+    `data_json` String CODEC(ZSTD(1)),
+)
+ENGINE = MergeTree
+PARTITION BY toYYYYMM(fromUnixTimestamp(timestamp))
+ORDER BY (timestamp);

@@ -72,19 +72,27 @@ def test_token_balances():
         ],
     }
 
-    response1 = {
+    rpc_response1 = {
         "jsonrpc": "2.0",
         "id": 0,
         "result": "0x0000000000000000000000000000000000000000000000000000000000000884",
     }
 
-    response2 = {
+    rpc_response2 = {
         "jsonrpc": "2.0",
         "id": 1,
         "result": "0x0000000000000000000000000000000000000000000000000000000000000001",
     }
 
-    token_balance1 = job.make_token_balance(rpc_params1, response1)
+    (token_balance1, token_balance2), errors = job.process_balance_of_rpc_responses(
+        [
+            (rpc_params1, rpc_response1),
+            (rpc_params2, rpc_response2),
+        ]
+    )
+
+    assert errors == []
+
     assert token_balance1 == EthTokenBalance(
         token_address="0xd1988bea35478229ebee68331714b215e3529510",
         holder_address="0xd8444ef1a23a6811994fc557921949e3327967ce",
@@ -93,7 +101,6 @@ def test_token_balances():
         token_id=1,
     )
 
-    token_balance2 = job.make_token_balance(rpc_params2, response2)
     assert token_balance2 == EthTokenBalance(
         token_address="0xd1988bea35478229ebee68331714b215e3529510",
         holder_address="0xd0b0f29f96a55617786439ccb824e75e55c56b66",

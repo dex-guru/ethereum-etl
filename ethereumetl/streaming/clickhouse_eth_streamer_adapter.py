@@ -8,6 +8,7 @@ import clickhouse_connect
 from ethereumetl.enumeration.entity_type import EntityType
 from ethereumetl.streaming.enrich import (
     enrich_contracts,
+    enrich_errors,
     enrich_logs,
     enrich_token_balances,
     enrich_token_transfers,
@@ -41,6 +42,7 @@ class ClickhouseEthStreamerAdapter:
                 EntityType.TRACE: 'traces',
                 EntityType.CONTRACT: 'contracts',
                 EntityType.TOKEN: 'tokens',
+                EntityType.ERROR: 'errors',
             }
         else:
             self._item_type_to_table_mapping = item_type_to_table_mapping
@@ -234,15 +236,16 @@ class ClickhouseEthStreamerAdapter:
                     for b in balances:
                         b['type'] = EntityType.TOKEN_BALANCE
                     balances = enrich_token_balances(export_blocks_and_transactions()[0], balances)
-                    return balances
+                    return balances, ()
 
-            token_balances = self._eth_streamer_adapter._export_token_balances(
+            token_balances, errors = self._eth_streamer_adapter._export_token_balances(
                 extract_token_transfers()
             )
             token_balances = enrich_token_balances(
                 export_blocks_and_transactions()[0], token_balances
             )
-            return token_balances
+            errors = enrich_errors(export_blocks_and_transactions()[0], errors)
+            return token_balances, errors
 
         blocks = ()
         transactions = ()
@@ -252,6 +255,7 @@ class ClickhouseEthStreamerAdapter:
         traces = ()
         contracts = ()
         tokens = ()
+        errors = ()
 
         if EntityType.BLOCK in self._entity_types:
             blocks = export_blocks_and_transactions()[0]
@@ -266,7 +270,9 @@ class ClickhouseEthStreamerAdapter:
             token_transfers = extract_token_transfers()
 
         if EntityType.TOKEN_BALANCE in self._entity_types:
-            token_balances = export_token_balances()
+            token_balances, token_balance_errors = export_token_balances()
+            if EntityType.ERROR in self._entity_types:
+                errors = [*token_balance_errors]
 
         if EntityType.TRACE in self._entity_types:
             traces = export_traces()
@@ -286,6 +292,7 @@ class ClickhouseEthStreamerAdapter:
             traces=traces,
             transactions=transactions,
             token_balances=token_balances,
+            errors=errors,
         )
 
         all_items = [
@@ -297,6 +304,7 @@ class ClickhouseEthStreamerAdapter:
             *sort_by(traces, ('block_number', 'trace_index')),
             *sort_by(contracts, ('block_number',)),
             *sort_by(tokens, ('block_number',)),
+            *sort_by(errors, ('block_number',)),
         ]
 
         self._eth_streamer_adapter.calculate_item_ids(all_items)
