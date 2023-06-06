@@ -103,6 +103,7 @@ def enrich_transactions(transactions, receipts):
                 ('root', 'receipt_root'),
                 ('status', 'receipt_status'),
                 ('effective_gas_price', 'receipt_effective_gas_price'),
+                ('logs_count', 'receipt_logs_count'),
             ],
         )
     )

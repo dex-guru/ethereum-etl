@@ -312,49 +312,13 @@ def test_stream_clickhouse(
     )
     streamer.stream()
 
-    print('=====================')
-    print(read_file(blocks_output_file))
-    compare_lines_ignore_order(
-        read_resource(resource_group, 'expected_blocks.json'), read_file(blocks_output_file)
-    )
+    blocks = read_file(blocks_output_file)
+    transactions = read_file(transactions_output_file)
+    logs = read_file(logs_output_file)
+    token_transfers = read_file(token_transfers_output_file)
 
-    print('=====================')
-    print(read_file(transactions_output_file))
-    compare_lines_ignore_order(
-        read_resource(resource_group, 'expected_transactions.json'),
-        read_file(transactions_output_file),
-    )
-
-    print('=====================')
-    print(read_file(logs_output_file))
-    compare_lines_ignore_order(
-        read_resource(resource_group, 'expected_logs.json'), read_file(logs_output_file)
-    )
-
-    print('=====================')
-    print(read_file(token_transfers_output_file))
-    compare_lines_ignore_order(
-        read_resource(resource_group, 'expected_token_transfers.json'),
-        read_file(token_transfers_output_file),
-    )
-
-    print('=====================')
-    print(read_file(traces_output_file))
-    compare_lines_ignore_order(
-        read_resource(resource_group, 'expected_traces.json'), read_file(traces_output_file)
-    )
-
-    print('=====================')
-    print(read_file(contracts_output_file))
-    compare_lines_ignore_order(
-        read_resource(resource_group, 'expected_contracts.json'), read_file(contracts_output_file)
-    )
-
-    print('=====================')
-    print(read_file(tokens_output_file))
-    compare_lines_ignore_order(
-        read_resource(resource_group, 'expected_tokens.json'), read_file(tokens_output_file)
-    )
+    # As we are not writing back to clickhouse if items were found there, all those files should be empty
+    assert blocks == transactions == logs == token_transfers == ''
 
 
 @pytest.mark.skipif(not run_slow_tests, reason='slow tests not enabled')

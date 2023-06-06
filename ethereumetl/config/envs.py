@@ -28,6 +28,7 @@ class EnvsConfig(BaseSettings):
     # 'If not specified will print to console')
     OUTPUT: Optional[str] = None
     START_BLOCK: Optional[int] = None
+    END_BLOCK: Optional[int] = None
     ENTITY_TYPES: str = ','.join(EntityType.ALL_FOR_STREAMING)
     POLLING_PERIOD: int = 10
     BATCH_SIZE: int = 10

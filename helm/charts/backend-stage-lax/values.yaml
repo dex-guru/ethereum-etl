@@ -27,6 +27,7 @@ raw-data-streamer:
     START_BLOCK:
       default: '1'
       acanto-7701: '1299370'
+      base-84531: '4922000'
     PROVIDER_URL:
       default: 'http://10.0.100.149:8080/archive/1'
       polygon-137: 'http://10.0.100.149:8080/archive/137'
@@ -39,12 +40,13 @@ raw-data-streamer:
       gnosis-100: 'http://10.0.100.149:8080/archive/100'
       arbitrum-42161: 'http://10.0.100.149:8080/archive/42161'
       nova-42170: 'http://10.0.100.149:8080/archive/42170'
+      base-84531: 'https://rpc.ankr.com/base_goerli/08ed572fa1db438121b633d846c4cd3ff721fb6395fc3948bbac08c328e438c3'
 
     BLOCK_BATCH_SIZE:
       default: '1000'
-      polygon-137: '150'
+      polygon-137: '1000'
       bsc-56: '1000'
-      eth-1: '200'
+      eth-1: '1000'
       canto-7700: '100'
       fantom-250: '100'
       optimism-10: '100'
@@ -52,6 +54,85 @@ raw-data-streamer:
       arbitrum-42161: '100'
       nova-42170: '100'
       acanto-7701: '100'
+    MAX_WORKERS:
+      default: '5'
+      polygon-137: '10'
+      eth-1: '10'
+      bsc-56: '12'
+      canto-7700: '5'
+      fantom-250: '5'
+      optimism-10: '5'
+      gnosis-100: '5'
+      arbitrum-42161: '5'
+      nova-42170: '5'
+      acanto-7701: '5'
+    SKIP_NONE_RECEIPTS:
+      default: 'False'
+      polygon-137: 'True'
+    MIN_INSERT_BATCH_SIZE:
+      default: '1'
+      canto-7700: '1'
+      fantom-250: '1'
+      optimism-10: '1'
+      gnosis-100: '1'
+      arbitrum-42161: '1'
+      nova-42170: '1'
+      acanto-7701: '1'
+
+raw-data-streamer-resync:
+  replicas:
+    default: 1
+  limitsCpu: 4
+  limitsMemory: 9000Mi
+  requestsCpu: 1
+  requestsMemory: 1000Mi
+  strategyType: 'Recreate'
+  command: '[ "ethereumetl", "stream" ]'
+  env:
+    LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@10.0.200.180/dex_etl?table_name=resync_blocks'
+    LAG: '0'
+    OUTPUT: 'clickhouse://testuser3:testplpassword@10.0.200.180/dex_etl'
+    ENTITY_TYPES: 'block,transaction,log,token_transfer'
+    POLLING_PERIOD: '2'
+    BATCH_SIZE: '10'
+    LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
+    LOG_HANDLERS: '["console","logstash"]'
+    SERVICE_NAME: 'raw-resync-data-streamer'
+    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@10.0.200.180:8123/dex_etl'
+  chainEnv:
+    START_BLOCK:
+      default: '1'
+      acanto-7701: '1299370'
+      canto-7700: '1'
+      base-84531: '1'
+    END_BLOCK:
+      default: '0'
+      bsc-56: '7182894'
+      eth-1: '17198869'
+      canto-7700: '4258699'
+      fantom-250: '62288825'
+      optimism-10: '98555892'
+      gnosis-100: '27961654'
+      arbitrum-42161: '91065804'
+      nova-42170: '8897049'
+      base-84531: '4922000'
+
+    PROVIDER_URL:
+      default: 'http://10.0.100.149:8080/archive/1'
+      polygon-137: 'http://10.0.100.149:8080/archive/137'
+      bsc-56: 'http://10.0.100.149:8080/archive/56'
+      eth-1: 'http://10.0.100.149:8080/archive/1'
+      canto-7700: 'http://10.0.100.139:8545'
+      acanto-7701: 'http://canto-testnet.plexnode.wtf'
+      fantom-250: 'http://10.0.100.149:8080/archive/250'
+      optimism-10: 'http://10.0.100.149:8080/archive/10'
+      gnosis-100: 'http://10.0.100.149:8080/archive/100'
+      arbitrum-42161: 'http://10.0.100.149:8080/archive/42161'
+      nova-42170: 'http://10.0.100.149:8080/archive/42170'
+      base-84531: 'http://10.0.100.149:8080/archive/84531'
+
+    BLOCK_BATCH_SIZE:
+      default: '1000'
     MAX_WORKERS:
       default: '5'
       polygon-137: '10'
@@ -69,10 +150,3 @@ raw-data-streamer:
       polygon-137: 'True'
     MIN_INSERT_BATCH_SIZE:
       default: '1000'
-      canto-7700: '1'
-      fantom-250: '1'
-      optimism-10: '1'
-      gnosis-100: '1'
-      arbitrum-42161: '1'
-      nova-42170: '1'
-      acanto-7701: '1'

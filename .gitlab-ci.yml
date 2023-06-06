@@ -33,6 +33,8 @@ variables:
     stage-indexation-optimism-10
     stage-indexation-gnosis-100
     stage-indexation-canto-7700
+    stage-indexation-acanto-7701
+    stage-indexation-base-84531
     stage-indexation-nova-42170
     stage-indexation-polygon-137
   KUBE_NAMESPACE_PROD: >-
@@ -128,8 +130,8 @@ test:
         path: coverage.xml
       junit: report.xml
   only:
-    - merge_requests
     - master
+    - merge_requests
 
 lint-python-pyright:
   stage: lint
@@ -224,38 +226,23 @@ raw-data-streamer-stage:
     entrypoint: [""]
   variables:
     SERVICE_NAME: "raw-data-streamer"
-    KUBE_NAMESPACE: >-
-      stage-indexation-eth-1
-      stage-indexation-bsc-56
-      stage-indexation-polygon-137
-      stage-indexation-canto-7700
-      stage-indexation-nova-42170
-      stage-indexation-fantom-250
-      stage-indexation-gnosis-100
-      stage-indexation-arbitrum-42161
-      stage-indexation-optimism-10
-      stage-indexation-acanto-7701
-    #stage-indexation-bsc-56 stage-indexation-eth-1 stage-indexation-canto-7700 stage-indexation-nova-42170 stage-indexation-fantom-250 stage-indexation-gnosis-100  stage-indexation-arbitrum-42161 stage-indexation-optimism-10
+    KUBE_NAMESPACE: KUBE_NAMESPACE_STAGE
     HELM_CHART: ${HELM_CHART_STAGE_LAX}
   script:
     - helm/lax_stage_deploy.sh
   only:
     - master
-#    - merge_requests
 
-#
-#raw-data-streamer-prod:
-#  stage: deploy-prod
-#  image:
-#    name: ${IMAGE_HELM_KUBECTL}
-#    entrypoint: [""]
-#  variables:
-#    SERVICE_NAME: "raw-data-streamer"
-#    KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD}
-#    HELM_CHART: ${HELM_CHART_PROD_LAX}
-#  script:
-#    - helm/lax_prod_deploy.sh
-#  only:
-#    - tags
-#  except:
-#    - master
+raw-data-streamer-resync-stage:
+  stage: deploy-stage
+  image:
+    name: ${IMAGE_HELM_KUBECTL}
+    entrypoint: [""]
+  variables:
+    SERVICE_NAME: "raw-data-streamer-resync"
+    KUBE_NAMESPACE: KUBE_NAMESPACE_STAGE
+    HELM_CHART: ${HELM_CHART_STAGE_LAX}
+  script:
+    - helm/lax_stage_deploy.sh
+  only:
+    - master
