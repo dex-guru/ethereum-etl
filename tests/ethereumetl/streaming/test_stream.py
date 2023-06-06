@@ -318,7 +318,10 @@ def test_stream_clickhouse(
     token_transfers = read_file(token_transfers_output_file)
 
     # As we are not writing back to clickhouse if items were found there, all those files should be empty
-    assert blocks == transactions == logs == token_transfers == ''
+    assert blocks == ''
+    assert transactions == ''
+    assert logs == ''
+    assert token_transfers == ''
 
 
 @pytest.mark.skipif(not run_slow_tests, reason='slow tests not enabled')
@@ -330,7 +333,7 @@ def test_stream_token_balances(tmp_path: Path, streamer_adapter_cls, cleanup):
 
     eth_streamer_adapter = EthStreamerAdapter(
         batch_web3_provider=ThreadLocalProxy(lambda: get_web3_provider('infura', batch=True)),
-        batch_size=1,
+        batch_size=20,
         item_exporter=exporter,
         entity_types=[EntityType.TOKEN_BALANCE],
     )

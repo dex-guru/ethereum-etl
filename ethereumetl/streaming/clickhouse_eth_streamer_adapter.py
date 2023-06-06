@@ -143,9 +143,6 @@ class ClickhouseEthStreamerAdapter:
                     len(transactions) == want_transaction_count
                 ), "got less transactions than expected"
 
-                if EntityType.TRANSACTION in self._entity_types:
-                    transactions = enrich_transactions(transactions, export_receipts_and_logs()[0])
-
                 from_ch = False
                 return blocks, transactions, from_ch
 
@@ -180,8 +177,8 @@ class ClickhouseEthStreamerAdapter:
 
         @cache
         def export_receipts_and_logs():
-            logging.info("exporting RECEIPTS and LOGS...")
-            blocks, transactions, _ = export_blocks_and_transactions()
+            logging.info("exporting from_chand LOGS...")
+            blocks, transactions = eth_export_blocks_and_transactions(start_block, end_block)
             receipts, logs = self._eth_streamer_adapter._export_receipts_and_logs(transactions)
             logs = enrich_logs(blocks, logs)
             return receipts, logs
@@ -221,7 +218,7 @@ class ClickhouseEthStreamerAdapter:
             )
             _, logs = export_receipts_and_logs()
             logs = enrich_logs(export_blocks_and_transactions()[0], logs)
-            return logs, False
+            return logs, from_ch
 
         @cache
         def export_traces():
@@ -345,15 +342,16 @@ class ClickhouseEthStreamerAdapter:
             errors=errors,
         )
 
+        # TODO
         # Emptying the lists, if they from CH to skip exporting them
-        if blocks_from_ch:
-            blocks = []
-        if transactions_from_ch:
-            transactions = []
-        if logs_from_ch:
-            logs = []
-        if token_transfers_from_ch:
-            token_transfers = []
+        # if blocks_from_ch:
+        #     blocks = []
+        # if transactions_from_ch:
+        #     transactions = []
+        # if logs_from_ch:
+        #     logs = []
+        # if token_transfers_from_ch:
+        #     token_transfers = []
 
         all_items = [
             *sort_by(blocks, ('number',)),
