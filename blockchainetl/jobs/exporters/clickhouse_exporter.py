@@ -14,6 +14,7 @@ from clickhouse_connect.driver.exceptions import DatabaseError
 from clickhouse_connect.driver.models import ColumnDef
 
 from ethereumetl.config.envs import envs
+from ethereumetl.enumeration.entity_type import EntityType
 
 
 @dataclass
@@ -52,7 +53,10 @@ class ClickHouseItemExporter:
         self.connection: clickhouse_connect.driver.HttpClient | None = None
         self.tables = {}
         self.cached_batches = {}
-        self.item_type_to_table_mapping = item_type_to_table_mapping
+        self.item_type_to_table_mapping = dict(
+            # Blocks last so that blocks would be inserted after the other items.
+            sorted(item_type_to_table_mapping.items(), key=lambda x: x[0] == EntityType.BLOCK)
+        )
 
     def open(self):
         if self.connection:
