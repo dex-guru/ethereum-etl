@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 import os
+from collections import Counter
 from pathlib import Path
 
 import pytest
@@ -312,16 +313,98 @@ def test_stream_clickhouse(
     )
     streamer.stream()
 
-    blocks = read_file(blocks_output_file)
-    transactions = read_file(transactions_output_file)
-    logs = read_file(logs_output_file)
-    token_transfers = read_file(token_transfers_output_file)
+    print('=====================')
+    print(read_file(blocks_output_file))
+    compare_lines_ignore_order(
+        read_resource(resource_group, 'expected_blocks.json'), read_file(blocks_output_file)
+    )
 
-    # As we are not writing back to clickhouse if items were found there, all those files should be empty
-    assert blocks == ''
-    assert transactions == ''
-    assert logs == ''
-    assert token_transfers == ''
+    print('=====================')
+    print(read_file(transactions_output_file))
+    compare_lines_ignore_order(
+        read_resource(resource_group, 'expected_transactions.json'),
+        read_file(transactions_output_file),
+    )
+
+    print('=====================')
+    print(read_file(logs_output_file))
+    compare_lines_ignore_order(
+        read_resource(resource_group, 'expected_logs.json'), read_file(logs_output_file)
+    )
+
+    print('=====================')
+    print(read_file(token_transfers_output_file))
+    compare_lines_ignore_order(
+        read_resource(resource_group, 'expected_token_transfers.json'),
+        read_file(token_transfers_output_file),
+    )
+
+    print('=====================')
+    print(read_file(traces_output_file))
+    compare_lines_ignore_order(
+        read_resource(resource_group, 'expected_traces.json'), read_file(traces_output_file)
+    )
+
+    print('=====================')
+    print(read_file(contracts_output_file))
+    compare_lines_ignore_order(
+        read_resource(resource_group, 'expected_contracts.json'), read_file(contracts_output_file)
+    )
+
+    print('=====================')
+    print(read_file(tokens_output_file))
+    compare_lines_ignore_order(
+        read_resource(resource_group, 'expected_tokens.json'), read_file(tokens_output_file)
+    )
+
+    ####################################################################
+    # third run - do not rewrite data in clickhouse
+    ####################################################################
+
+    os.remove('last_synced_block.txt')
+
+    item_exporter = ClickHouseItemExporter(envs.EXPORT_FROM_CLICKHOUSE, item_type_to_table_mapping)
+
+    def fake_ch_export_items(items):
+        counter = Counter((item['type'] for item in items))
+
+        # NOT rewriting these types
+        assert counter['block'] == 0
+        assert counter['transaction'] == 0
+        assert counter['log'] == 0
+        assert counter['token_transfer'] == 0
+
+        # REWRITING these types regardless of the "rewrite_items" parameter
+        assert counter['token_balance'] > 0
+        assert counter['trace'] > 0
+
+    item_exporter.export_items = fake_ch_export_items  # type: ignore
+
+    eth_streamer_adapter = EthStreamerAdapter(
+        # expect that we don't use web3 provider and get data from clickhouse
+        batch_web3_provider=None,
+        batch_size=batch_size,
+        item_exporter=item_exporter,
+        entity_types=entity_types,
+    )
+    eth_streamer_adapter.get_current_block_number = lambda *_: 12242307  # type: ignore
+
+    ch_eth_streamer_adapter = ClickhouseEthStreamerAdapter(
+        eth_streamer_adapter=eth_streamer_adapter,
+        clickhouse_url=envs.EXPORT_FROM_CLICKHOUSE,
+        chain_id=chain_id,
+        item_type_to_table_mapping=item_type_to_table_mapping,
+        rewrite_items=False,  # <--------------------------------------- checking this flag
+    )
+
+    streamer = Streamer(
+        chain_id=chain_id,
+        blockchain_streamer_adapter=ch_eth_streamer_adapter,
+        start_block=start_block,
+        end_block=end_block,
+        retry_errors=False,
+    )
+    streamer.stream()
 
 
 @pytest.mark.skipif(not run_slow_tests, reason='slow tests not enabled')

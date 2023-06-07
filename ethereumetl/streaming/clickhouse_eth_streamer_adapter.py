@@ -1,10 +1,12 @@
 import logging
-from functools import cache
+from functools import cache, cached_property
 from typing import Any, Optional
 from urllib.parse import parse_qs, urlparse
 
 import clickhouse_connect
 
+from blockchainetl.jobs.exporters.clickhouse_exporter import ClickHouseItemExporter
+from blockchainetl.jobs.exporters.multi_item_exporter import MultiItemExporter
 from ethereumetl.enumeration.entity_type import EntityType
 from ethereumetl.streaming.enrich import (
     enrich_contracts,
@@ -27,10 +29,12 @@ class ClickhouseEthStreamerAdapter:
         clickhouse_url: str,
         chain_id: int,
         item_type_to_table_mapping: Optional[dict[str, str]] = None,
+        rewrite_items: bool = True,
     ):
         self._eth_streamer_adapter = eth_streamer_adapter
         self._clickhouse_url = clickhouse_url
         self._clickhouse: Optional[clickhouse_connect.driver.HttpClient] = None
+        self._rewrite_items = rewrite_items
 
         if item_type_to_table_mapping is None:
             self._item_type_to_table_mapping = {
@@ -52,6 +56,11 @@ class ClickhouseEthStreamerAdapter:
 
     @staticmethod
     def clickhouse_client_from_url(url) -> clickhouse_connect.driver.HttpClient:
+        connect_kwargs = ClickhouseEthStreamerAdapter.parse_url(url)
+        return clickhouse_connect.get_client(**connect_kwargs, compress=False, query_limit=0)
+
+    @staticmethod
+    def parse_url(url) -> dict[str, Any]:
         parsed = urlparse(url)
         settings = parse_qs(parsed.query)
         connect_kwargs = {
@@ -65,7 +74,7 @@ class ClickhouseEthStreamerAdapter:
             connect_kwargs['database'] = parsed.path[1:]
         if parsed.scheme == "https":
             connect_kwargs['secure'] = True
-        return clickhouse_connect.get_client(**connect_kwargs, compress=False, query_limit=0)
+        return connect_kwargs
 
     def open(self):
         self._eth_streamer_adapter.open()
@@ -304,6 +313,11 @@ class ClickhouseEthStreamerAdapter:
         tokens = ()
         errors = ()
 
+        blocks_from_ch = False
+        transactions_from_ch = False
+        logs_from_ch = False
+        token_transfers_from_ch = False
+
         if EntityType.BLOCK in self._entity_types:
             blocks, transactions, blocks_from_ch = export_blocks_and_transactions()
 
@@ -342,16 +356,15 @@ class ClickhouseEthStreamerAdapter:
             errors=errors,
         )
 
-        # TODO
-        # Emptying the lists, if they from CH to skip exporting them
-        # if blocks_from_ch:
-        #     blocks = []
-        # if transactions_from_ch:
-        #     transactions = []
-        # if logs_from_ch:
-        #     logs = []
-        # if token_transfers_from_ch:
-        #     token_transfers = []
+        if self.exporting_to_the_same_clickhouse and not self._rewrite_items:
+            if blocks_from_ch:
+                blocks = ()
+            if transactions_from_ch:
+                transactions = ()
+            if logs_from_ch:
+                logs = ()
+            if token_transfers_from_ch:
+                token_transfers = ()
 
         all_items = [
             *sort_by(blocks, ('number',)),
@@ -377,3 +390,23 @@ class ClickhouseEthStreamerAdapter:
                 self._clickhouse = None
         finally:
             self._eth_streamer_adapter.close()
+
+    @cached_property
+    def exporting_to_the_same_clickhouse(self) -> bool:
+        exporter = self._eth_streamer_adapter.item_exporter
+        if isinstance(exporter, MultiItemExporter):
+            if len(exporter.item_exporters) != 1:
+                return False
+            exporter = exporter.item_exporters[0]
+
+        if not isinstance(exporter, ClickHouseItemExporter):
+            return False
+
+        params = self.parse_url(self._clickhouse_url)
+
+        return (
+            params['host'] == exporter.host
+            and params['port'] == exporter.port
+            and params.get('database', exporter.database) == exporter.database
+            and self._item_type_to_table_mapping == exporter.item_type_to_table_mapping
+        )

@@ -43,6 +43,9 @@ class EnvsConfig(BaseSettings):
     SKIP_NONE_RECEIPTS: bool = False
     MIN_INSERT_BATCH_SIZE: int = 1000
     EXPORT_FROM_CLICKHOUSE: Union[AnyUrl, Literal['']] = ''
+    # Overwrite items read from ClickHouse using EXPORT_FROM_CLICKHOUSE option when the output is
+    # set to the same ClickHouse instance
+    REWRITE_CLICKHOUSE: bool = False
     # Restart if last synced block wasn't saved for this amount of seconds
     HEALTH_CHECK_TIMEOUT: int = 600
 
