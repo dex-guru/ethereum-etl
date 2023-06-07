@@ -181,6 +181,7 @@ class ClickHouseItemExporter:
                     self.tables[table].column_names, self.tables[table].column_types, table, batch
                 )
         finally:
+            self.cached_batches.clear()
             if self.connection:
                 self.connection.close()
 
