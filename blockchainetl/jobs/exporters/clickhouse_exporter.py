@@ -101,7 +101,7 @@ class ClickHouseItemExporter:
                     )
                     column_names = self.tables[table].column_names
                     column_types = self.tables[table].column_types
-                    self._insert(column_names, column_types, table, table_data)
+                    self._insert(column_names, column_types, table, batch)
                     self.cached_batches[table] = []
                 else:
                     # insufficient size, so cache
