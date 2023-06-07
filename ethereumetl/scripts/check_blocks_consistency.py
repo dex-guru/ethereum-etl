@@ -17,7 +17,6 @@ def find_missing_blocks(max_number: int, chain_id: int, chunk_size: int = 100000
         database=database
     )
     # Initialize variables to keep track of missing blocks and gaps
-    missing_blocks = []
     gaps = []
     total_missing = 0
     expected_number = 1
