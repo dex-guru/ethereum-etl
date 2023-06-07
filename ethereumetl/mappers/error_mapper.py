@@ -10,5 +10,5 @@ class EthErrorMapper:
     def error_to_dict(error: EthError) -> dict[str, int | str | None]:
         res = dataclasses.asdict(error)
         res['type'] = EntityType.ERROR
-        res['data'] = json.dumps(res['data'], separators=(',', ':'), check_circular=False)
+        res['data_json'] = json.dumps(res.pop('data'), separators=(',', ':'), check_circular=False)
         return res
