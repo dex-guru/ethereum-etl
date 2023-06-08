@@ -209,7 +209,7 @@ class ClickhouseEthStreamerAdapter:
                 blocks, transactions, from_ch = export_blocks_and_transactions_enriched()
                 want_transaction_count = get_transaction_count_from_blocks(blocks)
                 if want_transaction_count == 0:
-                    return ()
+                    return (), from_ch
                 logs = self._select_distinct(
                     EntityType.LOG, start_block, end_block, 'transaction_hash,log_index'
                 )
