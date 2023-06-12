@@ -186,7 +186,7 @@ class ClickhouseEthStreamerAdapter:
 
         @cache
         def export_receipts_and_logs():
-            logging.info("exporting from_chand LOGS...")
+            logging.info("exporting LOGS...")
             blocks, transactions = eth_export_blocks_and_transactions(start_block, end_block)
             receipts, logs = self._eth_streamer_adapter._export_receipts_and_logs(transactions)
             logs = enrich_logs(blocks, logs)
