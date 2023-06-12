@@ -14,8 +14,6 @@ from ethereumetl.json_rpc_requests import generate_balance_of_json_rpc
 from ethereumetl.mappers.error_mapper import EthErrorMapper
 from ethereumetl.mappers.token_balance_mapper import EthTokenBalanceMapper
 from ethereumetl.misc.info import NULL_ADDRESSES
-from ethereumetl.misc.retriable_value_error import RetriableValueError
-from ethereumetl.utils import rpc_response_to_result
 
 MAX_UINT256 = 2**256 - 1
 
