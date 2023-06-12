@@ -28,8 +28,6 @@ class TokenBalanceParams(NamedTuple):
 
 
 class ExportTokenBalancesJob(BaseJob):
-    BALANCE_OF_OUT_OF_GAS_ERROR = {"message": "out of gas", "code": -32000}
-
     def __init__(
         self,
         *,
@@ -114,14 +112,6 @@ class ExportTokenBalancesJob(BaseJob):
             rpc_params.append(params)
         return rpc_params
 
-    def check_balance_of_rpc_response(self, response):
-        if response.get('error') == self.BALANCE_OF_OUT_OF_GAS_ERROR:
-            return
-
-        # Here a RetriableValueError can be raised and the BatchWorkExecutor will
-        # retry the batch.
-        rpc_response_to_result(response)
-
     def execute_balance_of_rpcs(self, rpc_requests: list[dict]) -> list[dict]:
         """
         Returns responses, the order and count of which is guaranteed to
@@ -142,19 +132,6 @@ class ExportTokenBalancesJob(BaseJob):
                 request_idxs.append(request_idx)
 
             responses = self.batch_web3_provider.make_batch_request(json.dumps(requests))
-
-            for response in responses:
-                try:
-                    self.check_balance_of_rpc_response(response)
-                except RetriableValueError as e:
-                    try:
-                        request_id = response['id']
-                        request = requests[request_id]
-                    except (KeyError, TypeError, IndexError):
-                        raise e
-                    else:
-                        request_json = json.dumps(request)
-                        raise RetriableValueError(f'{e} request: {request_json}') from e
 
             response_by_rpc_id = {r['id']: r for r in responses}
             if len(response_by_rpc_id) != len(requests):
@@ -196,6 +173,7 @@ class ExportTokenBalancesJob(BaseJob):
                     data={
                         'rpc_params': rpc_params,
                         'rpc_response_error': rpc_response_error,
+                        'rpc_response_result': rpc_response.get('result'),
                         'rpc_method': 'balanceOf',
                     },
                 )
@@ -203,7 +181,6 @@ class ExportTokenBalancesJob(BaseJob):
                 continue
 
             balance_value = to_int(hexstr=rpc_response['result'])
-
             if not (0 <= balance_value <= MAX_UINT256):
                 error = EthError(
                     timestamp=timestamp_func(),
