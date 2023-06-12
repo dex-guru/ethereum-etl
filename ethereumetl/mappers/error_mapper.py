@@ -6,6 +6,12 @@ from ethereumetl.enumeration.entity_type import EntityType
 
 
 class EthErrorMapper:
+    ERROR_ITEM_FIELDS: set[str] = {
+        *(f.name for f in dataclasses.fields(EthError) if f.name != 'data'),
+        'data_json',
+        'type',
+    }
+
     @staticmethod
     def error_to_dict(error: EthError) -> dict[str, int | str | None]:
         res = dataclasses.asdict(error)

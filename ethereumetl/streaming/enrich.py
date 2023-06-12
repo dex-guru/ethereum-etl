@@ -26,8 +26,8 @@ from collections import defaultdict
 from dataclasses import fields
 
 from ethereumetl.config.envs import envs
-from ethereumetl.domain.error import EthError
 from ethereumetl.domain.token_balance import EthTokenBalance
+from ethereumetl.mappers.error_mapper import EthErrorMapper
 from ethereumetl.utils import dedup_list_of_dicts
 
 
@@ -287,7 +287,7 @@ def enrich_errors(blocks, errors):
             errors,
             blocks,
             ('block_number', 'number'),
-            ['type', *(f.name for f in fields(EthError))],
+            EthErrorMapper.ERROR_ITEM_FIELDS,
             [
                 ('timestamp', 'block_timestamp'),
                 ('hash', 'block_hash'),
