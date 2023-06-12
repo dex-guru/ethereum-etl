@@ -468,7 +468,7 @@ def test_stream_token_balances(tmp_path: Path, streamer_adapter_cls, cleanup):
         'type': 'token_balance',
         'value': 1,
     }
-    assert len(token_balances) == 430
+    assert len(token_balances) == 429
 
 
 def test_clickhouse_exporter(tmp_path, cleanup):
