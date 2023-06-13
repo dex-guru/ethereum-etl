@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS `${token_balance}`
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
-ORDER BY (token_address, holder_address, token_id, block_timestamp)
+ORDER BY (token_address, holder_address, token_id, block_number)
 SETTINGS allow_nullable_key=1;
 
 CREATE TABLE IF NOT EXISTS `${trace}`
