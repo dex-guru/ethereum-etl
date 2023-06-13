@@ -89,7 +89,12 @@ def generate_balance_of_json_rpc(
 
     transaction = {'to': contract_address, 'data': to_hex(data)}
 
-    return generate_json_rpc('eth_call', [transaction, to_hex(block)], request_id)
+    eth_call_block: str | Literal['latest']
+    if block == 'latest':
+        eth_call_block = block
+    else:
+        eth_call_block = to_hex(block)
+    return generate_json_rpc('eth_call', [transaction, eth_call_block], request_id)
 
 
 def generate_json_rpc(method, params, request_id=1):
