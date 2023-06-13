@@ -195,7 +195,7 @@ def stream(
             clickhouse_url=export_from_clickhouse,
             chain_id=chain_id,
             item_type_to_table_mapping=make_item_type_to_table_mapping(chain_id),
-            rewrite_items=envs.REWRITE_CLICKHOUSE,
+            rewrite_entity_types=envs.REWRITE_CLICKHOUSE.split(','),
         )
 
     streamer = Streamer(

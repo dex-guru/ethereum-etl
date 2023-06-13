@@ -367,16 +367,7 @@ def test_stream_clickhouse(
 
     def fake_ch_export_items(items):
         counter = Counter((item['type'] for item in items))
-
-        # NOT rewriting these types
-        assert counter['block'] == 0
-        assert counter['transaction'] == 0
-        assert counter['log'] == 0
-        assert counter['token_transfer'] == 0
-
-        # REWRITING these types regardless of the "rewrite_items" parameter
-        assert counter['token_balance'] > 0
-        assert counter['trace'] > 0
+        assert dict(counter) == {'trace': 7, 'token_balance': 2}
 
     item_exporter.export_items = fake_ch_export_items  # type: ignore
 
@@ -394,7 +385,10 @@ def test_stream_clickhouse(
         clickhouse_url=envs.EXPORT_FROM_CLICKHOUSE,
         chain_id=chain_id,
         item_type_to_table_mapping=item_type_to_table_mapping,
-        rewrite_items=False,  # <--------------------------------------- checking this flag
+        rewrite_entity_types=(  # <--------------------------------------- checking this
+            EntityType.TOKEN_BALANCE,
+            EntityType.TRACE,
+        ),
     )
 
     streamer = Streamer(

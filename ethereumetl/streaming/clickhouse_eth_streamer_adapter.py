@@ -1,6 +1,6 @@
 import logging
 from functools import cache, cached_property
-from typing import Any, Optional
+from typing import Any, Optional, Sequence
 from urllib.parse import parse_qs, urlparse
 
 import clickhouse_connect
@@ -29,12 +29,12 @@ class ClickhouseEthStreamerAdapter:
         clickhouse_url: str,
         chain_id: int,
         item_type_to_table_mapping: Optional[dict[str, str]] = None,
-        rewrite_items: bool = True,
+        rewrite_entity_types: Sequence[str] = EntityType.ALL,
     ):
         self._eth_streamer_adapter = eth_streamer_adapter
         self._clickhouse_url = clickhouse_url
         self._clickhouse: Optional[clickhouse_connect.driver.HttpClient] = None
-        self._rewrite_items = rewrite_items
+        self._rewrite_entity_types = set(rewrite_entity_types)
 
         if item_type_to_table_mapping is None:
             self._item_type_to_table_mapping = {
@@ -240,7 +240,8 @@ class ClickhouseEthStreamerAdapter:
                     for t in traces:
                         t['type'] = EntityType.TRACE
                     enrich_traces(export_blocks_and_transactions()[0], traces)
-                    return traces
+                    from_ch = True
+                    return traces, from_ch
 
             logging.info(
                 f"Traces. Not enough data found in clickhouse: falling back to Eth node:"
@@ -248,7 +249,8 @@ class ClickhouseEthStreamerAdapter:
             )
             traces = self._eth_streamer_adapter._export_traces(start_block, end_block)
             traces = enrich_traces(export_blocks_and_transactions()[0], traces)
-            return traces
+            from_ch = False
+            return traces, from_ch
 
         @cache
         def extract_token_transfers():
@@ -266,16 +268,18 @@ class ClickhouseEthStreamerAdapter:
         @cache
         def extract_contracts():
             logging.info("exporting CONTRACTS...")
-            contracts = self._eth_streamer_adapter._export_contracts(export_traces())
+            traces, from_ch = export_traces()
+            contracts = self._eth_streamer_adapter._export_contracts(traces)
             contracts = enrich_contracts(export_blocks_and_transactions_enriched()[0], contracts)
-            return contracts
+            return contracts, from_ch
 
         @cache
         def extract_tokens():
             logging.info("exporting TOKENS...")
-            tokens = self._eth_streamer_adapter._extract_tokens(extract_contracts())
+            contracts, from_ch = extract_contracts()
+            tokens = self._eth_streamer_adapter._extract_tokens(contracts)
             tokens = enrich_tokens(export_blocks_and_transactions_enriched()[0], tokens)
-            return tokens
+            return tokens, from_ch
 
         @cache
         def export_token_balances():
@@ -292,7 +296,9 @@ class ClickhouseEthStreamerAdapter:
                     for b in balances:
                         b['type'] = EntityType.TOKEN_BALANCE
                     balances = enrich_token_balances(export_blocks_and_transactions()[0], balances)
-                    return balances, ()
+                    errors = ()
+                    from_ch = True
+                    return balances, errors, from_ch
 
             token_balances, errors = self._eth_streamer_adapter._export_token_balances(
                 extract_token_transfers()[0]
@@ -301,22 +307,27 @@ class ClickhouseEthStreamerAdapter:
                 export_blocks_and_transactions()[0], token_balances
             )
             errors = enrich_errors(export_blocks_and_transactions()[0], errors)
-            return token_balances, errors
+            from_ch = False
+            return token_balances, errors, from_ch
 
-        blocks = ()
-        transactions = ()
-        logs = ()
-        token_transfers = ()
-        token_balances = ()
-        traces = ()
-        contracts = ()
-        tokens = ()
-        errors = ()
+        blocks: Sequence = ()
+        transactions: Sequence = ()
+        logs: Sequence = ()
+        token_transfers: Sequence = ()
+        token_balances: Sequence = ()
+        traces: Sequence = ()
+        contracts: Sequence = ()
+        tokens: Sequence = ()
+        errors: Sequence = ()
 
         blocks_from_ch = False
         transactions_from_ch = False
         logs_from_ch = False
         token_transfers_from_ch = False
+        token_balances_from_ch = False
+        traces_from_ch = False
+        contracts_from_ch = False
+        tokens_from_ch = False
 
         if EntityType.BLOCK in self._entity_types:
             blocks, transactions, blocks_from_ch = export_blocks_and_transactions()
@@ -331,18 +342,18 @@ class ClickhouseEthStreamerAdapter:
             token_transfers, token_transfers_from_ch = extract_token_transfers()
 
         if EntityType.TOKEN_BALANCE in self._entity_types:
-            token_balances, token_balance_errors = export_token_balances()
+            token_balances, token_balance_errors, token_balances_from_ch = export_token_balances()
             if EntityType.ERROR in self._entity_types:
-                errors = list(token_balance_errors)
+                errors = tuple(token_balance_errors)
 
         if EntityType.TRACE in self._entity_types:
-            traces = export_traces()
+            traces, traces_from_ch = export_traces()
 
         if EntityType.CONTRACT in self._entity_types:
-            contracts = extract_contracts()
+            contracts, contracts_from_ch = extract_contracts()
 
         if EntityType.TOKEN in self._entity_types:
-            tokens = extract_tokens()
+            tokens, tokens_from_ch = extract_tokens()
 
         self._eth_streamer_adapter.log_batch_export_progress(
             blocks=blocks,
@@ -356,15 +367,23 @@ class ClickhouseEthStreamerAdapter:
             errors=errors,
         )
 
-        if self.exporting_to_the_same_clickhouse and not self._rewrite_items:
-            if blocks_from_ch:
-                blocks = ()
-            if transactions_from_ch:
-                transactions = ()
-            if logs_from_ch:
-                logs = ()
-            if token_transfers_from_ch:
-                token_transfers = ()
+        if self.exporting_to_the_same_clickhouse:
+
+            def helper(entity_type, from_ch, data):
+                if from_ch and entity_type not in self._rewrite_entity_types:
+                    return ()
+                return data
+
+            # fmt: off
+            blocks = helper(EntityType.BLOCK, blocks_from_ch, blocks)
+            transactions = helper(EntityType.TRANSACTION, transactions_from_ch, transactions)
+            logs = helper(EntityType.LOG, logs_from_ch, logs)
+            token_transfers = helper(EntityType.TOKEN_TRANSFER, token_transfers_from_ch, token_transfers)
+            token_balances = helper(EntityType.TOKEN_BALANCE, token_balances_from_ch, token_balances)
+            traces = helper(EntityType.TRACE, traces_from_ch, traces)
+            contracts = helper(EntityType.CONTRACT, contracts_from_ch, contracts)
+            tokens = helper(EntityType.TOKEN, tokens_from_ch, tokens)
+            # fmt: on
 
         all_items = [
             *sort_by(blocks, ('number',)),
