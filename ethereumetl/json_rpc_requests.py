@@ -61,7 +61,7 @@ def generate_get_code_json_rpc(contract_addresses, block='latest'):
 
 
 ERC20_BALANCE_OF_SELECTOR = keccak(text='balanceOf(address)')[:4]
-ERC721_BALANCE_OF_SELECTOR = keccak(text='balanceOf(address,uint256)')[:4]
+ERC1155_BALANCE_OF_SELECTOR = keccak(text='balanceOf(address,uint256)')[:4]
 
 
 def generate_balance_of_json_rpc(
@@ -75,14 +75,20 @@ def generate_balance_of_json_rpc(
     See:
         * https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_call
         * https://docs.soliditylang.org/en/latest/abi-spec.html
+        * https://eips.ethereum.org/EIPS/eip-721
+        * https://eips.ethereum.org/EIPS/eip-1155
+
+    Note:
+        ERC-1155:        balanceOf(address,tokenId).
+        ERC-20, ERC-721: balanceOf(address)         - cannot get balance for a specific token_id.
     """
-    if token_id is None:  # ERC-20 contract
+    if token_id is None:  # ERC-20 or ERC-721 contract
         # [ selector: 4 bytes, address: 20 bytes zero padded to 32 bytes ]
         data = ERC20_BALANCE_OF_SELECTOR + eth_abi.encode_single('address', holder_address)
 
-    else:  # ERC-721 or ERC-1155 contract
+    else:  # ERC-1155 contract
         # [ selector: 4 bytes, address: 20 bytes zero padded to 32 bytes, token_id: uint256 ]
-        data = ERC721_BALANCE_OF_SELECTOR + eth_abi.encode(
+        data = ERC1155_BALANCE_OF_SELECTOR + eth_abi.encode(
             ('address', 'uint256'),
             (holder_address, token_id),
         )
