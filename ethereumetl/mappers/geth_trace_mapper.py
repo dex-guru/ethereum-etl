@@ -19,23 +19,41 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
+from datetime import datetime
 
 from ethereumetl.domain.geth_trace import EthGethTrace
+import json
 
 
 class EthGethTraceMapper(object):
-    def json_dict_to_geth_trace(self, json_dict):
-        geth_trace = EthGethTrace()
 
-        geth_trace.block_number = json_dict.get('block_number')
-        geth_trace.transaction_traces = json_dict.get('transaction_traces')
+    @staticmethod
+    def json_dict_to_geth_trace(json_dict):
+        transaction_hash = json_dict.get('transaction_hash')
+        block_number = json_dict.get('block_number')
+        if isinstance(json_dict.get('block_timestamp'), int):
+            block_timestamp = datetime.utcfromtimestamp(json_dict['block_timestamp'])
+        elif isinstance(json_dict.get('block_timestamp'), datetime):
+            block_timestamp = json_dict['block_timestamp']
+        else:
+            block_timestamp = None
+        transaction_traces = json_dict.get('transaction_traces', json.loads(json_dict.get('traces_json', '[]')))
+
+        geth_trace = EthGethTrace(
+            transaction_hash=transaction_hash,
+            block_number=block_number,
+            block_timestamp=block_timestamp,
+            transaction_traces=transaction_traces,
+        )
 
         return geth_trace
 
-    def geth_trace_to_dict(self, geth_trace):
+    @staticmethod
+    def geth_trace_to_dict(geth_trace):
         return {
             'type': 'geth_trace',
+            'transaction_hash': geth_trace.transaction_hash,
             'block_number': geth_trace.block_number,
-            'transaction_traces': geth_trace.transaction_traces,
+            'block_timestamp': geth_trace.block_timestamp,
+            'transaction_traces': json.dumps(geth_trace.transaction_traces),
         }

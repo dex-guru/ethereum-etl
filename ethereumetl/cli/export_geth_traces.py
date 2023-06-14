@@ -23,6 +23,7 @@
 
 import click
 
+from blockchainetl.file_utils import smart_open
 from blockchainetl.logging_utils import logging_basic_config
 from ethereumetl.jobs.export_geth_traces_job import ExportGethTracesJob
 from ethereumetl.jobs.exporters.geth_traces_item_exporter import geth_traces_item_exporter
@@ -33,8 +34,13 @@ logging_basic_config()
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
-@click.option('-s', '--start-block', default=0, show_default=True, type=int, help='Start block')
-@click.option('-e', '--end-block', required=True, type=int, help='End block')
+@click.option(
+    '-t',
+    '--transaction-hashes',
+    required=True,
+    type=str,
+    help='The file containing transaction hashes in checksum, one per line.',
+)
 @click.option(
     '-b',
     '--batch-size',
@@ -67,17 +73,19 @@ logging_basic_config()
     help='The URI of the web3 provider e.g. '
     'file://$HOME/Library/Ethereum/geth.ipc or http://localhost:8545/',
 )
-def export_geth_traces(start_block, end_block, batch_size, output, max_workers, provider_uri):
+def export_geth_traces(transaction_hashes, batch_size, output, max_workers, provider_uri):
     """Exports traces from geth node."""
-    job = ExportGethTracesJob(
-        start_block=start_block,
-        end_block=end_block,
-        batch_size=batch_size,
-        batch_web3_provider=ThreadLocalProxy(
-            lambda: get_provider_from_uri(provider_uri, batch=True)
-        ),
-        max_workers=max_workers,
-        item_exporter=geth_traces_item_exporter(output),
-    )
+    with smart_open(transaction_hashes, 'r') as transaction_hashes_file:
+        job = ExportGethTracesJob(
+            transaction_hashes=(
+                transaction_hash.strip() for transaction_hash in transaction_hashes_file
+            ),
+            batch_size=batch_size,
+            batch_web3_provider=ThreadLocalProxy(
+                lambda: get_provider_from_uri(provider_uri, batch=True)
+            ),
+            max_workers=max_workers,
+            item_exporter=geth_traces_item_exporter(output),
+        )
 
     job.run()

@@ -1,0 +1,1 @@
+{"block_number": 12345, "block_timestamp": 124567, "transaction_hash": "0xa6d1ee88d620546f12223941ea34d254f4e4885514ebd7f68f00712832613587", "transaction_traces": {"from": "0xaf21e07e5a929d16026a7b4d88f3906a8d2e4942", "gas": "0x0", "gasUsed": "0x0", "input": "0x", "output": "0x", "time": "5.168\u00b5s", "to": "0x5b3c526b152b1f3d8eabe2ec27f49b904ad51cad", "type": "CALL"}}

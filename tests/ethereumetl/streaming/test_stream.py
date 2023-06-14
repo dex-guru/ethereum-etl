@@ -267,6 +267,8 @@ def test_stream_clickhouse(
     traces_output_file = str(tmpdir.join('actual_traces.json'))
     contracts_output_file = str(tmpdir.join('actual_contracts.json'))
     tokens_output_file = str(tmpdir.join('actual_tokens.json'))
+    geth_traces_output_file = str(tmpdir.join('actual_geth_traces.json'))
+    internal_transfers_output_file = str(tmpdir.join('actual_internal_transfers.json'))
 
     item_exporter = CompositeItemExporter(
         filename_mapping={
@@ -277,6 +279,7 @@ def test_stream_clickhouse(
             'trace': traces_output_file,
             'contract': contracts_output_file,
             'token': tokens_output_file,
+            'geth_trace': geth_traces_output_file,
         }
     )
 
@@ -309,6 +312,8 @@ def test_stream_clickhouse(
     transactions = read_file(transactions_output_file)
     logs = read_file(logs_output_file)
     token_transfers = read_file(token_transfers_output_file)
+    geth_traces = read_file(geth_traces_output_file)
+    internal_transfers = read_file(internal_transfers_output_file)
 
     # As we are not writing back to clickhouse if items were found there, all those files should be empty
-    assert blocks == transactions == logs == token_transfers == ''
+    assert blocks == transactions == logs == token_transfers == geth_traces == internal_transfers == ''
