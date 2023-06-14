@@ -24,7 +24,8 @@ import json
 
 from blockchainetl.jobs.base_job import BaseJob
 from ethereumetl.executors.batch_work_executor import BatchWorkExecutor
-from ethereumetl.json_rpc_requests import generate_trace_block_by_number_json_rpc
+from ethereumetl.json_rpc_requests import generate_trace_block_by_number_json_rpc, \
+    generate_trace_by_transaction_hashes_json_rpc
 from ethereumetl.mappers.geth_trace_mapper import EthGethTraceMapper
 from ethereumetl.utils import rpc_response_to_result, validate_range
 
@@ -32,12 +33,9 @@ from ethereumetl.utils import rpc_response_to_result, validate_range
 # Exports geth traces
 class ExportGethTracesJob(BaseJob):
     def __init__(
-        self, start_block, end_block, batch_size, batch_web3_provider, max_workers, item_exporter
+        self, batch_size, batch_web3_provider, max_workers, item_exporter, transaction_hashes
     ):
-        validate_range(start_block, end_block)
-        self.start_block = start_block
-        self.end_block = end_block
-
+        self.transaction_hashes = transaction_hashes
         self.batch_web3_provider = batch_web3_provider
 
         self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers)
@@ -50,23 +48,23 @@ class ExportGethTracesJob(BaseJob):
 
     def _export(self):
         self.batch_work_executor.execute(
-            range(self.start_block, self.end_block + 1),
+            self.transaction_hashes,
             self._export_batch,
-            total_items=self.end_block - self.start_block + 1,
+            total_items=len(self.transaction_hashes),
         )
 
-    def _export_batch(self, block_number_batch):
-        trace_block_rpc = list(generate_trace_block_by_number_json_rpc(block_number_batch))
-        response = self.batch_web3_provider.make_batch_request(json.dumps(trace_block_rpc))
+    def _export_batch(self, transaction_hashes: list[str]):
+        trace_tx_rpc = list(generate_trace_by_transaction_hashes_json_rpc(transaction_hashes))
+        response = self.batch_web3_provider.make_batch_request(json.dumps(trace_tx_rpc))
 
         for response_item in response:
-            block_number = response_item.get('id')
-            result = rpc_response_to_result(response_item)
+            transaction_hash = response_item.get('id')
+            tx_traces = rpc_response_to_result(response_item)
 
             geth_trace = self.geth_trace_mapper.json_dict_to_geth_trace(
                 {
-                    'block_number': block_number,
-                    'transaction_traces': [tx_trace.get('result') for tx_trace in result],
+                    'transaction_hash': transaction_hash,
+                    'transaction_traces': tx_traces,
                 }
             )
 

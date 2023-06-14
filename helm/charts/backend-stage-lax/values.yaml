@@ -16,7 +16,6 @@ raw-data-streamer:
     LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@10.0.200.180/dex_etl?table_name=last_synced_block'
     LAG: '0'
     OUTPUT: 'clickhouse://testuser3:testplpassword@10.0.200.180/dex_etl'
-    ENTITY_TYPES: 'block,transaction,log,token_transfer'
     POLLING_PERIOD: '2'
     BATCH_SIZE: '10'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
@@ -24,6 +23,9 @@ raw-data-streamer:
     SERVICE_NAME: 'raw-data-streamer'
 
   chainEnv:
+    ENTITY_TYPES:
+      default: 'block,transaction,log,token_transfer,internal_transfer,geth_trace'
+      fantom-250: 'block,transaction,log,token_transfer'
     START_BLOCK:
       default: '1'
     PROVIDER_URL:
@@ -63,7 +65,6 @@ raw-data-streamer-resync:
     LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@10.0.200.180/dex_etl?table_name=resync_blocks'
     LAG: '0'
     OUTPUT: 'clickhouse://testuser3:testplpassword@10.0.200.180/dex_etl'
-    ENTITY_TYPES: 'block,transaction,log,token_transfer'
     POLLING_PERIOD: '2'
     BATCH_SIZE: '10'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
@@ -71,6 +72,9 @@ raw-data-streamer-resync:
     SERVICE_NAME: 'raw-resync-data-streamer'
     EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@10.0.200.180:8123/dex_etl'
   chainEnv:
+    ENTITY_TYPES:
+      default: 'block,transaction,log,token_transfer,internal_transfer,geth_trace'
+      fantom-250: 'block,transaction,log,token_transfer'
     START_BLOCK:
       default: '1'
       acanto-7701: '1299370'
