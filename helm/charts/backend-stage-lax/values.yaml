@@ -73,8 +73,9 @@ raw-data-streamer-resync:
     EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@10.0.200.180:8123/dex_etl'
   chainEnv:
     ENTITY_TYPES:
-      default: 'block,transaction,log,token_transfer,internal_transfer,geth_trace'
+      default: 'block,transaction,log,token_transfer'
       fantom-250: 'block,transaction,log,token_transfer'
+      acanto-7701: 'block,transaction,log,token_transfer'
     START_BLOCK:
       default: '1'
       acanto-7701: '1299370'
