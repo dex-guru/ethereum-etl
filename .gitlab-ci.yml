@@ -24,6 +24,9 @@ variables:
   LAX_PROD_CLUSTER_NAME: prod-k8s
   KUBE_NAMESPACE_STAGE: >-
     stage-indexation-gnosis-100
+    stage-indexation-eth-1
+    stage-indexation-bsc-56
+    stage-indexation-polygon-137
     stage-indexation-fantom-250
     stage-indexation-arbitrum-42161
     stage-indexation-optimism-10
@@ -32,6 +35,7 @@ variables:
     stage-indexation-base-84531
     stage-indexation-nova-42170
   KUBE_NAMESPACE_PROD: >-
+    prod-indexation-eth-1
     prod-indexation-gnosis-100
     prod-indexation-fantom-250
     prod-indexation-arbitrum-42161
@@ -225,19 +229,19 @@ raw-data-streamer-stage:
   only:
     - master
 
-raw-data-streamer-resync-stage:
-  stage: deploy-stage
-  image:
-    name: ${IMAGE_HELM_KUBECTL}
-    entrypoint: [""]
-  variables:
-    SERVICE_NAME: "raw-data-streamer-resync"
-    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
-    HELM_CHART: ${HELM_CHART_STAGE_LAX}
-  script:
-    - helm/lax_stage_deploy.sh
-  only:
-    - master
+#raw-data-streamer-resync-stage:
+#  stage: deploy-stage
+#  image:
+#    name: ${IMAGE_HELM_KUBECTL}
+#    entrypoint: [""]
+#  variables:
+#    SERVICE_NAME: "raw-data-streamer-resync"
+#    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+#    HELM_CHART: ${HELM_CHART_STAGE_LAX}
+#  script:
+#    - helm/lax_stage_deploy.sh
+#  only:
+#    - master
 
 raw-data-streamer-prod:
   stage: deploy-prod
@@ -253,16 +257,16 @@ raw-data-streamer-prod:
   only:
     - tags
 
-raw-data-streamer-resync-prod:
-  stage: deploy-prod
-  image:
-    name: ${IMAGE_HELM_KUBECTL}
-    entrypoint: [""]
-  variables:
-    SERVICE_NAME: "raw-data-streamer-resync"
-    KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD}
-    HELM_CHART: ${HELM_CHART_PROD_LAX}
-  script:
-    - helm/lax_prod_deploy.sh
-  only:
-    - tags
+#raw-data-streamer-resync-prod:
+#  stage: deploy-prod
+#  image:
+#    name: ${IMAGE_HELM_KUBECTL}
+#    entrypoint: [""]
+#  variables:
+#    SERVICE_NAME: "raw-data-streamer-resync"
+#    KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD}
+#    HELM_CHART: ${HELM_CHART_PROD_LAX}
+#  script:
+#    - helm/lax_prod_deploy.sh
+#  only:
+#    - tags

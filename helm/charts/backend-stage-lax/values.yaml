@@ -26,8 +26,6 @@ raw-data-streamer:
   chainEnv:
     START_BLOCK:
       default: '1'
-      acanto-7701: '1299370'
-      base-84531: '4922000'
     PROVIDER_URL:
       default: 'http://10.0.100.149:8080/archive/1'
       polygon-137: 'http://10.0.100.149:8080/archive/137'
@@ -43,41 +41,14 @@ raw-data-streamer:
       base-84531: 'https://rpc.ankr.com/base_goerli/08ed572fa1db438121b633d846c4cd3ff721fb6395fc3948bbac08c328e438c3'
 
     BLOCK_BATCH_SIZE:
-      default: '1000'
-      polygon-137: '1000'
-      bsc-56: '1000'
-      eth-1: '1000'
-      canto-7700: '100'
-      fantom-250: '100'
-      optimism-10: '100'
-      gnosis-100: '100'
-      arbitrum-42161: '100'
-      nova-42170: '100'
-      acanto-7701: '100'
+      default: '100'
     MAX_WORKERS:
       default: '5'
-      polygon-137: '10'
-      eth-1: '10'
-      bsc-56: '12'
-      canto-7700: '5'
-      fantom-250: '5'
-      optimism-10: '5'
-      gnosis-100: '5'
-      arbitrum-42161: '5'
-      nova-42170: '5'
-      acanto-7701: '5'
     SKIP_NONE_RECEIPTS:
       default: 'False'
       polygon-137: 'True'
     MIN_INSERT_BATCH_SIZE:
       default: '1'
-      canto-7700: '1'
-      fantom-250: '1'
-      optimism-10: '1'
-      gnosis-100: '1'
-      arbitrum-42161: '1'
-      nova-42170: '1'
-      acanto-7701: '1'
 
 raw-data-streamer-resync:
   replicas:
