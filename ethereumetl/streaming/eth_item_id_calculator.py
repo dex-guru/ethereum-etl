@@ -50,7 +50,11 @@ class EthItemIdCalculator:
             return concat(item_type, item.get('transaction_hash'), item.get('log_index'))
         elif item_type == 'token_balance':
             return concat(
-                item_type, item['token_address'], item['holder_address'], item['token_id']
+                item_type,
+                item['block_number'],
+                item['token_address'],
+                item['holder_address'],
+                item['token_id'],
             )
         elif item_type == 'trace' and item.get('trace_id') is not None:
             return concat(item_type, item.get('trace_id'))

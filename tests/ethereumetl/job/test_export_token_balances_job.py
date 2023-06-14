@@ -22,7 +22,7 @@ def test_token_balances():
         "operator_address": "0xd8444ef1a23a6811994fc557921949e3327967ce",
     }
 
-    rpc_params1, rpc_params2 = job.prepare_params(token_transfer)
+    ([rpc_params1, rpc_params2], []) = job.parse_transfer(token_transfer)
     assert rpc_params1 == TokenBalanceParams(
         token_address="0xd1988bea35478229ebee68331714b215e3529510",
         holder_address="0xd8444ef1a23a6811994fc557921949e3327967ce",

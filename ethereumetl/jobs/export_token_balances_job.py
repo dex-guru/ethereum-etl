@@ -49,25 +49,30 @@ class ExportTokenBalancesJob(BaseJob):
         self.item_exporter.close()
 
     def _export(self):
-        unique_rpc_params = set()
-        for t in self.token_transfers_iterable:
-            for params in self.prepare_params(t):
-                unique_rpc_params.add(params)
+        unique_rpc_params: set[TokenBalanceParams] = set()
+        token_balances: list[EthTokenBalance] = []
 
-        all_rpc_params = list(unique_rpc_params)
+        for t in self.token_transfers_iterable:
+            params, balances = self.parse_transfer(t)
+            unique_rpc_params.update(params)
+            token_balances.extend(balances)
+
+        all_rpc_params = tuple(unique_rpc_params)
         rpc_requests = [
             self.make_rpc_request(i, params) for i, params in enumerate(all_rpc_params)
         ]
 
         rpc_responses = self.execute_balance_of_rpcs(rpc_requests)  # i/o
 
-        token_balances, errors = self.process_balance_of_rpc_responses(
+        balances, errors = self.process_balance_of_rpc_responses(
             zip(all_rpc_params, rpc_responses)
         )
-        token_balance_items = [
+        token_balances.extend(balances)
+
+        token_balance_items = tuple(
             EthTokenBalanceMapper.token_balance_to_dict(token_balance)
             for token_balance in token_balances
-        ]
+        )
         error_items = [EthErrorMapper.error_to_dict(error) for error in errors]
         self.item_exporter.export_items(token_balance_items)
         self.item_exporter.export_items(error_items)
@@ -84,31 +89,53 @@ class ExportTokenBalancesJob(BaseJob):
         return rpc
 
     @staticmethod
-    def prepare_params(token_transfer: EthTokenTransferItem) -> Iterable[TokenBalanceParams]:
-        if token_transfer['token_standard'] == 'ERC-1155':
-            # ERC-1155: balanceOf(address,tokenId)
-            token_id = token_transfer['token_id']
-        elif token_transfer['token_standard'] in ('ERC-20', 'ERC-721'):
-            # ERC-20, ERC-721: balanceOf(address)
-            # Cannot get balance for a specific token_id.
-            token_id = None
+    def parse_transfer(
+        token_transfer: EthTokenTransferItem,
+    ) -> tuple[list[TokenBalanceParams], list[EthTokenBalance]]:
+        erc = token_transfer['token_standard']
+
+        erc721_token_balances: list[EthTokenBalance] = []
+        rpc_params: list[TokenBalanceParams] = []
+
+        if erc == 'ERC-721':
+            # NFT-only transfer. The tokens are unique, so balance should be 0 or 1.
+
+            for holder_address, value in (
+                (token_transfer['to_address'], 1),
+                (token_transfer['from_address'], 0),
+            ):
+                if holder_address in NULL_ADDRESSES:
+                    # probably a mint or burn, skip
+                    continue
+
+                balance = EthTokenBalance(
+                    holder_address=holder_address,
+                    value=value,
+                    block_number=token_transfer['block_number'],
+                    token_address=token_transfer['token_address'],
+                    token_id=token_transfer['token_id'],
+                )
+                erc721_token_balances.append(balance)
+
+            return rpc_params, erc721_token_balances
+
+        elif erc in ('ERC-20', 'ERC-1155'):
+            for holder_address in (token_transfer['from_address'], token_transfer['to_address']):
+                if holder_address in NULL_ADDRESSES:
+                    # probably a mint or burn, skip
+                    continue
+
+                params = TokenBalanceParams(
+                    token_address=token_transfer['token_address'],
+                    holder_address=holder_address,
+                    block_number=token_transfer['block_number'],
+                    token_id=token_transfer['token_id'],
+                )
+                rpc_params.append(params)
+
+            return rpc_params, erc721_token_balances
         else:
-            raise ValueError(f'Unknown token standard: {token_transfer["token_standard"]}')
-
-        rpc_params = []
-        for address in (token_transfer['from_address'], token_transfer['to_address']):
-            if address in NULL_ADDRESSES:
-                # probably a mint or burn, skip
-                continue
-
-            params = TokenBalanceParams(
-                token_address=token_transfer['token_address'],
-                holder_address=address,
-                block_number=token_transfer['block_number'],
-                token_id=token_id,
-            )
-            rpc_params.append(params)
-        return rpc_params
+            raise ValueError(f'Unknown token standard: {erc}')
 
     def execute_balance_of_rpcs(self, rpc_requests: list[dict]) -> list[dict]:
         """

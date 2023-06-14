@@ -449,16 +449,17 @@ def test_stream_token_balances(tmp_path: Path, streamer_adapter_cls, cleanup):
         'block_hash': '0x97ebb349d7ab33966221767701765deb064362405a3a4a878d252465700ed350',
         'block_number': 17179063,
         'block_timestamp': 1683103055,
-        'holder_address': '0x3597770531bd28805a688003c5bc0292f4b9bf2c',
+        'holder_address': '0x48a90cfb0a65a73f820c3c915acd9399851aa739',
         'item_id': (
             'token_balance'
-            '_0xd1988bea35478229ebee68331714b215e3529510'
-            '_0x3597770531bd28805a688003c5bc0292f4b9bf2c'
-            '_2'
+            '_17179063'
+            '_0x104e73df39c6d90e4159dca7f13890b6402a2f1b'
+            '_0x48a90cfb0a65a73f820c3c915acd9399851aa739'
+            '_122'
         ),
         'item_timestamp': '2023-05-03T08:37:35Z',
-        'token_address': '0xd1988bea35478229ebee68331714b215e3529510',
-        'token_id': 2,
+        'token_address': '0x104e73df39c6d90e4159dca7f13890b6402a2f1b',
+        'token_id': 122,
         'type': 'token_balance',
         'value': 1,
     }
