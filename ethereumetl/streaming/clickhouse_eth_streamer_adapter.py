@@ -5,6 +5,7 @@ from urllib.parse import parse_qs, urlparse
 
 import clickhouse_connect
 
+from ethereumetl.config.envs import envs
 from ethereumetl.enumeration.entity_type import EntityType
 from ethereumetl.streaming.enrich import (
     enrich_contracts,
@@ -62,7 +63,7 @@ class ClickhouseEthStreamerAdapter:
             connect_kwargs['database'] = parsed.path[1:]
         if parsed.scheme == "https":
             connect_kwargs['secure'] = True
-        return clickhouse_connect.get_client(**connect_kwargs, compress=False, query_limit=0)
+        return clickhouse_connect.get_client(**connect_kwargs, compress=False, query_limit=0, send_receive_timeout=600)
 
     def open(self):
         self._eth_streamer_adapter.open()
@@ -193,7 +194,7 @@ class ClickhouseEthStreamerAdapter:
                 blocks, transactions, from_ch = export_blocks_and_transactions_enriched()
                 want_transaction_count = get_transaction_count_from_blocks(blocks)
                 if want_transaction_count == 0:
-                    return ()
+                    return [], True
                 logs = self._select_distinct(
                     EntityType.LOG, start_block, end_block, 'transaction_hash,log_index'
                 )
@@ -281,13 +282,14 @@ class ClickhouseEthStreamerAdapter:
         logging.info('Exporting with ' + type(self._eth_streamer_adapter.item_exporter).__name__)
 
         # Emptying the lists, if they from CH to skip exporting them
-        if blocks_from_ch:
+
+        if blocks_from_ch and not envs.REWRITE_CLICKHOUSE:
             blocks = []
-        if transactions_from_ch:
+        if transactions_from_ch and not envs.REWRITE_CLICKHOUSE:
             transactions = []
-        if logs_from_ch:
+        if logs_from_ch and not envs.REWRITE_CLICKHOUSE:
             logs = []
-        if token_transfers_from_ch:
+        if token_transfers_from_ch and not envs.REWRITE_CLICKHOUSE:
             token_transfers = []
 
         all_items = [

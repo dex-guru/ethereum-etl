@@ -1,10 +1,10 @@
 #!/bin/bash
 #
-# Usage: ./provision_candles_cloning.sh.sh [env(prod|stage)] [deployment] [tag]
-KUBE_NAMESPACE="$1-indexation-eth-1 $1-indexation-bsc-56 $1-indexation-avalanche-43114 $1-indexation-polygon-137 $1-indexation-fantom-250 $1-indexation-arbitrum-42161 $1-indexation-celo-42220 $1-indexation-optimism-10 $1-indexation-gnosis-100"
-# $1-indexation-bsc-56 $1-indexation-avalanche-43114 $1-indexation-polygon-137 $1-indexation-fantom-250 $1-indexation-arbitrum-42161 $1-indexation-celo-42220 $1-indexation-optimism-10 $1-indexation-gnosis-100"
-JOB_NAME="reindex-es-swaps-transactions-to-ch"
-# clone-es-candles-last-two-weeks-for-chain-300 clone-es-candles-last-two-weeks-for-chain-600-86400
+# Usage: ./provision_job_chains_namespaces.sh.sh [env(prod|stage)] [deployment] [tag]
+KUBE_NAMESPACE="$1-indexation-eth-1  $1-indexation-polygon-137 $1-indexation-fantom-250 $1-indexation-arbitrum-42161 $1-indexation-optimism-10 $1-indexation-gnosis-100 $1-indexation-canto-7700  $1-indexation-acanto-7701 $1-indexation-nova-42170 $1-indexation-base-84531"
+#KUBE_NAMESPACE="$1-indexation-eth-1"
+
+JOB_NAME=$3
 CI_COMMIT_SHORT_SHA=$2
 
 for NAMESPACE in ${KUBE_NAMESPACE}; do

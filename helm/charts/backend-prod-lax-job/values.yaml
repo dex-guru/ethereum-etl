@@ -1,0 +1,79 @@
+---
+image: 'registry.gitlab.com/telekomconsalting/dexguru/indexation-etl'
+imageTag: ''
+registrySecretName: registry-gitlab
+appName: ''
+pipeline: ''
+kubeNamespace: ''
+
+optimize-tables:
+  command: '[ "ethereumetl", "optimize_tables" ]'
+  env:
+    SERVICE_NAME: "optimize-tables-job"
+    OUTPUT: "clickhouse://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl"
+    LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
+    LOG_HANDLERS: '["console","logstash"]'
+    PYTHONPATH: "."
+  metadata:
+    creationTimestamp: null
+  restartPolicy: Never
+  limitsCpu: 1.5
+  limitsMemory: "15000Mi"
+  requestsCpu: 0.2
+  requestsMemory: "400Mi"
+  concurrencyPolicy: Forbid
+
+data-consistency-check:
+  restartPolicy: Never
+  limitsCpu: 1.5
+  limitsMemory: "15000Mi"
+  requestsCpu: 0.2
+  requestsMemory: "400Mi"
+  concurrencyPolicy: Forbid
+  command: '[ "ethereumetl", "check_data_consistency" ]'
+  env:
+    LAG: '0'
+    OUTPUT: 'clickhouse://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
+    ENTITY_TYPES: 'block,transaction,log,token_transfer'
+    POLLING_PERIOD: '2'
+    BATCH_SIZE: '10'
+    LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
+    LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl?table_name=data_consistency'
+    LOG_HANDLERS: '["console","logstash"]'
+    SERVICE_NAME: 'data-consistency-check'
+    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@ch-prod-indexation-01/dex_etl'
+  chainEnv:
+    START_BLOCK:
+      default: '1'
+    PROVIDER_URL:
+      default: 'http://10.0.100.149:8080/archive/1'
+      polygon-137: 'http://10.0.100.149:8080/archive/137'
+      bsc-56: 'http://10.0.100.149:8080/archive/56'
+      eth-1: 'http://10.0.100.149:8080/archive/1'
+      canto-7700: 'http://10.0.100.139:8545'
+      acanto-7701: 'http://canto-testnet.plexnode.wtf'
+      fantom-250: 'http://10.0.100.149:8080/archive/250'
+      optimism-10: 'http://10.0.100.149:8080/archive/10'
+      gnosis-100: 'http://10.0.100.149:8080/archive/100'
+      arbitrum-42161: 'http://10.0.100.149:8080/archive/42161'
+      nova-42170: 'http://10.0.100.149:8080/archive/42170'
+      base-84531: 'http://10.0.100.149:8080/archive/84531'
+    BLOCK_BATCH_SIZE:
+      default: '1000'
+    MAX_WORKERS:
+      default: '5'
+      polygon-137: '10'
+      eth-1: '5'
+      bsc-56: '12'
+      canto-7700: '5'
+      fantom-250: '5'
+      optimism-10: '5'
+      gnosis-100: '5'
+      arbitrum-42161: '5'
+      nova-42170: '5'
+      acanto-7701: '5'
+    SKIP_NONE_RECEIPTS:
+      default: 'False'
+      polygon-137: 'True'
+    MIN_INSERT_BATCH_SIZE:
+      default: '1'

@@ -24,30 +24,22 @@ variables:
   LAX_PROD_CLUSTER_NAME: prod-k8s
   KUBE_NAMESPACE_STAGE: >-
     stage-indexation-gnosis-100
-    stage-indexation-eth-1
-    stage-indexation-bsc-56
-    stage-indexation-avalanche-43114
     stage-indexation-fantom-250
     stage-indexation-arbitrum-42161
-    stage-indexation-celo-42220
     stage-indexation-optimism-10
-    stage-indexation-gnosis-100
     stage-indexation-canto-7700
     stage-indexation-acanto-7701
     stage-indexation-base-84531
     stage-indexation-nova-42170
-    stage-indexation-polygon-137
   KUBE_NAMESPACE_PROD: >-
-    prod-indexation-eth-1
-    prod-indexation-bsc-56
-    prod-indexation-avalanche-43114
-    prod-indexation-polygon-137
+    prod-indexation-gnosis-100
     prod-indexation-fantom-250
     prod-indexation-arbitrum-42161
-    prod-indexation-celo-42220
     prod-indexation-optimism-10
-    prod-indexation-gnosis-100
     prod-indexation-canto-7700
+    prod-indexation-acanto-7701
+    prod-indexation-nova-42170
+    prod-indexation-base-84531
     prod-indexation-nova-42170
 
 # Build test:
@@ -226,7 +218,7 @@ raw-data-streamer-stage:
     entrypoint: [""]
   variables:
     SERVICE_NAME: "raw-data-streamer"
-    KUBE_NAMESPACE: KUBE_NAMESPACE_STAGE
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
     HELM_CHART: ${HELM_CHART_STAGE_LAX}
   script:
     - helm/lax_stage_deploy.sh
@@ -240,9 +232,37 @@ raw-data-streamer-resync-stage:
     entrypoint: [""]
   variables:
     SERVICE_NAME: "raw-data-streamer-resync"
-    KUBE_NAMESPACE: KUBE_NAMESPACE_STAGE
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
     HELM_CHART: ${HELM_CHART_STAGE_LAX}
   script:
     - helm/lax_stage_deploy.sh
   only:
     - master
+
+raw-data-streamer-prod:
+  stage: deploy-prod
+  image:
+    name: ${IMAGE_HELM_KUBECTL}
+    entrypoint: [""]
+  variables:
+    SERVICE_NAME: "raw-data-streamer"
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD}
+    HELM_CHART: ${HELM_CHART_PROD_LAX}
+  script:
+    - helm/lax_prod_deploy.sh
+  only:
+    - tags
+
+raw-data-streamer-resync-prod:
+  stage: deploy-prod
+  image:
+    name: ${IMAGE_HELM_KUBECTL}
+    entrypoint: [""]
+  variables:
+    SERVICE_NAME: "raw-data-streamer-resync"
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD}
+    HELM_CHART: ${HELM_CHART_PROD_LAX}
+  script:
+    - helm/lax_prod_deploy.sh
+  only:
+    - tags
