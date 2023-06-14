@@ -17,6 +17,9 @@ from ethereumetl.config.envs import envs
 from ethereumetl.enumeration.entity_type import EntityType
 
 
+logger = logging.getLogger(__name__)
+
+
 @dataclass
 class Table:
     column_names: List[str]
@@ -80,12 +83,12 @@ class ClickHouseItemExporter:
             except DatabaseError as de:
                 # this may not be critical since the user may not be exporting the type and hence the table likely
                 # won't exist
-                logging.warning(
+                logger.warning(
                     'Unable to read columns for table "{}". This column will not be exported.'.format(
                         table
                     )
                 )
-                logging.debug(de)
+                logger.debug(de)
                 pass
 
     def export_items(self, items):
@@ -96,7 +99,7 @@ class ClickHouseItemExporter:
                 cached = self.cached_batches[table]
                 batch = cached + table_data
                 if len(batch) >= MIN_INSERT_BATCH_SIZE:
-                    logging.info(
+                    logger.info(
                         'Flushing batch for "{}" with {} items.'.format(item_type, len(batch))
                     )
                     column_names = self.tables[table].column_names
@@ -105,7 +108,7 @@ class ClickHouseItemExporter:
                     self.cached_batches[table] = []
                 else:
                     # insufficient size, so cache
-                    logging.debug(
+                    logger.debug(
                         'Batch for "{}" is too small to be flushed ({}<{}), caching.'.format(
                             item_type, len(batch), MIN_INSERT_BATCH_SIZE
                         )
@@ -131,7 +134,7 @@ class ClickHouseItemExporter:
                         if max_value is None:
                             raise
                         if column_value > max_value:
-                            logging.warning(
+                            logger.warning(
                                 "Insert error: too large column value:"
                                 " table=%s column=%s column_type=%s"
                                 " column_value=%s row_data_json=%s",
@@ -147,7 +150,7 @@ class ClickHouseItemExporter:
                                 f"Too large column value: table={table} column={column_name}"
                             ) from e
                     elif column_value is None and not column_type.nullable:
-                        logging.error(
+                        logger.error(
                             "Insert error: cannot insert null value into non-nullable column:"
                             " table=%s column=%s column_type=%s row_data_json=%s",
                             table,
@@ -175,7 +178,7 @@ class ClickHouseItemExporter:
     def close(self):
         try:
             # clear the cache
-            logging.info("Flushing remaining batches")
+            logger.info("Flushing remaining batches")
             for table, batch in self.cached_batches.items():
                 self._insert(
                     self.tables[table].column_names, self.tables[table].column_types, table, batch
@@ -192,7 +195,7 @@ class ClickHouseItemExporter:
             if type in self.item_type_to_table_mapping:
                 table = self.item_type_to_table_mapping[type]
                 if table not in self.tables:
-                    logging.error(
+                    logger.error(
                         'Table "{}" does not exist. Type "{}" cannot be exported.'.format(
                             table, type
                         )
@@ -203,7 +206,7 @@ class ClickHouseItemExporter:
                     result.append(item.get(column))
                 results[table].append(result)
             else:
-                logging.warning(
+                logger.warning(
                     'ClickHouse exporter ignoring {} items as type is not currently supported.'.format(
                         type
                     )
@@ -218,5 +221,5 @@ class ClickHouseItemExporter:
         for statement in sql.split(';'):
             statement = statement.strip()
             if statement:
-                logging.debug('executing sql statement:\n    %s', indent(statement, '    '))
+                logger.debug('executing sql statement:\n    %s', indent(statement, '    '))
                 self.connection.query(statement)

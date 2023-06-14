@@ -21,6 +21,9 @@ from ethereumetl.streaming.enrich import (
 from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter, sort_by
 
 
+logger = logging.getLogger(__name__)
+
+
 # noinspection PyProtectedMember
 class ClickhouseEthStreamerAdapter:
     def __init__(
@@ -124,7 +127,7 @@ class ClickhouseEthStreamerAdapter:
 
         @cache
         def export_blocks_and_transactions():
-            logging.info("exporting BLOCKS and TRANSACTIONS...")
+            logger.info("exporting BLOCKS and TRANSACTIONS...")
             blocks = self._select_distinct(EntityType.BLOCK, start_block, end_block, 'number')
             transactions = self._select_distinct(
                 EntityType.TRANSACTION, start_block, end_block, 'hash'
@@ -139,7 +142,7 @@ class ClickhouseEthStreamerAdapter:
                 EntityType.TRANSACTION in self._entity_types
                 and transaction_count < want_transaction_count
             ):
-                logging.info(
+                logger.info(
                     f"Block/Transactions. Not enough data found in clickhouse: falling back to Eth node:"
                     f" entity_types=block,transaction block_range={start_block}-{end_block}"
                 )
@@ -186,7 +189,7 @@ class ClickhouseEthStreamerAdapter:
 
         @cache
         def export_receipts_and_logs():
-            logging.info("exporting LOGS...")
+            logger.info("exporting LOGS...")
             blocks, transactions = eth_export_blocks_and_transactions(start_block, end_block)
             receipts, logs = self._eth_streamer_adapter._export_receipts_and_logs(transactions)
             logs = enrich_logs(blocks, logs)
@@ -203,7 +206,7 @@ class ClickhouseEthStreamerAdapter:
 
         @cache
         def export_logs():
-            logging.info("exporting LOGS...")
+            logger.info("exporting LOGS...")
             from_ch = False
             if blocks_previously_exported():
                 blocks, transactions, from_ch = export_blocks_and_transactions_enriched()
@@ -221,7 +224,7 @@ class ClickhouseEthStreamerAdapter:
                     from_ch = True
                     return logs, from_ch
 
-            logging.info(
+            logger.info(
                 f"Logs. Not enough data found in clickhouse: falling back to Eth node:"
                 f" entity_types=receipt,log block_range={start_block}-{end_block}"
             )
@@ -231,7 +234,7 @@ class ClickhouseEthStreamerAdapter:
 
         @cache
         def export_traces():
-            logging.info("exporting TRACES...")
+            logger.info("exporting TRACES...")
             if blocks_previously_exported():
                 traces = self._select_distinct(
                     EntityType.TRACE, start_block, end_block, 'trace_id'
@@ -243,7 +246,7 @@ class ClickhouseEthStreamerAdapter:
                     from_ch = True
                     return traces, from_ch
 
-            logging.info(
+            logger.info(
                 f"Traces. Not enough data found in clickhouse: falling back to Eth node:"
                 f" entity_type=trace block_range={start_block}-{end_block}"
             )
@@ -254,7 +257,7 @@ class ClickhouseEthStreamerAdapter:
 
         @cache
         def extract_token_transfers():
-            logging.info("exporting TOKEN_TRANSFERS...")
+            logger.info("exporting TOKEN_TRANSFERS...")
             token_transfers_ch = self._select_distinct(
                 EntityType.TOKEN_TRANSFER, start_block, end_block, 'transaction_hash,log_index'
             )
@@ -267,7 +270,7 @@ class ClickhouseEthStreamerAdapter:
 
         @cache
         def extract_contracts():
-            logging.info("exporting CONTRACTS...")
+            logger.info("exporting CONTRACTS...")
             traces, from_ch = export_traces()
             contracts = self._eth_streamer_adapter._export_contracts(traces)
             contracts = enrich_contracts(export_blocks_and_transactions_enriched()[0], contracts)
@@ -275,7 +278,7 @@ class ClickhouseEthStreamerAdapter:
 
         @cache
         def extract_tokens():
-            logging.info("exporting TOKENS...")
+            logger.info("exporting TOKENS...")
             contracts, from_ch = extract_contracts()
             tokens = self._eth_streamer_adapter._extract_tokens(contracts)
             tokens = enrich_tokens(export_blocks_and_transactions_enriched()[0], tokens)
@@ -283,7 +286,7 @@ class ClickhouseEthStreamerAdapter:
 
         @cache
         def export_token_balances():
-            logging.info("exporting TOKEN_BALANCES...")
+            logger.info("exporting TOKEN_BALANCES...")
 
             if blocks_previously_exported():
                 balances = self._select_distinct(
