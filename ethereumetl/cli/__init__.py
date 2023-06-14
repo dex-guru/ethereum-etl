@@ -23,6 +23,7 @@
 import click
 
 from blockchainetl.logging_utils import logging_basic_config
+from ethereumetl.cli.check_data_consistency import check_data_consistency
 from ethereumetl.cli.export_all import export_all
 from ethereumetl.cli.export_blocks_and_transactions import export_blocks_and_transactions
 from ethereumetl.cli.export_contracts import export_contracts
@@ -81,3 +82,4 @@ cli.add_command(extract_csv_column, "extract_csv_column")
 cli.add_command(filter_items, "filter_items")
 cli.add_command(extract_field, "extract_field")
 cli.add_command(optimize_tables, "optimize_tables")
+cli.add_command(check_data_consistency, "check_data_consistency")

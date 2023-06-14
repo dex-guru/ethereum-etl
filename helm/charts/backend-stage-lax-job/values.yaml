@@ -10,6 +10,9 @@ optimize-tables:
   command: '[ "ethereumetl", "optimize_tables" ]'
   env:
     SERVICE_NAME: "optimize-tables-job"
+    OUTPUT: "clickhouse://testuser3:testplpassword@10.0.200.180/dex_etl"
+    LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
+    LOG_HANDLERS: '["console","logstash"]'
     PYTHONPATH: "."
   metadata:
     creationTimestamp: null

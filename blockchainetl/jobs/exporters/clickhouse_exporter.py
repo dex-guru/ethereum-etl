@@ -176,6 +176,7 @@ class ClickHouseItemExporter:
             database=self.database,
             settings=self.settings,
             compress=False,
+            send_receive_timeout=600
         )
 
     def close(self):

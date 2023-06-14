@@ -1,0 +1,54 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.appName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Values.appName }}
+spec:
+    backoffLimit: 3
+    completions: 1
+    parallelism: 1
+    template:
+      metadata:
+        labels:
+          app: {{ .Values.appName }}
+      spec:
+        containers:
+        - name: {{ $.Values.appName }}
+          image: "{{ $.Values.image }}:{{ .Values.imageTag }}"
+          command: {{ index .Values .Values.appName "command" }}
+          {{- if index .Values .Values.appName "env" }}
+          env:
+            {{- range $key, $value := (index .Values .Values.appName "env") }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- if .Values.chainName }}
+            - name: NETWORK
+              value: '{{ (split "-" .Values.chainName)._0 }}'
+            - name: CHAIN_ID
+              value: '{{ (split "-" .Values.chainName)._1 }}'
+            {{- end }}
+            {{- $chainname := .Values.chainName -}}
+            {{- range $key, $value := (index .Values .Values.appName "chainEnv") }}
+            - name: {{ $key }}
+              value: {{ (index $value $chainname |quote) | default ($value.default | quote) }}
+            {{- end }}
+          {{- end }}
+          resources:
+            limits:
+              cpu: {{ index .Values .Values.appName "limitsCpu" }}
+              memory: {{ index .Values .Values.appName "limitsMemory" }}
+            requests:
+              cpu: {{ index .Values .Values.appName "requestsCpu" }}
+              memory: {{ index .Values .Values.appName "requestsMemory" }}
+        dnsPolicy: ClusterFirst
+        restartPolicy: {{ index .Values .Values.appName "restartPolicy" }}
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        imagePullSecrets:
+          - name: {{ .Values.registrySecretName }}
+status: {}
