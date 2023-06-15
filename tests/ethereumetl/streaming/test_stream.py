@@ -275,6 +275,7 @@ def test_stream_clickhouse(
     traces_output_file = str(tmpdir.join('actual_traces.json'))
     contracts_output_file = str(tmpdir.join('actual_contracts.json'))
     tokens_output_file = str(tmpdir.join('actual_tokens.json'))
+    geth_traces_output_file = str(tmpdir.join('actual_geth_traces.json'))
 
     item_exporter = CompositeItemExporter(  # type: ignore
         filename_mapping={
@@ -286,6 +287,7 @@ def test_stream_clickhouse(
             'trace': traces_output_file,
             'contract': contracts_output_file,
             'token': tokens_output_file,
+            'geth_trace': geth_traces_output_file,
         }
     )
 

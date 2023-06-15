@@ -24,6 +24,7 @@
 import itertools
 from collections import defaultdict
 from dataclasses import fields
+from datetime import datetime
 
 from ethereumetl.config.envs import envs
 from ethereumetl.domain.token_balance import EthTokenBalance
@@ -230,6 +231,26 @@ def enrich_traces(blocks, traces):
     if len(result) != len(traces):
         raise ValueError('The number of traces is wrong ' + str(result))
 
+    return result
+
+
+def enrich_geth_traces(transactions, traces_for_transactions):
+    result = list(
+        join(
+            traces_for_transactions,
+            transactions,
+            ('transaction_hash', 'hash'),
+            ['transaction_hash', 'type', ('transaction_traces', 'traces_json')],
+            [
+                'block_number',
+                'block_timestamp',
+            ],
+        )
+    )
+    if len(result) != len(traces_for_transactions):
+        raise ValueError('The number of traces is wrong ' + str(result))
+    for item in result:
+        item['block_timestamp'] = datetime.utcfromtimestamp(item['block_timestamp'])
     return result
 
 

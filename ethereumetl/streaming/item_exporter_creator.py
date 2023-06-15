@@ -42,6 +42,8 @@ def make_item_type_to_table_mapping(chain_id=None):
         'contract': 'contracts',
         'token': 'tokens',
         'error': 'errors',
+        'geth_trace': 'geth_traces',
+        'internal_transfer': 'internal_transfers',
     }
     if chain_id:
         item_type_to_table_mapping = {

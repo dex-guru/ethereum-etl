@@ -72,6 +72,19 @@ class EthItemIdCalculator:
             return concat(item_type, item.get('block_number'), item.get('address'))
         elif item_type == 'error':
             return concat(item_type, item.get('block_number'), uuid.uuid4().hex)
+        elif (
+            item_type == 'geth_trace'
+            and item.get('block_number') is not None
+            and item.get('transaction_hash') is not None
+        ):
+            return concat(item_type, item['block_number'], item['transaction_hash'])
+        elif (
+            item_type == 'internal_transfer'
+            and item.get('block_number') is not None
+            and item.get('transaction_hash') is not None
+            and item.get('id') is not None
+        ):
+            return concat(item_type, item['block_number'], item['transaction_hash'], item['id'])
 
         logging.warning('item_id for item {} is None'.format(json.dumps(item)))
 

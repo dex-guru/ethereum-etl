@@ -5,10 +5,12 @@ from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExport
 from blockchainetl.jobs.exporters.in_memory_item_exporter import InMemoryItemExporter
 from ethereumetl.enumeration.entity_type import EntityType
 from ethereumetl.jobs.export_blocks_job import ExportBlocksJob
+from ethereumetl.jobs.export_geth_traces_job import ExportGethTracesJob
 from ethereumetl.jobs.export_receipts_job import ExportReceiptsJob
 from ethereumetl.jobs.export_token_balances_job import ExportTokenBalancesJob
 from ethereumetl.jobs.export_traces_job import ExportTracesJob
 from ethereumetl.jobs.extract_contracts_job import ExtractContractsJob
+from ethereumetl.jobs.extract_internal_transfers_job import ExtractInternalTransfersJob
 from ethereumetl.jobs.extract_token_transfers_job import ExtractTokenTransfersJob
 from ethereumetl.jobs.extract_tokens_job import ExtractTokensJob
 from ethereumetl.streaming.enrich import (
@@ -79,6 +81,11 @@ class EthStreamerAdapter:
         if self._should_export(EntityType.TRACE):
             traces = self._export_traces(start_block, end_block)
 
+        enriched_geth_traces = []
+        if self._should_export(EntityType.GETH_TRACE):
+            geth_traces = self._export_geth_traces([t["hash"] for t in transactions])
+            enriched_geth_traces = enrich_traces(blocks, geth_traces)
+
         # Export contracts
         contracts = []
         if self._should_export(EntityType.CONTRACT):
@@ -88,6 +95,10 @@ class EthStreamerAdapter:
         tokens = []
         if self._should_export(EntityType.TOKEN):
             tokens = self._extract_tokens(contracts)
+
+        internal_transfers = []
+        if self._should_export(EntityType.INTERNAL_TRANSFER):
+            internal_transfers = self._extract_internal_transfers(enriched_geth_traces)
 
         enriched_blocks = blocks if EntityType.BLOCK in self.entity_types else []
         enriched_transactions = (
@@ -138,9 +149,11 @@ class EthStreamerAdapter:
             + sort_by(enriched_token_transfers, ('block_number', 'log_index'))
             + sort_by(enriched_token_balances, ('block_number', 'token_address', 'address'))
             + sort_by(enriched_traces, ('block_number', 'trace_index'))
+            + sort_by(enriched_geth_traces, ('transaction_hash', 'block_number'))
             + sort_by(enriched_contracts, ('block_number',))
             + sort_by(enriched_tokens, ('block_number',))
             + sort_by(enriched_errors, ('block_number',))
+            + sort_by(internal_transfers, ('block_number', 'transaction_hash', 'id'))
         )
 
         self.calculate_item_ids(all_items)
@@ -271,6 +284,19 @@ class EthStreamerAdapter:
         traces = exporter.get_items('trace')
         return traces
 
+    def _export_geth_traces(self, transaction_hashes):
+        exporter = InMemoryItemExporter(item_types=['geth_trace'])
+        job = ExportGethTracesJob(
+            transaction_hashes=transaction_hashes,
+            batch_size=self.batch_size,
+            batch_web3_provider=self.batch_web3_provider,
+            max_workers=self.max_workers,
+            item_exporter=exporter,
+        )
+        job.run()
+        traces = exporter.get_items('geth_trace')
+        return traces
+
     def _export_contracts(self, traces):
         exporter = InMemoryItemExporter(item_types=['contract'])
         job = ExtractContractsJob(
@@ -294,6 +320,18 @@ class EthStreamerAdapter:
         job.run()
         tokens = exporter.get_items('token')
         return tokens
+
+    def _extract_internal_transfers(self, geth_traces):
+        exporter = InMemoryItemExporter(item_types=['internal_transfer'])
+        job = ExtractInternalTransfersJob(
+            geth_traces_iterable=geth_traces,
+            batch_size=self.batch_size,
+            max_workers=self.max_workers,
+            item_exporter=exporter,
+        )
+        job.run()
+        internal_transfers = exporter.get_items('internal_transfer')
+        return internal_transfers
 
     def _should_export(self, entity_type):
         if entity_type == EntityType.BLOCK:
@@ -324,6 +362,11 @@ class EthStreamerAdapter:
                 EntityType.CONTRACT
             )
 
+        if entity_type == EntityType.GETH_TRACE:
+            return EntityType.GETH_TRACE in self.entity_types or self._should_export(
+                EntityType.INTERNAL_TRANSFER
+            )
+
         if entity_type == EntityType.CONTRACT:
             return EntityType.CONTRACT in self.entity_types or self._should_export(
                 EntityType.TOKEN
@@ -337,6 +380,9 @@ class EthStreamerAdapter:
 
         if entity_type == EntityType.ERROR:
             return EntityType.ERROR in self.entity_types
+
+        if entity_type == EntityType.INTERNAL_TRANSFER:
+            return EntityType.INTERNAL_TRANSFER in self.entity_types
 
         raise ValueError('Unexpected entity type ' + entity_type)
 

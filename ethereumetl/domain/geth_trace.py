@@ -19,9 +19,14 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Optional
 
 
-class EthGethTrace(object):
-    def __init__(self):
-        self.block_number = None
-        self.transaction_traces = None
+@dataclass
+class EthGethTrace:
+    block_number: Optional[int]
+    block_timestamp: Optional[datetime]
+    transaction_hash: str
+    transaction_traces: dict

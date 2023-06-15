@@ -149,10 +149,12 @@ def write_last_synced_block(file, last_synced_block):
 def init_last_synced_block_provider(start_block, provider):
     last_synced_block = provider.get_last_synced_block()
     if last_synced_block and start_block > last_synced_block:
-        raise ValueError(
-            f'Last synced block number {last_synced_block} is less then --start-block {start_block}. '
-            'Either remove the last synced block data or the respecify --start-block option.'
-        )
+        provider.set_last_synced_block(start_block)
+        #
+        # raise ValueError(
+        #     f'Last synced block number {last_synced_block} is less then --start-block {start_block}. '
+        #     'Either remove the last synced block data or the respecify --start-block option.'
+        # )
     if last_synced_block and last_synced_block > start_block:
         logging.info(
             f'Last synced block number {last_synced_block} is greater then --start-block. '

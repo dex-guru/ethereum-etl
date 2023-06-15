@@ -168,3 +168,31 @@ CREATE TABLE IF NOT EXISTS `${error}`
 ENGINE = MergeTree
 PARTITION BY toYYYYMM(fromUnixTimestamp(timestamp))
 ORDER BY (timestamp);
+
+
+CREATE TABLE IF NOT EXISTS `${geth_trace}`
+(
+    `transaction_hash` String CODEC(ZSTD(1)),
+    `block_timestamp` DateTime CODEC(DoubleDelta),
+    `block_number` UInt64 CODEC(Delta(8), LZ4),
+    `traces_json` String CODEC(ZSTD(1))
+)
+ENGINE = ReplacingMergeTree
+PARTITION BY substring(transaction_hash, 1, 3)
+ORDER BY (transaction_hash, block_number);
+
+
+CREATE TABLE IF NOT EXISTS `${internal_transfer}`
+(
+    `transaction_hash` String CODEC(ZSTD(1)),
+    `block_timestamp` DateTime CODEC(DoubleDelta),
+    `block_number` UInt64 CODEC(Delta(8), LZ4),
+    `from_address` String CODEC(ZSTD(1)),
+    `to_address` String CODEC(ZSTD(1)),
+    `value` UInt256 CODEC(ZSTD(1)),
+    `gas_limit` UInt64 CODEC(ZSTD(1)),
+    `id` String CODEC(ZSTD(1))
+)
+ENGINE = ReplacingMergeTree
+PARTITION BY substring(transaction_hash, 1, 3)
+ORDER BY (transaction_hash, block_number, id);

@@ -43,4 +43,6 @@ class EthItemTimestampCalculator:
 
 
 def epoch_seconds_to_rfc3339(timestamp):
+    if isinstance(timestamp, datetime):
+        return timestamp.isoformat() + 'Z'
     return datetime.utcfromtimestamp(int(timestamp)).isoformat() + 'Z'

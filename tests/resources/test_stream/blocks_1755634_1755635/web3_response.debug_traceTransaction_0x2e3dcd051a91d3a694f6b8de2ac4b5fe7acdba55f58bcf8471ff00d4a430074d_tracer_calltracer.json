@@ -1,0 +1,15 @@
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "from": "0xaf21e07e5a929d16026a7b4d88f3906a8d2e4942",
+    "gas": "0x0",
+    "gasUsed": "0x0",
+    "input": "0x",
+    "output": "0x",
+    "time": "5.168µs",
+    "to": "0x5b3c526b152b1f3d8eabe2ec27f49b904ad51cad",
+    "type": "CALL",
+    "value": "0x3814695e26625c000"
+  },
+  "id": "0x2e3dcd051a91d3a694f6b8de2ac4b5fe7acdba55f58bcf8471ff00d4a430074d"
+}
