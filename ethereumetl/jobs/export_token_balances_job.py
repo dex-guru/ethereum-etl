@@ -205,7 +205,7 @@ class ExportTokenBalancesJob(BaseJob):
                 errors.append(error)
                 continue
 
-            balance_value = to_int(hexstr=rpc_response['result'])
+            balance_value = hexstr_to_int(rpc_response['result'])
             if not (0 <= balance_value <= MAX_UINT256):
                 error = EthError(
                     timestamp=timestamp_func(),
@@ -232,3 +232,9 @@ class ExportTokenBalancesJob(BaseJob):
             token_balances.append(token_balance)
 
         return token_balances, errors
+
+
+def hexstr_to_int(hexstr: str) -> int:
+    if hexstr == '0x':
+        return 0
+    return to_int(hexstr=hexstr)
