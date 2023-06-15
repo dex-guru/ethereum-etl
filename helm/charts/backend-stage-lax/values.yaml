@@ -44,7 +44,7 @@ raw-data-streamer:
       base-84531: 'https://rpc.ankr.com/base_goerli/08ed572fa1db438121b633d846c4cd3ff721fb6395fc3948bbac08c328e438c3'
 
     BLOCK_BATCH_SIZE:
-      default: '100'
+      default: '1000'
     MAX_WORKERS:
       default: '5'
     SKIP_NONE_RECEIPTS:
