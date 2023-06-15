@@ -27,7 +27,7 @@ raw-data-streamer:
       default: 'block,transaction,log,token_transfer'
       fantom-250: 'block,transaction,log,token_transfer'
       acanto-7701: 'block,transaction,log,token_transfer'
-      eth-1: 'block,transaction,log,token_transfer,geth_trace,internal_transfer'
+      eth-1: 'block,transaction,log,token_transfer'
       canto-7700: 'block,transaction,log,token_transfer,geth_trace,internal_transfer'
     START_BLOCK:
       default: '1'
