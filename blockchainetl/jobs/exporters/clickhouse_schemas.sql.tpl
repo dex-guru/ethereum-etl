@@ -145,7 +145,7 @@ ORDER BY (address, block_number);
 CREATE TABLE IF NOT EXISTS `${geth_trace}`
 (
     `transaction_hash` String CODEC(ZSTD(1)),
-    `block_timestamp` DateTime CODEC(DoubleDelta(8)),
+    `block_timestamp` DateTime CODEC(DoubleDelta),
     `block_number` UInt64 CODEC(Delta(8), LZ4),
     `traces_json` String CODEC(ZSTD(1))
 )
@@ -157,7 +157,7 @@ ORDER BY (transaction_hash, block_number);
 CREATE TABLE IF NOT EXISTS `${internal_transfer}`
 (
     `transaction_hash` String CODEC(ZSTD(1)),
-    `block_timestamp` DateTime CODEC(DoubleDelta(8)),
+    `block_timestamp` DateTime CODEC(DoubleDelta),
     `block_number` UInt64 CODEC(Delta(8), LZ4),
     `from_address` String CODEC(ZSTD(1)),
     `to_address` String CODEC(ZSTD(1)),
