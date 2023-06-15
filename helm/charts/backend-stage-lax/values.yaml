@@ -24,7 +24,7 @@ raw-data-streamer:
 
   chainEnv:
     ENTITY_TYPES:
-      default: 'block,transaction,log,token_transfer,internal_transfer,geth_trace'
+      default: 'block,transaction,log,token_transfer'
       fantom-250: 'block,transaction,log,token_transfer'
       acanto-7701: 'block,transaction,log,token_transfer'
     START_BLOCK:
@@ -34,7 +34,7 @@ raw-data-streamer:
       polygon-137: 'http://10.0.100.149:8080/archive/137'
       bsc-56: 'http://10.0.100.149:8080/archive/56'
       eth-1: 'http://10.0.100.149:8080/archive/1'
-      canto-7700: 'http://10.0.100.149:8080/archive/7700'
+      canto-7700: 'http://10.0.100.139:8545'
       acanto-7701: 'http://canto-testnet.plexnode.wtf'
       fantom-250: 'http://10.0.100.149:8080/archive/250'
       optimism-10: 'http://10.0.100.149:8080/archive/10'
