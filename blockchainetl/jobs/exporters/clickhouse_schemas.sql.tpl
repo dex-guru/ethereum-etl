@@ -93,11 +93,12 @@ SETTINGS allow_nullable_key=1;
 CREATE TABLE IF NOT EXISTS `${token_balance}`
 (
     `token_address` String CODEC(ZSTD),
+    `token_standard` LowCardinality(String) DEFAULT '',
     `holder_address` String CODEC(ZSTD),
     `block_number` UInt64 CODEC(DoubleDelta),
     `block_timestamp` UInt32 CODEC(DoubleDelta),
     `value` UInt256 CODEC(ZSTD),
-    `token_id` Nullable(UInt256) CODEC(ZSTD)
+    `token_id` UInt256 CODEC(ZSTD)
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))

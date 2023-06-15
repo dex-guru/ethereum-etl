@@ -20,7 +20,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 from dataclasses import dataclass
+from enum import Enum
 from typing import Literal, Optional, TypedDict
+
+
+class TokenStandard(str, Enum):
+    ERC20 = 'ERC-20'
+    ERC721 = 'ERC-721'
+    ERC1155 = 'ERC-1155'
 
 
 @dataclass
@@ -32,7 +39,7 @@ class EthTokenTransfer:
     transaction_hash: str
     log_index: int
     block_number: int
-    token_standard: Literal['ERC-20', 'ERC-721', 'ERC-1155']
+    token_standard: TokenStandard
     token_id: Optional[int] = None  # ERC-721, ERC-1155
     operator_address: Optional[str] = None
 

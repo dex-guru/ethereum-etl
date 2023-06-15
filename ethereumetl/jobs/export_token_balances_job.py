@@ -8,7 +8,7 @@ from eth_utils import to_int
 from blockchainetl.jobs.base_job import BaseJob
 from ethereumetl.domain.error import EthError
 from ethereumetl.domain.token_balance import EthTokenBalance
-from ethereumetl.domain.token_transfer import EthTokenTransferItem
+from ethereumetl.domain.token_transfer import EthTokenTransferItem, TokenStandard
 from ethereumetl.executors.batch_work_executor import BatchWorkExecutor
 from ethereumetl.json_rpc_requests import generate_balance_of_json_rpc
 from ethereumetl.mappers.error_mapper import EthErrorMapper
@@ -20,6 +20,7 @@ MAX_UINT256 = 2**256 - 1
 
 class TokenBalanceParams(NamedTuple):
     token_address: str
+    token_standard: TokenStandard
     holder_address: str
     block_number: int
     token_id: int | None
@@ -92,13 +93,15 @@ class ExportTokenBalancesJob(BaseJob):
     def parse_transfer(
         token_transfer: EthTokenTransferItem,
     ) -> tuple[list[TokenBalanceParams], list[EthTokenBalance]]:
-        erc = token_transfer['token_standard']
+        erc = TokenStandard(token_transfer['token_standard'])
 
         erc721_token_balances: list[EthTokenBalance] = []
         rpc_params: list[TokenBalanceParams] = []
 
-        if erc == 'ERC-721':
+        if erc == TokenStandard.ERC721:
             # NFT-only transfer. The tokens are unique, so balance should be 0 or 1.
+
+            assert token_transfer['token_id'] is not None, 'ERC-721 transfers must have a token ID'
 
             for holder_address, value in (
                 (token_transfer['to_address'], 1),
@@ -109,6 +112,7 @@ class ExportTokenBalancesJob(BaseJob):
                     continue
 
                 balance = EthTokenBalance(
+                    token_standard=TokenStandard.ERC721,
                     holder_address=holder_address,
                     value=value,
                     block_number=token_transfer['block_number'],
@@ -119,7 +123,16 @@ class ExportTokenBalancesJob(BaseJob):
 
             return rpc_params, erc721_token_balances
 
-        elif erc in ('ERC-20', 'ERC-1155'):
+        elif erc in (TokenStandard.ERC20, TokenStandard.ERC1155):
+            if erc == TokenStandard.ERC20:
+                assert (
+                    token_transfer['token_id'] is None
+                ), 'ERC-20 transfers must not have a token ID'
+            elif erc == TokenStandard.ERC1155:
+                assert (
+                    token_transfer['token_id'] is not None
+                ), 'ERC-1155 transfers must have a token ID'
+
             for holder_address in (token_transfer['from_address'], token_transfer['to_address']):
                 if holder_address in NULL_ADDRESSES:
                     # probably a mint or burn, skip
@@ -130,6 +143,7 @@ class ExportTokenBalancesJob(BaseJob):
                     holder_address=holder_address,
                     block_number=token_transfer['block_number'],
                     token_id=token_transfer['token_id'],
+                    token_standard=erc,
                 )
                 rpc_params.append(params)
 
@@ -205,7 +219,22 @@ class ExportTokenBalancesJob(BaseJob):
                 errors.append(error)
                 continue
 
+            if rpc_response.get('result') is None:
+                error = EthError(
+                    timestamp=timestamp_func(),
+                    block_number=rpc_params.block_number,
+                    kind='rpc_response_no_result',
+                    data={
+                        'rpc_params': rpc_params,
+                        'rpc_response': rpc_response,
+                        'rpc_method': 'balanceOf',
+                    },
+                )
+                errors.append(error)
+                continue
+
             balance_value = hexstr_to_int(rpc_response['result'])
+
             if not (0 <= balance_value <= MAX_UINT256):
                 error = EthError(
                     timestamp=timestamp_func(),
@@ -224,9 +253,10 @@ class ExportTokenBalancesJob(BaseJob):
             token_balance = EthTokenBalance(
                 token_address=rpc_params.token_address,
                 holder_address=rpc_params.holder_address,
-                token_id=rpc_params.token_id,
+                token_id=rpc_params.token_id or 0,
                 block_number=rpc_params.block_number,
                 value=balance_value,
+                token_standard=rpc_params.token_standard,
             )
 
             token_balances.append(token_balance)

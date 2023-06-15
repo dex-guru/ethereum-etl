@@ -32,6 +32,7 @@ from blockchainetl.jobs.exporters.composite_item_exporter import CompositeItemEx
 from blockchainetl.jobs.exporters.in_memory_item_exporter import InMemoryItemExporter
 from blockchainetl.streaming.streamer import Streamer
 from ethereumetl.config.envs import envs
+from ethereumetl.domain.token_transfer import TokenStandard
 from ethereumetl.enumeration.entity_type import EntityType
 from ethereumetl.streaming.clickhouse_eth_streamer_adapter import ClickhouseEthStreamerAdapter
 from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter
@@ -437,15 +438,39 @@ def test_stream_token_balances(tmp_path: Path, streamer_adapter_cls, cleanup):
     )
     streamer.stream()
 
-    token_balances = sorted(
+    token_balance_items = sorted(
         exporter.get_items(EntityType.TOKEN_BALANCE),
-        key=lambda x: [x['token_address'], x['holder_address']],
+        key=lambda x: (x['token_address'], x['holder_address'], x['token_id']),
     )
 
-    first_erc1155_token_balance = next(
-        token_balance for token_balance in token_balances if token_balance['token_id'] is not None
+    first_erc1155_token_balance_item = next(
+        item for item in token_balance_items if item['token_standard'] == TokenStandard.ERC1155
     )
-    assert first_erc1155_token_balance == {
+    assert first_erc1155_token_balance_item == {
+        'block_hash': '0x97ebb349d7ab33966221767701765deb064362405a3a4a878d252465700ed350',
+        'block_number': 17179063,
+        'type': 'token_balance',
+        'token_address': '0xd1988bea35478229ebee68331714b215e3529510',
+        'token_standard': TokenStandard.ERC1155,
+        'holder_address': '0x3597770531bd28805a688003c5bc0292f4b9bf2c',
+        'token_id': 2,
+        'value': 1,
+        'block_timestamp': 1683103055,
+        'item_id': (
+            'token_balance'
+            '_17179063'
+            '_0xd1988bea35478229ebee68331714b215e3529510'
+            '_0x3597770531bd28805a688003c5bc0292f4b9bf2c'
+            '_2'
+        ),
+        'item_timestamp': '2023-05-03T08:37:35Z',
+    }
+
+    first_erc721_token_balance_item = next(
+        item for item in token_balance_items if item['token_standard'] == TokenStandard.ERC721
+    )
+
+    assert first_erc721_token_balance_item == {
         'block_hash': '0x97ebb349d7ab33966221767701765deb064362405a3a4a878d252465700ed350',
         'block_number': 17179063,
         'block_timestamp': 1683103055,
@@ -460,10 +485,36 @@ def test_stream_token_balances(tmp_path: Path, streamer_adapter_cls, cleanup):
         'item_timestamp': '2023-05-03T08:37:35Z',
         'token_address': '0x104e73df39c6d90e4159dca7f13890b6402a2f1b',
         'token_id': 122,
+        'token_standard': TokenStandard.ERC721,
         'type': 'token_balance',
         'value': 1,
     }
-    assert len(token_balances) == 429
+
+    first_erc20_token_balance = next(
+        item for item in token_balance_items if item['token_standard'] == TokenStandard.ERC20
+    )
+
+    assert first_erc20_token_balance == {
+        'block_hash': '0x97ebb349d7ab33966221767701765deb064362405a3a4a878d252465700ed350',
+        'block_number': 17179063,
+        'block_timestamp': 1683103055,
+        'holder_address': '0x994002da75a0003235b0cc34705d235ad90418de',
+        'item_id': (
+            'token_balance'
+            '_17179063'
+            '_0x0000000000a39bb272e79075ade125fd351887ac'
+            '_0x994002da75a0003235b0cc34705d235ad90418de'
+            '_0'
+        ),
+        'item_timestamp': '2023-05-03T08:37:35Z',
+        'token_address': '0x0000000000a39bb272e79075ade125fd351887ac',
+        'token_id': 0,
+        'token_standard': TokenStandard.ERC20,
+        'type': 'token_balance',
+        'value': 900000000000000000,
+    }
+
+    assert len(token_balance_items) == 429
 
 
 def test_clickhouse_exporter(tmp_path, cleanup):

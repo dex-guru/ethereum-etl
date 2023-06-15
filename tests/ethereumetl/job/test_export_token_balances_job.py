@@ -1,5 +1,5 @@
 from ethereumetl.domain.token_balance import EthTokenBalance
-from ethereumetl.domain.token_transfer import EthTokenTransferItem
+from ethereumetl.domain.token_transfer import EthTokenTransferItem, TokenStandard
 from ethereumetl.enumeration.entity_type import EntityType
 from ethereumetl.jobs.export_token_balances_job import ExportTokenBalancesJob, TokenBalanceParams
 from ethereumetl.mappers.token_balance_mapper import EthTokenBalanceMapper
@@ -28,12 +28,14 @@ def test_token_balances():
         holder_address="0xd8444ef1a23a6811994fc557921949e3327967ce",
         block_number=17179063,
         token_id=1,
+        token_standard=TokenStandard.ERC1155,
     )
     assert rpc_params2 == TokenBalanceParams(
         token_address="0xd1988bea35478229ebee68331714b215e3529510",
         holder_address="0xd0b0f29f96a55617786439ccb824e75e55c56b66",
         block_number=17179063,
         token_id=1,
+        token_standard=TokenStandard.ERC1155,
     )
 
     request1 = job.make_rpc_request(0, rpc_params1)
@@ -99,6 +101,7 @@ def test_token_balances():
         block_number=17179063,
         value=2180,
         token_id=1,
+        token_standard=TokenStandard.ERC1155,
     )
 
     assert token_balance2 == EthTokenBalance(
@@ -107,12 +110,14 @@ def test_token_balances():
         block_number=17179063,
         value=1,
         token_id=1,
+        token_standard=TokenStandard.ERC1155,
     )
 
     token_balance_item1 = EthTokenBalanceMapper.token_balance_to_dict(token_balance1)
     assert token_balance_item1 == {
         "type": EntityType.TOKEN_BALANCE,
         "token_address": "0xd1988bea35478229ebee68331714b215e3529510",
+        "token_standard": "ERC-1155",
         "holder_address": "0xd8444ef1a23a6811994fc557921949e3327967ce",
         "block_number": 17179063,
         "value": 2180,
@@ -123,6 +128,7 @@ def test_token_balances():
     assert token_balance_item2 == {
         "type": EntityType.TOKEN_BALANCE,
         "token_address": "0xd1988bea35478229ebee68331714b215e3529510",
+        "token_standard": "ERC-1155",
         "holder_address": "0xd0b0f29f96a55617786439ccb824e75e55c56b66",
         "block_number": 17179063,
         "value": 1,
