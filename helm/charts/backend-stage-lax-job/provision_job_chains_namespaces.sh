@@ -1,7 +1,9 @@
 #!/bin/bash
 #
 # Usage: ./provision_job_chains_namespaces.sh.sh [env(prod|stage)] [deployment] [tag]
-KUBE_NAMESPACE="$1-indexation-eth-1  $1-indexation-polygon-137 $1-indexation-fantom-250 $1-indexation-arbitrum-42161 $1-indexation-optimism-10 $1-indexation-gnosis-100 $1-indexation-canto-7700  $1-indexation-acanto-7701 $1-indexation-nova-42170"
+#KUBE_NAMESPACE="$1-indexation-polygon-137 $1-indexation-bsc-56 $1-indexation-fantom-250 $1-indexation-arbitrum-42161 $1-indexation-optimism-10 $1-indexation-gnosis-100 $1-indexation-canto-7700 $1-indexation-nova-42170 $1-indexation-base-84531"
+KUBE_NAMESPACE="$1-indexation-canto-7700"
+
 JOB_NAME=$3
 CI_COMMIT_SHORT_SHA=$2
 
