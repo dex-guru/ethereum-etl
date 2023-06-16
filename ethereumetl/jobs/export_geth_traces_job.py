@@ -54,11 +54,12 @@ class ExportGethTracesJob(BaseJob):
         )
 
     def _export_batch(self, transaction_hashes: list[str]):
+        transaction_hashes = sorted(transaction_hashes)
         trace_tx_rpc = list(generate_trace_by_transaction_hashes_json_rpc(transaction_hashes))
         response = self.batch_web3_provider.make_batch_request(json.dumps(trace_tx_rpc))
 
         for response_item in response:
-            transaction_hash = response_item.get('id')
+            transaction_hash = transaction_hashes[response_item.get('id')]
             tx_traces = rpc_response_to_result(response_item)
 
             geth_trace = self.geth_trace_mapper.json_dict_to_geth_trace(
