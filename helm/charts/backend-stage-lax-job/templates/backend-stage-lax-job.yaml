@@ -31,6 +31,11 @@ spec:
             - name: CHAIN_ID
               value: '{{ (split "-" .Values.chainName)._1 }}'
             {{- end }}
+            {{- $chainname := .Values.chainName -}}
+            {{- range $key, $value := (index .Values .Values.appName "chainEnv") }}
+            - name: {{ $key }}
+              value: {{ (index $value $chainname |quote) | default ($value.default | quote) }}
+            {{- end }}
           {{- end }}
           resources:
             limits:
