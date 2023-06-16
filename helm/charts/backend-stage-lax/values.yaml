@@ -27,7 +27,6 @@ raw-data-streamer:
       default: 'block,transaction,log,token_transfer,geth_trace,internal_transfer'
       fantom-250: 'block,transaction,log,token_transfer'
       acanto-7701: 'block,transaction,log,token_transfer'
-      base-84531: 'block,transaction,log,token_transfer'
       gnosis-100: 'block,transaction,log,token_transfer'
       optimism-10: 'block,transaction,log,token_transfer'
     START_BLOCK:
