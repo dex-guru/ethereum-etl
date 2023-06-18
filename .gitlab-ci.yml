@@ -104,8 +104,7 @@ test:
   variables:
     EXPORT_FROM_CLICKHOUSE: "http://default:@clickhouse:8123"
     ETHEREUM_ETL_RUN_SLOW_TESTS: "true"
-#    PROVIDER_URL: 'http://10.0.100.149:8080/archive/1'
-    PROVIDER_URL: 'https://mainnet.infura.io/v3/7aef3f0cd1f64408b163814b22cc643c'
+    PROVIDER_URL: 'http://10.0.100.149:8080/archive/1'
   services:
     - name: clickhouse/clickhouse-server
       alias: clickhouse
