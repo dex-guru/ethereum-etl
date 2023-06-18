@@ -13,36 +13,40 @@ raw-data-streamer:
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "stream" ]'
   env:
-    LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@10.0.200.180/dex_etl?table_name=last_synced_block'
+    LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl?table_name=last_synced_block'
     LAG: '0'
-    OUTPUT: 'clickhouse://testuser3:testplpassword@10.0.200.180/dex_etl'
+    OUTPUT: 'clickhouse://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl'
     POLLING_PERIOD: '2'
     BATCH_SIZE: '10'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
     SERVICE_NAME: 'raw-data-streamer'
-
+    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
+    REWRITE_CLICKHOUSE: 'True'
   chainEnv:
     ENTITY_TYPES:
-      default: 'block,transaction,log,token_transfer'
+      default: 'block,transaction,log,token_transfer,geth_trace,internal_transfer'
       fantom-250: 'block,transaction,log,token_transfer'
       acanto-7701: 'block,transaction,log,token_transfer'
+      gnosis-100: 'block,transaction,log,token_transfer'
+      optimism-10: 'block,transaction,log,token_transfer'
     START_BLOCK:
       default: '1'
+      polygon-137: '43954424'
+      bsc-56: '29134953'
     PROVIDER_URL:
-      default: 'http://10.0.100.149:8080/archive/1'
-      polygon-137: 'http://10.0.100.149:8080/archive/137'
-      bsc-56: 'http://10.0.100.149:8080/archive/56'
-      eth-1: 'http://10.0.100.149:8080/archive/1'
-      canto-7700: 'http://10.0.100.139:8545'
+      default: 'http://rpc-gw-stage.dexguru.biz/full/1'
+      polygon-137: 'http://rpc-gw-stage.dexguru.biz/full/137'
+      bsc-56: 'http://rpc-gw-stage.dexguru.biz/full/56'
+      eth-1: 'http://rpc-gw-stage.dexguru.biz/full/1'
+      canto-7700: 'http://rpc-gw-stage.dexguru.biz/full/7700'
       acanto-7701: 'http://canto-testnet.plexnode.wtf'
-      fantom-250: 'http://10.0.100.149:8080/archive/250'
-      optimism-10: 'http://10.0.100.149:8080/archive/10'
-      gnosis-100: 'http://10.0.100.149:8080/archive/100'
-      arbitrum-42161: 'http://10.0.100.149:8080/archive/42161'
-      nova-42170: 'http://10.0.100.149:8080/archive/42170'
-      base-84531: 'https://rpc.ankr.com/base_goerli/08ed572fa1db438121b633d846c4cd3ff721fb6395fc3948bbac08c328e438c3'
-
+      fantom-250: 'http://rpc-gw-stage.dexguru.biz/full/250'
+      optimism-10: 'http://rpc-gw-stage.dexguru.biz/full/10'
+      gnosis-100: 'http://rpc-gw-stage.dexguru.biz/full/100'
+      arbitrum-42161: 'http://rpc-gw-stage.dexguru.biz/full/42161'
+      nova-42170: 'http://rpc-gw-stage.dexguru.biz/full/42170'
+      base-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
     BLOCK_BATCH_SIZE:
       default: '1000'
     MAX_WORKERS:
@@ -63,15 +67,15 @@ raw-data-streamer-resync:
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "stream" ]'
   env:
-    LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@10.0.200.180/dex_etl?table_name=resync_blocks'
+    LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl?table_name=resync_blocks'
     LAG: '0'
-    OUTPUT: 'clickhouse://testuser3:testplpassword@10.0.200.180/dex_etl'
+    OUTPUT: 'clickhouse://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl'
     POLLING_PERIOD: '2'
     BATCH_SIZE: '10'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
     SERVICE_NAME: 'raw-resync-data-streamer'
-    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@10.0.200.180:8123/dex_etl'
+    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
   chainEnv:
     ENTITY_TYPES:
       default: 'block,transaction,log,token_transfer,internal_transfer,geth_trace'
@@ -96,18 +100,18 @@ raw-data-streamer-resync:
       base-84531: '4922000'
 
     PROVIDER_URL:
-      default: 'http://10.0.100.149:8080/archive/1'
-      polygon-137: 'http://10.0.100.149:8080/archive/137'
-      bsc-56: 'http://10.0.100.149:8080/archive/56'
-      eth-1: 'http://10.0.100.149:8080/archive/1'
-      canto-7700: 'http://10.0.100.139:8545'
+      default: 'http://rpc-gw-stage.dexguru.biz/archive/1'
+      polygon-137: 'http://rpc-gw-stage.dexguru.biz/archive/137'
+      bsc-56: 'http://rpc-gw-stage.dexguru.biz/archive/56'
+      eth-1: 'http://rpc-gw-stage.dexguru.biz/archive/1'
+      canto-7700: 'http://rpc-gw-stage.dexguru.biz/archive/7700'
       acanto-7701: 'http://canto-testnet.plexnode.wtf'
-      fantom-250: 'http://10.0.100.149:8080/archive/250'
-      optimism-10: 'http://10.0.100.149:8080/archive/10'
-      gnosis-100: 'http://10.0.100.149:8080/archive/100'
-      arbitrum-42161: 'http://10.0.100.149:8080/archive/42161'
-      nova-42170: 'http://10.0.100.149:8080/archive/42170'
-      base-84531: 'http://10.0.100.149:8080/archive/84531'
+      fantom-250: 'http://rpc-gw-stage.dexguru.biz/archive/250'
+      optimism-10: 'http://rpc-gw-stage.dexguru.biz/archive/10'
+      gnosis-100: 'http://rpc-gw-stage.dexguru.biz/archive/100'
+      arbitrum-42161: 'http://rpc-gw-stage.dexguru.biz/archive/42161'
+      nova-42170: 'http://rpc-gw-stage.dexguru.biz/archive/42170'
+      base-84531: 'http://rpc-gw-stage.dexguru.biz/archive/84531'
 
     BLOCK_BATCH_SIZE:
       default: '1000'

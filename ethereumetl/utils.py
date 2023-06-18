@@ -42,6 +42,9 @@ def hex_to_dec(hex_string):
     except ValueError:
         print("Not a hex string %s" % hex_string)
         return hex_string
+    except TypeError:
+        print("Not a hex string %s" % hex_string)
+        return hex_string
 
 
 def to_int_or_none(val):

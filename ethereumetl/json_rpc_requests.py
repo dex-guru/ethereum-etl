@@ -45,11 +45,11 @@ def generate_trace_block_by_number_json_rpc(block_numbers):
 
 
 def generate_trace_by_transaction_hashes_json_rpc(transaction_hashes):
-    for transaction_hash in transaction_hashes:
+    for i, transaction_hash in enumerate(transaction_hashes):
         yield generate_json_rpc(
             method='debug_traceTransaction',
             params=[transaction_hash, {'tracer': 'callTracer'}],
-            request_id=transaction_hash,
+            request_id=i,
         )
 
 

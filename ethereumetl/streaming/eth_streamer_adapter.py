@@ -22,6 +22,7 @@ from ethereumetl.streaming.enrich import (
     enrich_traces,
     enrich_transactions,
     enrich_errors,
+    enrich_geth_traces,
 )
 from ethereumetl.streaming.eth_item_id_calculator import EthItemIdCalculator
 from ethereumetl.streaming.eth_item_timestamp_calculator import EthItemTimestampCalculator
@@ -84,7 +85,7 @@ class EthStreamerAdapter:
         enriched_geth_traces = []
         if self._should_export(EntityType.GETH_TRACE):
             geth_traces = self._export_geth_traces([t["hash"] for t in transactions])
-            enriched_geth_traces = enrich_traces(blocks, geth_traces)
+            enriched_geth_traces = enrich_geth_traces(transactions, geth_traces)
 
         # Export contracts
         contracts = []
