@@ -28,11 +28,10 @@ from abc import ABC, abstractmethod
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from clickhouse_sqlalchemy.types import UInt32
-from sqlalchemy.exc import PendingRollbackError
 
 from blockchainetl.file_utils import smart_open
 from blockchainetl.streaming.streamer_adapter_stub import StreamerAdapterStub
-from ethereumetl.utils import timestamp_now, HealthCheck
+from ethereumetl.utils import timestamp_now
 
 
 class Streamer:

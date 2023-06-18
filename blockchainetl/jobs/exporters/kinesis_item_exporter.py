@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 import json
-import typing as t
+from typing import Iterable, Any, Callable
 import uuid
 from itertools import zip_longest
 
@@ -38,16 +38,17 @@ class KinesisItemExporter:
     def __init__(
         self,
         stream_name: str,
-        partition_key_callable: t.Callable[[dict], str] = _uuid_partition_key,
+        partition_key_callable: Callable[[dict], str] = _uuid_partition_key,
     ):
         self._stream_name = stream_name
         self._partition_key_callable = partition_key_callable
-        self._kinesis_client = None  # initialized in .open
+        self._kinesis_client: Any | None = None  # initialized in .open
 
     def open(self) -> None:
         self._kinesis_client = boto3.client('kinesis')
 
-    def export_items(self, items: t.Iterable[dict]) -> None:
+    def export_items(self, items: Iterable[dict]) -> None:
+        assert self._kinesis_client is not None
         sentinel = object()
         chunks = zip_longest(
             *(iter(items),) * _KINESIS_BATCH_LIMIT,
@@ -67,6 +68,7 @@ class KinesisItemExporter:
             )
 
     def export_item(self, item: dict) -> None:
+        assert self._kinesis_client is not None
         self._kinesis_client.put_record(
             StreamName=self._stream_name,
             Data=_serialize_item(item),

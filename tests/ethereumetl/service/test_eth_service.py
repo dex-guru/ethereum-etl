@@ -86,8 +86,6 @@ def test_get_block_range_for_timestamps_fail(start_timestamp, end_timestamp):
 
 
 def get_new_eth_service():
-    provider_url = os.environ.get(
-        'PROVIDER_URL', 'http://10.0.100.149:8080/archive/1'
-    )
+    provider_url = os.environ.get('PROVIDER_URL', 'http://10.0.100.149:8080/archive/1')
     web3 = build_web3(HTTPProvider(provider_url))
     return EthService(web3)

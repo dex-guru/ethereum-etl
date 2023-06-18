@@ -82,6 +82,9 @@ def rpc_response_batch_to_results(response):
 
 
 def rpc_response_to_result(response):
+    if not isinstance(response, dict):
+        raise TypeError(f'bad rpc response: expected dict, got {type(response)}')
+
     result = response.get('result')
     if result is None:
         error_message = 'result is None in response {}.'.format(response)

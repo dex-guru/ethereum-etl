@@ -60,7 +60,7 @@ from ethereumetl.service.eth_contract_service import EthContractService
      '0x509484d5', '0x5c975abb', '0x6352211e', '0x70a08231', '0x7bdc60d9', '0x7bf9a7c4', '0x8456cb59', '0x8da5cb5b',
      '0x8ed3fa7c', '0x90e7a074', '0x95d89b41', '0x99e0dd7c', '0xa22cb465', '0xacb2ad6f', '0xb88d4fde', '0xc0ac9983',
      '0xc87b56dd', '0xc9a6964a', '0xdce0b4e4', '0xe985e9c5', '0xee5301d5', '0xf2fde38b', '0xffffffff'], False, True)
-])
+], ids=range(5))
 # fmt: on
 def test_get_function_sighashes(bytecode, expected_sighashes, is_erc20, is_erc721):
     eth_contract_service = EthContractService()

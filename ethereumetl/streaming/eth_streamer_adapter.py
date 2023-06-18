@@ -7,6 +7,7 @@ from ethereumetl.enumeration.entity_type import EntityType
 from ethereumetl.jobs.export_blocks_job import ExportBlocksJob
 from ethereumetl.jobs.export_geth_traces_job import ExportGethTracesJob
 from ethereumetl.jobs.export_receipts_job import ExportReceiptsJob
+from ethereumetl.jobs.export_token_balances_job import ExportTokenBalancesJob
 from ethereumetl.jobs.export_traces_job import ExportTracesJob
 from ethereumetl.jobs.extract_contracts_job import ExtractContractsJob
 from ethereumetl.jobs.extract_internal_transfers_job import ExtractInternalTransfersJob
@@ -15,10 +16,13 @@ from ethereumetl.jobs.extract_tokens_job import ExtractTokensJob
 from ethereumetl.streaming.enrich import (
     enrich_contracts,
     enrich_logs,
+    enrich_token_balances,
     enrich_token_transfers,
     enrich_tokens,
     enrich_traces,
-    enrich_transactions, enrich_geth_traces,
+    enrich_transactions,
+    enrich_errors,
+    enrich_geth_traces,
 )
 from ethereumetl.streaming.eth_item_id_calculator import EthItemIdCalculator
 from ethereumetl.streaming.eth_item_timestamp_calculator import EthItemTimestampCalculator
@@ -51,6 +55,8 @@ class EthStreamerAdapter:
         return int(w3.eth.getBlock("latest").number)
 
     def export_all(self, start_block, end_block):
+        errors = []
+
         # Export blocks and transactions
         blocks, transactions = [], []
         if self._should_export(EntityType.BLOCK) or self._should_export(EntityType.TRANSACTION):
@@ -66,6 +72,11 @@ class EthStreamerAdapter:
         if self._should_export(EntityType.TOKEN_TRANSFER):
             token_transfers = self._extract_token_transfers(logs)
 
+        token_balances = []
+        if self._should_export(EntityType.TOKEN_BALANCE):
+            token_balances, token_balance_errors = self._export_token_balances(token_transfers)
+            errors.extend(token_balance_errors)
+
         # Export traces
         traces = []
         if self._should_export(EntityType.TRACE):
@@ -75,7 +86,6 @@ class EthStreamerAdapter:
         if self._should_export(EntityType.GETH_TRACE):
             geth_traces = self._export_geth_traces([t["hash"] for t in transactions])
             enriched_geth_traces = enrich_geth_traces(transactions, geth_traces)
-
 
         # Export contracts
         contracts = []
@@ -103,6 +113,11 @@ class EthStreamerAdapter:
             if EntityType.TOKEN_TRANSFER in self.entity_types
             else []
         )
+        enriched_token_balances = (
+            enrich_token_balances(blocks, token_balances)
+            if EntityType.TOKEN_BALANCE in self.entity_types
+            else []
+        )
         enriched_traces = (
             enrich_traces(blocks, traces) if EntityType.TRACE in self.entity_types else []
         )
@@ -112,43 +127,33 @@ class EthStreamerAdapter:
         enriched_tokens = (
             enrich_tokens(blocks, tokens) if EntityType.TOKEN in self.entity_types else []
         )
+        enriched_errors = (
+            enrich_errors(blocks, errors) if EntityType.ERROR in self.entity_types else []
+        )
 
-        if enriched_blocks:
-            last_synced_block_datetime = datetime.fromtimestamp(enriched_blocks[-1]["timestamp"])
-            logging.info(
-                f'Exporting batch {len(enriched_blocks)} with {type(self.item_exporter).__name__}, '
-                f'blocks up to {enriched_blocks[-1]["number"]}:'
-                f'{last_synced_block_datetime}, '
-                f'got {len(enriched_transactions)} transactions, {len(enriched_logs)} logs, '
-                f'{len(enriched_token_transfers)} token transfers, {len(enriched_traces)} traces, '
-                f'{len(enriched_contracts)} contracts, {len(enriched_tokens)} tokens',
-                extra={
-                    'last_synced_block': enriched_blocks[-1]["number"],
-                    'last_synced_block_datetime': last_synced_block_datetime,
-                    'batch_size': len(enriched_blocks),
-                    'transactions_per_batch': len(enriched_transactions),
-                    'logs_per_batch': len(enriched_logs),
-                    'token_transfers_per_batch': len(enriched_token_transfers),
-                    'traces_per_batch': len(enriched_traces),
-                    'contracts_per_batch': len(enriched_contracts),
-                    'tokens_per_batch': len(enriched_tokens),
-                },
-            )
-        else:
-            logging.info(
-                f"No blocks to export in this batch {len(enriched_blocks)} "
-                f"with {type(self.item_exporter).__name__}"
-            )
+        self.log_batch_export_progress(
+            blocks=enriched_blocks,
+            contracts=enriched_contracts,
+            logs=enriched_logs,
+            token_transfers=enriched_token_transfers,
+            tokens=enriched_tokens,
+            traces=enriched_traces,
+            transactions=enriched_transactions,
+            token_balances=token_balances,
+            errors=enriched_errors,
+        )
 
         all_items = (
-            sort_by(enriched_blocks, 'number')
+            sort_by(enriched_blocks, ('number',))
             + sort_by(enriched_transactions, ('block_number', 'transaction_index'))
             + sort_by(enriched_logs, ('block_number', 'log_index'))
             + sort_by(enriched_token_transfers, ('block_number', 'log_index'))
+            + sort_by(enriched_token_balances, ('block_number', 'token_address', 'address'))
             + sort_by(enriched_traces, ('block_number', 'trace_index'))
             + sort_by(enriched_geth_traces, ('transaction_hash', 'block_number'))
             + sort_by(enriched_contracts, ('block_number',))
             + sort_by(enriched_tokens, ('block_number',))
+            + sort_by(enriched_errors, ('block_number',))
             + sort_by(internal_transfers, ('block_number', 'transaction_hash', 'id'))
         )
 
@@ -156,6 +161,54 @@ class EthStreamerAdapter:
         self.calculate_item_timestamps(all_items)
 
         self.item_exporter.export_items(all_items)
+
+    def log_batch_export_progress(
+        self,
+        *,
+        blocks,
+        contracts,
+        logs,
+        token_transfers,
+        token_balances,
+        tokens,
+        traces,
+        transactions,
+        errors,
+    ):
+        if blocks:
+            last_synced_block_datetime = datetime.fromtimestamp(blocks[-1]["timestamp"])
+            logging.info(
+                (
+                    f'Exporting batch {len(blocks)} with {type(self.item_exporter).__name__}, '
+                    f'blocks up to {blocks[-1]["number"]}:{last_synced_block_datetime}, got'
+                    f' {len(transactions)} transactions,'
+                    f' {len(logs)} logs,'
+                    f' {len(token_transfers)} token transfers,'
+                    f' {len(token_balances)} token balances,'
+                    f' {len(traces)} traces,'
+                    f' {len(contracts)} contracts,'
+                    f' {len(tokens)} tokens'
+                    f' {len(errors)} tokens'
+                ),
+                extra={
+                    'last_synced_block': blocks[-1]["number"],
+                    'last_synced_block_datetime': last_synced_block_datetime,
+                    'batch_size': len(blocks),
+                    'transactions_per_batch': len(transactions),
+                    'logs_per_batch': len(logs),
+                    'token_transfers_per_batch': len(token_transfers),
+                    'token_balances_per_batch': len(token_balances),
+                    'traces_per_batch': len(traces),
+                    'contracts_per_batch': len(contracts),
+                    'tokens_per_batch': len(tokens),
+                    'errors_per_batch': len(errors),
+                },
+            )
+        else:
+            logging.info(
+                f"No blocks to export in this batch {len(blocks)} "
+                f"with {type(self.item_exporter).__name__}"
+            )
 
     def _export_blocks_and_transactions(self, start_block, end_block):
         blocks_and_transactions_item_exporter = InMemoryItemExporter(
@@ -203,6 +256,20 @@ class EthStreamerAdapter:
         job.run()
         token_transfers = exporter.get_items('token_transfer')
         return token_transfers
+
+    def _export_token_balances(self, token_transfers):
+        exporter = InMemoryItemExporter(item_types=['token_balance', 'error'])
+        job = ExportTokenBalancesJob(
+            token_transfer_items_iterable=token_transfers,
+            batch_size=self.batch_size,
+            max_workers=self.max_workers,
+            item_exporter=exporter,
+            batch_web3_provider=self.batch_web3_provider,
+        )
+        job.run()
+        token_balances = exporter.get_items(EntityType.TOKEN_BALANCE)
+        errors = exporter.get_items(EntityType.ERROR)
+        return token_balances, errors
 
     def _export_traces(self, start_block, end_block):
         exporter = InMemoryItemExporter(item_types=['trace'])
@@ -287,7 +354,9 @@ class EthStreamerAdapter:
             )
 
         if entity_type == EntityType.TOKEN_TRANSFER:
-            return EntityType.TOKEN_TRANSFER in self.entity_types
+            return EntityType.TOKEN_TRANSFER in self.entity_types or self._should_export(
+                EntityType.TOKEN_BALANCE
+            )
 
         if entity_type == EntityType.TRACE:
             return EntityType.TRACE in self.entity_types or self._should_export(
@@ -307,6 +376,12 @@ class EthStreamerAdapter:
         if entity_type == EntityType.TOKEN:
             return EntityType.TOKEN in self.entity_types
 
+        if entity_type == EntityType.TOKEN_BALANCE:
+            return EntityType.TOKEN_BALANCE in self.entity_types
+
+        if entity_type == EntityType.ERROR:
+            return EntityType.ERROR in self.entity_types
+
         if entity_type == EntityType.INTERNAL_TRANSFER:
             return EntityType.INTERNAL_TRANSFER in self.entity_types
 
@@ -325,6 +400,4 @@ class EthStreamerAdapter:
 
 
 def sort_by(arr, fields):
-    if isinstance(fields, tuple):
-        fields = tuple(fields)
     return sorted(arr, key=lambda item: tuple(item.get(f) for f in fields))

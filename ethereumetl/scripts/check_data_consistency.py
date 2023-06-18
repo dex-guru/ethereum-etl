@@ -1,6 +1,6 @@
 from collections import deque
-from typing import Tuple, List, Optional
-from urllib.parse import urlparse, parse_qs
+from typing import List, Optional, Tuple
+from urllib.parse import parse_qs, urlparse
 
 from clickhouse_driver import Client
 
@@ -21,7 +21,7 @@ def clickhouse_client_from_url(url) -> Tuple[Client, str]:
         'password': parsed.password,
         'settings': settings,
         'connect_timeout': 600,
-        'send_receive_timeout': 600
+        'send_receive_timeout': 600,
     }
     if parsed.path:
         connect_kwargs['database'] = parsed.path[1:]
@@ -43,7 +43,11 @@ def get_blocks_missing_transactions(chain_id: int, client: Client):
     # Continue until all blocks have been checked
     while start_block_number <= max_block_number:
         # Query to compare the transaction sums
-        print('Checking blocks {} to {}'.format(start_block_number, start_block_number + chunk_size - 1))
+        print(
+            'Checking blocks {} to {}'.format(
+                start_block_number, start_block_number + chunk_size - 1
+            )
+        )
 
         query = f"""
             SELECT 
@@ -70,7 +74,9 @@ def get_blocks_missing_transactions(chain_id: int, client: Client):
                 f'Block number: {result[0]}, Expected transaction sum: {result[1]}, Actual transaction sum: {result[2]}'
             )
             # Dig deeper to find the missing transactions
-            missing_blocks = get_missing_transaction_blocks(chain_id, client, result[0], result[0] + chunk_size - 1)
+            missing_blocks = get_missing_transaction_blocks(
+                chain_id, client, result[0], result[0] + chunk_size - 1
+            )
             blocks_to_fetch.extend(missing_blocks)
             print(f'Missing transactions in blocks: {missing_blocks}')
 
@@ -79,7 +85,9 @@ def get_blocks_missing_transactions(chain_id: int, client: Client):
         return blocks_to_fetch
 
 
-def get_missing_transaction_blocks(chain_id: int, client: Client, start_block_number: int, end_block_number: int):
+def get_missing_transaction_blocks(
+    chain_id: int, client: Client, start_block_number: int, end_block_number: int
+):
     query = f"""
         SELECT 
             b.number AS block_number, 
@@ -122,10 +130,10 @@ def get_blocks_count_difference_last_block(client: Client, chain_id: int):
         return None, None
 
 
-def find_blocks_gaps(client: Client, chain_id: int, max_number: int, chunk_size: int = 100000) \
-        -> List[Tuple[int, int]]:
+def find_blocks_gaps(
+    client: Client, chain_id: int, max_number: int, chunk_size: int = 100000
+) -> List[Tuple[int, int]]:
     # Initialize variables to keep track of missing blocks and gaps
-    missing_blocks = []
     gaps = []
     expected_number = 1
 
@@ -140,8 +148,7 @@ def find_blocks_gaps(client: Client, chain_id: int, max_number: int, chunk_size:
     # Process data in chunks
     for start in range(1, max_number + 1, chunk_size):
         end = min(start + chunk_size - 1, max_number)
-        query_result = client.execute(query, {'chain_id': chain_id,
-                                              'start': start, 'end': end})
+        query_result = client.execute(query, {'chain_id': chain_id, 'start': start, 'end': end})
 
         # Extract block numbers from the query result
         block_numbers = [row[0] for row in query_result]
@@ -160,10 +167,13 @@ def find_blocks_gaps(client: Client, chain_id: int, max_number: int, chunk_size:
     return gaps
 
 
-def find_missing_transactions(client: Client, chain_id: int,
-                              start_block_number: int,
-                              end_block_number: int,
-                              min_range_size: int = 10000):
+def find_missing_transactions(
+    client: Client,
+    chain_id: int,
+    start_block_number: int,
+    end_block_number: int,
+    min_range_size: int = 10000,
+):
     missing_block_ranges = []
 
     # Initialize a queue with the initial range
@@ -185,7 +195,9 @@ def find_missing_transactions(client: Client, chain_id: int,
         elif end - start <= min_range_size:
             missing_block_ranges.append((start, end))
         else:
-            print(f"Checking blocks {start} and {end} total {end - start} with difference {difference}")
+            print(
+                f"Checking blocks {start} and {end} total {end - start} with difference {difference}"
+            )
             # If the difference is positive, and the range is larger than the minimum size, then split the range and
             # add the subranges to the queue.
             mid = (start + end) // 2
@@ -209,9 +221,12 @@ def find_missing_transactions(client: Client, chain_id: int,
     return merged_ranges
 
 
-def get_transactions_count_difference(client: Client, chain_id: int,
-                                      start_block_number: Optional[int] = None,
-                                      end_block_number: Optional[int] = None) -> int:
+def get_transactions_count_difference(
+    client: Client,
+    chain_id: int,
+    start_block_number: Optional[int] = None,
+    end_block_number: Optional[int] = None,
+) -> int:
     hashes_count_statement = f"""
     SELECT count(hash)
     FROM dex_etl.{chain_id}_transactions
@@ -251,14 +266,14 @@ def get_missing_blocks_ranges(client: Client, chain_id: int):
     return blocks_gaps, last_block, blocks_diff
 
 
-def get_missing_transactions_blocks_ranges(client: Client, chain_id: int,
-                                           last_block: int):
+def get_missing_transactions_blocks_ranges(client: Client, chain_id: int, last_block: int):
     txns_diff = get_transactions_count_difference(client, chain_id)
     transactions_blocks_gaps = []
     if txns_diff > 0:
         print(f"There are {txns_diff} missing transactions on chain_id: {chain_id}")
-        transactions_blocks_gaps = find_missing_transactions(client, chain_id, start_block_number=1,
-                                                             end_block_number=last_block)
+        transactions_blocks_gaps = find_missing_transactions(
+            client, chain_id, start_block_number=1, end_block_number=last_block
+        )
     return transactions_blocks_gaps, txns_diff
 
 
@@ -276,16 +291,20 @@ def parse_consistency_results(data_diff: int, entity_type: EntityType, chain_id:
 
 def resolve_data_consistency_service(chain_id: int):
     client, database = clickhouse_client_from_url(envs.OUTPUT)
-    blocks_gaps, last_block, blocks_diff = get_missing_blocks_ranges(client=client, chain_id=chain_id)
+    blocks_gaps, last_block, blocks_diff = get_missing_blocks_ranges(
+        client=client, chain_id=chain_id
+    )
     parse_consistency_results(blocks_diff, EntityType.BLOCK, chain_id)
     if blocks_gaps:
         return blocks_gaps
 
-    transactions_blocks_gaps, txns_diff = get_missing_transactions_blocks_ranges(client=client, chain_id=chain_id,
-                                                                                last_block=last_block)
+    transactions_blocks_gaps, txns_diff = get_missing_transactions_blocks_ranges(
+        client=client, chain_id=chain_id, last_block=last_block
+    )
     parse_consistency_results(txns_diff, EntityType.TRANSACTION, chain_id)
     if transactions_blocks_gaps:
         return transactions_blocks_gaps
+
 
 if __name__ == "__main__":
     chain_id = 7700
@@ -296,8 +315,11 @@ if __name__ == "__main__":
     else:
         chains = [chain_id]
     for chain_id in chains:
-        blocks_gaps, last_block, blocks_diff = get_missing_blocks_ranges(client=client, chain_id=chain_id)
+        blocks_gaps, last_block, blocks_diff = get_missing_blocks_ranges(
+            client=client, chain_id=chain_id
+        )
         parse_consistency_results(blocks_diff, EntityType.BLOCK, chain_id)
-        transactions_blocks_gaps, txns_diff = get_missing_transactions_blocks_ranges(client=client, chain_id=chain_id,
-                                                                                        last_block=last_block)
+        transactions_blocks_gaps, txns_diff = get_missing_transactions_blocks_ranges(
+            client=client, chain_id=chain_id, last_block=last_block
+        )
         parse_consistency_results(txns_diff, EntityType.TRANSACTION, chain_id)

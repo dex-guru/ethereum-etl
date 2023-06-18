@@ -23,22 +23,22 @@ def get_web3_provider(
         else:
             provider = MockWeb3Provider(read_resource_lambda)
     elif provider_type == 'infura':
-        provider_url = os.environ.get(
-            'PROVIDER_URL', 'http://10.0.100.149:8080/archive/1'
-        )
+        provider_url = os.environ.get('PROVIDER_URL', 'http://10.0.100.149:8080/archive/1')
         if batch:
             provider = BatchHTTPProvider(provider_url)
         else:
             provider = HTTPProvider(provider_url)
     elif provider_type == 'mock_or_infura':
         if read_resource_lambda is None:
-            raise ValueError("read_resource_lambda must not be None for provider type mock")
+            raise ValueError(
+                f"read_resource_lambda must not be None for provider type {provider_type}"
+            )
         if write_resource_lambda is None:
-            raise ValueError("write_resource_lambda must not be None for provider type mock")
+            raise ValueError(
+                f"write_resource_lambda must not be None for provider type {provider_type}"
+            )
 
-        provider_url = os.environ.get(
-            'PROVIDER_URL', 'http://10.0.100.149:8080/archive/1'
-        )
+        provider_url = os.environ.get('PROVIDER_URL', 'http://10.0.100.149:8080/archive/1')
         if batch:
             real_provider = BatchHTTPProvider(provider_url)
             provider = MockBatchWeb3OrWeb3Provider(

@@ -59,7 +59,8 @@ def test_export_token_transfers_job(
         web3=ThreadLocalProxy(
             lambda: build_web3(
                 get_web3_provider(
-                    web3_provider_type, lambda file: read_resource(resource_group, file)
+                    web3_provider_type,
+                    lambda file: read_resource(resource_group, file),
                 )
             )
         ),

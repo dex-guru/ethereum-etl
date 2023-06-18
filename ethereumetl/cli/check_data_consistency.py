@@ -29,7 +29,6 @@ from ethereumetl.config.envs import envs
 from ethereumetl.enumeration.entity_type import EntityType
 from ethereumetl.providers.auto import get_provider_from_uri
 from ethereumetl.scripts.check_data_consistency import resolve_data_consistency_service
-from ethereumetl.scripts.optimize_tables import optimize_tables_service
 from ethereumetl.streaming.item_exporter_creator import (
     create_item_exporters,
     make_item_type_to_table_mapping,
@@ -196,7 +195,7 @@ def check_data_consistency(
             eth_streamer_adapter=streamer_adapter,
             clickhouse_url=export_from_clickhouse,
             chain_id=chain_id,
-            item_type_to_table_mapping=make_item_type_to_table_mapping(chain_id)
+            item_type_to_table_mapping=make_item_type_to_table_mapping(chain_id),
         )
     blocks_gaps = resolve_data_consistency_service(chain_id)
     if blocks_gaps:
@@ -222,8 +221,11 @@ def parse_entity_types(entity_types):
     for entity_type in entity_types:
         if entity_type not in EntityType.ALL:
             raise click.BadOptionUsage(
-                '--entity-type', '{} is not an available entity type. Supply a comma separated list of types from {}'
-                    .format(entity_type, ','.join(EntityType.ALL_FOR_STREAMING)))
+                '--entity-type',
+                '{} is not an available entity type. Supply a comma separated list of types from {}'.format(
+                    entity_type, ','.join(EntityType.ALL_FOR_STREAMING)
+                ),
+            )
 
     return entity_types
 

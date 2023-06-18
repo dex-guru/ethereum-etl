@@ -31,6 +31,27 @@ def create_item_exporters(outputs, chain_id):
     return MultiItemExporter(item_exporters)
 
 
+def make_item_type_to_table_mapping(chain_id=None):
+    item_type_to_table_mapping = {
+        'block': 'blocks',
+        'transaction': 'transactions',
+        'log': 'logs',
+        'token_transfer': 'token_transfers',
+        'token_balance': 'token_balances',
+        'trace': 'traces',
+        'contract': 'contracts',
+        'token': 'tokens',
+        'error': 'errors',
+        'geth_trace': 'geth_traces',
+        'internal_transfer': 'internal_transfers',
+    }
+    if chain_id:
+        item_type_to_table_mapping = {
+            k: f"{chain_id}_{v}" for k, v in item_type_to_table_mapping.items()
+        }
+    return item_type_to_table_mapping
+
+
 def create_item_exporter(output, chain_id):
     item_exporter_type = determine_item_exporter_type(output)
     if item_exporter_type == ItemExporterType.PUBSUB:
@@ -137,25 +158,6 @@ def create_item_exporter(output, chain_id):
         raise ValueError('Unable to determine item exporter type for output ' + output)
 
     return item_exporter
-
-
-def make_item_type_to_table_mapping(chain_id=None):
-    item_type_to_table_mapping = {
-        'block': 'blocks',
-        'transaction': 'transactions',
-        'log': 'logs',
-        'token_transfer': 'token_transfers',
-        'trace': 'traces',
-        'contract': 'contracts',
-        'token': 'tokens',
-        'geth_trace': 'geth_traces',
-        'internal_transfer': 'internal_transfers',
-    }
-    if chain_id:
-        item_type_to_table_mapping = {
-            k: f"{chain_id}_{v}" for k, v in item_type_to_table_mapping.items()
-        }
-    return item_type_to_table_mapping
 
 
 def get_bucket_and_path_from_gcs_output(output):

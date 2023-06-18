@@ -9,7 +9,31 @@ class EntityType:
     CONTRACT = 'contract'
     TOKEN = 'token'
     INTERNAL_TRANSFER = 'internal_transfer'
+    TOKEN_BALANCE = 'token_balance'
+    ERROR = 'error'
 
-    ALL_FOR_STREAMING = [BLOCK, TRANSACTION, LOG, TOKEN_TRANSFER, TOKEN, GETH_TRACE, INTERNAL_TRANSFER]
-    ALL_FOR_INFURA = [BLOCK, TRANSACTION, LOG, TOKEN_TRANSFER]
-    ALL = [BLOCK, TRANSACTION, RECEIPT, LOG, TOKEN_TRANSFER, TRACE, CONTRACT, TOKEN, GETH_TRACE, INTERNAL_TRANSFER]
+    ALL_FOR_STREAMING = [
+        BLOCK,
+        TRANSACTION,
+        LOG,
+        TOKEN_TRANSFER,
+        TOKEN,
+        TOKEN_BALANCE,
+        TRACE,
+        ERROR,
+        GETH_TRACE,
+        INTERNAL_TRANSFER,
+    ]
+    ALL_FOR_INFURA = [BLOCK, TRANSACTION, LOG, TOKEN_TRANSFER, TOKEN_BALANCE]
+    ALL = [
+        BLOCK,
+        TRANSACTION,
+        RECEIPT,
+        LOG,
+        TOKEN_TRANSFER,
+        TRACE,
+        CONTRACT,
+        TOKEN,
+        TOKEN_BALANCE,
+        ERROR,
+    ]

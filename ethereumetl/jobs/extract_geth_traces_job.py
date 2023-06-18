@@ -23,7 +23,6 @@
 from blockchainetl.jobs.base_job import BaseJob
 from ethereumetl.executors.batch_work_executor import BatchWorkExecutor
 from ethereumetl.mappers.geth_trace_mapper import EthGethTraceMapper
-from ethereumetl.mappers.trace_mapper import EthTraceMapper
 
 
 class ExtractGethTracesJob(BaseJob):

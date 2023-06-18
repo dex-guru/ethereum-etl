@@ -31,8 +31,8 @@ CREATE TABLE IF NOT EXISTS `${transaction}`
     `max_fee_per_gas` Nullable(Int64),
     `max_priority_fee_per_gas` Nullable(Int64),
     `transaction_type` Nullable(UInt32),
-    `receipt_cumulative_gas_used` UInt64,
-    `receipt_gas_used` UInt64,
+    `receipt_cumulative_gas_used` Nullable(UInt64),
+    `receipt_gas_used` Nullable(UInt64),
     `receipt_contract_address` Nullable(String) CODEC(ZSTD(1)),
     `receipt_root` Nullable(String) CODEC(ZSTD(1)),
     `receipt_status` Nullable(UInt32),
@@ -72,6 +72,7 @@ ORDER BY (number);
 CREATE TABLE IF NOT EXISTS `${token_transfer}`
 (
     `token_address` String CODEC(ZSTD(1)),
+    `token_standard` LowCardinality(String) DEFAULT '',
     `from_address` String CODEC(ZSTD(1)),
     `to_address` String CODEC(ZSTD(1)),
     `value` UInt256,
@@ -87,6 +88,21 @@ CREATE TABLE IF NOT EXISTS `${token_transfer}`
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
 ORDER BY (transaction_hash, log_index, token_id)
+SETTINGS allow_nullable_key=1;
+
+CREATE TABLE IF NOT EXISTS `${token_balance}`
+(
+    `token_address` String CODEC(ZSTD),
+    `token_standard` LowCardinality(String) DEFAULT '',
+    `holder_address` String CODEC(ZSTD),
+    `block_number` UInt64 CODEC(DoubleDelta),
+    `block_timestamp` UInt32 CODEC(DoubleDelta),
+    `value` UInt256 CODEC(ZSTD),
+    `token_id` UInt256 CODEC(ZSTD)
+)
+ENGINE = ReplacingMergeTree
+PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
+ORDER BY (token_address, holder_address, token_id, block_number)
 SETTINGS allow_nullable_key=1;
 
 CREATE TABLE IF NOT EXISTS `${trace}`
@@ -140,6 +156,19 @@ CREATE TABLE IF NOT EXISTS `${contract}`
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (address, block_number);
+
+CREATE TABLE IF NOT EXISTS `${error}`
+(
+    `item_id` String CODEC(ZSTD(1)),
+    `timestamp` UInt32 CODEC(Delta, LZ4),
+    `block_number` UInt64 CODEC(Delta, LZ4),
+    `block_timestamp` UInt32 CODEC(Delta, LZ4),
+    `kind` LowCardinality(String),
+    `data_json` String CODEC(ZSTD(1)),
+)
+ENGINE = MergeTree
+PARTITION BY toYYYYMM(fromUnixTimestamp(timestamp))
+ORDER BY (timestamp);
 
 
 CREATE TABLE IF NOT EXISTS `${geth_trace}`

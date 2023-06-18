@@ -22,7 +22,7 @@ class AddAttrsFilter(logging.Filter):
 def logging_basic_config(filename=None):
     format = "%(asctime)s - %(name)s [%(levelname)s] - %(message)s"
     if filename is not None:
-        logging.basicConfig(level=logging.INFO, format=format, filename=filename)
+        logging.basicConfig(level=envs.LOGGING_LEVEL, format=format, filename=filename)
     elif 'logstash' in envs.LOG_HANDLERS:
         cfg = dict(
             disable_existing_loggers=False,
@@ -80,6 +80,6 @@ def logging_basic_config(filename=None):
         )
         config.dictConfig(cfg)
     else:
-        logging.basicConfig(level=logging.INFO, format=format)
+        logging.basicConfig(level=envs.LOGGING_LEVEL, format=format)
 
     logging.getLogger("ethereum_dasm.evmdasm").setLevel(logging.ERROR)

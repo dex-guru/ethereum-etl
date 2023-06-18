@@ -38,11 +38,7 @@ FIELDS_TO_EXPORT = (
 
 def token_transfers_item_exporter(token_transfer_output, converters=()):
     return CompositeItemExporter(
-        filename_mapping={
-            'token_transfer': token_transfer_output
-        },
-        field_mapping={
-            'token_transfer': FIELDS_TO_EXPORT
-        },
-        converters=converters
+        filename_mapping={'token_transfer': token_transfer_output},
+        field_mapping={'token_transfer': FIELDS_TO_EXPORT},
+        converters=converters,
     )

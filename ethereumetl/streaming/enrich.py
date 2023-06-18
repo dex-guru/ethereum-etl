@@ -23,9 +23,12 @@
 
 import itertools
 from collections import defaultdict
+from dataclasses import fields
 from datetime import datetime
 
 from ethereumetl.config.envs import envs
+from ethereumetl.domain.token_balance import EthTokenBalance
+from ethereumetl.mappers.error_mapper import EthErrorMapper
 from ethereumetl.utils import dedup_list_of_dicts
 
 
@@ -156,6 +159,7 @@ def enrich_token_transfers(blocks, token_transfers):
                 'transaction_hash',
                 'log_index',
                 'block_number',
+                'token_standard',
                 'token_id',
                 'operator_address',
             ],
@@ -168,6 +172,23 @@ def enrich_token_transfers(blocks, token_transfers):
 
     if len(result) != len(token_transfers) and not envs.SKIP_NONE_RECEIPTS:
         raise ValueError('The number of token transfers is wrong ' + str(result))
+
+    return result
+
+
+def enrich_token_balances(blocks, token_balances):
+    result = list(
+        join(
+            token_balances,
+            blocks,
+            ('block_number', 'number'),
+            ['type', *(f.name for f in fields(EthTokenBalance))],
+            [
+                ('timestamp', 'block_timestamp'),
+                ('hash', 'block_hash'),
+            ],
+        )
+    )
 
     return result
 
@@ -219,11 +240,10 @@ def enrich_geth_traces(transactions, traces_for_transactions):
             traces_for_transactions,
             transactions,
             ('transaction_hash', 'hash'),
+            ['transaction_hash', 'type', ('transaction_traces', 'traces_json')],
             [
-                'transaction_hash', 'type', ('transaction_traces', 'traces_json')
-            ],
-            [
-                'block_number', 'block_timestamp',
+                'block_number',
+                'block_timestamp',
             ],
         )
     )
@@ -279,4 +299,20 @@ def enrich_tokens(blocks, tokens):
     if len(result) != len(tokens):
         raise ValueError('The number of tokens is wrong ' + str(result))
 
+    return result
+
+
+def enrich_errors(blocks, errors):
+    result = list(
+        join(
+            errors,
+            blocks,
+            ('block_number', 'number'),
+            EthErrorMapper.ERROR_ITEM_FIELDS,
+            [
+                ('timestamp', 'block_timestamp'),
+                ('hash', 'block_hash'),
+            ],
+        )
+    )
     return result

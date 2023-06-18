@@ -22,8 +22,6 @@
 
 import json
 
-import pytest
-
 import tests.resources
 from ethereumetl.jobs.exporters.geth_traces_item_exporter import geth_traces_item_exporter
 from ethereumetl.jobs.extract_geth_traces_job import ExtractGethTracesJob
