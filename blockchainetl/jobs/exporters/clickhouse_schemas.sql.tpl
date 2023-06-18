@@ -159,6 +159,7 @@ ORDER BY (address, block_number);
 
 CREATE TABLE IF NOT EXISTS `${error}`
 (
+    `item_id` String CODEC(ZSTD(1)),
     `timestamp` UInt32 CODEC(Delta, LZ4),
     `block_number` UInt64 CODEC(Delta, LZ4),
     `block_timestamp` UInt32 CODEC(Delta, LZ4),

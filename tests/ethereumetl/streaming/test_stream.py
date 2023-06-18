@@ -555,3 +555,58 @@ def test_clickhouse_exporter(tmp_path, cleanup):
         assert_table_not_empty(EntityType.LOG)
         assert_table_not_empty(EntityType.TOKEN_TRANSFER)
         assert_table_not_empty(EntityType.TOKEN_BALANCE)
+
+
+def test_clickhouse_exporter_export_items(tmp_path, cleanup):
+    item_type_to_table_mapping = make_item_type_to_table_mapping(chain_id=1)
+    item_type_to_table_mapping = {
+        k: f"{TEST_TABLE_NAME_PREFIX}_{v}" for k, v in item_type_to_table_mapping.items()
+    }
+    exporter = ClickHouseItemExporter(envs.EXPORT_FROM_CLICKHOUSE, item_type_to_table_mapping)
+    exporter.open()
+    items = [
+        {
+            'type': 'error',
+            'item_id': 'error_123',
+            'timestamp': 1686069627,
+            'block_number': 123,
+            'block_timestamp': 1656329840,
+            'kind': 'some_error',
+            'data_json': '{"some": "data"}',
+        },
+        {
+            'type': 'token_balance',
+            'block_hash': '0x97ebb349d7ab33966221767701765deb064362405a3a4a878d252465700ed350',
+            'block_number': 17179063,
+            'block_timestamp': 1683103055,
+            'holder_address': '0x994002da75a0003235b0cc34705d235ad90418de',
+            'item_id': (
+                'token_balance'
+                '_17179063'
+                '_0x0000000000a39bb272e79075ade125fd351887ac'
+                '_0x994002da75a0003235b0cc34705d235ad90418de'
+                '_0'
+            ),
+            'item_timestamp': '2023-05-03T08:37:35Z',
+            'token_address': '0x0000000000a39bb272e79075ade125fd351887ac',
+            'token_id': 0,
+            'token_standard': TokenStandard.ERC20,
+            'value': 900000000000000000,
+        },
+    ]
+
+    try:
+        exporter.export_items(items)
+    finally:
+        exporter.close()
+
+    with exporter.create_connection() as clickhouse:
+
+        def assert_table_not_empty(entity_type):
+            table_name = item_type_to_table_mapping[entity_type]
+            records = clickhouse.query(f"SELECT * FROM {table_name} LIMIT 1").named_results()
+            record = next(records, None)
+            assert record, f"Table {table_name} is empty"
+
+        assert_table_not_empty(EntityType.ERROR)
+        assert_table_not_empty(EntityType.TOKEN_BALANCE)
