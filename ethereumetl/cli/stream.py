@@ -24,6 +24,7 @@ import random
 
 import click
 
+from blockchainetl.streaming.streamer_adapter_stub import StreamerAdapterStub
 from blockchainetl.streaming.streaming_utils import configure_logging, configure_signals
 from ethereumetl.config.envs import envs
 from ethereumetl.enumeration.entity_type import EntityType
@@ -180,6 +181,7 @@ def stream(
     provider_uri = pick_random_provider_uri(provider_uri)
     logging.info('Using ' + provider_uri)
 
+    streamer_adapter: StreamerAdapterStub
     streamer_adapter = EthStreamerAdapter(
         batch_web3_provider=ThreadLocalProxy(
             lambda: get_provider_from_uri(provider_uri, batch=True)
