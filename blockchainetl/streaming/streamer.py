@@ -38,7 +38,7 @@ class Streamer:
     def __init__(
         self,
         chain_id,
-        blockchain_streamer_adapter=StreamerAdapterStub(),
+        blockchain_streamer_adapter: StreamerAdapterStub,
         last_synced_block_provider_uri='file://last_synced_block.txt',
         lag=0,
         start_block=None,
