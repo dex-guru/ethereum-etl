@@ -41,7 +41,6 @@ class EnvsConfig(BaseSettings):
     LOG_HANDLERS: List[str] = ['console']
     SERVICE_NAME: str = ''
     SKIP_NONE_RECEIPTS: bool = False
-    REWRITE_CLICKHOUSE: bool = False
     MIN_INSERT_BATCH_SIZE: int = 1000
     EXPORT_FROM_CLICKHOUSE: Union[AnyUrl, Literal['']] = ''
     # Overwrite these item types read from ClickHouse using EXPORT_FROM_CLICKHOUSE option when the
