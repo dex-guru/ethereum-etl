@@ -15,7 +15,7 @@ raw-data-streamer:
   env:
     LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl?table_name=last_synced_block'
     LAG: '0'
-    OUTPUT: 'clickhouse://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl'
+    OUTPUT: 'clickhouse+native://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl'
     POLLING_PERIOD: '2'
     BATCH_SIZE: '10'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
@@ -65,7 +65,7 @@ raw-data-streamer-resync:
   env:
     LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl?table_name=resync_blocks'
     LAG: '0'
-    OUTPUT: 'clickhouse://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl'
+    OUTPUT: 'clickhouse+native://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl'
     POLLING_PERIOD: '2'
     BATCH_SIZE: '10'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
@@ -147,8 +147,11 @@ raw-traces-data-streamer:
   command: '[ "ethereumetl", "stream" ]'
   env:
     LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl?table_name=last_synced_block_traces'
-    LAG: '1'
-    OUTPUT: 'clickhouse://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl'
+    LAG:
+      default: '1'
+      arbitrum-42161: '40'
+      fantom-250: '10'
+    OUTPUT: 'clickhouse+native://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl'
     POLLING_PERIOD: '2'
     BATCH_SIZE: '100'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
