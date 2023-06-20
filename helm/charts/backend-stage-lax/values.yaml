@@ -25,11 +25,7 @@ raw-data-streamer:
     REWRITE_CLICKHOUSE: 'True'
   chainEnv:
     ENTITY_TYPES:
-      default: 'block,transaction,log,token_transfer,geth_trace,internal_transfer'
-      fantom-250: 'block,transaction,log,token_transfer'
-      acanto-7701: 'block,transaction,log,token_transfer'
-      gnosis-100: 'block,transaction,log,token_transfer'
-      optimism-10: 'block,transaction,log,token_transfer'
+      default: 'block,transaction,log,token_transfer'
     START_BLOCK:
       default: '1'
       polygon-137: '43954424'
@@ -81,6 +77,8 @@ raw-data-streamer-resync:
       default: 'block,transaction,log,token_transfer,internal_transfer,geth_trace'
       fantom-250: 'block,transaction,log,token_transfer'
       acanto-7701: 'block,transaction,log,token_transfer'
+      gnosis-100: 'block,transaction,log,token_transfer'
+      optimism-10: 'block,transaction,log,token_transfer'
 
     START_BLOCK:
       default: '1'
@@ -132,3 +130,58 @@ raw-data-streamer-resync:
       polygon-137: 'True'
     MIN_INSERT_BATCH_SIZE:
       default: '1000'
+
+
+raw-traces-data-streamer:
+  replicas:
+    default: 1
+    fantom-250: 0
+    acanto-7701: 0
+    gnosis-100: 0
+    optimism-10: 0
+  limitsCpu: 4
+  limitsMemory: 9000Mi
+  requestsCpu: 1
+  requestsMemory: 1000Mi
+  strategyType: 'Recreate'
+  command: '[ "ethereumetl", "stream" ]'
+  env:
+    LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl?table_name=last_synced_block'
+    LAG: '0'
+    OUTPUT: 'clickhouse://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl'
+    POLLING_PERIOD: '2'
+    BATCH_SIZE: '100'
+    LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
+    LOG_HANDLERS: '["console","logstash"]'
+    SERVICE_NAME: 'raw-data-streamer'
+    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl'
+    REWRITE_CLICKHOUSE: 'geth_trace,internal_transfer'
+  chainEnv:
+    ENTITY_TYPES:
+      default: 'geth_trace,internal_transfer'
+    START_BLOCK:
+      default: '1'
+      polygon-137: '43954424'
+      bsc-56: '29134953'
+    PROVIDER_URL:
+      default: 'http://rpc-gw-stage.dexguru.biz/full/1'
+      polygon-137: 'http://rpc-gw-stage.dexguru.biz/full/137'
+      bsc-56: 'http://rpc-gw-stage.dexguru.biz/full/56'
+      eth-1: 'http://rpc-gw-stage.dexguru.biz/full/1'
+      canto-7700: 'http://rpc-gw-stage.dexguru.biz/full/7700'
+      acanto-7701: 'http://canto-testnet.plexnode.wtf'
+      fantom-250: 'http://rpc-gw-stage.dexguru.biz/full/250'
+      optimism-10: 'http://rpc-gw-stage.dexguru.biz/full/10'
+      gnosis-100: 'http://rpc-gw-stage.dexguru.biz/full/100'
+      arbitrum-42161: 'http://rpc-gw-stage.dexguru.biz/full/42161'
+      nova-42170: 'http://rpc-gw-stage.dexguru.biz/full/42170'
+      base-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
+    BLOCK_BATCH_SIZE:
+      default: '1000'
+    MAX_WORKERS:
+      default: '5'
+    SKIP_NONE_RECEIPTS:
+      default: 'False'
+      polygon-137: 'True'
+    MIN_INSERT_BATCH_SIZE:
+      default: '1'

@@ -269,3 +269,17 @@ raw-data-streamer-prod:
 #    - helm/lax_prod_deploy.sh
 #  only:
 #    - tags
+
+raw-traces-data-streamer-stage:
+  stage: deploy-stage
+  image:
+    name: ${IMAGE_HELM_KUBECTL}
+    entrypoint: [""]
+  variables:
+    SERVICE_NAME: "raw-traces-data-streamer"
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+    HELM_CHART: ${HELM_CHART_STAGE_LAX}
+  script:
+    - helm/lax_stage_deploy.sh
+  only:
+    - master
