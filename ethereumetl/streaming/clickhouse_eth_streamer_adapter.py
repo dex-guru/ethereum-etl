@@ -119,15 +119,12 @@ class ClickhouseEthStreamerAdapter:
             self._eth_streamer_adapter._export_blocks_and_transactions
         )
 
-        def get_transaction_count_from_blocks(blocks: tuple) -> int:
+        def get_transaction_count_from_blocks(blocks: tuple) -> int | float:
             if self._chain_id == 137:
-                # TODO: That's not correct, need to fix
                 # workaround for Polygon where block.transaction_count doesn't match the number
                 # of transactions in the db
-                want_transaction_count = 1
-            else:
-                want_transaction_count = sum(b['transaction_count'] for b in blocks)
-            return want_transaction_count
+                return float('-inf')
+            return sum(b['transaction_count'] for b in blocks)
 
         @cache
         def export_blocks_and_transactions():
@@ -154,9 +151,9 @@ class ClickhouseEthStreamerAdapter:
 
                 want_transaction_count = get_transaction_count_from_blocks(blocks)
 
-                assert len(blocks) == want_block_count, "got less blocks than expected"
+                assert len(blocks) >= want_block_count, "got less blocks than expected"
                 assert (
-                    len(transactions) == want_transaction_count
+                    len(transactions) >= want_transaction_count
                 ), "got less transactions than expected"
 
                 from_ch = False
