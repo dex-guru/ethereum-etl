@@ -188,8 +188,8 @@ CREATE TABLE IF NOT EXISTS `${internal_transfer}`
     `transaction_hash` String CODEC(ZSTD(1)),
     `block_timestamp` DateTime CODEC(DoubleDelta),
     `block_number` UInt64 CODEC(Delta(8), LZ4),
-    `from_address` String CODEC(ZSTD(1)),
-    `to_address` String CODEC(ZSTD(1)),
+    `from_address` Nullable(String) CODEC(ZSTD(1)),
+    `to_address` Nullable(String) CODEC(ZSTD(1)),
     `value` UInt256 CODEC(ZSTD(1)),
     `gas_limit` UInt64 CODEC(ZSTD(1)),
     `id` String CODEC(ZSTD(1))
