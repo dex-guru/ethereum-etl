@@ -59,11 +59,17 @@ class ExportGethTracesJob(BaseJob):
 
         for response_item in response:
             transaction_hash = transaction_hashes[response_item.get('id')]
+
+            # check not exist transaction
+            # example of tx: https://etherscan.io/tx/0x875835f92d282007631abbc00cc4738dcee5fd614b13e0a7bc54a9f5d9115e19
             if (
                 transaction_hash
-                and response_item.get('error') is None
-                and response_item.get('result') is not None
-                and any([r for r in response_item.get('result')])
+                and (
+                    response_item.get('error') is None
+                    or response_item.get('error').get('message') == 'missing block number'
+                )
+                and response_item.get('result') is None
+                and any([r.get('result') for r in response])
             ):
                 continue
 
