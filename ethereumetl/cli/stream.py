@@ -219,11 +219,11 @@ def parse_entity_types(entity_types):
 
     # validate passed types
     for entity_type in entity_types:
-        if entity_type not in EntityType.ALL_FOR_STREAMING:
+        if entity_type not in entity_type.ALL_FOR_STREAMING:
             raise click.BadOptionUsage(
                 '--entity-type',
                 '{} is not an available entity type. Supply a comma separated list of types from {}'.format(
-                    entity_type, ','.join(EntityType.ALL_FOR_STREAMING)
+                    entity_type, ','.join(entity_type.ALL_FOR_STREAMING)
                 ),
             )
 

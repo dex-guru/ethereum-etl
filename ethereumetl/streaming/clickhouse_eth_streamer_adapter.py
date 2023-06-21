@@ -7,6 +7,7 @@ import clickhouse_connect
 
 from blockchainetl.jobs.exporters.clickhouse_exporter import ClickHouseItemExporter
 from blockchainetl.jobs.exporters.multi_item_exporter import MultiItemExporter
+from ethereumetl.enumeration import entity_type
 from ethereumetl.enumeration.entity_type import EntityType
 from ethereumetl.streaming.enrich import (
     enrich_contracts,
@@ -31,8 +32,8 @@ class ClickhouseEthStreamerAdapter:
         eth_streamer_adapter: EthStreamerAdapter,
         clickhouse_url: str,
         chain_id: int,
-        item_type_to_table_mapping: Optional[dict[str, str]] = None,
-        rewrite_entity_types: Sequence[str] = EntityType.ALL,
+        item_type_to_table_mapping: Optional[dict[EntityType, str]] = None,
+        rewrite_entity_types: Sequence = entity_type.ALL,
     ):
         self._eth_streamer_adapter = eth_streamer_adapter
         self._clickhouse_url = clickhouse_url
@@ -91,7 +92,7 @@ class ClickhouseEthStreamerAdapter:
         return self._eth_streamer_adapter.get_current_block_number()
 
     def _select_distinct(
-        self, entity_type: str, start_block: int, end_block: int, distinct_on: str
+        self, entity_type: EntityType, start_block: int, end_block: int, distinct_on: str
     ) -> tuple[dict[str, Any], ...]:
         assert self._clickhouse, "Clickhouse client is not initialized"
 

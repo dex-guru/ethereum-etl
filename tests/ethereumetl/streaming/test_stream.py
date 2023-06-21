@@ -33,6 +33,7 @@ from blockchainetl.jobs.exporters.in_memory_item_exporter import InMemoryItemExp
 from blockchainetl.streaming.streamer import Streamer
 from ethereumetl.config.envs import envs
 from ethereumetl.domain.token_transfer import TokenStandard
+from ethereumetl.enumeration import entity_type
 from ethereumetl.enumeration.entity_type import EntityType
 from ethereumetl.streaming.clickhouse_eth_streamer_adapter import ClickhouseEthStreamerAdapter
 from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter
@@ -56,8 +57,8 @@ def read_resource(resource_group, file_name):
 
 # fmt: off
 @pytest.mark.parametrize("chain_id, start_block, end_block, batch_size, resource_group, entity_types, provider_type", [
-    (1, 1755634, 1755635, 1, 'blocks_1755634_1755635', EntityType.ALL_FOR_INFURA, 'mock'),
-    skip_if_slow_tests_disabled([1, 1755634, 1755635, 1, 'blocks_1755634_1755635', EntityType.ALL_FOR_INFURA, 'infura']),
+    (1, 1755634, 1755635, 1, 'blocks_1755634_1755635', entity_type.ALL_FOR_INFURA, 'mock'),
+    skip_if_slow_tests_disabled([1, 1755634, 1755635, 1, 'blocks_1755634_1755635', entity_type.ALL_FOR_INFURA, 'infura']),
     (1, 508110, 508110, 1, 'blocks_508110_508110', ['trace', 'contract', 'token'], 'mock'),
     (1, 2112234, 2112234, 1, 'blocks_2112234_2112234', ['trace', 'contract', 'token'], 'mock'),
 ])
@@ -195,7 +196,7 @@ def cleanup():
 # fmt: off
 @pytest.mark.skipif(not envs.EXPORT_FROM_CLICKHOUSE, reason='EXPORT_FROM_CLICKHOUSE env var not set')
 @pytest.mark.parametrize("chain_id, start_block, end_block, batch_size, resource_group, entity_types, provider_type", [
-    (1, 1755634, 1755635, 1, 'blocks_1755634_1755635', EntityType.ALL, 'mock'),
+    (1, 1755634, 1755635, 1, 'blocks_1755634_1755635', entity_type.ALL, 'mock'),
 ])
 # fmt: on
 def test_stream_clickhouse(
@@ -276,18 +277,20 @@ def test_stream_clickhouse(
     contracts_output_file = str(tmpdir.join('actual_contracts.json'))
     tokens_output_file = str(tmpdir.join('actual_tokens.json'))
     geth_traces_output_file = str(tmpdir.join('actual_geth_traces.json'))
+    internal_transfers_output_file = str(tmpdir.join('actual_internal_transfers.json'))
 
     item_exporter = CompositeItemExporter(  # type: ignore
         filename_mapping={
-            'block': blocks_output_file,
-            'transaction': transactions_output_file,
-            'log': logs_output_file,
-            'token_transfer': token_transfers_output_file,
-            'token_balance': token_balances_output_file,
-            'trace': traces_output_file,
-            'contract': contracts_output_file,
-            'token': tokens_output_file,
-            'geth_trace': geth_traces_output_file,
+            EntityType.BLOCK: blocks_output_file,
+            EntityType.TRANSACTION: transactions_output_file,
+            EntityType.LOG: logs_output_file,
+            EntityType.TOKEN_TRANSFER: token_transfers_output_file,
+            EntityType.TOKEN_BALANCE: token_balances_output_file,
+            EntityType.TRACE: traces_output_file,
+            EntityType.CONTRACT: contracts_output_file,
+            EntityType.TOKEN: tokens_output_file,
+            EntityType.GETH_TRACE: geth_traces_output_file,
+            EntityType.INTERNAL_TRANSFER: internal_transfers_output_file,
         }
     )
 
@@ -530,7 +533,7 @@ def test_clickhouse_exporter(tmp_path, cleanup):
         batch_web3_provider=ThreadLocalProxy(lambda: get_web3_provider('infura', batch=True)),
         batch_size=100,
         item_exporter=exporter,
-        entity_types=EntityType.ALL_FOR_INFURA,
+        entity_types=entity_type.ALL_FOR_INFURA,
     )
     streamer = Streamer(
         chain_id=1,
