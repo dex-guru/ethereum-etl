@@ -197,3 +197,65 @@ CREATE TABLE IF NOT EXISTS `${internal_transfer}`
 ENGINE = ReplacingMergeTree
 PARTITION BY substring(transaction_hash, 1, 3)
 ORDER BY (transaction_hash, block_number, id);
+
+CREATE TABLE IF NOT EXISTS etl_delay
+(
+    `entity_type` String CODEC(ZSTD(1)),
+    `block_number` UInt64 CODEC(Delta(8), LZ4),
+    `timestamp` UInt32,
+    `indexed_at` DateTime,
+    `delay` Int32,
+    `chain_id` Int32
+)
+ENGINE = MergeTree
+ORDER BY (block_number)
+TTL indexed_at + INTERVAL 3 DAY DELETE;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS etl_delay_${block}_mv
+TO etl_delay
+AS
+SELECT
+    number as block_number,
+    timestamp,
+    now() AS indexed_at,
+    now() - toDateTime(timestamp) AS delay,
+    ${chain_id} AS chain_id,
+    'block' AS entity_type
+FROM `${block}`;
+
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS etl_delay_${transaction}_mv
+TO etl_delay
+AS
+SELECT
+    block_number,
+    block_timestamp as timestamp,
+    now() AS indexed_at,
+    now() - toDateTime(timestamp) AS delay,
+    ${chain_id} AS chain_id,
+    'transaction' AS entity_type
+FROM `${transaction}`;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS etl_delay_${geth_trace}_mv
+TO etl_delay
+AS
+SELECT
+    block_number,
+    block_timestamp as timestamp,
+    now() AS indexed_at,
+    now() - toDateTime(timestamp) AS delay,
+    ${chain_id} AS chain_id,
+    'geth_trace' AS entity_type
+FROM `${geth_trace}`;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS etl_delay_${internal_transfer}_mv
+TO etl_delay
+AS
+SELECT
+    block_number,
+    block_timestamp as timestamp,
+    now() AS indexed_at,
+    now() - toDateTime(timestamp) AS delay,
+    ${chain_id} AS chain_id,
+    'internal_transfer' AS entity_type
+FROM `${internal_transfer}`;
