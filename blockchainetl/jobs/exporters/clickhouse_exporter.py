@@ -45,7 +45,7 @@ NUMERIC_TYPE_MAX_VALUES = {
 
 
 class ClickHouseItemExporter:
-    def __init__(self, connection_url, item_type_to_table_mapping):
+    def __init__(self, connection_url, item_type_to_table_mapping, chain_id=1):
         parsed = urlparse(connection_url)
         self.username = parsed.username
         self.password = parsed.password
@@ -56,6 +56,7 @@ class ClickHouseItemExporter:
         self.connection: clickhouse_connect.driver.HttpClient | None = None
         self.tables = {}
         self.cached_batches = {}
+        self.chain_id = chain_id
         self.item_type_to_table_mapping = dict(
             # Blocks last so that blocks would be inserted after the other items.
             sorted(item_type_to_table_mapping.items(), key=lambda x: x[0] == EntityType.BLOCK)
@@ -218,8 +219,7 @@ class ClickHouseItemExporter:
         if not self.connection:
             raise RuntimeError('Connection not opened.')
         sql_template = (Path(__file__).parent / 'clickhouse_schemas.sql.tpl').read_text()
-        chain_id = list(self.item_type_to_table_mapping.values())[0].split('_')[0]
-        sql_mappings = {**self.item_type_to_table_mapping, **{'chain_id': chain_id}}
+        sql_mappings = {**self.item_type_to_table_mapping, **{'chain_id': self.chain_id}}
         sql = Template(sql_template).substitute(sql_mappings)
         for statement in sql.split(';'):
             statement = statement.strip()

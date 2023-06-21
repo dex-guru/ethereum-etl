@@ -148,7 +148,8 @@ def create_item_exporter(output, chain_id):
 
         item_type_to_table_mapping = make_item_type_to_table_mapping(chain_id)
         item_exporter = ClickHouseItemExporter(
-            output, item_type_to_table_mapping=item_type_to_table_mapping
+            output, item_type_to_table_mapping=item_type_to_table_mapping,
+            chain_id=chain_id
         )
     elif item_exporter_type == ItemExporterType.AMQP:
         from blockchainetl.jobs.exporters.amqp_exporter import AMQPItemExporter
