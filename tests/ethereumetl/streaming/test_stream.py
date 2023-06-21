@@ -36,6 +36,7 @@ from ethereumetl.domain.token_transfer import TokenStandard
 from ethereumetl.enumeration import entity_type
 from ethereumetl.enumeration.entity_type import EntityType
 from ethereumetl.streaming.clickhouse_eth_streamer_adapter import ClickhouseEthStreamerAdapter
+from ethereumetl.streaming.eth_item_id_calculator import EthItemIdCalculator
 from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter
 from ethereumetl.streaming.item_exporter_creator import make_item_type_to_table_mapping
 from ethereumetl.thread_local_proxy import ThreadLocalProxy
@@ -613,3 +614,14 @@ def test_clickhouse_exporter_export_items(tmp_path, cleanup):
 
         assert_table_not_empty(EntityType.ERROR)
         assert_table_not_empty(EntityType.TOKEN_BALANCE)
+
+
+def test_item_id_calculator_id_fields_contains_all_entity_types():
+    for type_ in EntityType:
+        if type_ == EntityType.RECEIPT:
+            # Receipts are not exported currently
+            continue
+
+        assert (
+            type_ in EthItemIdCalculator.ID_FIELDS
+        ), f"missing item_id calculator for entity type {type_!r}"
