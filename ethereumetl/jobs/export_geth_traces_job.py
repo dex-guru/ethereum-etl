@@ -59,6 +59,14 @@ class ExportGethTracesJob(BaseJob):
 
         for response_item in response:
             transaction_hash = transaction_hashes[response_item.get('id')]
+            if (
+                transaction_hash
+                and response_item.get('error') is None
+                and response_item.get('result') is not None
+                and any([r for r in response_item.get('result')])
+            ):
+                continue
+
             tx_traces = rpc_response_to_result(response_item)
 
             geth_trace = self.geth_trace_mapper.json_dict_to_geth_trace(
