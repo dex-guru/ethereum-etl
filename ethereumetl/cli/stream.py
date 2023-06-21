@@ -27,7 +27,7 @@ import click
 from blockchainetl.streaming.streamer_adapter_stub import StreamerAdapterStub
 from blockchainetl.streaming.streaming_utils import configure_logging, configure_signals
 from ethereumetl.config.envs import envs
-from ethereumetl.enumeration.entity_type import EntityType
+from ethereumetl.enumeration.entity_type import ALL_FOR_STREAMING
 from ethereumetl.providers.auto import get_provider_from_uri
 from ethereumetl.streaming.item_exporter_creator import (
     create_item_exporters,
@@ -219,11 +219,11 @@ def parse_entity_types(entity_types):
 
     # validate passed types
     for entity_type in entity_types:
-        if entity_type not in entity_type.ALL_FOR_STREAMING:
+        if entity_type not in ALL_FOR_STREAMING:
             raise click.BadOptionUsage(
                 '--entity-type',
                 '{} is not an available entity type. Supply a comma separated list of types from {}'.format(
-                    entity_type, ','.join(entity_type.ALL_FOR_STREAMING)
+                    entity_type, ','.join(ALL_FOR_STREAMING)
                 ),
             )
 
