@@ -218,7 +218,9 @@ class ClickHouseItemExporter:
         if not self.connection:
             raise RuntimeError('Connection not opened.')
         sql_template = (Path(__file__).parent / 'clickhouse_schemas.sql.tpl').read_text()
-        sql = Template(sql_template).substitute(self.item_type_to_table_mapping)
+        chain_id = list(self.item_type_to_table_mapping.values())[0].split('_')[0]
+        sql_mappings = {**self.item_type_to_table_mapping, **{'chain_id': chain_id}}
+        sql = Template(sql_template).substitute(sql_mappings)
         for statement in sql.split(';'):
             statement = statement.strip()
             if statement:
