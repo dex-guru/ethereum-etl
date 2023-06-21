@@ -3,6 +3,7 @@ from datetime import datetime
 
 from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExporter
 from blockchainetl.jobs.exporters.in_memory_item_exporter import InMemoryItemExporter
+from ethereumetl.enumeration import entity_type
 from ethereumetl.enumeration.entity_type import EntityType
 from ethereumetl.jobs.export_blocks_job import ExportBlocksJob
 from ethereumetl.jobs.export_geth_traces_job import ExportGethTracesJob
@@ -37,7 +38,7 @@ class EthStreamerAdapter:
         item_exporter=ConsoleItemExporter(),
         batch_size=100,
         max_workers=5,
-        entity_types=tuple(EntityType.ALL_FOR_STREAMING),
+        entity_types=tuple(entity_type.ALL_FOR_STREAMING),
     ):
         self.batch_web3_provider = batch_web3_provider
         self.item_exporter = item_exporter

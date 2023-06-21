@@ -24,72 +24,38 @@ import json
 import logging
 import uuid
 
+from ethereumetl.enumeration.entity_type import EntityType
+
 
 class EthItemIdCalculator:
+    ID_FIELDS: dict[EntityType, tuple[str, ...]] = {
+        EntityType.BLOCK: ('hash',),
+        EntityType.TRANSACTION: ('hash',),
+        EntityType.LOG: ('transaction_hash', 'log_index'),
+        EntityType.TOKEN_TRANSFER: ('transaction_hash', 'log_index'),
+        EntityType.TOKEN_BALANCE: ('block_number', 'token_address', 'holder_address', 'token_id'),
+        EntityType.TRACE: ('trace_id',),
+        EntityType.CONTRACT: ('block_number', 'address'),
+        EntityType.TOKEN: ('block_number', 'address'),
+        EntityType.ERROR: ('block_number', uuid.uuid4().hex),
+        EntityType.GETH_TRACE: ('block_number', 'transaction_hash'),
+        EntityType.INTERNAL_TRANSFER: ('block_number', 'transaction_hash', 'id'),
+    }
+
     def calculate(self, item):
         if item is None or not isinstance(item, dict):
             return None
 
         item_type = item.get('type')
+        fields = self.ID_FIELDS.get(EntityType(item_type))
 
-        if item_type == 'block' and item.get('hash') is not None:
-            return concat(item_type, item.get('hash'))
-        elif item_type == 'transaction' and item.get('hash') is not None:
-            return concat(item_type, item.get('hash'))
-        elif (
-            item_type == 'log'
-            and item.get('transaction_hash') is not None
-            and item.get('log_index') is not None
-        ):
-            return concat(item_type, item.get('transaction_hash'), item.get('log_index'))
-        elif (
-            item_type == 'token_transfer'
-            and item.get('transaction_hash') is not None
-            and item.get('log_index') is not None
-        ):
-            return concat(item_type, item.get('transaction_hash'), item.get('log_index'))
-        elif item_type == 'token_balance':
-            return concat(
-                item_type,
-                item['block_number'],
-                item['token_address'],
-                item['holder_address'],
-                item['token_id'],
-            )
-        elif item_type == 'trace' and item.get('trace_id') is not None:
-            return concat(item_type, item.get('trace_id'))
-        elif (
-            item_type == 'contract'
-            and item.get('block_number') is not None
-            and item.get('address') is not None
-        ):
-            return concat(item_type, item.get('block_number'), item.get('address'))
-        elif (
-            item_type == 'token'
-            and item.get('block_number') is not None
-            and item.get('address') is not None
-        ):
-            return concat(item_type, item.get('block_number'), item.get('address'))
-        elif item_type == 'error':
-            return concat(item_type, item.get('block_number'), uuid.uuid4().hex)
-        elif (
-            item_type == 'geth_trace'
-            and item.get('block_number') is not None
-            and item.get('transaction_hash') is not None
-        ):
-            return concat(item_type, item['block_number'], item['transaction_hash'])
-        elif (
-            item_type == 'internal_transfer'
-            and item.get('block_number') is not None
-            and item.get('transaction_hash') is not None
-            and item.get('id') is not None
-        ):
-            return concat(item_type, item['block_number'], item['transaction_hash'], item['id'])
+        if fields:
+            values = [item.get(field) for field in fields]
+            if values:
+                # Special handling for 'error' type, which generates a random UUID
+                if item_type == EntityType.ERROR:
+                    values.append(uuid.uuid4().hex)
+                return '_'.join(map(str, (item_type, *values)))
 
-        logging.warning('item_id for item {} is None'.format(json.dumps(item)))
-
+        logging.warning('item_id for item %s is None', json.dumps(item))
         return None
-
-
-def concat(*elements):
-    return '_'.join([str(elem) for elem in elements])

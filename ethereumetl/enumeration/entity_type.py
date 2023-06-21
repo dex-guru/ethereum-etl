@@ -1,4 +1,7 @@
-class EntityType:
+from enum import Enum
+
+
+class EntityType(str, Enum):
     BLOCK = 'block'
     TRANSACTION = 'transaction'
     RECEIPT = 'receipt'
@@ -12,28 +15,27 @@ class EntityType:
     TOKEN_BALANCE = 'token_balance'
     ERROR = 'error'
 
-    ALL_FOR_STREAMING = [
-        BLOCK,
-        TRANSACTION,
-        LOG,
-        TOKEN_TRANSFER,
-        TOKEN,
-        TOKEN_BALANCE,
-        TRACE,
-        ERROR,
-        GETH_TRACE,
-        INTERNAL_TRANSFER,
-    ]
-    ALL_FOR_INFURA = [BLOCK, TRANSACTION, LOG, TOKEN_TRANSFER, TOKEN_BALANCE]
-    ALL = [
-        BLOCK,
-        TRANSACTION,
-        RECEIPT,
-        LOG,
-        TOKEN_TRANSFER,
-        TRACE,
-        CONTRACT,
-        TOKEN,
-        TOKEN_BALANCE,
-        ERROR,
-    ]
+    def __str__(self):
+        return self.value
+
+
+ALL_FOR_STREAMING = (
+    EntityType.BLOCK,
+    EntityType.TRANSACTION,
+    EntityType.LOG,
+    EntityType.TOKEN_TRANSFER,
+    EntityType.TOKEN,
+    EntityType.TOKEN_BALANCE,
+    EntityType.TRACE,
+    EntityType.ERROR,
+    EntityType.GETH_TRACE,
+    EntityType.INTERNAL_TRANSFER,
+)
+ALL_FOR_INFURA = (
+    EntityType.BLOCK,
+    EntityType.TRANSACTION,
+    EntityType.LOG,
+    EntityType.TOKEN_TRANSFER,
+    EntityType.TOKEN_BALANCE,
+)
+ALL = tuple(EntityType)

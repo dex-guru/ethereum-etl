@@ -2,7 +2,7 @@ from typing import List, Literal, Optional, Union
 
 from pydantic import AnyUrl, BaseSettings
 
-from ethereumetl.enumeration.entity_type import EntityType
+from ethereumetl.enumeration import entity_type
 
 
 class EnvsConfig(BaseSettings):
@@ -29,7 +29,7 @@ class EnvsConfig(BaseSettings):
     OUTPUT: Optional[str] = None
     START_BLOCK: Optional[int] = None
     END_BLOCK: Optional[int] = None
-    ENTITY_TYPES: str = ','.join(EntityType.ALL_FOR_STREAMING)
+    ENTITY_TYPES: str = ','.join(entity_type.ALL_FOR_STREAMING)
     POLLING_PERIOD: int = 10
     BATCH_SIZE: int = 10
     BLOCK_BATCH_SIZE: int = 1
