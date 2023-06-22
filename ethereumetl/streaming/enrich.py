@@ -248,7 +248,7 @@ def enrich_geth_traces(transactions, traces_for_transactions):
         )
     )
     if len(result) != len(traces_for_transactions):
-        raise ValueError('The number of traces is wrong ' + str(result))
+        raise ValueError('Geth traces enriched wrongly' + str(result))
     for item in result:
         item['block_timestamp'] = datetime.utcfromtimestamp(item['block_timestamp'])
     return result

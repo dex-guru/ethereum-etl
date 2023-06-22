@@ -37,7 +37,13 @@ class EthGethTraceMapper(object):
             block_timestamp = json_dict['block_timestamp']
         else:
             block_timestamp = None
-        transaction_traces = json_dict.get('transaction_traces', json.loads(json_dict.get('traces_json', '[]')))
+        if json_dict.get('transaction_traces'):
+            if isinstance(json_dict['transaction_traces'], str):
+                transaction_traces = json.loads(json_dict['transaction_traces'])
+            else:
+                transaction_traces = json_dict['transaction_traces']
+        else:
+            transaction_traces = json.loads(json_dict.get('traces_json', '[]'))
 
         geth_trace = EthGethTrace(
             transaction_hash=transaction_hash,
