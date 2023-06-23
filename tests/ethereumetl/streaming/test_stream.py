@@ -23,6 +23,7 @@
 import os
 from collections import Counter
 from pathlib import Path
+from unittest.mock import Mock
 
 import pytest
 
@@ -35,6 +36,7 @@ from ethereumetl.config.envs import envs
 from ethereumetl.domain.token_transfer import TokenStandard
 from ethereumetl.enumeration import entity_type
 from ethereumetl.enumeration.entity_type import EntityType
+from ethereumetl.providers.rpc import BatchHTTPProvider
 from ethereumetl.streaming.clickhouse_eth_streamer_adapter import ClickhouseEthStreamerAdapter
 from ethereumetl.streaming.eth_item_id_calculator import EthItemIdCalculator
 from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter
@@ -295,9 +297,17 @@ def test_stream_clickhouse(
         }
     )
 
+    fake_batch_web3_provider = Mock(spec=BatchHTTPProvider)
+    fake_batch_web3_provider.make_batch_request.side_effect = Exception(
+        'make_batch_request() should not be called'
+    )
+    fake_batch_web3_provider.make_request.side_effect = Exception(
+        'make_request() should not be called'
+    )
+
     eth_streamer_adapter = EthStreamerAdapter(
         # expect that we don't use web3 provider and get data from clickhouse
-        batch_web3_provider=None,
+        batch_web3_provider=fake_batch_web3_provider,
         batch_size=batch_size,
         item_exporter=item_exporter,
         entity_types=entity_types,
