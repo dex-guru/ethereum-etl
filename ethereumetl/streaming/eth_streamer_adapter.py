@@ -20,6 +20,7 @@ from ethereumetl.streaming.enrich import (
     enrich_contracts,
     enrich_errors,
     enrich_geth_traces,
+    enrich_internal_transfers,
     enrich_logs,
     enrich_token_balances,
     enrich_token_transfers,
@@ -72,6 +73,7 @@ class EthStreamerAdapter:
         TOKEN: (BLOCK, enrich_tokens),
         ERROR: (BLOCK, enrich_errors),
         GETH_TRACE: (TRANSACTION, enrich_geth_traces),
+        INTERNAL_TRANSFER: (TRANSACTION, enrich_internal_transfers),
         # lambda because here the arg order is different
         TRANSACTION: (RECEIPT, lambda r, t: enrich_transactions(t, r)),
     }

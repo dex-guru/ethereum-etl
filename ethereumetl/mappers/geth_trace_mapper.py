@@ -26,7 +26,6 @@ import json
 
 
 class EthGethTraceMapper(object):
-
     @staticmethod
     def json_dict_to_geth_trace(json_dict):
         transaction_hash = json_dict.get('transaction_hash')
@@ -47,19 +46,15 @@ class EthGethTraceMapper(object):
 
         geth_trace = EthGethTrace(
             transaction_hash=transaction_hash,
-            block_number=block_number,
-            block_timestamp=block_timestamp,
             transaction_traces=transaction_traces,
         )
 
         return geth_trace
 
     @staticmethod
-    def geth_trace_to_dict(geth_trace):
+    def geth_trace_to_dict(geth_trace: EthGethTrace):
         return {
             'type': 'geth_trace',
             'transaction_hash': geth_trace.transaction_hash,
-            'block_number': geth_trace.block_number,
-            'block_timestamp': geth_trace.block_timestamp,
             'transaction_traces': json.dumps(geth_trace.transaction_traces),
         }
