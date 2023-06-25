@@ -1,7 +1,6 @@
 import logging
-from collections import defaultdict
 from functools import cache, cached_property
-from typing import Any, Optional, Sequence
+from typing import Any, Iterable, Optional
 from urllib.parse import parse_qs, urlparse
 
 import clickhouse_connect
@@ -36,7 +35,7 @@ class ClickhouseEthStreamerAdapter:
         clickhouse_url: str,
         chain_id: int,
         item_type_to_table_mapping: Optional[dict[EntityType, str]] = None,
-        rewrite_entity_types: Sequence = ALL,
+        rewrite_entity_types: Iterable[EntityType] = ALL,
     ):
         self._eth_streamer_adapter = eth_streamer_adapter
         self._clickhouse_url = clickhouse_url
@@ -62,6 +61,9 @@ class ClickhouseEthStreamerAdapter:
 
         self._chain_id = chain_id
         self._entity_types = frozenset(eth_streamer_adapter.entity_types)
+
+        if RECEIPT in self._entity_types:
+            raise NotImplementedError("Receipt export is not implemented for ClickHouse")
 
     @staticmethod
     def clickhouse_client_from_url(url) -> clickhouse_connect.driver.HttpClient:
@@ -129,9 +131,6 @@ class ClickhouseEthStreamerAdapter:
     def export_all(self, start_block, end_block):
         want_block_count = end_block - start_block + 1
         should_export = self._eth_streamer_adapter.should_export
-        eth_export_blocks_and_transactions = cache(
-            self._eth_streamer_adapter._export_blocks_and_transactions
-        )
 
         def get_transaction_count_from_blocks(blocks: tuple) -> int | float:
             if self._chain_id == 137:
@@ -158,7 +157,9 @@ class ClickhouseEthStreamerAdapter:
                     f"Block/Transactions. Not enough data found in clickhouse: falling back to Eth node:"
                     f" entity_types=block,transaction block_range={start_block}-{end_block}"
                 )
-                blocks, transactions = eth_export_blocks_and_transactions(start_block, end_block)
+                blocks, transactions = self._eth_streamer_adapter._export_blocks_and_transactions(
+                    start_block, end_block
+                )
 
                 want_transaction_count = get_transaction_count_from_blocks(blocks)
 
@@ -185,15 +186,30 @@ class ClickhouseEthStreamerAdapter:
 
         @cache
         def export_receipts_and_logs():
-            logger.info("exporting LOGS...")
-            blocks, transactions = eth_export_blocks_and_transactions(start_block, end_block)
+            logger.info("exporting RECEIPTS and LOGS...")
+            blocks, transactions, _ = export_blocks_and_transactions()
             receipts, logs = self._eth_streamer_adapter._export_receipts_and_logs(transactions)
-            return receipts, logs
+            from_ch = False
+            return receipts, logs, from_ch
+
+        @cache
+        def export_receipts():
+            logger.info("exporting RECEIPTS...")
+
+            blocks, transactions, from_ch = export_blocks_and_transactions()
+            if from_ch:
+                receipt_items = [
+                    self._receipt_item_from_ch_transaction(transaction)
+                    for transaction in transactions
+                ]
+                return receipt_items, from_ch
+
+            receipt_items, _, from_ch = export_receipts_and_logs()
+            return receipt_items, from_ch
 
         @cache
         def export_logs():
             logger.info("exporting LOGS...")
-            from_ch = False
             if blocks_previously_exported():
                 blocks, transactions, from_ch = export_blocks_and_transactions()
                 want_transaction_count = get_transaction_count_from_blocks(blocks)
@@ -213,7 +229,7 @@ class ClickhouseEthStreamerAdapter:
                 f"Logs. Not enough data found in clickhouse: falling back to Eth node:"
                 f" entity_types=receipt,log block_range={start_block}-{end_block}"
             )
-            _, logs = export_receipts_and_logs()
+            _, logs, from_ch = export_receipts_and_logs()
             return logs, from_ch
 
         @cache
@@ -319,11 +335,12 @@ class ClickhouseEthStreamerAdapter:
             from_ch = geth_traces_from_ch and len(internal_transfers_ch) == len(internal_transfers)
             return internal_transfers, from_ch
 
-        exported: dict[EntityType, list[dict]] = defaultdict(list)
-        exported_from_ch: set[EntityType] = set()
+        exported: dict[EntityType, list] = {}
+        from_ch: dict[EntityType, bool] = {}
 
-        for out_entity_types, export in (
+        for entity_types, export_func in (
             ((BLOCK, TRANSACTION), export_blocks_and_transactions),
+            ((RECEIPT,), export_receipts),
             ((LOG,), export_logs),
             ((TOKEN_TRANSFER,), extract_token_transfers),
             ((TOKEN_BALANCE, ERROR), export_token_balances),
@@ -333,31 +350,37 @@ class ClickhouseEthStreamerAdapter:
             ((INTERNAL_TRANSFER,), extract_internal_transfers),
             ((TOKEN,), extract_tokens),
         ):
-            for entity_type in out_entity_types:
-                if entity_type in self._entity_types and entity_type not in exported:
-                    *results, from_ch = export()
-                    for out_entity_type, result in zip(out_entity_types, results):
-                        exported[out_entity_type].extend(result)
-                        if from_ch:
-                            exported_from_ch.add(entity_type)
+            for entity_type in entity_types:
+                if entity_type not in self._eth_streamer_adapter.should_export:
+                    continue
 
-        self._eth_streamer_adapter.log_batch_export_progress(exported)
+                *results, from_ch_ = export_func()
 
-        logging.info('Exporting with ' + type(self._eth_streamer_adapter.item_exporter).__name__)
+                for items, entity_type_ in zip(results, entity_types):
+                    exported.setdefault(entity_type_, []).extend(items)
+                    from_ch[entity_type_] = from_ch_
+
+                break
 
         all_items = []
-
-        entity_types_to_export = self._entity_types
-        if self.exporting_to_the_same_clickhouse:
-            should_not_export = exported_from_ch - self._rewrite_entity_types
-            entity_types_to_export = entity_types_to_export - should_not_export
-
-        for entity_type in entity_types_to_export:
+        items_by_type = {}
+        for entity_type in self._entity_types:
+            if (
+                from_ch.get(entity_type)
+                and self.exporting_to_the_same_clickhouse
+                and entity_type not in self._rewrite_entity_types
+            ):
+                continue
+            items = exported[entity_type]
             enriched_items = self._eth_streamer_adapter.enrich(entity_type, exported.__getitem__)
             sorted_items = sort_by(
                 enriched_items, self._eth_streamer_adapter.SORT_BY_FIELDS[entity_type]
             )
+            assert len(sorted_items) == len(items), entity_type
             all_items.extend(sorted_items)
+            items_by_type[entity_type] = sorted_items
+
+        self._eth_streamer_adapter.log_batch_export_progress(items_by_type)
 
         self._eth_streamer_adapter.calculate_item_ids(all_items)
         self._eth_streamer_adapter.calculate_item_timestamps(all_items)
@@ -391,3 +414,20 @@ class ClickhouseEthStreamerAdapter:
             and params.get('database', exporter.database) == exporter.database
             and self._item_type_to_table_mapping == exporter.item_type_to_table_mapping
         )
+
+    @staticmethod
+    def _receipt_item_from_ch_transaction(transaction):
+        return {
+            'type': RECEIPT,
+            'transaction_hash': transaction['hash'],
+            'transaction_index': transaction['transaction_index'],
+            'block_hash': transaction['block_hash'],
+            'block_number': transaction['block_number'],
+            'cumulative_gas_used': transaction['receipt_cumulative_gas_used'],
+            'gas_used': transaction['receipt_gas_used'],
+            'contract_address': transaction['receipt_contract_address'],
+            'root': transaction['receipt_root'],
+            'status': transaction['receipt_status'],
+            'effective_gas_price': transaction['receipt_effective_gas_price'],
+            'logs_count': transaction['receipt_logs_count'],
+        }

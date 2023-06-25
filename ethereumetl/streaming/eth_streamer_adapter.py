@@ -1,8 +1,6 @@
 import logging
-from collections import defaultdict
 from datetime import datetime
-from functools import cached_property, partial
-from typing import Any, Callable
+from functools import cached_property
 
 from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExporter
 from blockchainetl.jobs.exporters.in_memory_item_exporter import InMemoryItemExporter
@@ -115,58 +113,54 @@ class EthStreamerAdapter:
         w3 = build_web3(self.batch_web3_provider)
         return int(w3.eth.getBlock("latest").number)
 
-    @staticmethod
-    def export(
-        exported: dict[EntityType, list[dict]],
-        export_plan_indexed: dict[EntityType, tuple[Callable[[], Any], tuple[EntityType, ...]]],
-        entity_type: EntityType,
-    ):
-        if entity_type in exported:
-            return exported[entity_type]
+    def export_batch(self, start_block: int, end_block: int) -> dict[EntityType, list[dict]]:
+        exported: dict[EntityType, list[dict]] = {}
 
-        export_func, export_types = export_plan_indexed[entity_type]
-        results = export_func()
-        if len(export_types) == 1:
-            results = (results,)
-        for result, export_type in zip(results, export_types):
-            if entity_type == ERROR:
-                exported[export_type].extend(result)
-            else:
-                exported[export_type] = result
-        return exported[entity_type]
-
-    def export_all(self, start_block, end_block):
         export_plan = {
-            (BLOCK, TRANSACTION): lambda: self._export_blocks_and_transactions(
-                start_block, end_block
-            ),
-            (RECEIPT, LOG): lambda: self._export_receipts_and_logs(export(TRANSACTION)),
-            (TOKEN_TRANSFER,): lambda: self._extract_token_transfers(export(LOG)),
-            (TOKEN_BALANCE, ERROR): lambda: self._export_token_balances(export(TOKEN_TRANSFER)),
-            (TRACE,): lambda: self._export_traces(start_block, end_block),
-            (GETH_TRACE,): lambda: self._export_geth_traces(
-                [t["hash"] for t in export(TRANSACTION)]
-            ),
-            (CONTRACT,): lambda: self._export_contracts(export(TRACE)),
-            (TOKEN,): lambda: self._extract_tokens(export(CONTRACT)),
-            (INTERNAL_TRANSFER,): lambda: self._extract_internal_transfers(export(GETH_TRACE)),
-        }
-        export_plan_indexed = {
             entity_type: (export_func, export_types)
-            for export_types, export_func in export_plan.items()
+            for export_types, export_func in {
+                (BLOCK, TRANSACTION): lambda: self._export_blocks_and_transactions(
+                    start_block, end_block
+                ),
+                (RECEIPT, LOG): lambda: self._export_receipts_and_logs(export(TRANSACTION)),
+                (TOKEN_TRANSFER,): lambda: self._extract_token_transfers(export(LOG)),
+                (TOKEN_BALANCE, ERROR): lambda: self._export_token_balances(
+                    export(TOKEN_TRANSFER)
+                ),
+                (TRACE,): lambda: self._export_traces(start_block, end_block),
+                (GETH_TRACE,): lambda: self._export_geth_traces(
+                    [t["hash"] for t in export(TRANSACTION)]
+                ),
+                (CONTRACT,): lambda: self._export_contracts(export(TRACE)),
+                (TOKEN,): lambda: self._extract_tokens(export(CONTRACT)),
+                (INTERNAL_TRANSFER,): lambda: self._extract_internal_transfers(export(GETH_TRACE)),
+            }.items()
             for entity_type in export_types
         }
-        export: Callable[[EntityType], Any] = partial(
-            self.export,
-            defaultdict(list),
-            export_plan_indexed,
-        )
+
+        def export(entity_type):
+            if entity_type in exported:
+                return exported[entity_type]
+            export_func, export_types = export_plan[entity_type]
+            results = export_func()
+            if len(export_types) == 1:
+                results = (results,)
+            for result, export_type in zip(results, export_types):
+                exported.setdefault(export_type, []).extend(result)
+            return exported[entity_type]
+
+        for entity_type in self.should_export:
+            export(entity_type)
+
+        return exported
+
+    def export_all(self, start_block, end_block):
+        exported = self.export_batch(start_block, end_block)
 
         all_items: list[dict] = []
         items_by_type: dict[EntityType, list[dict]] = {}
-
         for entity_type in self.entity_types:
-            enriched_items = self.enrich(entity_type, export)
+            enriched_items = self.enrich(entity_type, exported.__getitem__)
             sorted_items = sort_by(enriched_items, self.SORT_BY_FIELDS[entity_type])
             items_by_type[entity_type] = sorted_items
             all_items.extend(sorted_items)
@@ -190,15 +184,14 @@ class EthStreamerAdapter:
             stack.extend(self.DEPENDENCIES.get(entity_type, ()))
         return should_export
 
-    def enrich(self, entity_type, export):
-        if entity_type in self.ENRICH:
-            try:
-                enrich_with_type, enrich_func = self.ENRICH[entity_type]
-            except KeyError as e:
-                raise KeyError(f"{e}: hint: check the DEPENDENCIES") from e
-            enrich_with_items = export(enrich_with_type)
-            return enrich_func(enrich_with_items, export(entity_type))
-        return export(entity_type)
+    def enrich(self, entity_type, get_exported):
+        try:
+            enrich_with_type, enrich_func = self.ENRICH[entity_type]
+        except KeyError:
+            return get_exported(entity_type)
+        else:
+            enrich_with_items = get_exported(enrich_with_type)
+            return enrich_func(enrich_with_items, get_exported(entity_type))
 
     def log_batch_export_progress(
         self,
@@ -212,8 +205,8 @@ class EthStreamerAdapter:
                     f'Exporting batch {len(blocks)} with {type(self.item_exporter).__name__}, '
                     f'blocks up to {blocks[-1]["number"]}:{last_synced_block_datetime}, got '
                     + ', '.join(
-                        f'{len(items)} {entity_type.name.lower()}s'
-                        for entity_type, items in items_by_type.items()
+                        f'{len(items)} {entity_type.lower()}s'
+                        for entity_type, items in sorted(items_by_type.items())
                     )
                 ),
                 extra={
@@ -221,8 +214,8 @@ class EthStreamerAdapter:
                     'last_synced_block_datetime': last_synced_block_datetime,
                     'batch_size': len(blocks),
                     **{
-                        f'{entity_type.name.lower()}s_per_batch': len(items)
-                        for entity_type, items in items_by_type.items()
+                        f'{entity_type.lower()}s_per_batch': len(items)
+                        for entity_type, items in sorted(items_by_type.items())
                     },
                 },
             )
