@@ -25,7 +25,7 @@ raw-data-streamer:
     REWRITE_CLICKHOUSE: 'True'
   chainEnv:
     ENTITY_TYPES:
-      default: 'block,transaction,log,token_transfer,token_balance,error'
+      default: 'block,transaction,log,token_transfer'
     START_BLOCK:
       default: '1'
       polygon-137: '43954424'
