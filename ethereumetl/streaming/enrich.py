@@ -27,6 +27,7 @@ from dataclasses import fields
 from datetime import datetime
 
 from ethereumetl.config.envs import envs
+from ethereumetl.domain.internal_transfer import InternalTransfer
 from ethereumetl.domain.token_balance import EthTokenBalance
 from ethereumetl.mappers.error_mapper import EthErrorMapper
 from ethereumetl.utils import dedup_list_of_dicts
@@ -230,6 +231,29 @@ def enrich_traces(blocks, traces):
 
     if len(result) != len(traces):
         raise ValueError('The number of traces is wrong ' + str(result))
+
+    return result
+
+
+def enrich_internal_transfers(transactions, internal_transfers):
+    result = list(
+        join(
+            internal_transfers,
+            transactions,
+            ('transaction_hash', 'hash'),
+            (
+                'type',
+                *(f.name for f in fields(InternalTransfer)),
+            ),
+            ('block_timestamp', 'block_number'),
+        )
+    )
+
+    for item in result:
+        item['block_timestamp'] = datetime.utcfromtimestamp(item['block_timestamp'])
+
+    if len(result) != len(internal_transfers):
+        raise ValueError('The number of internal transfers is wrong ' + str(result))
 
     return result
 

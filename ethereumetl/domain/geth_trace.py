@@ -20,13 +20,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 from dataclasses import dataclass
-from datetime import datetime
-from typing import Optional
 
 
 @dataclass
 class EthGethTrace:
-    block_number: Optional[int]
-    block_timestamp: Optional[datetime]
     transaction_hash: str
     transaction_traces: dict

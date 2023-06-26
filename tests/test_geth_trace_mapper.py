@@ -6,8 +6,6 @@ def test_geth_trace_mapper():
     mapper = EthGethTraceMapper()
 
     geth_trace = EthGethTrace(
-        block_number=None,
-        block_timestamp=None,
         transaction_hash='0x9a5437ec71b74ecf5930b406908ac6999966d38a86d1534b7190ece7599095eb',
         transaction_traces={
             'from': '0xaf21e07e5a929d16026a7b4d88f3906a8d2e4942',
