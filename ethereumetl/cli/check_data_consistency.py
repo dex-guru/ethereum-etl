@@ -26,7 +26,6 @@ import click
 
 from blockchainetl.streaming.streaming_utils import configure_logging, configure_signals
 from ethereumetl.config.envs import envs
-from ethereumetl.enumeration.entity_type import EntityType
 from ethereumetl.providers.auto import get_provider_from_uri
 from ethereumetl.scripts.check_data_consistency import resolve_data_consistency_service
 from ethereumetl.streaming.item_exporter_creator import (

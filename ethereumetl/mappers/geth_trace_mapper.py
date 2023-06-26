@@ -19,23 +19,16 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-from datetime import datetime
+
+import json
 
 from ethereumetl.domain.geth_trace import EthGethTrace
-import json
 
 
 class EthGethTraceMapper(object):
     @staticmethod
     def json_dict_to_geth_trace(json_dict):
         transaction_hash = json_dict.get('transaction_hash')
-        block_number = json_dict.get('block_number')
-        if isinstance(json_dict.get('block_timestamp'), int):
-            block_timestamp = datetime.utcfromtimestamp(json_dict['block_timestamp'])
-        elif isinstance(json_dict.get('block_timestamp'), datetime):
-            block_timestamp = json_dict['block_timestamp']
-        else:
-            block_timestamp = None
         if json_dict.get('transaction_traces'):
             if isinstance(json_dict['transaction_traces'], str):
                 transaction_traces = json.loads(json_dict['transaction_traces'])
