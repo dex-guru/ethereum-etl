@@ -115,6 +115,7 @@ class ClickhouseEthStreamerAdapter:
             return tuple(self._clickhouse.query(query).named_results())
         except clickhouse_connect.driver.exceptions.DatabaseError as e:
             if 'UNKNOWN_TABLE' in str(e):  # The error code is not exposed by the driver
+                logger.warning("Cannot export %s items from clickhouse: %s", entity_type, e)
                 return ()
             raise
 
