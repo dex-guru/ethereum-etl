@@ -106,7 +106,7 @@ raw-data-streamer-resync:
     LOG_HANDLERS: '["console","logstash"]'
     SERVICE_NAME: 'raw-resync-data-streamer'
     EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@10.0.200.180:8123/dex_etl'
-    REWRITE_CLICKHOUSE: 'True'
+    REWRITE_CLICKHOUSE: 'block,transaction,receipt,log,token_transfer,trace,geth_trace,contract,token,internal_transfer,token_balance,error'
   chainEnv:
     START_BLOCK:
       default: '1'
