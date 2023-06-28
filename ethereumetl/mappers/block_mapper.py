@@ -67,7 +67,8 @@ class EthBlockMapper(object):
 
         return block
 
-    def block_to_dict(self, block):
+    @staticmethod
+    def block_to_dict(block):
         return {
             'type': 'block',
             'number': block.number,

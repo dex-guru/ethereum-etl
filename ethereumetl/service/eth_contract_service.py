@@ -24,7 +24,8 @@ from ethereum_dasm.evmdasm import Contract, EvmCode
 
 
 class EthContractService:
-    def get_function_sighashes(self, bytecode):
+    @staticmethod
+    def get_function_sighashes(bytecode):
         bytecode = clean_bytecode(bytecode)
         if bytecode is not None:
             evm_code = EvmCode(
@@ -44,7 +45,8 @@ class EthContractService:
 
     # https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md
     # https://github.com/OpenZeppelin/openzeppelin-solidity/blob/master/contracts/token/ERC20/ERC20.sol
-    def is_erc20_contract(self, function_sighashes):
+    @staticmethod
+    def is_erc20_contract(function_sighashes):
         c = ContractWrapper(function_sighashes)
         return (
             c.implements('totalSupply()')
@@ -64,7 +66,8 @@ class EthContractService:
     # transferFrom(address,address,uint256)
     # safeTransferFrom(address,address,uint256)
     # safeTransferFrom(address,address,uint256,bytes)
-    def is_erc721_contract(self, function_sighashes):
+    @staticmethod
+    def is_erc721_contract(function_sighashes):
         c = ContractWrapper(function_sighashes)
         return (
             c.implements('balanceOf(address)')
