@@ -23,6 +23,7 @@
 
 import csv
 import json
+from typing import Iterable
 
 import click
 
@@ -84,7 +85,7 @@ def extract_tokens(contracts, provider_uri, output, max_workers, values_as_strin
 
     with smart_open(contracts, 'r') as contracts_file:
         if contracts.endswith('.json'):
-            contracts_iterable = (json.loads(line) for line in contracts_file)
+            contracts_iterable: Iterable[dict] = (json.loads(line) for line in contracts_file)
         else:
             contracts_iterable = csv.DictReader(contracts_file)
         converters = (

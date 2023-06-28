@@ -18,14 +18,20 @@ class ExtractInternalTransfersJob(BaseJob):
         self.item_exporter.open()
 
     def _export(self):
-        self.batch_work_executor.execute(self.geth_traces_iterable, self._extract_internal_transfers)
+        self.batch_work_executor.execute(
+            self.geth_traces_iterable, self._extract_internal_transfers
+        )
 
     def _extract_internal_transfers(self, geth_traces):
         for geth_trace_str in geth_traces:
             geth_trace = self.geth_trace_mapper.json_dict_to_geth_trace(geth_trace_str)
-            internal_transfers = self.internal_transfer_mapper.geth_trace_to_internal_transfers(geth_trace)
+            internal_transfers = self.internal_transfer_mapper.geth_trace_to_internal_transfers(
+                geth_trace
+            )
             for internal_transfer in internal_transfers:
-                self.item_exporter.export_item(self.internal_transfer_mapper.internal_transfer_to_dict(internal_transfer))
+                self.item_exporter.export_item(
+                    self.internal_transfer_mapper.internal_transfer_to_dict(internal_transfer)
+                )
 
     def _end(self):
         self.batch_work_executor.shutdown()

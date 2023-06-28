@@ -22,7 +22,8 @@
 
 
 class EthTokenTransferMapper(object):
-    def token_transfer_to_dict(self, token_transfer):
+    @staticmethod
+    def token_transfer_to_dict(token_transfer):
         return {
             'type': 'token_transfer',
             'token_address': token_transfer.token_address,

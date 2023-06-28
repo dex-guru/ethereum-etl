@@ -23,6 +23,7 @@
 import contextlib
 import csv
 import json
+from typing import Iterable
 
 import six
 
@@ -36,7 +37,7 @@ def get_item_iterable(input_file):
 
     if input_file.endswith('.csv'):
         set_max_field_size_limit()
-        reader = csv.DictReader(fh)
+        reader: Iterable[dict] = csv.DictReader(fh)
     else:
         reader = (json.loads(line) for line in fh)
 

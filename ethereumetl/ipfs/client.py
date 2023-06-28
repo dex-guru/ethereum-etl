@@ -15,7 +15,7 @@ class IpfsClient:
 
     def _get(self, path, json):
         for i in range(IPFS_NUM_ATTEMPTS):
-            # Round-robin thru the gateways.
+            # Round-robin through the gateways.
             gatewayUrl = self._gatewayUrls[i % len(self._gatewayUrls)]
             try:
                 url = "{}/{}".format(gatewayUrl, path)

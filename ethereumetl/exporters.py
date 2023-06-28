@@ -33,12 +33,15 @@ Item Exporters are used to export/serialize items into different formats.
 import csv
 import io
 import threading
+from abc import ABC, abstractmethod
 from json import JSONEncoder
 
 import six
 
+from blockchainetl.exporters import to_bytes, to_native_str
 
-class BaseItemExporter(object):
+
+class BaseItemExporter(ABC):
     def __init__(self, **kwargs):
         self._configure(kwargs)
 
@@ -54,18 +57,17 @@ class BaseItemExporter(object):
         if not dont_fail and options:
             raise TypeError("Unexpected options: %s" % ', '.join(options.keys()))
 
+    @abstractmethod
     def export_item(self, item):
-        raise NotImplementedError
+        ...
+
+    def export_items(self, items):
+        for item in items:
+            self.export_item(item)
 
     def serialize_field(self, field, name, value):
         serializer = field.get('serializer', lambda x: x)
         return serializer(value)
-
-    def start_exporting(self):
-        pass
-
-    def finish_exporting(self):
-        pass
 
     def _get_serialized_fields(self, item, default_value=None, include_empty=None):
         """Return the fields to export as an iterable of tuples
@@ -96,6 +98,7 @@ class BaseItemExporter(object):
 
 class CsvItemExporter(BaseItemExporter):
     def __init__(self, file, include_headers_line=True, join_multivalued=',', **kwargs):
+        super().__init__(**kwargs)
         self._configure(kwargs, dont_fail=True)
         if not self.encoding:
             self.encoding = 'utf-8'
@@ -158,6 +161,7 @@ class CsvItemExporter(BaseItemExporter):
 
 class JsonLinesItemExporter(BaseItemExporter):
     def __init__(self, file, **kwargs):
+        super().__init__(**kwargs)
         self._configure(kwargs, dont_fail=True)
         self.file = file
         kwargs.setdefault('ensure_ascii', not self.encoding)
@@ -167,41 +171,3 @@ class JsonLinesItemExporter(BaseItemExporter):
         itemdict = dict(self._get_serialized_fields(item))
         data = self.encoder.encode(itemdict) + '\n'
         self.file.write(to_bytes(data, self.encoding))
-
-
-def to_native_str(text, encoding=None, errors='strict'):
-    """Return str representation of `text`
-    (bytes in Python 2.x and unicode in Python 3.x)."""
-    if six.PY2:
-        return to_bytes(text, encoding, errors)
-    else:
-        return to_unicode(text, encoding, errors)
-
-
-def to_bytes(text, encoding=None, errors='strict'):
-    """Return the binary representation of `text`. If `text`
-    is already a bytes object, return it as-is."""
-    if isinstance(text, bytes):
-        return text
-    if not isinstance(text, six.string_types):
-        raise TypeError(
-            'to_bytes must receive a unicode, str or bytes ' 'object, got %s' % type(text).__name__
-        )
-    if encoding is None:
-        encoding = 'utf-8'
-    return text.encode(encoding, errors)
-
-
-def to_unicode(text, encoding=None, errors='strict'):
-    """Return the unicode representation of a bytes object `text`. If `text`
-    is already an unicode object, return it as-is."""
-    if isinstance(text, six.text_type):
-        return text
-    if not isinstance(text, (bytes, six.text_type)):
-        raise TypeError(
-            'to_unicode must receive a bytes, str or unicode '
-            'object, got %s' % type(text).__name__
-        )
-    if encoding is None:
-        encoding = 'utf-8'
-    return text.decode(encoding, errors)

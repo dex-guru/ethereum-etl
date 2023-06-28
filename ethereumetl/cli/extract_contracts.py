@@ -23,6 +23,7 @@
 
 import csv
 import json
+from typing import Iterable
 
 import click
 
@@ -68,7 +69,7 @@ def extract_contracts(traces, batch_size, output, max_workers):
 
     with smart_open(traces, 'r') as traces_file:
         if traces.endswith('.json'):
-            traces_iterable = (json.loads(line) for line in traces_file)
+            traces_iterable: Iterable[dict] = (json.loads(line) for line in traces_file)
         else:
             traces_iterable = csv.DictReader(traces_file)
         job = ExtractContractsJob(

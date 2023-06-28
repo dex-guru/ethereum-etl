@@ -21,11 +21,13 @@
 # SOFTWARE.
 
 import json
-from typing import Iterable, Any, Callable
 import uuid
 from itertools import zip_longest
+from typing import Any, Callable, Iterable
 
 import boto3
+
+from blockchainetl.exporters import BaseItemExporter
 
 _KINESIS_BATCH_LIMIT = 500
 
@@ -34,12 +36,13 @@ def _uuid_partition_key(_: dict) -> str:
     return uuid.uuid4().hex
 
 
-class KinesisItemExporter:
+class KinesisItemExporter(BaseItemExporter):
     def __init__(
         self,
         stream_name: str,
         partition_key_callable: Callable[[dict], str] = _uuid_partition_key,
     ):
+        super().__init__()
         self._stream_name = stream_name
         self._partition_key_callable = partition_key_callable
         self._kinesis_client: Any | None = None  # initialized in .open

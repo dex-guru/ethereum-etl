@@ -52,7 +52,6 @@ def test_export_traces_job(tmpdir, start_block, end_block, resource_group, web3_
     job = ExportTracesJob(
         start_block=start_block,
         end_block=end_block,
-        batch_size=1,
         web3=ThreadLocalProxy(
             lambda: build_web3(
                 get_web3_provider(

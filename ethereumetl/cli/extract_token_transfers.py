@@ -23,6 +23,7 @@
 
 import csv
 import json
+from typing import Iterable
 
 import click
 
@@ -79,12 +80,12 @@ def extract_token_transfers(logs, batch_size, output, max_workers, values_as_str
     """Extracts ERC20/ERC721 transfers from logs file."""
     with smart_open(logs, 'r') as logs_file:
         if logs.endswith('.json'):
-            logs_reader = (json.loads(line) for line in logs_file)
+            log_records: Iterable[dict] = (json.loads(line) for line in logs_file)
         else:
-            logs_reader = csv.DictReader(logs_file)
+            log_records = csv.DictReader(logs_file)
         converters = [IntToStringItemConverter(keys=['value'])] if values_as_strings else []
         job = ExtractTokenTransfersJob(
-            logs_iterable=logs_reader,
+            logs_iterable=log_records,
             batch_size=batch_size,
             max_workers=max_workers,
             item_exporter=token_transfers_item_exporter(output, converters=converters),

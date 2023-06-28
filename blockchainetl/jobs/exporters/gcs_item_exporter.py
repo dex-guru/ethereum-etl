@@ -24,10 +24,12 @@ import json
 import logging
 from collections import defaultdict
 
-from google.cloud import storage
+from google.cloud import storage  # type: ignore
+
+from blockchainetl.exporters import BaseItemExporter
 
 
-def build_block_bundles(items):
+def build_block_bundles(items) -> list[dict]:
     blocks = defaultdict(list)
     transactions = defaultdict(list)
     logs = defaultdict(list)
@@ -67,15 +69,16 @@ def build_block_bundles(items):
     return block_bundles
 
 
-class GcsItemExporter:
+class GcsItemExporter(BaseItemExporter):
     def __init__(self, bucket, path='blocks', build_block_bundles_func=build_block_bundles):
+        super().__init__()
         self.bucket = bucket
         self.path = normalize_path(path)
         self.build_block_bundles_func = build_block_bundles_func
         self.storage_client = storage.Client()
 
-    def open(self):
-        pass
+    def export_item(self, item):
+        self.export_items([item])
 
     def export_items(self, items):
         block_bundles = self.build_block_bundles_func(items)
@@ -94,9 +97,6 @@ class GcsItemExporter:
             blob = bucket.blob(destination_blob_name)
             blob.upload_from_string(json.dumps(block_bundle))
             logging.info(f'Uploaded file gs://{self.bucket}/{destination_blob_name}')
-
-    def close(self):
-        pass
 
 
 def normalize_path(p):

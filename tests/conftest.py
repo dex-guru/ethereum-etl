@@ -13,9 +13,10 @@ def cache_web3_post_requests():
         yield
         return
 
-    from web3 import HTTPProvider
-    from ethereumetl.providers.rpc import BatchHTTPProvider
     from diskcache import Cache, JSONDisk
+    from web3 import HTTPProvider
+
+    from ethereumetl.providers.rpc import BatchHTTPProvider
 
     cache = Cache(
         directory=os.path.dirname(__file__) + '/.cache',

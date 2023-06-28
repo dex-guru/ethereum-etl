@@ -26,7 +26,8 @@ from ethereumetl.utils import hex_to_dec, to_normalized_address
 
 
 class EthTransactionMapper(object):
-    def json_dict_to_transaction(self, json_dict, **kwargs):
+    @staticmethod
+    def json_dict_to_transaction(json_dict, **kwargs):
         transaction = EthTransaction()
         transaction.hash = json_dict.get('hash')
         transaction.nonce = hex_to_dec(json_dict.get('nonce'))
@@ -45,7 +46,8 @@ class EthTransactionMapper(object):
         transaction.transaction_type = hex_to_dec(json_dict.get('type'))
         return transaction
 
-    def transaction_to_dict(self, transaction):
+    @staticmethod
+    def transaction_to_dict(transaction):
         return {
             'type': 'transaction',
             'hash': transaction.hash,

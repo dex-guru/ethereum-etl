@@ -28,6 +28,7 @@ from web3 import IPCProvider
 
 class MockWeb3Provider(IPCProvider):
     def __init__(self, read_resource):
+        super().__init__()
         self.read_resource = read_resource
 
     def make_request(self, method, params):
@@ -38,6 +39,7 @@ class MockWeb3Provider(IPCProvider):
 
 class MockWeb3OrWeb3Provider(IPCProvider):
     def __init__(self, read_resource, write_resource, web3):
+        super().__init__()
         self.read_resource = read_resource
         self.write_resource = write_resource
         self.web3 = web3

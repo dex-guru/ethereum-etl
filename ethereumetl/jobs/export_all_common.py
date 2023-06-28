@@ -28,6 +28,7 @@ import shutil
 from time import time
 
 from blockchainetl.file_utils import smart_open
+from blockchainetl.jobs.base_job import BaseJob
 from ethereumetl.csv_utils import set_max_field_size_limit
 from ethereumetl.jobs.export_blocks_job import ExportBlocksJob
 from ethereumetl.jobs.export_contracts_job import ExportContractsJob
@@ -119,7 +120,7 @@ def export_all_common(partitions, output_dir, provider_uri, max_workers, batch_s
             )
         )
 
-        job = ExportBlocksJob(
+        job: BaseJob = ExportBlocksJob(
             start_block=batch_start_block,
             end_block=batch_end_block,
             batch_size=batch_size,

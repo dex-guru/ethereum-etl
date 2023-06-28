@@ -27,7 +27,8 @@ from ethereumetl.utils import hex_to_dec, to_normalized_address
 
 
 class EthTraceMapper(object):
-    def json_dict_to_trace(self, json_dict: dict):
+    @staticmethod
+    def json_dict_to_trace(json_dict: dict):
         trace = EthTrace()
 
         trace.block_number = json_dict.get('blockNumber')
@@ -96,7 +97,8 @@ class EthTraceMapper(object):
 
         return traces
 
-    def genesis_alloc_to_trace(self, allocation):
+    @staticmethod
+    def genesis_alloc_to_trace(allocation):
         address = allocation[0]
         value = allocation[1]
 
@@ -110,7 +112,8 @@ class EthTraceMapper(object):
 
         return trace
 
-    def daofork_state_change_to_trace(self, state_change):
+    @staticmethod
+    def daofork_state_change_to_trace(state_change):
         from_address = state_change[0]
         to_address = state_change[1]
         value = state_change[2]
@@ -126,7 +129,9 @@ class EthTraceMapper(object):
 
         return trace
 
-    def _iterate_transaction_trace(self, block_number, tx_index, tx_trace, trace_address=[]):
+    def _iterate_transaction_trace(self, block_number, tx_index, tx_trace, trace_address=None):
+        if trace_address is None:
+            trace_address = []
         trace = EthTrace()
 
         trace.block_number = block_number
@@ -170,7 +175,8 @@ class EthTraceMapper(object):
 
         return result
 
-    def trace_to_dict(self, trace):
+    @staticmethod
+    def trace_to_dict(trace):
         return {
             'type': 'trace',
             'block_number': trace.block_number,
