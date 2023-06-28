@@ -6,7 +6,6 @@ from pathlib import Path
 from string import Template
 from textwrap import indent
 from typing import List
-from urllib.parse import parse_qs, urlparse
 
 import clickhouse_connect
 import clickhouse_connect.datatypes.numeric as types
@@ -16,6 +15,7 @@ from clickhouse_connect.driver.models import ColumnDef
 from blockchainetl.exporters import BaseItemExporter
 from ethereumetl.config.envs import envs
 from ethereumetl.enumeration.entity_type import EntityType
+from ethereumetl.utils import parse_clickhouse_url
 
 logger = logging.getLogger(__name__)
 
@@ -47,13 +47,13 @@ NUMERIC_TYPE_MAX_VALUES = {
 class ClickHouseItemExporter(BaseItemExporter):
     def __init__(self, connection_url, item_type_to_table_mapping, chain_id=1):
         super().__init__()
-        parsed = urlparse(connection_url)
-        self.username = parsed.username
-        self.password = parsed.password
-        self.host = parsed.hostname
-        self.port = parsed.port
-        self.database = parsed.path[1:].split("/")[0] if parsed.path else "default"
-        self.settings = dict(parse_qs(parsed.query))
+        parsed = parse_clickhouse_url(connection_url)
+        self.username = parsed['user']
+        self.password = parsed['password']
+        self.host = parsed['host']
+        self.port = parsed['port']
+        self.database = parsed['database']
+        self.settings = parsed['settings']
         self.connection: clickhouse_connect.driver.HttpClient | None = None
         self.tables = {}
         self.cached_batches = {}

@@ -27,6 +27,8 @@ import time
 import warnings
 from datetime import datetime
 from pathlib import Path
+from typing import Any
+from urllib.parse import parse_qs, urlparse
 
 import pytz
 
@@ -207,3 +209,22 @@ class HealthCheck:
     def __call__(self, *args, **kwargs):
         self.im_alive()
         return self.func(*args, **kwargs)
+
+
+def parse_clickhouse_url(url) -> dict[str, Any]:
+    parsed = urlparse(url)
+    settings = parse_qs(parsed.query)
+    connect_kwargs = {
+        'host': parsed.hostname or 'localhost',
+        'port': parsed.port or 8123,
+        'user': parsed.username or 'default',
+        'password': parsed.password or '',
+        'settings': settings,
+    }
+    if parsed.path:
+        connect_kwargs['database'] = parsed.path[1:]
+    else:
+        connect_kwargs['database'] = 'default'
+    if parsed.scheme == "https":
+        connect_kwargs['secure'] = True
+    return connect_kwargs

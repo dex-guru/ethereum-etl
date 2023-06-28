@@ -1,7 +1,6 @@
 import logging
 from functools import cache, cached_property
 from typing import Any, Iterable, Optional
-from urllib.parse import parse_qs, urlparse
 
 import clickhouse_connect
 
@@ -9,6 +8,7 @@ from blockchainetl.jobs.exporters.clickhouse_exporter import ClickHouseItemExpor
 from blockchainetl.jobs.exporters.multi_item_exporter import MultiItemExporter
 from ethereumetl.enumeration.entity_type import ALL, EntityType
 from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter, sort_by
+from ethereumetl.utils import parse_clickhouse_url
 
 logger = logging.getLogger(__name__)
 
@@ -67,27 +67,10 @@ class ClickhouseEthStreamerAdapter:
 
     @staticmethod
     def clickhouse_client_from_url(url) -> clickhouse_connect.driver.HttpClient:
-        connect_kwargs = ClickhouseEthStreamerAdapter.parse_url(url)
-        return clickhouse_connect.get_client(
+        connect_kwargs = parse_clickhouse_url(url)
+        return clickhouse_connect.create_client(
             **connect_kwargs, compress=False, query_limit=0, send_receive_timeout=600
         )
-
-    @staticmethod
-    def parse_url(url) -> dict[str, Any]:
-        parsed = urlparse(url)
-        settings = parse_qs(parsed.query)
-        connect_kwargs = {
-            'host': parsed.hostname,
-            'port': parsed.port,
-            'user': parsed.username,
-            'password': parsed.password,
-            'settings': settings,
-        }
-        if parsed.path:
-            connect_kwargs['database'] = parsed.path[1:]
-        if parsed.scheme == "https":
-            connect_kwargs['secure'] = True
-        return connect_kwargs
 
     def open(self):
         self._eth_streamer_adapter.open()
@@ -407,7 +390,7 @@ class ClickhouseEthStreamerAdapter:
         if not isinstance(exporter, ClickHouseItemExporter):
             return False
 
-        params = self.parse_url(self._clickhouse_url)
+        params = parse_clickhouse_url(self._clickhouse_url)
 
         return (
             params['host'] == exporter.host
