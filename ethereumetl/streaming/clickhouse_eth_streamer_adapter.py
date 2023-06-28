@@ -245,7 +245,8 @@ class ClickhouseEthStreamerAdapter:
                     end_block,
                     'transaction_hash',
                 )
-                if len(geth_traces) > 0:
+
+                if len(geth_traces) == len(export_blocks_and_transactions()[1]):
                     for t in geth_traces:
                         t['type'] = GETH_TRACE
                     from_ch = True
