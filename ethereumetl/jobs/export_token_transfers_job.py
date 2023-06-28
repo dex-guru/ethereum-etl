@@ -83,7 +83,7 @@ class ExportTokenTransfersJob(BaseJob):
                     self._supports_eth_newFilter = False
                     events = self.web3.eth.getLogs(filter_params)
                 else:
-                    raise (e)
+                    raise e
             for event in events:
                 log = self.receipt_log_mapper.web3_dict_to_receipt_log(event)
                 for token_transfer in self.token_transfer_extractor.extract_transfers_from_log(

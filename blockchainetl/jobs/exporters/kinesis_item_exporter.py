@@ -42,6 +42,7 @@ class KinesisItemExporter(BaseItemExporter):
         stream_name: str,
         partition_key_callable: Callable[[dict], str] = _uuid_partition_key,
     ):
+        super().__init__()
         self._stream_name = stream_name
         self._partition_key_callable = partition_key_callable
         self._kinesis_client: Any | None = None  # initialized in .open
