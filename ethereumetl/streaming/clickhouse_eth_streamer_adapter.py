@@ -249,6 +249,7 @@ class ClickhouseEthStreamerAdapter:
                 if len(geth_traces) == len(export_blocks_and_transactions()[1]):
                     for t in geth_traces:
                         t['type'] = GETH_TRACE
+                        t['transaction_traces'] = t['traces_json']
                     from_ch = True
                     return geth_traces, from_ch
 
