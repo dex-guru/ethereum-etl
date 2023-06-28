@@ -19,34 +19,31 @@
 #  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
-from enum import Enum
 
-from blockchainetl.exporters import BaseItemExporter
 from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExporter
 from blockchainetl.jobs.exporters.multi_item_exporter import MultiItemExporter
-from ethereumetl.enumeration.entity_type import EntityType
 
 
-def create_item_exporters(outputs, chain_id) -> BaseItemExporter:
+def create_item_exporters(outputs, chain_id):
     split_outputs = [output.strip() for output in outputs.split(',')] if outputs else ['console']
 
     item_exporters = [create_item_exporter(output, chain_id) for output in split_outputs]
     return MultiItemExporter(item_exporters)
 
 
-def make_item_type_to_table_mapping(chain_id: int | None = None) -> dict[EntityType, str]:
+def make_item_type_to_table_mapping(chain_id=None):
     item_type_to_table_mapping = {
-        EntityType.BLOCK: 'blocks',
-        EntityType.TRANSACTION: 'transactions',
-        EntityType.LOG: 'logs',
-        EntityType.TOKEN_TRANSFER: 'token_transfers',
-        EntityType.TOKEN_BALANCE: 'token_balances',
-        EntityType.TRACE: 'traces',
-        EntityType.CONTRACT: 'contracts',
-        EntityType.TOKEN: 'tokens',
-        EntityType.ERROR: 'errors',
-        EntityType.GETH_TRACE: 'geth_traces',
-        EntityType.INTERNAL_TRANSFER: 'internal_transfers',
+        'block': 'blocks',
+        'transaction': 'transactions',
+        'log': 'logs',
+        'token_transfer': 'token_transfers',
+        'token_balance': 'token_balances',
+        'trace': 'traces',
+        'contract': 'contracts',
+        'token': 'tokens',
+        'error': 'errors',
+        'geth_trace': 'geth_traces',
+        'internal_transfer': 'internal_transfers',
     }
     if chain_id:
         item_type_to_table_mapping = {
@@ -55,7 +52,7 @@ def make_item_type_to_table_mapping(chain_id: int | None = None) -> dict[EntityT
     return item_type_to_table_mapping
 
 
-def create_item_exporter(output, chain_id) -> BaseItemExporter:
+def create_item_exporter(output, chain_id):
     item_exporter_type = determine_item_exporter_type(output)
     if item_exporter_type == ItemExporterType.PUBSUB:
         from blockchainetl.jobs.exporters.google_pubsub_item_exporter import (
@@ -63,15 +60,15 @@ def create_item_exporter(output, chain_id) -> BaseItemExporter:
         )
 
         enable_message_ordering = 'sorted' in output or 'ordered' in output
-        item_exporter: BaseItemExporter = GooglePubSubItemExporter(
+        item_exporter = GooglePubSubItemExporter(
             item_type_to_topic_mapping={
-                EntityType.BLOCK: output + '.blocks',
-                EntityType.TRANSACTION: output + '.transactions',
-                EntityType.LOG: output + '.logs',
-                EntityType.TOKEN_TRANSFER: output + '.token_transfers',
-                EntityType.TRACE: output + '.traces',
-                EntityType.CONTRACT: output + '.contracts',
-                EntityType.TOKEN: output + '.tokens',
+                'block': output + '.blocks',
+                'transaction': output + '.transactions',
+                'log': output + '.logs',
+                'token_transfer': output + '.token_transfers',
+                'trace': output + '.traces',
+                'contract': output + '.contracts',
+                'token': output + '.tokens',
             },
             message_attributes=('item_id', 'item_timestamp'),
             batch_max_bytes=1024 * 1024 * 5,
@@ -110,13 +107,13 @@ def create_item_exporter(output, chain_id) -> BaseItemExporter:
         item_exporter = PostgresItemExporter(
             output,
             item_type_to_insert_stmt_mapping={
-                EntityType.BLOCK: create_insert_statement_for_table(BLOCKS),
-                EntityType.TRANSACTION: create_insert_statement_for_table(TRANSACTIONS),
-                EntityType.LOG: create_insert_statement_for_table(LOGS),
-                EntityType.TOKEN_TRANSFER: create_insert_statement_for_table(TOKEN_TRANSFERS),
-                EntityType.TRACE: create_insert_statement_for_table(TRACES),
-                EntityType.TOKEN: create_insert_statement_for_table(TOKENS),
-                EntityType.CONTRACT: create_insert_statement_for_table(CONTRACTS),
+                'block': create_insert_statement_for_table(BLOCKS),
+                'transaction': create_insert_statement_for_table(TRANSACTIONS),
+                'log': create_insert_statement_for_table(LOGS),
+                'token_transfer': create_insert_statement_for_table(TOKEN_TRANSFERS),
+                'trace': create_insert_statement_for_table(TRACES),
+                'token': create_insert_statement_for_table(TOKENS),
+                'contract': create_insert_statement_for_table(CONTRACTS),
             },
             converters=[
                 UnixTimestampItemConverter(),
@@ -137,13 +134,13 @@ def create_item_exporter(output, chain_id) -> BaseItemExporter:
         item_exporter = KafkaItemExporter(
             output,
             item_type_to_topic_mapping={
-                EntityType.BLOCK: 'blocks',
-                EntityType.TRANSACTION: 'transactions',
-                EntityType.LOG: 'logs',
-                EntityType.TOKEN_TRANSFER: 'token_transfers',
-                EntityType.TRACE: 'traces',
-                EntityType.CONTRACT: 'contracts',
-                EntityType.TOKEN: 'tokens',
+                'block': 'blocks',
+                'transaction': 'transactions',
+                'log': 'logs',
+                'token_transfer': 'token_transfers',
+                'trace': 'traces',
+                'contract': 'contracts',
+                'token': 'tokens',
             },
         )
     elif item_exporter_type == ItemExporterType.CLICKHOUSE:
@@ -151,7 +148,8 @@ def create_item_exporter(output, chain_id) -> BaseItemExporter:
 
         item_type_to_table_mapping = make_item_type_to_table_mapping(chain_id)
         item_exporter = ClickHouseItemExporter(
-            output, item_type_to_table_mapping=item_type_to_table_mapping, chain_id=chain_id
+            output, item_type_to_table_mapping=item_type_to_table_mapping,
+            chain_id=chain_id
         )
     elif item_exporter_type == ItemExporterType.AMQP:
         from blockchainetl.jobs.exporters.amqp_exporter import AMQPItemExporter
@@ -174,29 +172,28 @@ def get_bucket_and_path_from_gcs_output(output):
     return bucket, path
 
 
-def determine_item_exporter_type(output: str | None) -> 'ItemExporterType':
-    if output is None or output == 'console':
-        return ItemExporterType.CONSOLE
-
-    if output.startswith('projects'):
+def determine_item_exporter_type(output) -> str:
+    if output is not None and output.startswith('projects'):
         return ItemExporterType.PUBSUB
-    if output.startswith('kinesis://'):
+    if output is not None and output.startswith('kinesis://'):
         return ItemExporterType.KINESIS
-    if output.startswith('kafka'):
+    if output is not None and output.startswith('kafka'):
         return ItemExporterType.KAFKA
-    if output.startswith('postgresql'):
+    elif output is not None and output.startswith('postgresql'):
         return ItemExporterType.POSTGRES
-    if output.startswith('gs://'):
+    elif output is not None and output.startswith('gs://'):
         return ItemExporterType.GCS
-    if output.startswith('clickhouse'):
+    elif output is not None and output.startswith('clickhouse'):
         return ItemExporterType.CLICKHOUSE
-    if output.startswith('amqp') or output.startswith('rabbitmq'):
+    elif output is not None and (output.startswith('amqp') or output.startswith('rabbitmq')):
         return ItemExporterType.AMQP
+    elif output is None or output == 'console':
+        return ItemExporterType.CONSOLE
+    else:
+        return ItemExporterType.UNKNOWN
 
-    return ItemExporterType.UNKNOWN
 
-
-class ItemExporterType(Enum):
+class ItemExporterType:
     PUBSUB = 'pubsub'
     KINESIS = 'kinesis'
     POSTGRES = 'postgres'

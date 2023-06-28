@@ -26,7 +26,7 @@ from ethereumetl.utils import pairwise
 
 class GraphOperations(object):
     def __init__(self, graph):
-        """x-axis on the graph must be integers, y value must increase strictly monotonically with increase of x"""
+        """x axis on the graph must be integers, y value must increase strictly monotonically with increase of x"""
         self._graph = graph
         self._cached_points = []
 

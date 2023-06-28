@@ -24,7 +24,6 @@ import random
 
 import click
 
-from blockchainetl.streaming.streamer_adapter_stub import StreamerAdapterStub
 from blockchainetl.streaming.streaming_utils import configure_logging, configure_signals
 from ethereumetl.config.envs import envs
 from ethereumetl.providers.auto import get_provider_from_uri
@@ -169,10 +168,6 @@ def check_data_consistency(
     export_from_clickhouse=None,
 ):
     """Streams all data types to console or Google Pub/Sub."""
-
-    # TODO: use or remove:
-    _, _ = start_block, end_block
-
     configure_logging(log_file)
     configure_signals()
     entity_types = parse_entity_types(entity_types)
@@ -185,7 +180,7 @@ def check_data_consistency(
     provider_uri = pick_random_provider_uri(provider_uri)
     logging.info('Using ' + provider_uri)
 
-    eth_streamer_adapter = EthStreamerAdapter(
+    streamer_adapter = EthStreamerAdapter(
         batch_web3_provider=ThreadLocalProxy(
             lambda: get_provider_from_uri(provider_uri, batch=True)
         ),
@@ -195,15 +190,12 @@ def check_data_consistency(
         entity_types=entity_types,
     )
     if export_from_clickhouse:
-        streamer_adapter: StreamerAdapterStub = ClickhouseEthStreamerAdapter(
-            eth_streamer_adapter=eth_streamer_adapter,
+        streamer_adapter = ClickhouseEthStreamerAdapter(
+            eth_streamer_adapter=streamer_adapter,
             clickhouse_url=export_from_clickhouse,
             chain_id=chain_id,
             item_type_to_table_mapping=make_item_type_to_table_mapping(chain_id),
         )
-    else:
-        streamer_adapter = eth_streamer_adapter
-
     blocks_gaps = resolve_data_consistency_service(chain_id)
     if blocks_gaps:
         for blocks_gap in blocks_gaps:

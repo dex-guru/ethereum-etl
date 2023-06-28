@@ -6,16 +6,16 @@ from pathlib import Path
 from string import Template
 from textwrap import indent
 from typing import List
+from urllib.parse import parse_qs, urlparse
 
 import clickhouse_connect
 import clickhouse_connect.datatypes.numeric as types
 from clickhouse_connect.driver.exceptions import DatabaseError
 from clickhouse_connect.driver.models import ColumnDef
 
-from blockchainetl.exporters import BaseItemExporter
 from ethereumetl.config.envs import envs
 from ethereumetl.enumeration.entity_type import EntityType
-from ethereumetl.utils import parse_clickhouse_url
+
 
 logger = logging.getLogger(__name__)
 
@@ -44,16 +44,15 @@ NUMERIC_TYPE_MAX_VALUES = {
 }
 
 
-class ClickHouseItemExporter(BaseItemExporter):
+class ClickHouseItemExporter:
     def __init__(self, connection_url, item_type_to_table_mapping, chain_id=1):
-        super().__init__()
-        parsed = parse_clickhouse_url(connection_url)
-        self.username = parsed['user']
-        self.password = parsed['password']
-        self.host = parsed['host']
-        self.port = parsed['port']
-        self.database = parsed['database']
-        self.settings = parsed['settings']
+        parsed = urlparse(connection_url)
+        self.username = parsed.username
+        self.password = parsed.password
+        self.host = parsed.hostname
+        self.port = parsed.port
+        self.database = parsed.path[1:].split("/")[0] if parsed.path else "default"
+        self.settings = dict(parse_qs(parsed.query))
         self.connection: clickhouse_connect.driver.HttpClient | None = None
         self.tables = {}
         self.cached_batches = {}
@@ -93,9 +92,6 @@ class ClickHouseItemExporter(BaseItemExporter):
                 logger.debug(de)
                 pass
 
-    def export_item(self, item):
-        self.export_items([item])
-
     def export_items(self, items):
         items_grouped_by_table = self.group_items_by_table(items)
         for item_type, table in self.item_type_to_table_mapping.items():
@@ -121,8 +117,6 @@ class ClickHouseItemExporter(BaseItemExporter):
                     self.cached_batches[table] = batch
 
     def _insert(self, column_names, column_types, table, table_data):
-        if self.connection is None:
-            raise RuntimeError('Connection is not open.')
         try:
             self.connection.insert(
                 table,
@@ -180,7 +174,7 @@ class ClickHouseItemExporter(BaseItemExporter):
             database=self.database,
             settings=self.settings,
             compress=False,
-            send_receive_timeout=600,
+            send_receive_timeout=600
         )
 
     def close(self):
@@ -199,13 +193,13 @@ class ClickHouseItemExporter(BaseItemExporter):
     def group_items_by_table(self, items):
         results = collections.defaultdict(list)
         for item in items:
-            type_ = item.get('type')
-            if type_ in self.item_type_to_table_mapping:
-                table = self.item_type_to_table_mapping[type_]
+            type = item.get('type')
+            if type in self.item_type_to_table_mapping:
+                table = self.item_type_to_table_mapping[type]
                 if table not in self.tables:
                     logger.error(
                         'Table "{}" does not exist. Type "{}" cannot be exported.'.format(
-                            table, type_
+                            table, type
                         )
                     )
                 result = []
@@ -216,7 +210,7 @@ class ClickHouseItemExporter(BaseItemExporter):
             else:
                 logger.warning(
                     'ClickHouse exporter ignoring {} items as type is not currently supported.'.format(
-                        type_
+                        type
                     )
                 )
         return results

@@ -1,6 +1,5 @@
 class OriginMarketplaceListingMapper(object):
-    @staticmethod
-    def listing_to_dict(listing):
+    def listing_to_dict(self, listing):
         return {
             'type': 'origin_marketplace_listing',
             'listing_id': listing.listing_id,
@@ -19,8 +18,7 @@ class OriginMarketplaceListingMapper(object):
 
 
 class OriginShopProductMapper(object):
-    @staticmethod
-    def product_to_dict(product):
+    def product_to_dict(self, product):
         return {
             'type': 'origin_shop_product',
             'listing_id': product.listing_id,

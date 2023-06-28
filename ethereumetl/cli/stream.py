@@ -27,7 +27,7 @@ import click
 from blockchainetl.streaming.streamer_adapter_stub import StreamerAdapterStub
 from blockchainetl.streaming.streaming_utils import configure_logging, configure_signals
 from ethereumetl.config.envs import envs
-from ethereumetl.enumeration.entity_type import ALL_FOR_STREAMING, EntityType
+from ethereumetl.enumeration.entity_type import ALL_FOR_STREAMING
 from ethereumetl.providers.auto import get_provider_from_uri
 from ethereumetl.streaming.item_exporter_creator import (
     create_item_exporters,
@@ -197,7 +197,7 @@ def stream(
             clickhouse_url=export_from_clickhouse,
             chain_id=chain_id,
             item_type_to_table_mapping=make_item_type_to_table_mapping(chain_id),
-            rewrite_entity_types=[EntityType(x) for x in envs.REWRITE_CLICKHOUSE.split(',') if x],
+            rewrite_entity_types=envs.REWRITE_CLICKHOUSE.split(','),
         )
 
     streamer = Streamer(

@@ -26,8 +26,7 @@ from datetime import datetime
 
 
 class EthItemTimestampCalculator:
-    @staticmethod
-    def calculate(item):
+    def calculate(self, item):
         if item is None or not isinstance(item, dict):
             return None
 

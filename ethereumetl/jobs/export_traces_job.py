@@ -35,6 +35,7 @@ class ExportTracesJob(BaseJob):
         self,
         start_block,
         end_block,
+        batch_size,
         web3,
         item_exporter,
         max_workers,

@@ -64,8 +64,6 @@ def is_block_range(start, end):
 def get_partitions(start, end, partition_batch_size, provider_uri):
     """Yield partitions based on input data type."""
     if is_date_range(start, end) or is_unix_time_range(start, end):
-        start_date = end_date = None
-
         if is_date_range(start, end):
             start_date = datetime.strptime(start, '%Y-%m-%d').date()
             end_date = datetime.strptime(end, '%Y-%m-%d').date()
@@ -85,7 +83,6 @@ def get_partitions(start, end, partition_batch_size, provider_uri):
         web3 = build_web3(provider)
         eth_service = EthService(web3)
 
-        assert start_date is not None and end_date is not None
         while start_date <= end_date:
             batch_start_block, batch_end_block = eth_service.get_block_range_for_date(start_date)
             partition_dir = '/date={start_date!s}/'.format(start_date=start_date)

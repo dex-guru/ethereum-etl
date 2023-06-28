@@ -23,7 +23,7 @@
 
 import logging
 from builtins import map
-from typing import Callable, Iterable, Iterator
+from typing import Iterator
 
 import eth_abi
 import eth_abi.exceptions
@@ -173,9 +173,7 @@ def extract_erc1155_batch_transfers(receipt_log):
 
 
 class EthTokenTransferExtractor(object):
-    EXTRACT_BY_TOPICS_LEN_TOPIC0: dict[
-        tuple[int, str], Callable[[dict], Iterable[EthTokenTransfer]]
-    ] = {
+    EXTRACT_BY_TOPICS_LEN_TOPIC0 = {
         (3, TRANSFER_EVENT_TOPIC): extract_erc20_transfers,
         (4, ERC721_TRANSFER_EVENT_TOPIC): extract_erc721_transfers,
         (4, ERC1155_SINGLE_TRANSFER_EVENT_TOPIC): extract_erc1155_single_transfers,

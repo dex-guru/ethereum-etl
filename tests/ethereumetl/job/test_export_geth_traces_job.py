@@ -42,7 +42,9 @@ def read_resource(resource_group, file_name):
     (['0xa6d1ee88d620546f12223941ea34d254f4e4885514ebd7f68f00712832613587'], 'block_with_create', 'mock'),
 ])
 # fmt: on
-def test_export_geth_traces_job(tmpdir, transaction_hashes, resource_group, web3_provider_type):
+def test_export_geth_traces_job(
+    tmpdir, transaction_hashes, resource_group, web3_provider_type
+):
     traces_output_file = str(tmpdir.join('actual_geth_traces.json'))
 
     job = ExportGethTracesJob(

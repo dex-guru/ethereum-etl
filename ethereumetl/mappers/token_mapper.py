@@ -22,8 +22,7 @@
 
 
 class EthTokenMapper(object):
-    @staticmethod
-    def token_to_dict(token):
+    def token_to_dict(self, token):
         return {
             'type': 'token',
             'address': token.address,

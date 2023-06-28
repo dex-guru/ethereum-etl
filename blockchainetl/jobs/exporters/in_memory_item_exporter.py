@@ -21,12 +21,8 @@
 # SOFTWARE.
 
 
-from blockchainetl.exporters import BaseItemExporter
-
-
-class InMemoryItemExporter(BaseItemExporter):
+class InMemoryItemExporter:
     def __init__(self, item_types):
-        super().__init__()
         self.item_types = item_types
         self.items = {}
 

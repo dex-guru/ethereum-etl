@@ -26,8 +26,7 @@ from ethereumetl.utils import hex_to_dec
 
 
 class EthReceiptLogMapper(object):
-    @staticmethod
-    def json_dict_to_receipt_log(json_dict):
+    def json_dict_to_receipt_log(self, json_dict):
         receipt_log = EthReceiptLog()
 
         receipt_log.log_index = hex_to_dec(json_dict.get('logIndex'))
@@ -41,8 +40,7 @@ class EthReceiptLogMapper(object):
 
         return receipt_log
 
-    @staticmethod
-    def web3_dict_to_receipt_log(dict):
+    def web3_dict_to_receipt_log(self, dict):
         receipt_log = EthReceiptLog()
 
         receipt_log.log_index = dict.get('logIndex')
@@ -66,8 +64,7 @@ class EthReceiptLogMapper(object):
 
         return receipt_log
 
-    @staticmethod
-    def receipt_log_to_dict(receipt_log):
+    def receipt_log_to_dict(self, receipt_log):
         return {
             'type': 'log',
             'log_index': receipt_log.log_index,
@@ -80,8 +77,7 @@ class EthReceiptLogMapper(object):
             'topics': receipt_log.topics,
         }
 
-    @staticmethod
-    def dict_to_receipt_log(dict):
+    def dict_to_receipt_log(self, dict):
         receipt_log = EthReceiptLog()
 
         receipt_log.log_index = dict.get('log_index')

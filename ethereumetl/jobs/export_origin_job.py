@@ -108,7 +108,6 @@ class ExportOriginJob(BaseJob):
                 }
             )
 
-        event_filter = None
         for batch in batches:
             # https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getfilterlogs
             filter_params = {
@@ -131,7 +130,7 @@ class ExportOriginJob(BaseJob):
                         self._supports_eth_newFilter = False
                         events = self.web3.eth.getLogs(filter_params)
                     else:
-                        raise e
+                        raise (e)
             else:
                 events = self.web3.eth.getLogs(filter_params)
             for event in events:
@@ -146,7 +145,7 @@ class ExportOriginJob(BaseJob):
                     item = self.shop_listing_mapper.product_to_dict(product)
                     self.shop_product_exporter.export_item(item)
 
-            if self._supports_eth_newFilter and event_filter:
+            if self._supports_eth_newFilter:
                 self.web3.eth.uninstallFilter(event_filter.filter_id)
 
     def _end(self):

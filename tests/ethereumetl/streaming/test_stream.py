@@ -32,7 +32,6 @@ from blockchainetl.jobs.exporters.clickhouse_exporter import ClickHouseItemExpor
 from blockchainetl.jobs.exporters.composite_item_exporter import CompositeItemExporter
 from blockchainetl.jobs.exporters.in_memory_item_exporter import InMemoryItemExporter
 from blockchainetl.streaming.streamer import Streamer
-from blockchainetl.streaming.streamer_adapter_stub import StreamerAdapterStub
 from ethereumetl.config.envs import envs
 from ethereumetl.domain.token_transfer import TokenStandard
 from ethereumetl.enumeration import entity_type
@@ -440,7 +439,7 @@ def test_stream_token_balances(tmp_path: Path, streamer_adapter_cls, cleanup):
     )
 
     if streamer_adapter_cls is EthStreamerAdapter:
-        streamer_adapter: StreamerAdapterStub = eth_streamer_adapter
+        streamer_adapter = eth_streamer_adapter
     elif streamer_adapter_cls is ClickhouseEthStreamerAdapter:
         streamer_adapter = ClickhouseEthStreamerAdapter(
             eth_streamer_adapter=eth_streamer_adapter,

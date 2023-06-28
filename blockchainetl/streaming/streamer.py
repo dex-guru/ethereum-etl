@@ -216,7 +216,7 @@ class LastSyncedBlockProviderSQL(LastSyncedBlockProvider):
 
         Base = declarative_base()
 
-        class LastSyncedBlock(Base):  # type: ignore
+        class LastSyncedBlock(Base):
             __tablename__ = self.table_name
             chain_id = Column(UInt32, primary_key=True)
             block_number = Column(Integer)

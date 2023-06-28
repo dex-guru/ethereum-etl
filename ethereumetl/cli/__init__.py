@@ -52,7 +52,7 @@ logging_basic_config()
 @click.group()
 @click.version_option(version='2.1.1')
 @click.pass_context
-def cli(_ctx):
+def cli(ctx):
     pass
 
 

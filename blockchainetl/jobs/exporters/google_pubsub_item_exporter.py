@@ -23,13 +23,11 @@
 import json
 import logging
 
-from google.cloud import pubsub_v1  # type: ignore
+from google.cloud import pubsub_v1
 from timeout_decorator import timeout_decorator
 
-from blockchainetl.exporters import BaseItemExporter
 
-
-class GooglePubSubItemExporter(BaseItemExporter):
+class GooglePubSubItemExporter:
     def __init__(
         self,
         item_type_to_topic_mapping,
@@ -39,7 +37,6 @@ class GooglePubSubItemExporter(BaseItemExporter):
         batch_max_messages=1000,
         enable_message_ordering=False,
     ):
-        super().__init__()
         self.item_type_to_topic_mapping = item_type_to_topic_mapping
 
         self.batch_max_bytes = batch_max_bytes

@@ -34,14 +34,13 @@ import csv
 import decimal
 import io
 import threading
-from abc import ABC, abstractmethod
 from datetime import datetime
 from json import JSONEncoder
 
 import six
 
 
-class BaseItemExporter(ABC):
+class BaseItemExporter(object):
     def __init__(self, **kwargs):
         self._configure(kwargs)
 
@@ -57,23 +56,18 @@ class BaseItemExporter(ABC):
         if not dont_fail and options:
             raise TypeError("Unexpected options: %s" % ', '.join(options.keys()))
 
-    def open(self):
-        ...
-
-    def close(self):
-        ...
-
-    @abstractmethod
     def export_item(self, item):
-        ...
-
-    def export_items(self, items):
-        for item in items:
-            self.export_item(item)
+        raise NotImplementedError
 
     def serialize_field(self, field, name, value):
         serializer = field.get('serializer', lambda x: x)
         return serializer(value)
+
+    def start_exporting(self):
+        pass
+
+    def finish_exporting(self):
+        pass
 
     def _get_serialized_fields(self, item, default_value=None, include_empty=None):
         """Return the fields to export as an iterable of tuples
@@ -104,7 +98,6 @@ class BaseItemExporter(ABC):
 
 class CsvItemExporter(BaseItemExporter):
     def __init__(self, file, include_headers_line=True, join_multivalued=',', **kwargs):
-        super().__init__(**kwargs)
         self._configure(kwargs, dont_fail=True)
         if not self.encoding:
             self.encoding = 'utf-8'
@@ -177,10 +170,10 @@ def default_encoder(o):
 
 class JsonLinesItemExporter(BaseItemExporter):
     def __init__(self, file, **kwargs):
-        super().__init__(**kwargs)
         self._configure(kwargs, dont_fail=True)
         self.file = file
         kwargs.setdefault('ensure_ascii', not self.encoding)
+        # kwargs.setdefault('default', EncodeDecimal)
         self.encoder = JSONEncoder(default=default_encoder, **kwargs)
 
     def export_item(self, item):
@@ -212,9 +205,9 @@ def to_bytes(text, encoding=None, errors='strict'):
     return text.encode(encoding, errors)
 
 
-def to_unicode(text: str | bytes, encoding=None, errors='strict'):
+def to_unicode(text, encoding=None, errors='strict'):
     """Return the unicode representation of a bytes object `text`. If `text`
-    is already a unicode object, return it as-is."""
+    is already an unicode object, return it as-is."""
     if isinstance(text, six.text_type):
         return text
     if not isinstance(text, (bytes, six.text_type)):

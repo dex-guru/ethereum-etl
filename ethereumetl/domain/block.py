@@ -19,30 +19,28 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-from dataclasses import dataclass, field
-
-from ethereumetl.domain.transaction import EthTransaction
 
 
-@dataclass
-class EthBlock:
-    number: int
-    hash: str
-    parent_hash: str
-    nonce: str
-    sha3_uncles: str
-    logs_bloom: str
-    transactions_root: str
-    state_root: str
-    receipts_root: str
-    miner: str
-    difficulty: int
-    total_difficulty: int
-    size: int
-    extra_data: str
-    gas_limit: int
-    gas_used: int
-    timestamp: int
-    transactions: list[EthTransaction] = field(default_factory=list)
-    transaction_count: int = 0
-    base_fee_per_gas: int = 0
+class EthBlock(object):
+    def __init__(self):
+        self.number = None
+        self.hash = None
+        self.parent_hash = None
+        self.nonce = None
+        self.sha3_uncles = None
+        self.logs_bloom = None
+        self.transactions_root = None
+        self.state_root = None
+        self.receipts_root = None
+        self.miner = None
+        self.difficulty = None
+        self.total_difficulty = None
+        self.size = None
+        self.extra_data = None
+        self.gas_limit = None
+        self.gas_used = None
+        self.timestamp = None
+
+        self.transactions = []
+        self.transaction_count = 0
+        self.base_fee_per_gas = 0

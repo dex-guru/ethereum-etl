@@ -19,12 +19,10 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-from blockchainetl.exporters import BaseItemExporter
 
 
-class MultiItemExporter(BaseItemExporter):
+class MultiItemExporter:
     def __init__(self, item_exporters):
-        super().__init__()
         self.item_exporters = item_exporters
 
     def open(self):
