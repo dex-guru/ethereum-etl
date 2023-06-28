@@ -261,7 +261,7 @@ def get_transactions_count_difference(
 def get_missing_blocks_ranges(client: Client, chain_id: int):
     blocks_gaps = []
     blocks_diff, last_block = get_blocks_count_difference_last_block(client, chain_id)
-    if blocks_diff > 0:
+    if blocks_diff is not None and blocks_diff > 0:
         blocks_gaps = find_blocks_gaps(client, chain_id, last_block)
     return blocks_gaps, last_block, blocks_diff
 
