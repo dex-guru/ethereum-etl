@@ -70,5 +70,5 @@ class EthReceiptMapper(object):
             'root': receipt.root,
             'status': receipt.status,
             'effective_gas_price': receipt.effective_gas_price,
-            'logs_count': len(receipt.logs)
+            'logs_count': len(receipt.logs),
         }
