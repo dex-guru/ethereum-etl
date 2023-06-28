@@ -72,6 +72,8 @@ class ExportTokenTransfersJob(BaseJob):
 
             if self.tokens is not None and len(self.tokens) > 0:
                 filter_params['address'] = self.tokens
+
+            event_filter = None
             try:
                 event_filter = self.web3.eth.filter(filter_params)
                 events = event_filter.get_all_entries()
@@ -93,7 +95,7 @@ class ExportTokenTransfersJob(BaseJob):
                         self.token_transfer_mapper.token_transfer_to_dict(token_transfer)
                     )
 
-            if self._supports_eth_newFilter:
+            if self._supports_eth_newFilter and event_filter is not None:
                 self.web3.eth.uninstallFilter(event_filter.filter_id)
 
     def _end(self):
