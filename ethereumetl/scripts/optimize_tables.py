@@ -1,28 +1,17 @@
 from typing import Tuple
-from urllib.parse import parse_qs, urlparse
 
 from clickhouse_driver import Client
 
 from ethereumetl.config.envs import envs
+from ethereumetl.utils import parse_clickhouse_url
 
 
 def clickhouse_client_from_url(url) -> Tuple[Client, str]:
-    parsed = urlparse(url)
-    settings = parse_qs(parsed.query)
-    connect_kwargs = {
-        'host': parsed.hostname,
-        'port': parsed.port,
-        'user': parsed.username,
-        'password': parsed.password,
-        'settings': settings,
-        'connect_timeout': 600,
-        'send_receive_timeout': 600,
-    }
-    if parsed.path:
-        connect_kwargs['database'] = parsed.path[1:]
-    if parsed.scheme == "https":
-        connect_kwargs['secure'] = True
-    return Client(**connect_kwargs), connect_kwargs['database']
+    connect_kwargs = parse_clickhouse_url(url)
+    return (
+        Client(**connect_kwargs, connect_timeout=600, send_receive_timeout=600),
+        connect_kwargs['database'],
+    )
 
 
 def optimize_tables_service(chain_id: int, by_partition: bool = True):
