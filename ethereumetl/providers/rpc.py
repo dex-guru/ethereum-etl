@@ -31,6 +31,7 @@ class BatchHTTPProvider(HTTPProvider):
     def make_batch_request(self, text):
         self.logger.debug("Making request HTTP. URI: %s, Request: %s", self.endpoint_uri, text)
         request_data = text.encode('utf-8')
+        assert self.endpoint_uri is not None
         raw_response = make_post_request(
             self.endpoint_uri, request_data, **self.get_request_kwargs()
         )
