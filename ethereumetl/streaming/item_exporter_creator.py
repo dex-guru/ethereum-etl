@@ -173,25 +173,26 @@ def get_bucket_and_path_from_gcs_output(output):
     return bucket, path
 
 
-def determine_item_exporter_type(output) -> 'ItemExporterType':
-    if output is not None and output.startswith('projects'):
-        return ItemExporterType.PUBSUB
-    if output is not None and output.startswith('kinesis://'):
-        return ItemExporterType.KINESIS
-    if output is not None and output.startswith('kafka'):
-        return ItemExporterType.KAFKA
-    elif output is not None and output.startswith('postgresql'):
-        return ItemExporterType.POSTGRES
-    elif output is not None and output.startswith('gs://'):
-        return ItemExporterType.GCS
-    elif output is not None and output.startswith('clickhouse'):
-        return ItemExporterType.CLICKHOUSE
-    elif output is not None and (output.startswith('amqp') or output.startswith('rabbitmq')):
-        return ItemExporterType.AMQP
-    elif output is None or output == 'console':
+def determine_item_exporter_type(output: str | None) -> 'ItemExporterType':
+    if output is None or output == 'console':
         return ItemExporterType.CONSOLE
-    else:
-        return ItemExporterType.UNKNOWN
+
+    if output.startswith('projects'):
+        return ItemExporterType.PUBSUB
+    if output.startswith('kinesis://'):
+        return ItemExporterType.KINESIS
+    if output.startswith('kafka'):
+        return ItemExporterType.KAFKA
+    if output.startswith('postgresql'):
+        return ItemExporterType.POSTGRES
+    if output.startswith('gs://'):
+        return ItemExporterType.GCS
+    if output.startswith('clickhouse'):
+        return ItemExporterType.CLICKHOUSE
+    if output.startswith('amqp') or output.startswith('rabbitmq'):
+        return ItemExporterType.AMQP
+
+    return ItemExporterType.UNKNOWN
 
 
 class ItemExporterType(Enum):
