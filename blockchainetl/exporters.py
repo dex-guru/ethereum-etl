@@ -214,7 +214,7 @@ def to_bytes(text, encoding=None, errors='strict'):
 
 def to_unicode(text: str | bytes, encoding=None, errors='strict'):
     """Return the unicode representation of a bytes object `text`. If `text`
-    is already an unicode object, return it as-is."""
+    is already a unicode object, return it as-is."""
     if isinstance(text, six.text_type):
         return text
     if not isinstance(text, (bytes, six.text_type)):

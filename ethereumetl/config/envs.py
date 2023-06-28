@@ -25,7 +25,7 @@ class EnvsConfig(BaseSettings):
     # 'or GCS bucket e.g. gs://your-bucket-name; '
     # 'or kafka, output name and connection host:port e.g. kafka/127.0.0.1:9092 '
     # 'or Kinesis, e.g. kinesis://your-data-stream-name'
-    # 'If not specified will print to console')
+    # 'If not specified will print to console'
     OUTPUT: Optional[str] = None
     START_BLOCK: Optional[int] = None
     END_BLOCK: Optional[int] = None
