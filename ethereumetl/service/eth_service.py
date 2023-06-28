@@ -67,7 +67,7 @@ class EthService(object):
         start_block = start_block_bounds[1]
         end_block = end_block_bounds[0]
 
-        # The genesis block has timestamp 0 but we include it with the 1st block.
+        # The genesis block has timestamp 0, but we include it with the 1st block.
         if start_block == 1:
             start_block = 0
 

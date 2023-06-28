@@ -23,12 +23,14 @@
 
 import itertools
 import logging
+import time
 import warnings
 from datetime import datetime
 from pathlib import Path
+from typing import Any
+from urllib.parse import parse_qs, urlparse
 
 import pytz
-import time
 
 from ethereumetl.config.envs import envs
 from ethereumetl.misc.retriable_value_error import RetriableValueError
@@ -88,6 +90,7 @@ def rpc_response_to_result(response):
     result = response.get('result')
     if result is None:
         error_message = 'result is None in response {}.'.format(response)
+        error: dict | None
         if response.get('error') is None:
             error_message = error_message + ' Make sure Ethereum node is synced.'
             # When nodes are behind a load balancer it makes sense to retry the request in hopes it will go to other,
@@ -96,8 +99,8 @@ def rpc_response_to_result(response):
                 logging.error(error_message)
                 return None
             raise RetriableValueError(error_message)
-        elif response.get('error') is not None and is_retriable_error(
-            response.get('error').get('code')
+        elif (error := response.get('error')) is not None and is_retriable_error(
+            error.get('code')
         ):
             raise RetriableValueError(error_message)
         raise ValueError(error_message)
@@ -206,3 +209,22 @@ class HealthCheck:
     def __call__(self, *args, **kwargs):
         self.im_alive()
         return self.func(*args, **kwargs)
+
+
+def parse_clickhouse_url(url) -> dict[str, Any]:
+    parsed = urlparse(url)
+    settings = parse_qs(parsed.query)
+    connect_kwargs = {
+        'host': parsed.hostname or 'localhost',
+        'port': parsed.port or 8123,
+        'user': parsed.username or 'default',
+        'password': parsed.password or '',
+        'settings': settings,
+    }
+    if parsed.path:
+        connect_kwargs['database'] = parsed.path[1:]
+    else:
+        connect_kwargs['database'] = 'default'
+    if parsed.scheme == "https":
+        connect_kwargs['secure'] = True
+    return connect_kwargs

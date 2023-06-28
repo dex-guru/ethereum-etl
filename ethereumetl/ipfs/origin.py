@@ -24,7 +24,7 @@ def _get_shop_data_dir(shop_index_page):
 
 # Returns the list of products from an Origin Protocol shop.
 def _get_origin_shop_products(receipt_log, listing_id, ipfs_client, shop_ipfs_hash):
-    results = []
+    results: list[OriginShopProduct] = []
     shop_index_page = ipfs_client.get(shop_ipfs_hash + "/index.html")
     shop_data_dir = _get_shop_data_dir(shop_index_page)
 
@@ -135,7 +135,7 @@ def get_origin_marketplace_data(receipt_log, listing_id, ipfs_client, ipfs_hash)
     listing.price = listing_data.get('price', {}).get('amount', '')
     listing.currency = listing_data.get('price', {}).get('currency', '')
 
-    # If it is a shop listing, also extract all of the shop data.
+    # If it is a shop listing, also extract all the shop data.
     shop_listings = []
     shop_ipfs_hash = listing_data.get('shopIpfsHash')
     if shop_ipfs_hash:

@@ -104,6 +104,9 @@ def export_traces(
     chain='ethereum',
 ):
     """Exports traces from parity node."""
+
+    _ = batch_size
+
     if chain == 'classic' and daofork_traces is True:
         raise ValueError(
             'Classic chain does not include daofork traces. Disable daofork traces with --no-daofork-traces option.'
@@ -111,7 +114,6 @@ def export_traces(
     job = ExportTracesJob(
         start_block=start_block,
         end_block=end_block,
-        batch_size=batch_size,
         web3=ThreadLocalProxy(
             lambda: build_web3(get_provider_from_uri(provider_uri, timeout=timeout))
         ),

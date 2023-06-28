@@ -1,7 +1,11 @@
-from clickhouse_driver import Client
 from typing import List, Tuple
 
-def find_missing_blocks(max_number: int, chain_id: int, chunk_size: int = 100000) -> Tuple[List[Tuple[int, int]], int]:
+from clickhouse_driver import Client
+
+
+def find_missing_blocks(
+    max_number: int, chain_id: int, chunk_size: int = 100000
+) -> Tuple[List[Tuple[int, int]], int]:
     host = '10.0.200.180'
     port = 9000  # Default ClickHouse port; change if needed
     user = 'testuser3'
@@ -9,13 +13,7 @@ def find_missing_blocks(max_number: int, chain_id: int, chunk_size: int = 100000
     database = 'dex_etl'
 
     # Initialize the client
-    client = Client(
-        host=host,
-        port=port,
-        user=user,
-        password=password,
-        database=database
-    )
+    client = Client(host=host, port=port, user=user, password=password, database=database)
     # Initialize variables to keep track of missing blocks and gaps
     gaps = []
     total_missing = 0
@@ -32,8 +30,7 @@ def find_missing_blocks(max_number: int, chain_id: int, chunk_size: int = 100000
     # Process data in chunks
     for start in range(1, max_number + 1, chunk_size):
         end = min(start + chunk_size - 1, max_number)
-        query_result = client.execute(query, {'chain_id': chain_id,
-                                              'start': start, 'end': end})
+        query_result = client.execute(query, {'chain_id': chain_id, 'start': start, 'end': end})
 
         # Extract block numbers from the query result
         block_numbers = [row[0] for row in query_result]
@@ -44,15 +41,16 @@ def find_missing_blocks(max_number: int, chain_id: int, chunk_size: int = 100000
                 gap_start = expected_number
                 gap_end = number - 1
                 gaps.append((gap_start, gap_end))
-                total_missing += (gap_end - gap_start + 1)
+                total_missing += gap_end - gap_start + 1
             expected_number = number + 1
 
     # Check for a gap between the last block number and the max_number
     if expected_number <= max_number:
         gaps.append((expected_number, max_number))
-        total_missing += (max_number - expected_number + 1)
+        total_missing += max_number - expected_number + 1
 
     return gaps, total_missing
+
 
 # Example usage
 max_block_number = 4258478  # Set the maximum block number you want to check

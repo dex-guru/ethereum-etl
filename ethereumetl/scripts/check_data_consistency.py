@@ -187,7 +187,7 @@ def find_missing_transactions(
 
         # If there's no difference or the difference is negative, continue with the next range
         if difference is None or difference <= 0:
-            if difference < 0:
+            if difference is not None and difference < 0:
                 print(f"Duplicates between blocks {start} and {end}")
                 optimize_tables_service(chain_id, by_partition=True)
             continue
@@ -226,7 +226,7 @@ def get_transactions_count_difference(
     chain_id: int,
     start_block_number: Optional[int] = None,
     end_block_number: Optional[int] = None,
-) -> int:
+) -> int | None:
     hashes_count_statement = f"""
     SELECT count(hash)
     FROM dex_etl.{chain_id}_transactions
@@ -261,7 +261,7 @@ def get_transactions_count_difference(
 def get_missing_blocks_ranges(client: Client, chain_id: int):
     blocks_gaps = []
     blocks_diff, last_block = get_blocks_count_difference_last_block(client, chain_id)
-    if blocks_diff > 0:
+    if blocks_diff is not None and blocks_diff > 0:
         blocks_gaps = find_blocks_gaps(client, chain_id, last_block)
     return blocks_gaps, last_block, blocks_diff
 
@@ -269,7 +269,7 @@ def get_missing_blocks_ranges(client: Client, chain_id: int):
 def get_missing_transactions_blocks_ranges(client: Client, chain_id: int, last_block: int):
     txns_diff = get_transactions_count_difference(client, chain_id)
     transactions_blocks_gaps = []
-    if txns_diff > 0:
+    if txns_diff is not None and txns_diff > 0:
         print(f"There are {txns_diff} missing transactions on chain_id: {chain_id}")
         transactions_blocks_gaps = find_missing_transactions(
             client, chain_id, start_block_number=1, end_block_number=last_block
@@ -277,10 +277,10 @@ def get_missing_transactions_blocks_ranges(client: Client, chain_id: int, last_b
     return transactions_blocks_gaps, txns_diff
 
 
-def parse_consistency_results(data_diff: int, entity_type: EntityType, chain_id: int):
+def parse_consistency_results(data_diff: int | None, entity_type: EntityType, chain_id: int):
     if data_diff is None:
         print(f"No {entity_type} results found on chain_id: {chain_id}")
-    if data_diff > 0:
+    elif data_diff > 0:
         print(f"There are {data_diff} missing {entity_type} on chain_id: {chain_id}")
     elif data_diff < 0:
         print(f"There are {data_diff} duplicated {entity_type} on chain_id: {chain_id}")

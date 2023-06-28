@@ -1,4 +1,5 @@
 import os
+from typing import Any
 
 from web3 import HTTPProvider
 
@@ -19,7 +20,7 @@ def get_web3_provider(
                 "read_resource_lambda must not be None for provider type mock".format()
             )
         if batch:
-            provider = MockBatchWeb3Provider(read_resource_lambda)
+            provider: Any = MockBatchWeb3Provider(read_resource_lambda)
         else:
             provider = MockWeb3Provider(read_resource_lambda)
     elif provider_type == 'infura':
@@ -40,7 +41,7 @@ def get_web3_provider(
 
         provider_url = os.environ.get('PROVIDER_URL', 'http://10.0.100.149:8080/archive/1')
         if batch:
-            real_provider = BatchHTTPProvider(provider_url)
+            real_provider: Any = BatchHTTPProvider(provider_url)
             provider = MockBatchWeb3OrWeb3Provider(
                 read_resource_lambda, write_resource_lambda, real_provider
             )

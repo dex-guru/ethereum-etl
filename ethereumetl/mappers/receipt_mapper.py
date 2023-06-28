@@ -57,7 +57,8 @@ class EthReceiptMapper(object):
 
         return receipt
 
-    def receipt_to_dict(self, receipt):
+    @staticmethod
+    def receipt_to_dict(receipt):
         return {
             'type': 'receipt',
             'transaction_hash': receipt.transaction_hash,
@@ -70,5 +71,5 @@ class EthReceiptMapper(object):
             'root': receipt.root,
             'status': receipt.status,
             'effective_gas_price': receipt.effective_gas_price,
-            'logs_count': len(receipt.logs)
+            'logs_count': len(receipt.logs),
         }
