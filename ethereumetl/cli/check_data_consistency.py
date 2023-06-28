@@ -169,6 +169,10 @@ def check_data_consistency(
     export_from_clickhouse=None,
 ):
     """Streams all data types to console or Google Pub/Sub."""
+
+    # TODO: use or remove:
+    _, _ = start_block, end_block
+
     configure_logging(log_file)
     configure_signals()
     entity_types = parse_entity_types(entity_types)
