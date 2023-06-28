@@ -21,12 +21,13 @@
 #  SOFTWARE.
 from enum import Enum
 
+from blockchainetl.exporters import BaseItemExporter
 from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExporter
 from blockchainetl.jobs.exporters.multi_item_exporter import MultiItemExporter
 from ethereumetl.enumeration.entity_type import EntityType
 
 
-def create_item_exporters(outputs, chain_id):
+def create_item_exporters(outputs, chain_id) -> BaseItemExporter:
     split_outputs = [output.strip() for output in outputs.split(',')] if outputs else ['console']
 
     item_exporters = [create_item_exporter(output, chain_id) for output in split_outputs]
@@ -54,7 +55,7 @@ def make_item_type_to_table_mapping(chain_id: int | None = None) -> dict[EntityT
     return item_type_to_table_mapping
 
 
-def create_item_exporter(output, chain_id):
+def create_item_exporter(output, chain_id) -> BaseItemExporter:
     item_exporter_type = determine_item_exporter_type(output)
     if item_exporter_type == ItemExporterType.PUBSUB:
         from blockchainetl.jobs.exporters.google_pubsub_item_exporter import (
@@ -62,7 +63,7 @@ def create_item_exporter(output, chain_id):
         )
 
         enable_message_ordering = 'sorted' in output or 'ordered' in output
-        item_exporter = GooglePubSubItemExporter(
+        item_exporter: BaseItemExporter = GooglePubSubItemExporter(
             item_type_to_topic_mapping={
                 EntityType.BLOCK: output + '.blocks',
                 EntityType.TRANSACTION: output + '.transactions',

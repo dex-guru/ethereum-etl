@@ -13,6 +13,7 @@ import clickhouse_connect.datatypes.numeric as types
 from clickhouse_connect.driver.exceptions import DatabaseError
 from clickhouse_connect.driver.models import ColumnDef
 
+from blockchainetl.exporters import BaseItemExporter
 from ethereumetl.config.envs import envs
 from ethereumetl.enumeration.entity_type import EntityType
 
@@ -44,8 +45,9 @@ NUMERIC_TYPE_MAX_VALUES = {
 }
 
 
-class ClickHouseItemExporter:
+class ClickHouseItemExporter(BaseItemExporter):
     def __init__(self, connection_url, item_type_to_table_mapping, chain_id=1):
+        super().__init__()
         parsed = urlparse(connection_url)
         self.username = parsed.username
         self.password = parsed.password
@@ -92,6 +94,9 @@ class ClickHouseItemExporter:
                 logger.debug(de)
                 pass
 
+    def export_item(self, item):
+        self.export_items([item])
+
     def export_items(self, items):
         items_grouped_by_table = self.group_items_by_table(items)
         for item_type, table in self.item_type_to_table_mapping.items():
@@ -117,6 +122,8 @@ class ClickHouseItemExporter:
                     self.cached_batches[table] = batch
 
     def _insert(self, column_names, column_types, table, table_data):
+        if self.connection is None:
+            raise RuntimeError('Connection is not open.')
         try:
             self.connection.insert(
                 table,
@@ -174,7 +181,7 @@ class ClickHouseItemExporter:
             database=self.database,
             settings=self.settings,
             compress=False,
-            send_receive_timeout=600
+            send_receive_timeout=600,
         )
 
     def close(self):
@@ -193,13 +200,13 @@ class ClickHouseItemExporter:
     def group_items_by_table(self, items):
         results = collections.defaultdict(list)
         for item in items:
-            type = item.get('type')
-            if type in self.item_type_to_table_mapping:
-                table = self.item_type_to_table_mapping[type]
+            type_ = item.get('type')
+            if type_ in self.item_type_to_table_mapping:
+                table = self.item_type_to_table_mapping[type_]
                 if table not in self.tables:
                     logger.error(
                         'Table "{}" does not exist. Type "{}" cannot be exported.'.format(
-                            table, type
+                            table, type_
                         )
                     )
                 result = []
@@ -210,7 +217,7 @@ class ClickHouseItemExporter:
             else:
                 logger.warning(
                     'ClickHouse exporter ignoring {} items as type is not currently supported.'.format(
-                        type
+                        type_
                     )
                 )
         return results

@@ -67,6 +67,10 @@ class BaseItemExporter(ABC):
     def export_item(self, item):
         ...
 
+    def export_items(self, items):
+        for item in items:
+            self.export_item(item)
+
     def serialize_field(self, field, name, value):
         serializer = field.get('serializer', lambda x: x)
         return serializer(value)

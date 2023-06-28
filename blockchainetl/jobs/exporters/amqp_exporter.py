@@ -1,8 +1,9 @@
 import logging
-from typing import Any, Iterable, Optional
+from typing import Any, Optional
 
 import kombu
 
+from blockchainetl.exporters import BaseItemExporter
 from ethereumetl.enumeration.entity_type import EntityType
 
 _DEFAULT_ITEM_TYPE_TO_ROUTING_KEY = {
@@ -17,7 +18,7 @@ _DEFAULT_ITEM_TYPE_TO_ROUTING_KEY = {
 }
 
 
-class AMQPItemExporter:
+class AMQPItemExporter(BaseItemExporter):
     """
     Publishes items to AMQP broker.
     """
@@ -28,6 +29,7 @@ class AMQPItemExporter:
         exchange: str,
         item_type_to_routing_key_mapping: Optional[dict[str, str]] = None,
     ):
+        super().__init__()
         self._item_type_to_topic_mapping = (
             item_type_to_routing_key_mapping or _DEFAULT_ITEM_TYPE_TO_ROUTING_KEY
         )
@@ -71,24 +73,23 @@ class AMQPItemExporter:
             self._connection = None
             self._producer = None
 
-    def export_items(self, items: Iterable[dict[str, Any]]):
-        """
+    def export_item(self, item: dict[str, Any]):
+        """,
         raises: ConnectionError
         """
         if self._producer is None:
             raise RuntimeError('not opened')
 
-        for item in items:
-            item_type = item['type']
-            routing_key = self._item_type_to_topic_mapping.get(item_type)
+        item_type = item['type']
+        routing_key = self._item_type_to_topic_mapping.get(item_type)
 
-            if routing_key is None:
-                logging.warning('Routing key for item type "%s" is not configured.', item_type)
-                return
+        if routing_key is None:
+            logging.warning('Routing key for item type "%s" is not configured.', item_type)
+            return
 
-            try:
-                self._producer.publish(item, routing_key=routing_key, serializer='json')
-            except IOError as e:
-                msg = f'Failed to publish item to AMQP broker: {e}'
-                logging.error(msg)
-                raise ConnectionError(msg) from e
+        try:
+            self._producer.publish(item, routing_key=routing_key, serializer='json')
+        except IOError as e:
+            msg = f'Failed to publish item to AMQP broker: {e}'
+            logging.error(msg)
+            raise ConnectionError(msg) from e
