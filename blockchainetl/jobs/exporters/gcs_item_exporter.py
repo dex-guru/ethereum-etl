@@ -24,7 +24,7 @@ import json
 import logging
 from collections import defaultdict
 
-from google.cloud import storage
+from google.cloud import storage  # type: ignore
 
 from blockchainetl.exporters import BaseItemExporter
 
