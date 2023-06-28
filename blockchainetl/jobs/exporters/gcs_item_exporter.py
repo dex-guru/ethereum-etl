@@ -29,7 +29,7 @@ from google.cloud import storage  # type: ignore
 from blockchainetl.exporters import BaseItemExporter
 
 
-def build_block_bundles(items):
+def build_block_bundles(items) -> list[dict]:
     blocks = defaultdict(list)
     transactions = defaultdict(list)
     logs = defaultdict(list)
