@@ -111,7 +111,6 @@ def export_traces(
     job = ExportTracesJob(
         start_block=start_block,
         end_block=end_block,
-        batch_size=batch_size,
         web3=ThreadLocalProxy(
             lambda: build_web3(get_provider_from_uri(provider_uri, timeout=timeout))
         ),

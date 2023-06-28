@@ -295,7 +295,6 @@ class EthStreamerAdapter:
         job = ExportTracesJob(
             start_block=start_block,
             end_block=end_block,
-            batch_size=self.batch_size,
             web3=ThreadLocalProxy(lambda: build_web3(self.batch_web3_provider)),
             max_workers=self.max_workers,
             item_exporter=exporter,
