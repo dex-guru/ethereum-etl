@@ -22,13 +22,14 @@
 import logging
 
 from blockchainetl.atomic_counter import AtomicCounter
-from blockchainetl.exporters import CsvItemExporter, JsonLinesItemExporter
+from blockchainetl.exporters import BaseItemExporter, CsvItemExporter, JsonLinesItemExporter
 from blockchainetl.file_utils import close_silently, get_file_handle
 from blockchainetl.jobs.exporters.converters.composite_item_converter import CompositeItemConverter
 
 
-class CompositeItemExporter:
-    def __init__(self, filename_mapping, field_mapping=None, converters=()):
+class CompositeItemExporter(BaseItemExporter):
+    def __init__(self, filename_mapping, field_mapping=None, converters=(), **kwargs):
+        super().__init__(**kwargs)
         self.filename_mapping = filename_mapping
         self.field_mapping = field_mapping or {}
 
