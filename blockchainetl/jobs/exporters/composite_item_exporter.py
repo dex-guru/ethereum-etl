@@ -25,6 +25,7 @@ from blockchainetl.atomic_counter import AtomicCounter
 from blockchainetl.exporters import BaseItemExporter, CsvItemExporter, JsonLinesItemExporter
 from blockchainetl.file_utils import close_silently, get_file_handle
 from blockchainetl.jobs.exporters.converters.composite_item_converter import CompositeItemConverter
+from ethereumetl.enumeration.entity_type import EntityType
 
 
 class CompositeItemExporter(BaseItemExporter):
@@ -34,7 +35,7 @@ class CompositeItemExporter(BaseItemExporter):
         self.field_mapping = field_mapping or {}
 
         self.file_mapping = {}
-        self.exporter_mapping = {}
+        self.exporter_mapping: dict[EntityType, BaseItemExporter] = {}
         self.counter_mapping = {}
 
         self.converter = CompositeItemConverter(converters)
@@ -47,7 +48,9 @@ class CompositeItemExporter(BaseItemExporter):
             fields = self.field_mapping.get(item_type)
             self.file_mapping[item_type] = file
             if str(filename).endswith('.json'):
-                item_exporter = JsonLinesItemExporter(file, fields_to_export=fields)
+                item_exporter: BaseItemExporter = JsonLinesItemExporter(
+                    file, fields_to_export=fields
+                )
             else:
                 item_exporter = CsvItemExporter(file, fields_to_export=fields)
             self.exporter_mapping[item_type] = item_exporter
