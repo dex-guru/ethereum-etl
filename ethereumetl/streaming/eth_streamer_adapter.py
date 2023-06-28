@@ -2,6 +2,7 @@ import logging
 from datetime import datetime
 from functools import cached_property
 
+from blockchainetl.exporters import BaseItemExporter
 from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExporter
 from blockchainetl.jobs.exporters.in_memory_item_exporter import InMemoryItemExporter
 from ethereumetl.enumeration.entity_type import ALL_FOR_STREAMING, EntityType
@@ -93,7 +94,7 @@ class EthStreamerAdapter:
     def __init__(
         self,
         batch_web3_provider,
-        item_exporter=ConsoleItemExporter(),
+        item_exporter: BaseItemExporter = ConsoleItemExporter(),
         batch_size=100,
         max_workers=5,
         entity_types=tuple(ALL_FOR_STREAMING),
