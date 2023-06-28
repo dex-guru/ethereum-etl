@@ -1,5 +1,5 @@
 from typing import Tuple
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import parse_qs, urlparse
 
 from clickhouse_driver import Client
 

@@ -1,5 +1,6 @@
-from clickhouse_driver import Client
 from typing import List, Tuple
+
+from clickhouse_driver import Client
 
 
 def find_missing_blocks(

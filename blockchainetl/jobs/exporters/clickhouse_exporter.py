@@ -17,7 +17,6 @@ from blockchainetl.exporters import BaseItemExporter
 from ethereumetl.config.envs import envs
 from ethereumetl.enumeration.entity_type import EntityType
 
-
 logger = logging.getLogger(__name__)
 
 

@@ -23,12 +23,12 @@
 
 import itertools
 import logging
+import time
 import warnings
 from datetime import datetime
 from pathlib import Path
 
 import pytz
-import time
 
 from ethereumetl.config.envs import envs
 from ethereumetl.misc.retriable_value_error import RetriableValueError
