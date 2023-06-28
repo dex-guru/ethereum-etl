@@ -19,6 +19,7 @@
 #  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
+from enum import Enum
 
 from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExporter
 from blockchainetl.jobs.exporters.multi_item_exporter import MultiItemExporter
@@ -172,7 +173,7 @@ def get_bucket_and_path_from_gcs_output(output):
     return bucket, path
 
 
-def determine_item_exporter_type(output) -> str:
+def determine_item_exporter_type(output) -> 'ItemExporterType':
     if output is not None and output.startswith('projects'):
         return ItemExporterType.PUBSUB
     if output is not None and output.startswith('kinesis://'):
@@ -193,7 +194,7 @@ def determine_item_exporter_type(output) -> str:
         return ItemExporterType.UNKNOWN
 
 
-class ItemExporterType:
+class ItemExporterType(Enum):
     PUBSUB = 'pubsub'
     KINESIS = 'kinesis'
     POSTGRES = 'postgres'
