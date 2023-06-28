@@ -22,6 +22,7 @@
 
 from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExporter
 from blockchainetl.jobs.exporters.multi_item_exporter import MultiItemExporter
+from ethereumetl.enumeration.entity_type import EntityType
 
 
 def create_item_exporters(outputs, chain_id):
@@ -31,19 +32,19 @@ def create_item_exporters(outputs, chain_id):
     return MultiItemExporter(item_exporters)
 
 
-def make_item_type_to_table_mapping(chain_id=None):
+def make_item_type_to_table_mapping(chain_id: int | None = None) -> dict[EntityType, str]:
     item_type_to_table_mapping = {
-        'block': 'blocks',
-        'transaction': 'transactions',
-        'log': 'logs',
-        'token_transfer': 'token_transfers',
-        'token_balance': 'token_balances',
-        'trace': 'traces',
-        'contract': 'contracts',
-        'token': 'tokens',
-        'error': 'errors',
-        'geth_trace': 'geth_traces',
-        'internal_transfer': 'internal_transfers',
+        EntityType.BLOCK: 'blocks',
+        EntityType.TRANSACTION: 'transactions',
+        EntityType.LOG: 'logs',
+        EntityType.TOKEN_TRANSFER: 'token_transfers',
+        EntityType.TOKEN_BALANCE: 'token_balances',
+        EntityType.TRACE: 'traces',
+        EntityType.CONTRACT: 'contracts',
+        EntityType.TOKEN: 'tokens',
+        EntityType.ERROR: 'errors',
+        EntityType.GETH_TRACE: 'geth_traces',
+        EntityType.INTERNAL_TRANSFER: 'internal_transfers',
     }
     if chain_id:
         item_type_to_table_mapping = {
@@ -62,13 +63,13 @@ def create_item_exporter(output, chain_id):
         enable_message_ordering = 'sorted' in output or 'ordered' in output
         item_exporter = GooglePubSubItemExporter(
             item_type_to_topic_mapping={
-                'block': output + '.blocks',
-                'transaction': output + '.transactions',
-                'log': output + '.logs',
-                'token_transfer': output + '.token_transfers',
-                'trace': output + '.traces',
-                'contract': output + '.contracts',
-                'token': output + '.tokens',
+                EntityType.BLOCK: output + '.blocks',
+                EntityType.TRANSACTION: output + '.transactions',
+                EntityType.LOG: output + '.logs',
+                EntityType.TOKEN_TRANSFER: output + '.token_transfers',
+                EntityType.TRACE: output + '.traces',
+                EntityType.CONTRACT: output + '.contracts',
+                EntityType.TOKEN: output + '.tokens',
             },
             message_attributes=('item_id', 'item_timestamp'),
             batch_max_bytes=1024 * 1024 * 5,
@@ -107,13 +108,13 @@ def create_item_exporter(output, chain_id):
         item_exporter = PostgresItemExporter(
             output,
             item_type_to_insert_stmt_mapping={
-                'block': create_insert_statement_for_table(BLOCKS),
-                'transaction': create_insert_statement_for_table(TRANSACTIONS),
-                'log': create_insert_statement_for_table(LOGS),
-                'token_transfer': create_insert_statement_for_table(TOKEN_TRANSFERS),
-                'trace': create_insert_statement_for_table(TRACES),
-                'token': create_insert_statement_for_table(TOKENS),
-                'contract': create_insert_statement_for_table(CONTRACTS),
+                EntityType.BLOCK: create_insert_statement_for_table(BLOCKS),
+                EntityType.TRANSACTION: create_insert_statement_for_table(TRANSACTIONS),
+                EntityType.LOG: create_insert_statement_for_table(LOGS),
+                EntityType.TOKEN_TRANSFER: create_insert_statement_for_table(TOKEN_TRANSFERS),
+                EntityType.TRACE: create_insert_statement_for_table(TRACES),
+                EntityType.TOKEN: create_insert_statement_for_table(TOKENS),
+                EntityType.CONTRACT: create_insert_statement_for_table(CONTRACTS),
             },
             converters=[
                 UnixTimestampItemConverter(),
@@ -134,13 +135,13 @@ def create_item_exporter(output, chain_id):
         item_exporter = KafkaItemExporter(
             output,
             item_type_to_topic_mapping={
-                'block': 'blocks',
-                'transaction': 'transactions',
-                'log': 'logs',
-                'token_transfer': 'token_transfers',
-                'trace': 'traces',
-                'contract': 'contracts',
-                'token': 'tokens',
+                EntityType.BLOCK: 'blocks',
+                EntityType.TRANSACTION: 'transactions',
+                EntityType.LOG: 'logs',
+                EntityType.TOKEN_TRANSFER: 'token_transfers',
+                EntityType.TRACE: 'traces',
+                EntityType.CONTRACT: 'contracts',
+                EntityType.TOKEN: 'tokens',
             },
         )
     elif item_exporter_type == ItemExporterType.CLICKHOUSE:
@@ -148,8 +149,7 @@ def create_item_exporter(output, chain_id):
 
         item_type_to_table_mapping = make_item_type_to_table_mapping(chain_id)
         item_exporter = ClickHouseItemExporter(
-            output, item_type_to_table_mapping=item_type_to_table_mapping,
-            chain_id=chain_id
+            output, item_type_to_table_mapping=item_type_to_table_mapping, chain_id=chain_id
         )
     elif item_exporter_type == ItemExporterType.AMQP:
         from blockchainetl.jobs.exporters.amqp_exporter import AMQPItemExporter
