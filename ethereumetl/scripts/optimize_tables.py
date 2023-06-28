@@ -59,4 +59,4 @@ def optimize_tables_service(chain_id: int, by_partition: bool = True):
 
 
 if __name__ == "__main__":
-    optimize_tables_service()
+    optimize_tables_service(envs.CHAIN_ID)
