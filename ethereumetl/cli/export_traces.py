@@ -104,6 +104,9 @@ def export_traces(
     chain='ethereum',
 ):
     """Exports traces from parity node."""
+
+    _ = batch_size
+
     if chain == 'classic' and daofork_traces is True:
         raise ValueError(
             'Classic chain does not include daofork traces. Disable daofork traces with --no-daofork-traces option.'
