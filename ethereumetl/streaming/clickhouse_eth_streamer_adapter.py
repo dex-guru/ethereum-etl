@@ -362,7 +362,11 @@ class ClickhouseEthStreamerAdapter:
             sorted_items = sort_by(
                 enriched_items, self._eth_streamer_adapter.SORT_BY_FIELDS[entity_type]
             )
-            assert len(sorted_items) == len(items), entity_type
+            if len(sorted_items) != len(items):
+                raise AssertionError(
+                    f"Number of {entity_type} items has changed after enrichment and sorting: "
+                    f"{len(items)} -> {len(sorted_items)}"
+                )
             all_items.extend(sorted_items)
             items_by_type[entity_type] = sorted_items
 
