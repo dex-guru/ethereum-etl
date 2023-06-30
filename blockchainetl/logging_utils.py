@@ -72,9 +72,6 @@ def logging_basic_config(filename=None):
                     "level": envs.LOGSTASH_LOGGING_LEVEL,
                     "propagate": False,
                 },
-                "clickhouse_connect.driver.httpclient": {
-                    "level": logging.NOTSET,
-                },
             },
             root={
                 "handlers": envs.LOG_HANDLERS,
@@ -86,3 +83,4 @@ def logging_basic_config(filename=None):
         logging.basicConfig(level=envs.LOGGING_LEVEL, format=format)
 
     logging.getLogger("ethereum_dasm.evmdasm").setLevel(logging.ERROR)
+    logging.getLogger("clickhouse_connect.driver.httpclient").disabled = True
