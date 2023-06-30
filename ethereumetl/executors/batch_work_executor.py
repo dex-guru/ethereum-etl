@@ -73,8 +73,8 @@ class BatchWorkExecutor:
         try:
             work_handler(batch)
             self._try_increase_batch_size(len(batch))
-        except self.retry_exceptions:
-            self.logger.exception('An exception occurred while executing work_handler.')
+        except self.retry_exceptions as e:
+            self.logger.exception('An exception occurred while executing work_handler: %s', e)
             self._try_decrease_batch_size(len(batch))
             self.logger.info(
                 'The batch of size {} will be retried one item at a time.'.format(len(batch))
@@ -124,9 +124,9 @@ def execute_with_retries(
     for i in range(max_retries):
         try:
             return func(*args)
-        except retry_exceptions:
+        except retry_exceptions as e:
             logging.exception(
-                'An exception occurred while executing execute_with_retries. Retry #{}'.format(i)
+                'An exception occurred while executing execute_with_retries. Retry #%s: %s', i, e
             )
             if i < max_retries - 1:
                 logging.info(
