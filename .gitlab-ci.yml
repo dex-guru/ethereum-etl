@@ -86,9 +86,6 @@ build-lint:
     - export IMAGE_BASE_LINTERS="${CI_REGISTRY_IMAGE}:base-linters-ci"
     - export IMAGE="${CI_REGISTRY_IMAGE}:lint-ci"
 
-    - docker pull $IMAGE_BASE || true
-    - docker pull $IMAGE_BASE_PYRIGHT || true
-    - docker pull $IMAGE_BASE_LINTERS || true
     - docker pull $IMAGE || true
 
     - docker build --build-arg BUILDKIT_INLINE_CACHE=1 --tag $IMAGE_BASE --target base - < lint.Dockerfile
@@ -96,9 +93,6 @@ build-lint:
     - docker build --build-arg BUILDKIT_INLINE_CACHE=1 --tag $IMAGE_BASE_LINTERS --target base-linters - < lint.Dockerfile
     - docker build --build-arg BUILDKIT_INLINE_CACHE=1 --tag $IMAGE -f lint.Dockerfile .
 
-    - docker push $IMAGE_BASE
-    - docker push $IMAGE_BASE_PYRIGHT
-    - docker push $IMAGE_BASE_LINTERS
     - docker push $IMAGE
   only:
     - merge_requests
