@@ -138,7 +138,6 @@ raw-traces-data-streamer:
     fantom-250: 0
     acanto-7701: 0
     gnosis-100: 0
-    optimism-10: 0
   limitsCpu: 4
   limitsMemory: 9000Mi
   requestsCpu: 1
@@ -164,6 +163,7 @@ raw-traces-data-streamer:
       base-84531: '5872449'
       polygon-137: '43954911'
       bsc-56: '29155322'
+      optimism-10: '106263320'
     PROVIDER_URL:
       default: 'http://rpc-gw-stage.dexguru.biz/full/1'
       polygon-137: 'http://rpc-gw-stage.dexguru.biz/full/137'
