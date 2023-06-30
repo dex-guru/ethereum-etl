@@ -72,6 +72,9 @@ def logging_basic_config(filename=None):
                     "level": envs.LOGSTASH_LOGGING_LEVEL,
                     "propagate": False,
                 },
+                "clickhouse_connect.driver.httpclient": {
+                    "propagate": False,
+                },
             },
             root={
                 "handlers": envs.LOG_HANDLERS,
