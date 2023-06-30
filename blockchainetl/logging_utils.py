@@ -73,7 +73,7 @@ def logging_basic_config(filename=None):
                     "propagate": False,
                 },
                 "clickhouse_connect.driver.httpclient": {
-                    "propagate": False,
+                    "level": logging.NOTSET,
                 },
             },
             root={
