@@ -64,6 +64,7 @@ build:
     - >
         docker build
         --cache-from "${CI_REGISTRY_IMAGE}:latest"
+        --build-arg BUILDKIT_INLINE_CACHE=1
         --tag "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
         --tag "${CI_REGISTRY_IMAGE}:latest"
         .
@@ -90,10 +91,10 @@ build-lint:
     - docker pull $IMAGE_BASE_LINTERS || true
     - docker pull $IMAGE || true
 
-    - docker build --tag $IMAGE_BASE --target base - < lint.Dockerfile
-    - docker build --tag $IMAGE_BASE_PYRIGHT --target base-pyright - < lint.Dockerfile
-    - docker build --tag $IMAGE_BASE_LINTERS --target base-linters - < lint.Dockerfile
-    - docker build --tag $IMAGE -f lint.Dockerfile .
+    - docker build --build-arg BUILDKIT_INLINE_CACHE=1 --tag $IMAGE_BASE --target base - < lint.Dockerfile
+    - docker build --build-arg BUILDKIT_INLINE_CACHE=1 --tag $IMAGE_BASE_PYRIGHT --target base-pyright - < lint.Dockerfile
+    - docker build --build-arg BUILDKIT_INLINE_CACHE=1 --tag $IMAGE_BASE_LINTERS --target base-linters - < lint.Dockerfile
+    - docker build --build-arg BUILDKIT_INLINE_CACHE=1 --tag $IMAGE -f lint.Dockerfile .
 
     - docker push $IMAGE_BASE
     - docker push $IMAGE_BASE_PYRIGHT
