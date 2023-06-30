@@ -42,6 +42,7 @@ variables:
     stage-indexation-canto-7700
     stage-indexation-base-84531
     stage-indexation-nova-42170
+    stage-indexation-optimism-10
   KUBE_NAMESPACE_PROD: >-
     prod-indexation-eth-1
     prod-indexation-gnosis-100
