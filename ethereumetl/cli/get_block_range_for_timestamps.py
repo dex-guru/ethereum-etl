@@ -79,4 +79,4 @@ def get_block_range_for_timestamps(
     )
 
     with smart_open(output, 'w') as output_file:
-        output_file.write('{},{}\n'.format(start_block, end_block))
+        output_file.write(f'{start_block},{end_block}\n')

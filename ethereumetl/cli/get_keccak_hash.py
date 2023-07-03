@@ -49,4 +49,4 @@ def get_keccak_hash(input_string, output):
     hash = keccak(text=input_string)
 
     with smart_open(output, 'w') as output_file:
-        output_file.write('0x{}\n'.format(hash.hex()))
+        output_file.write(f'0x{hash.hex()}\n')

@@ -21,9 +21,7 @@ chunk_size = 10000
 # Continue until all blocks have been checked
 while start_block_number <= max_block_number:
     # Query to compare the transaction counts
-    print(
-        'Checking blocks {} to {}'.format(start_block_number, start_block_number + chunk_size - 1)
-    )
+    print(f'Checking blocks {start_block_number} to {start_block_number + chunk_size - 1}')
     query = f"""
         SELECT 
             b.number AS block_number, 

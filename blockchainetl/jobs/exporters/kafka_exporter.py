@@ -33,7 +33,7 @@ class KafkaItemExporter(BaseItemExporter):
             logging.debug(data)
             return self.producer.send(self.item_type_to_topic_mapping[item_type], value=data)
         else:
-            logging.warning('Topic for item type "{}" is not configured.'.format(item_type))
+            logging.warning(f'Topic for item type "{item_type}" is not configured.')
 
     def convert_items(self, items):
         for item in items:

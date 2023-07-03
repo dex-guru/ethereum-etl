@@ -51,5 +51,5 @@ def get_web3_provider(
                 read_resource_lambda, write_resource_lambda, real_provider
             )
     else:
-        raise ValueError('Provider type {} is unexpected'.format(provider_type))
+        raise ValueError(f'Provider type {provider_type} is unexpected')
     return provider

@@ -29,7 +29,7 @@ def hex_to_ipfs_hash(param):
 # For example:
 #   "1-001-272" refers to listing 272 on marketplace contract version 1, on Mainnet.
 def compose_listing_id(network_id, contract_version, listing_id):
-    return "{}-{}-{}".format(network_id, contract_version, listing_id)
+    return f"{network_id}-{contract_version}-{listing_id}"
 
 
 class OriginEventExtractor:
@@ -48,7 +48,7 @@ class OriginEventExtractor:
 
         topic = topics[0]
         if topic not in PROCESSABLE_TOPICS:
-            logger.debug("Skip processing event with signature {}".format(topic))
+            logger.debug(f"Skip processing event with signature {topic}")
             return None, []
 
         if len(topics) < TOPICS_LEN:

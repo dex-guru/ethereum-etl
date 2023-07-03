@@ -88,7 +88,7 @@ def get_partitions(start, end, partition_batch_size, provider_uri):
         assert start_date is not None and end_date is not None
         while start_date <= end_date:
             batch_start_block, batch_end_block = eth_service.get_block_range_for_date(start_date)
-            partition_dir = '/date={start_date!s}/'.format(start_date=start_date)
+            partition_dir = f'/date={start_date!s}/'
             yield batch_start_block, batch_end_block, partition_dir
             start_date += day
 

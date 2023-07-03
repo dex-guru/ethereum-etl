@@ -70,14 +70,14 @@ class Streamer:
     def stream(self):
         try:
             if self.pid_file is not None:
-                logging.info('Creating pid file {}'.format(self.pid_file))
+                logging.info(f'Creating pid file {self.pid_file}')
                 write_to_file(self.pid_file, str(os.getpid()))
             self.blockchain_streamer_adapter.open()
             self._do_stream()
         finally:
             self.blockchain_streamer_adapter.close()
             if self.pid_file is not None:
-                logging.info('Deleting pid file {}'.format(self.pid_file))
+                logging.info(f'Deleting pid file {self.pid_file}')
                 delete_file(self.pid_file)
 
     def _do_stream(self):
@@ -93,9 +93,7 @@ class Streamer:
                     raise e
 
             if synced_blocks <= 0:
-                logging.info(
-                    'Nothing to sync. Sleeping for {} seconds...'.format(self.period_seconds)
-                )
+                logging.info(f'Nothing to sync. Sleeping for {self.period_seconds} seconds...')
                 time.sleep(self.period_seconds)
 
     def _sync_cycle(self):
@@ -120,7 +118,7 @@ class Streamer:
 
         if blocks_to_sync != 0:
             self.blockchain_streamer_adapter.export_all(self.last_synced_block + 1, target_block)
-            logging.info('Writing last synced block {}'.format(target_block))
+            logging.info(f'Writing last synced block {target_block}')
             self.last_synced_block_provider.set_last_synced_block(target_block)
             self.last_synced_block = target_block
 

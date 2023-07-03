@@ -103,9 +103,7 @@ class ClickHouseItemExporter(BaseItemExporter):
                 cached = self.cached_batches[table]
                 batch = cached + table_data
                 if len(batch) >= MIN_INSERT_BATCH_SIZE:
-                    logger.info(
-                        'Flushing batch for "{}" with {} items.'.format(item_type, len(batch))
-                    )
+                    logger.info(f'Flushing batch for "{item_type}" with {len(batch)} items.')
                     column_names = self.tables[table].column_names
                     column_types = self.tables[table].column_types
                     self._insert(column_names, column_types, table, batch)

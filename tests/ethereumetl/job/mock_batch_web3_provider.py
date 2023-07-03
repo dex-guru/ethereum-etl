@@ -67,8 +67,8 @@ class MockBatchWeb3OrWeb3Provider(MockWeb3OrWeb3Provider):
                 response = self.web3.make_request(method, params)
                 response['id'] = req.get('id')
                 file_content = json.dumps(response)
-                print('Warning: {} not found, using real web3 response'.format(file_name))
+                print(f'Warning: {file_name} not found, using real web3 response')
                 self.write_resource(file_name, file_content)
-                print('Saved real web3 response to {}'.format(file_name))
+                print(f'Saved real web3 response to {file_name}')
             web3_response.append(json.loads(file_content))
         return web3_response

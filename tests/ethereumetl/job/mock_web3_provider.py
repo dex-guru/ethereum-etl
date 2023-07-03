@@ -51,9 +51,9 @@ class MockWeb3OrWeb3Provider(IPCProvider):
         except ValueError:
             response = self.web3.make_request(method, params)
             file_content = json.dumps(response)
-            print('Warning: {} not found, using real web3 response'.format(file_name))
+            print(f'Warning: {file_name} not found, using real web3 response')
             self.write_resource(file_name, file_content)
-            print('Saved real web3 response to {}'.format(file_name))
+            print(f'Saved real web3 response to {file_name}')
         return json.loads(file_content)
 
 
