@@ -22,7 +22,6 @@
 
 
 import itertools
-import logging
 import time
 import warnings
 from datetime import datetime
@@ -95,9 +94,6 @@ def rpc_response_to_result(response):
             error_message = error_message + ' Make sure Ethereum node is synced.'
             # When nodes are behind a load balancer it makes sense to retry the request in hopes it will go to other,
             # synced node
-            if envs.SKIP_NONE_RECEIPTS:
-                logging.error(error_message)
-                return None
             raise RetriableValueError(error_message)
         elif (error := response.get('error')) is not None and is_retriable_error(
             error.get('code')
