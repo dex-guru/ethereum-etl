@@ -70,7 +70,7 @@ class ExportGethTracesJob(BaseJob):
                     or response_item.get('error').get('message') == 'transaction not found'
                 )
                 and response_item.get('result') is None
-                and any([r.get('result') for r in response])
+                and any(r.get('result') for r in response)
             ):
                 continue
 

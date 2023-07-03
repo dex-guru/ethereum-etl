@@ -24,10 +24,10 @@ def logging_basic_config(filename=None):
     if filename is not None:
         logging.basicConfig(level=envs.LOGGING_LEVEL, format=format, filename=filename)
     elif 'logstash' in envs.LOG_HANDLERS:
-        cfg = dict(
-            disable_existing_loggers=False,
-            version=1,
-            formatters={
+        cfg = {
+            "disable_existing_loggers": False,
+            "version": 1,
+            "formatters": {
                 "simple": {
                     "format": (
                         "%(asctime)s"
@@ -38,7 +38,7 @@ def logging_basic_config(filename=None):
                 },
                 "logstash": {"()": "logstash_formatter.LogstashFormatterV1"},
             },
-            handlers={
+            "handlers": {
                 "console": {
                     "class": "logging.StreamHandler",
                     "level": "DEBUG",
@@ -57,7 +57,7 @@ def logging_basic_config(filename=None):
                     "filters": ["add_attrs"],
                 },
             },
-            filters={
+            "filters": {
                 "add_attrs": {
                     "()": AddAttrsFilter,
                     "attrs": {
@@ -66,18 +66,18 @@ def logging_basic_config(filename=None):
                     },
                 },
             },
-            loggers={
+            "loggers": {
                 "logstash": {
                     "handlers": ["logstash"],
                     "level": envs.LOGSTASH_LOGGING_LEVEL,
                     "propagate": False,
                 },
             },
-            root={
+            "root": {
                 "handlers": envs.LOG_HANDLERS,
                 "level": envs.LOGGING_LEVEL,
             },
-        )
+        }
         config.dictConfig(cfg)
     else:
         logging.basicConfig(level=envs.LOGGING_LEVEL, format=format)

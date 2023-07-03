@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 
+import contextlib
 import logging
 import os
 import time
@@ -134,10 +135,8 @@ class Streamer:
 
 
 def delete_file(file):
-    try:
+    with contextlib.suppress(OSError):
         os.remove(file)
-    except OSError:
-        pass
 
 
 def write_last_synced_block(file, last_synced_block):

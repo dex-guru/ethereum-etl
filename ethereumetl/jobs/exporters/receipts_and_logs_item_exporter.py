@@ -37,7 +37,7 @@ RECEIPT_FIELDS_TO_EXPORT = [
     'status',
     'effective_gas_price',
 ]
-assert set(f.name for f in fields(EthReceipt)) >= set(RECEIPT_FIELDS_TO_EXPORT)
+assert {f.name for f in fields(EthReceipt)} >= set(RECEIPT_FIELDS_TO_EXPORT)
 
 LOG_FIELDS_TO_EXPORT = [
     'log_index',
@@ -49,7 +49,7 @@ LOG_FIELDS_TO_EXPORT = [
     'data',
     'topics',
 ]
-assert set(f.name for f in fields(EthReceiptLog)) >= set(LOG_FIELDS_TO_EXPORT)
+assert {f.name for f in fields(EthReceiptLog)} >= set(LOG_FIELDS_TO_EXPORT)
 
 
 def receipts_and_logs_item_exporter(receipts_output=None, logs_output=None):

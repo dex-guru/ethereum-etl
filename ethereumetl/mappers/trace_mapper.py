@@ -161,7 +161,7 @@ class EthTraceMapper:
         for call_index, call_trace in enumerate(calls):
             result.extend(
                 self._iterate_transaction_trace(
-                    block_number, tx_index, call_trace, trace_address + [call_index]
+                    block_number, tx_index, call_trace, [*trace_address, call_index]
                 )
             )
 

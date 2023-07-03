@@ -200,7 +200,7 @@ def split_to_words(data):
     if data and len(data) > 2:
         data_without_0x = data[2:]
         words = list(chunk_string(data_without_0x, 64))
-        words_with_0x = list(map(lambda word: "0x" + word, words))
+        words_with_0x = ["0x" + word for word in words]
         return words_with_0x
     return []
 

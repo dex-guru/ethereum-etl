@@ -49,19 +49,19 @@ def get_blocks_missing_transactions(chain_id: int, client: Client):
         )
 
         query = f"""
-            SELECT 
-                b.number AS block_number, 
-                b.transaction_count AS expected_transaction_sum, 
+            SELECT
+                b.number AS block_number,
+                b.transaction_count AS expected_transaction_sum,
                 SUM(t.value) AS actual_transaction_sum
-            FROM 
+            FROM
                 dex_etl.{chain_id}_blocks AS b
                 LEFT JOIN dex_etl.{chain_id}_transactions AS t ON b.number = t.block_number
-            WHERE 
+            WHERE
                 b.number BETWEEN {start_block_number} AND {start_block_number + chunk_size - 1}
-            GROUP BY 
-                b.number, 
+            GROUP BY
+                b.number,
                 b.transaction_count
-            HAVING 
+            HAVING
                 expected_transaction_sum != actual_transaction_sum
         """
 
@@ -82,25 +82,26 @@ def get_blocks_missing_transactions(chain_id: int, client: Client):
         # Move to the next chunk
         start_block_number += chunk_size
         return blocks_to_fetch
+    return None
 
 
 def get_missing_transaction_blocks(
     chain_id: int, client: Client, start_block_number: int, end_block_number: int
 ):
     query = f"""
-        SELECT 
-            b.number AS block_number, 
-            b.transaction_count AS expected_transaction_sum, 
+        SELECT
+            b.number AS block_number,
+            b.transaction_count AS expected_transaction_sum,
             SUM(t.value) AS actual_transaction_sum
-        FROM 
+        FROM
             dex_etl.{chain_id}_blocks AS b
             LEFT JOIN dex_etl.{chain_id}_transactions AS t ON b.number = t.block_number
-        WHERE 
+        WHERE
             b.number BETWEEN {start_block_number} AND {end_block_number}
-        GROUP BY 
-            b.number, 
+        GROUP BY
+            b.number,
             b.transaction_count
-        HAVING 
+        HAVING
             expected_transaction_sum != actual_transaction_sum
     """
     results = client.execute(query)
@@ -303,6 +304,7 @@ def resolve_data_consistency_service(chain_id: int):
     parse_consistency_results(txns_diff, EntityType.TRANSACTION, chain_id)
     if transactions_blocks_gaps:
         return transactions_blocks_gaps
+    return None
 
 
 if __name__ == "__main__":

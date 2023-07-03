@@ -94,6 +94,7 @@ class GooglePubSubItemExporter(BaseItemExporter):
             return message_future
         else:
             logging.warning(f'Topic for item type "{item_type}" is not configured.')
+            return None
 
     def get_message_attributes(self, item):
         attributes = {}

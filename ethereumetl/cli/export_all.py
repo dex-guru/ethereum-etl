@@ -85,7 +85,8 @@ def get_partitions(start, end, partition_batch_size, provider_uri):
         web3 = build_web3(provider)
         eth_service = EthService(web3)
 
-        assert start_date is not None and end_date is not None
+        assert start_date is not None
+        assert end_date is not None
         while start_date <= end_date:
             batch_start_block, batch_end_block = eth_service.get_block_range_for_date(start_date)
             partition_dir = f'/date={start_date!s}/'
@@ -113,7 +114,7 @@ def get_partitions(start, end, partition_batch_size, provider_uri):
         raise ValueError('start and end must be either block numbers or ISO dates or Unix times')
 
 
-@click.command(context_settings=dict(help_option_names=['-h', '--help']))
+@click.command(context_settings={'help_option_names': ['-h', '--help']})
 @click.option('-s', '--start', required=True, type=str, help='Start block/ISO date/Unix time')
 @click.option('-e', '--end', required=True, type=str, help='End block/ISO date/Unix time')
 @click.option(

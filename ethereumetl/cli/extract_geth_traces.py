@@ -32,7 +32,7 @@ from ethereumetl.jobs.extract_geth_traces_job import ExtractGethTracesJob
 logging_basic_config()
 
 
-@click.command(context_settings=dict(help_option_names=['-h', '--help']))
+@click.command(context_settings={'help_option_names': ['-h', '--help']})
 @click.option(
     '-i', '--input', required=True, type=str, help='The JSON file containing geth traces.'
 )

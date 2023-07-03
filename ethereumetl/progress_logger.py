@@ -84,6 +84,6 @@ class ProgressLogger:
             self.name, self.counter.increment() - 1
         )
         if duration is not None:
-            finish_message = finish_message + f' Took {str(duration)}.'
+            finish_message = finish_message + f' Took {duration!s}.'
 
         self.logger.info(finish_message)

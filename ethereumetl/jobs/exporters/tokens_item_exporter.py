@@ -25,7 +25,7 @@ from blockchainetl.jobs.exporters.composite_item_exporter import CompositeItemEx
 from ethereumetl.domain.token import EthToken
 
 FIELDS_TO_EXPORT = ['address', 'symbol', 'name', 'decimals', 'total_supply', 'block_number']
-assert set(f.name for f in fields(EthToken)) >= set(FIELDS_TO_EXPORT)
+assert {f.name for f in fields(EthToken)} >= set(FIELDS_TO_EXPORT)
 
 
 def tokens_item_exporter(tokens_output, converters=()):

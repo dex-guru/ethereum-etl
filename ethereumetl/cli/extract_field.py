@@ -26,7 +26,7 @@ import click
 from ethereumetl import misc_utils
 
 
-@click.command(context_settings=dict(help_option_names=['-h', '--help']))
+@click.command(context_settings={'help_option_names': ['-h', '--help']})
 @click.option(
     '-i',
     '--input',

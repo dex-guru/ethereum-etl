@@ -23,19 +23,19 @@ while start_block_number <= max_block_number:
     # Query to compare the transaction counts
     print(f'Checking blocks {start_block_number} to {start_block_number + chunk_size - 1}')
     query = f"""
-        SELECT 
-            b.number AS block_number, 
-            b.transaction_count AS expected_transaction_count, 
+        SELECT
+            b.number AS block_number,
+            b.transaction_count AS expected_transaction_count,
             count(t.hash) AS actual_transaction_count
-        FROM 
+        FROM
             dex_etl.`7700_blocks` AS b
             LEFT JOIN dex_etl.`7700_transactions` AS t ON b.number = t.block_number
-        WHERE 
+        WHERE
             b.number BETWEEN {start_block_number} AND {start_block_number + chunk_size - 1}
-        GROUP BY 
-            b.number, 
+        GROUP BY
+            b.number,
             b.transaction_count
-        HAVING 
+        HAVING
             expected_transaction_count - actual_transaction_count > 1
     """
 
