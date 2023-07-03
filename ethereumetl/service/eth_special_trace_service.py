@@ -24,7 +24,7 @@
 from ethereumetl.mappers.trace_mapper import EthTraceMapper
 
 
-class EthSpecialTraceService(object):
+class EthSpecialTraceService:
     def __init__(self):
         self.trace_mapper = EthTraceMapper()
 

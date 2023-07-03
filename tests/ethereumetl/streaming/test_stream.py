@@ -390,7 +390,7 @@ def test_stream_clickhouse(
     item_exporter = ClickHouseItemExporter(envs.EXPORT_FROM_CLICKHOUSE, item_type_to_table_mapping)
 
     def fake_ch_export_items(items):
-        counter = Counter((item['type'] for item in items))
+        counter = Counter(item['type'] for item in items)
         assert dict(counter) == {'trace': 7, 'token_balance': 2}
 
     item_exporter.export_items = fake_ch_export_items  # type: ignore

@@ -1,4 +1,4 @@
-from typing import List, Literal, Optional, Union
+from typing import Literal
 
 from pydantic import AnyUrl, BaseSettings
 
@@ -26,9 +26,9 @@ class EnvsConfig(BaseSettings):
     # 'or kafka, output name and connection host:port e.g. kafka/127.0.0.1:9092 '
     # 'or Kinesis, e.g. kinesis://your-data-stream-name'
     # 'If not specified will print to console'
-    OUTPUT: Optional[str] = None
-    START_BLOCK: Optional[int] = None
-    END_BLOCK: Optional[int] = None
+    OUTPUT: str | None = None
+    START_BLOCK: int | None = None
+    END_BLOCK: int | None = None
     ENTITY_TYPES: str = ','.join(entity_type.ALL_FOR_STREAMING)
     POLLING_PERIOD: int = 10
     BATCH_SIZE: int = 10
@@ -38,11 +38,11 @@ class EnvsConfig(BaseSettings):
     LOGSTASH_HOST: str = 'logstash-logstash.logging.svc.cluster.local'
     LOGSTASH_PORT: int = 5959
     LOGSTASH_LOGGING_LEVEL: str = 'INFO'
-    LOG_HANDLERS: List[str] = ['console']
+    LOG_HANDLERS: list[str] = ['console']
     SERVICE_NAME: str = ''
     SKIP_NONE_RECEIPTS: bool = False
     MIN_INSERT_BATCH_SIZE: int = 1000
-    EXPORT_FROM_CLICKHOUSE: Union[AnyUrl, Literal['']] = ''
+    EXPORT_FROM_CLICKHOUSE: AnyUrl | Literal[''] = ''
     # Overwrite these item types read from ClickHouse using EXPORT_FROM_CLICKHOUSE option when the
     # output is set to the same ClickHouse instance. Comma-separated list of item types.
     REWRITE_CLICKHOUSE: str = ''

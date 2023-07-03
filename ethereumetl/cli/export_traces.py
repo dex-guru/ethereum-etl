@@ -104,7 +104,6 @@ def export_traces(
     chain='ethereum',
 ):
     """Exports traces from parity node."""
-
     _ = batch_size
 
     if chain == 'classic' and daofork_traces is True:

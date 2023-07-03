@@ -1,5 +1,4 @@
 from collections import deque
-from typing import List, Optional, Tuple
 from urllib.parse import parse_qs, urlparse
 
 from clickhouse_driver import Client
@@ -11,7 +10,7 @@ from ethereumetl.scripts.optimize_tables import optimize_tables_service
 SUPPORTED_CHAINS = [1, 250, 42161, 10, 100, 42170, 7700, 7701, 84531]
 
 
-def clickhouse_client_from_url(url) -> Tuple[Client, str]:
+def clickhouse_client_from_url(url) -> tuple[Client, str]:
     parsed = urlparse(url)
     settings = parse_qs(parsed.query)
     connect_kwargs = {
@@ -132,18 +131,18 @@ def get_blocks_count_difference_last_block(client: Client, chain_id: int):
 
 def find_blocks_gaps(
     client: Client, chain_id: int, max_number: int, chunk_size: int = 100000
-) -> List[Tuple[int, int]]:
+) -> list[tuple[int, int]]:
     # Initialize variables to keep track of missing blocks and gaps
     gaps = []
     expected_number = 1
 
     # Define a query to get block numbers in chunks
-    query = '''
+    query = """
         SELECT number
         FROM dex_etl.%(chain_id)s_blocks
         WHERE number >= %(start)s AND number <= %(end)s
         ORDER BY number
-    '''
+    """
 
     # Process data in chunks
     for start in range(1, max_number + 1, chunk_size):
@@ -224,8 +223,8 @@ def find_missing_transactions(
 def get_transactions_count_difference(
     client: Client,
     chain_id: int,
-    start_block_number: Optional[int] = None,
-    end_block_number: Optional[int] = None,
+    start_block_number: int | None = None,
+    end_block_number: int | None = None,
 ) -> int | None:
     hashes_count_statement = f"""
     SELECT count(hash)

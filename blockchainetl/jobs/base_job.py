@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 
-class BaseJob(object):
+class BaseJob:
     def run(self):
         try:
             self._start()

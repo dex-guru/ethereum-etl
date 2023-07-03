@@ -1,11 +1,9 @@
-from typing import List, Tuple
-
 from clickhouse_driver import Client
 
 
 def find_missing_blocks(
     max_number: int, chain_id: int, chunk_size: int = 100000
-) -> Tuple[List[Tuple[int, int]], int]:
+) -> tuple[list[tuple[int, int]], int]:
     host = '10.0.200.180'
     port = 9000  # Default ClickHouse port; change if needed
     user = 'testuser3'
@@ -20,12 +18,12 @@ def find_missing_blocks(
     expected_number = 1
 
     # Define a query to get block numbers in chunks
-    query = '''
+    query = """
         SELECT number
         FROM dex_etl.%(chain_id)s_blocks
         WHERE number >= %(start)s AND number <= %(end)s
         ORDER BY number
-    '''
+    """
 
     # Process data in chunks
     for start in range(1, max_number + 1, chunk_size):

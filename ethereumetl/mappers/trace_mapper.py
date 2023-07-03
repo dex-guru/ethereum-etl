@@ -28,7 +28,7 @@ from ethereumetl.mainnet_daofork_state_changes import DAOFORK_BLOCK_NUMBER
 from ethereumetl.utils import hex_to_dec, to_normalized_address
 
 
-class EthTraceMapper(object):
+class EthTraceMapper:
     @staticmethod
     def json_dict_to_trace(json_dict: dict) -> EthTrace:
         action = json_dict.get('action')

@@ -22,8 +22,9 @@
 
 import json
 import uuid
+from collections.abc import Callable, Iterable
 from itertools import zip_longest
-from typing import Any, Callable, Iterable
+from typing import Any
 
 import boto3
 

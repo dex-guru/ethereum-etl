@@ -26,11 +26,12 @@ from threading import BoundedSemaphore
 
 
 class BoundedExecutor:
-    """BoundedExecutor behaves as a ThreadPoolExecutor which will block on
+    """
+    BoundedExecutor behaves as a ThreadPoolExecutor which will block on
     calls to submit() once the limit given as "bound" work items are queued for
     execution.
     :param bound: Integer - the maximum number of items in the work queue
-    :param max_workers: Integer - the size of the thread pool
+    :param max_workers: Integer - the size of the thread pool.
     """
 
     def __init__(self, bound, max_workers):

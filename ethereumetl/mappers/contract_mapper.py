@@ -25,7 +25,7 @@ from typing import Any
 from ethereumetl.domain.contract import EthContract
 
 
-class EthContractMapper(object):
+class EthContractMapper:
     @staticmethod
     def rpc_result_to_contract(contract_address, rpc_result) -> EthContract:
         contract = EthContract(

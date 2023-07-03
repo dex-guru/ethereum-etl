@@ -5,7 +5,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from string import Template
 from textwrap import indent
-from typing import List
 
 import clickhouse_connect
 import clickhouse_connect.datatypes.numeric as types
@@ -22,8 +21,8 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class Table:
-    column_names: List[str]
-    column_types: List[str]
+    column_names: list[str]
+    column_types: list[str]
 
 
 MIN_INSERT_BATCH_SIZE = envs.MIN_INSERT_BATCH_SIZE

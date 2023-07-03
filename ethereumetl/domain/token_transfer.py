@@ -21,7 +21,7 @@
 # SOFTWARE.
 from dataclasses import dataclass
 from enum import Enum
-from typing import Literal, Optional, TypedDict
+from typing import Literal, TypedDict
 
 
 class TokenStandard(str, Enum):
@@ -40,8 +40,8 @@ class EthTokenTransfer:
     log_index: int
     block_number: int
     token_standard: TokenStandard
-    token_id: Optional[int] = None  # ERC-721, ERC-1155
-    operator_address: Optional[str] = None
+    token_id: int | None = None  # ERC-721, ERC-1155
+    operator_address: str | None = None
 
 
 class EthTokenTransferItem(TypedDict):
@@ -54,5 +54,5 @@ class EthTokenTransferItem(TypedDict):
     log_index: int
     block_number: int
     token_standard: Literal['ERC-20', 'ERC-721', 'ERC-1155']
-    token_id: Optional[int]
-    operator_address: Optional[str]
+    token_id: int | None
+    operator_address: str | None

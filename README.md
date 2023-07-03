@@ -21,6 +21,13 @@ pip install black ruff mypy
 
 ### Run
 
+TL;DR all-at-once run and fix:
+
+```bash
+ruff check --fix . && black . && mypy .
+```
+
+Or one-by-one:
 * Check and auto-fix with: `ruff --fix .`
 * Check typing: `mypy .`
 * Auto-format all: `black .`

@@ -24,7 +24,7 @@
 import json
 
 ERC20_ABI = json.loads(
-    '''
+    """
 [
     {
         "constant": true,
@@ -284,11 +284,11 @@ ERC20_ABI = json.loads(
         "type": "function"
     }
 ]
-'''
+"""
 )
 
 ERC20_ABI_ALTERNATIVE_1 = json.loads(
-    '''
+    """
 [
     {
         "constant": true,
@@ -347,5 +347,5 @@ ERC20_ABI_ALTERNATIVE_1 = json.loads(
         "type": "function"
     }
 ]
-'''
+"""
 )

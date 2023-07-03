@@ -1,7 +1,8 @@
 import json
 import threading
 import time
-from typing import Iterable, NamedTuple
+from collections.abc import Iterable
+from typing import NamedTuple
 
 from eth_utils import to_int
 

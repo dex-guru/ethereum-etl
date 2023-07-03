@@ -46,9 +46,10 @@ class BaseItemExporter(ABC):
         self._configure(kwargs)
 
     def _configure(self, options, dont_fail=False):
-        """Configure the exporter by poping options from the ``options`` dict.
+        """
+        Configure the exporter by poping options from the ``options`` dict.
         If dont_fail is set, it won't raise an exception on unexpected options
-        (useful for using with keyword arguments in subclasses constructors)
+        (useful for using with keyword arguments in subclasses constructors).
         """
         self.encoding = options.pop('encoding', None)
         self.fields_to_export = options.pop('fields_to_export', None)
@@ -76,8 +77,9 @@ class BaseItemExporter(ABC):
         return serializer(value)
 
     def _get_serialized_fields(self, item, default_value=None, include_empty=None):
-        """Return the fields to export as an iterable of tuples
-        (name, serialized_value)
+        """
+        Return the fields to export as an iterable of tuples
+        (name, serialized_value).
         """
         if include_empty is None:
             include_empty = self.export_empty_fields
@@ -190,8 +192,10 @@ class JsonLinesItemExporter(BaseItemExporter):
 
 
 def to_native_str(text, encoding=None, errors='strict'):
-    """Return str representation of `text`
-    (bytes in Python 2.x and unicode in Python 3.x)."""
+    """
+    Return str representation of `text`
+    (bytes in Python 2.x and unicode in Python 3.x).
+    """
     if six.PY2:
         return to_bytes(text, encoding, errors)
     else:
@@ -199,8 +203,10 @@ def to_native_str(text, encoding=None, errors='strict'):
 
 
 def to_bytes(text, encoding=None, errors='strict'):
-    """Return the binary representation of `text`. If `text`
-    is already a bytes object, return it as-is."""
+    """
+    Return the binary representation of `text`. If `text`
+    is already a bytes object, return it as-is.
+    """
     if isinstance(text, bytes):
         return text
     if not isinstance(text, six.string_types):
@@ -213,8 +219,10 @@ def to_bytes(text, encoding=None, errors='strict'):
 
 
 def to_unicode(text: str | bytes, encoding=None, errors='strict'):
-    """Return the unicode representation of a bytes object `text`. If `text`
-    is already a unicode object, return it as-is."""
+    """
+    Return the unicode representation of a bytes object `text`. If `text`
+    is already a unicode object, return it as-is.
+    """
     if isinstance(text, six.text_type):
         return text
     if not isinstance(text, (bytes, six.text_type)):

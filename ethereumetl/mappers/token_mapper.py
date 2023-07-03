@@ -27,7 +27,7 @@ from ethereumetl.domain.token import EthToken
 from ethereumetl.enumeration.entity_type import EntityType
 
 
-class EthTokenMapper(object):
+class EthTokenMapper:
     @staticmethod
     def token_to_dict(token: EthToken) -> dict[str, Any]:
         result = asdict(token)

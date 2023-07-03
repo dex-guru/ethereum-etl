@@ -85,9 +85,10 @@ def generate_balance_of_json_rpc(
         * https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_call
         * https://docs.soliditylang.org/en/latest/abi-spec.html
         * https://eips.ethereum.org/EIPS/eip-721
-        * https://eips.ethereum.org/EIPS/eip-1155
+        * https://eips.ethereum.org/EIPS/eip-1155.
 
     Note:
+    ----
         ERC-1155:        balanceOf(address,tokenId).
         ERC-20, ERC-721: balanceOf(address)         - cannot get balance for a specific token_id.
     """

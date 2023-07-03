@@ -32,7 +32,7 @@ def compose_listing_id(network_id, contract_version, listing_id):
     return "{}-{}-{}".format(network_id, contract_version, listing_id)
 
 
-class OriginEventExtractor(object):
+class OriginEventExtractor:
     def __init__(self, ipfs_client):
         self.ipfs_client = ipfs_client
 
