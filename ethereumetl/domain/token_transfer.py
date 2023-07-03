@@ -30,7 +30,7 @@ class TokenStandard(str, Enum):
     ERC1155 = 'ERC-1155'
 
 
-@dataclass
+@dataclass(slots=True)
 class EthTokenTransfer:
     token_address: str
     from_address: str

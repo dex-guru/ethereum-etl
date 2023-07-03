@@ -20,20 +20,29 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from dataclasses import asdict
+from typing import Any
+
+from ethereumetl.domain.token_transfer import EthTokenTransfer
+from ethereumetl.enumeration.entity_type import EntityType
+
 
 class EthTokenTransferMapper(object):
     @staticmethod
-    def token_transfer_to_dict(token_transfer):
-        return {
-            'type': 'token_transfer',
-            'token_address': token_transfer.token_address,
-            'from_address': token_transfer.from_address,
-            'to_address': token_transfer.to_address,
-            'value': token_transfer.value,
-            'transaction_hash': token_transfer.transaction_hash,
-            'log_index': token_transfer.log_index,
-            'block_number': token_transfer.block_number,
-            'token_id': token_transfer.token_id,
-            'token_standard': token_transfer.token_standard,
-            'operator_address': token_transfer.operator_address,
-        }
+    def token_transfer_to_dict(token_transfer: EthTokenTransfer) -> dict[str, Any]:
+        # return {
+        #     'type': 'token_transfer',
+        #     'token_address': token_transfer.token_address,
+        #     'from_address': token_transfer.from_address,
+        #     'to_address': token_transfer.to_address,
+        #     'value': token_transfer.value,
+        #     'transaction_hash': token_transfer.transaction_hash,
+        #     'log_index': token_transfer.log_index,
+        #     'block_number': token_transfer.block_number,
+        #     'token_id': token_transfer.token_id,
+        #     'token_standard': token_transfer.token_standard,
+        #     'operator_address': token_transfer.operator_address,
+        # }
+        result = asdict(token_transfer)
+        result['type'] = EntityType.TOKEN_TRANSFER.value
+        return result

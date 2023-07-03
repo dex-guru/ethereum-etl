@@ -19,86 +19,80 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
+from dataclasses import asdict
+from typing import Any
 
 from ethereumetl.domain.receipt_log import EthReceiptLog
+from ethereumetl.enumeration.entity_type import EntityType
 from ethereumetl.utils import hex_to_dec
 
 
 class EthReceiptLogMapper(object):
     @staticmethod
-    def json_dict_to_receipt_log(json_dict):
-        receipt_log = EthReceiptLog()
-
-        receipt_log.log_index = hex_to_dec(json_dict.get('logIndex'))
-        receipt_log.transaction_hash = json_dict.get('transactionHash')
-        receipt_log.transaction_index = hex_to_dec(json_dict.get('transactionIndex'))
-        receipt_log.block_hash = json_dict.get('blockHash')
-        receipt_log.block_number = hex_to_dec(json_dict.get('blockNumber'))
-        receipt_log.address = json_dict.get('address')
-        receipt_log.data = json_dict.get('data')
-        receipt_log.topics = json_dict.get('topics')
-
+    def json_dict_to_receipt_log(json_dict: dict) -> EthReceiptLog:
+        receipt_log = EthReceiptLog(
+            log_index=hex_to_dec(json_dict.get('logIndex')),
+            transaction_hash=json_dict.get('transactionHash'),  # type: ignore
+            transaction_index=hex_to_dec(json_dict.get('transactionIndex')),
+            block_hash=json_dict.get('blockHash'),
+            block_number=hex_to_dec(json_dict.get('blockNumber')),
+            address=json_dict.get('address'),  # type: ignore
+            data=json_dict.get('data'),  # type: ignore
+            topics=json_dict.get('topics'),  # type: ignore
+        )
         return receipt_log
 
     @staticmethod
-    def web3_dict_to_receipt_log(dict):
-        receipt_log = EthReceiptLog()
-
-        receipt_log.log_index = dict.get('logIndex')
-
-        transaction_hash = dict.get('transactionHash')
+    def web3_dict_to_receipt_log(d: dict) -> EthReceiptLog:
+        transaction_hash = d.get('transactionHash')
         if transaction_hash is not None:
             transaction_hash = transaction_hash.hex()
-        receipt_log.transaction_hash = transaction_hash
-
-        block_hash = dict.get('blockHash')
+        block_hash = d.get('blockHash')
         if block_hash is not None:
             block_hash = block_hash.hex()
-        receipt_log.block_hash = block_hash
+        if 'topics' in d:
+            topics = [topic.hex() for topic in d['topics']]
+        else:
+            topics = []
 
-        receipt_log.block_number = dict.get('blockNumber')
-        receipt_log.address = dict.get('address')
-        receipt_log.data = dict.get('data')
-
-        if 'topics' in dict:
-            receipt_log.topics = [topic.hex() for topic in dict['topics']]
+        receipt_log = EthReceiptLog(
+            log_index=d.get('logIndex'),  # type: ignore
+            transaction_index=d.get('transactionIndex'),
+            transaction_hash=transaction_hash,
+            block_hash=block_hash,
+            block_number=d.get('blockNumber'),  # type: ignore
+            address=d.get('address'),  # type: ignore
+            data=d.get('data'),  # type: ignore
+            topics=topics,
+        )
 
         return receipt_log
 
     @staticmethod
-    def receipt_log_to_dict(receipt_log):
-        return {
-            'type': 'log',
-            'log_index': receipt_log.log_index,
-            'transaction_hash': receipt_log.transaction_hash,
-            'transaction_index': receipt_log.transaction_index,
-            'block_hash': receipt_log.block_hash,
-            'block_number': receipt_log.block_number,
-            'address': receipt_log.address,
-            'data': receipt_log.data,
-            'topics': receipt_log.topics,
-        }
+    def receipt_log_to_dict(receipt_log: EthReceiptLog) -> dict[str, Any]:
+        result = asdict(receipt_log)
+        result['type'] = EntityType.LOG.value
+        return result
 
     @staticmethod
-    def dict_to_receipt_log(dict):
-        receipt_log = EthReceiptLog()
-
-        receipt_log.log_index = dict.get('log_index')
-        receipt_log.transaction_hash = dict.get('transaction_hash')
-        receipt_log.transaction_index = dict.get('transaction_index')
-        receipt_log.block_hash = dict.get('block_hash')
-        receipt_log.block_number = dict.get('block_number')
-        receipt_log.address = dict.get('address')
-        receipt_log.data = dict.get('data')
-
-        topics = dict.get('topics')
+    def dict_to_receipt_log(d: dict) -> EthReceiptLog:
+        topics: Any = d.get('topics')
         if isinstance(topics, str):
             if len(topics.strip()) == 0:
-                receipt_log.topics = []
+                receipt_log_topics = []
             else:
-                receipt_log.topics = topics.strip().split(',')
+                receipt_log_topics = topics.strip().split(',')
         else:
-            receipt_log.topics = topics
+            receipt_log_topics = topics
 
+        receipt_log = EthReceiptLog(
+            log_index=d.get('log_index'),  # type: ignore
+            transaction_hash=d.get('transaction_hash'),  # type: ignore
+            transaction_index=d.get('transaction_index'),
+            block_hash=d.get('block_hash'),
+            block_number=d.get('block_number'),  # type: ignore
+            address=d.get('address'),  # type: ignore
+            data=d.get('data'),  # type: ignore
+            topics=receipt_log_topics,
+        )
         return receipt_log

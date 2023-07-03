@@ -61,22 +61,23 @@ def _get_origin_shop_products(receipt_log, listing_id, ipfs_client, shop_ipfs_ha
             continue
 
         # Extract the top product.
-        result = OriginShopProduct()
-        result.block_number = receipt_log.block_number
-        result.log_index = receipt_log.log_index
-        result.listing_id = listing_id
-        result.product_id = "{}-{}".format(listing_id, product_id)
-        result.ipfs_path = product_base_path
-        result.external_id = str(product.get('externalId')) if product.get('externalId') else None
-        result.parent_external_id = None
-        result.title = product.get('title')
-        result.description = product.get('description')
-        result.price = product.get('price')
-        result.currency = product.get('currency', 'fiat-USD')
-        result.option1 = None
-        result.option2 = None
-        result.option3 = None
-        result.image = product.get('image')
+        result = OriginShopProduct(
+            block_number=receipt_log.block_number,
+            log_index=receipt_log.log_index,
+            listing_id=listing_id,
+            product_id="{}-{}".format(listing_id, product_id),
+            ipfs_path=product_base_path,
+            external_id=str(product.get('externalId')) if product.get('externalId') else None,
+            parent_external_id=None,
+            title=product.get('title'),
+            description=product.get('description'),
+            price=product.get('price'),
+            currency=product.get('currency', 'fiat-USD'),
+            option1=None,
+            option2=None,
+            option3=None,
+            image=product.get('image'),
+        )
         results.append(result)
 
         # Extract the variants, if any.
@@ -84,26 +85,27 @@ def _get_origin_shop_products(receipt_log, listing_id, ipfs_client, shop_ipfs_ha
         if len(variants) > 0:
             logger.info("Found {} variants".format(len(variants)))
             for variant in variants:
-                result = OriginShopProduct()
-                result.block_number = receipt_log.block_number
-                result.log_index = receipt_log.log_index
-                result.listing_id = listing_id
-                result.product_id = "{}-{}".format(listing_id, variant.get('id'))
-                result.ipfs_path = product_base_path
-                result.external_id = (
-                    str(variant.get('externalId')) if variant.get('externalId') else None
+                result = OriginShopProduct(
+                    block_number=receipt_log.block_number,
+                    log_index=receipt_log.log_index,
+                    listing_id=listing_id,
+                    product_id="{}-{}".format(listing_id, variant.get('id')),
+                    ipfs_path=product_base_path,
+                    external_id=(
+                        str(variant.get('externalId')) if variant.get('externalId') else None
+                    ),
+                    parent_external_id=(
+                        str(product.get('externalId')) if product.get('externalId') else None
+                    ),
+                    title=variant.get('title'),
+                    description=product.get('description'),
+                    price=variant.get('price'),
+                    currency=product.get('currency', 'fiat-USD'),
+                    option1=variant.get('option1'),
+                    option2=variant.get('option2'),
+                    option3=variant.get('option3'),
+                    image=variant.get('image'),
                 )
-                result.parent_external_id = (
-                    str(product.get('externalId')) if product.get('externalId') else None
-                )
-                result.title = variant.get('title')
-                result.description = product.get('description')
-                result.price = variant.get('price')
-                result.currency = product.get('currency', 'fiat-USD')
-                result.option1 = variant.get('option1')
-                result.option2 = variant.get('option2')
-                result.option3 = variant.get('option3')
-                result.image = variant.get('image')
                 results.append(result)
 
     return results
@@ -121,19 +123,20 @@ def get_origin_marketplace_data(receipt_log, listing_id, ipfs_client, ipfs_hash)
         return None, []
 
     # Fill-in an OriginMarketplaceListing object based on the IPFS data.
-    listing = OriginMarketplaceListing()
-    listing.block_number = receipt_log.block_number
-    listing.log_index = receipt_log.log_index
-    listing.listing_id = str(listing_id)
-    listing.ipfs_hash = ipfs_hash
-    listing.listing_type = listing_data.get('listingType', '')
-    listing.category = listing_data.get('category', '')
-    listing.subcategory = listing_data.get('subCategory', '')
-    listing.language = listing_data.get('language', '')
-    listing.title = listing_data.get('title', '')
-    listing.description = listing_data.get('description', '')
-    listing.price = listing_data.get('price', {}).get('amount', '')
-    listing.currency = listing_data.get('price', {}).get('currency', '')
+    listing = OriginMarketplaceListing(
+        block_number=receipt_log.block_number,
+        log_index=receipt_log.log_index,
+        listing_id=str(listing_id),
+        ipfs_hash=ipfs_hash,
+        listing_type=listing_data.get('listingType', ''),
+        category=listing_data.get('category', ''),
+        subcategory=listing_data.get('subCategory', ''),
+        language=listing_data.get('language', ''),
+        title=listing_data.get('title', ''),
+        description=listing_data.get('description', ''),
+        price=listing_data.get('price', {}).get('amount', ''),
+        currency=listing_data.get('price', {}).get('currency', ''),
+    )
 
     # If it is a shop listing, also extract all the shop data.
     shop_listings = []

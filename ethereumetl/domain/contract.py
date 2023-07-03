@@ -20,12 +20,15 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from dataclasses import dataclass, field
+from typing import Any
 
-class EthContract(object):
-    def __init__(self):
-        self.address = None
-        self.bytecode = None
-        self.function_sighashes = []
-        self.is_erc20 = False
-        self.is_erc721 = False
-        self.block_number = None
+
+@dataclass(slots=True)
+class EthContract:
+    address: str
+    bytecode: Any
+    is_erc20: bool = False
+    is_erc721: bool = False
+    function_sighashes: list[Any] = field(default_factory=list)
+    block_number: int | None = None

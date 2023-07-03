@@ -22,6 +22,7 @@
 from dataclasses import asdict
 
 from ethereumetl.domain.block import EthBlock
+from ethereumetl.enumeration.entity_type import EntityType
 from ethereumetl.mappers.transaction_mapper import EthTransactionMapper
 from ethereumetl.utils import hex_to_dec, to_normalized_address
 
@@ -72,5 +73,5 @@ class EthBlockMapper(object):
     def block_to_dict(block):
         result = asdict(block)
         del result['transactions']
-        result['type'] = 'block'
+        result['type'] = EntityType.BLOCK.value
         return result

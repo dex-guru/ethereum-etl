@@ -19,15 +19,16 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from dataclasses import dataclass, field
 
 
-class EthReceiptLog(object):
-    def __init__(self):
-        self.log_index = None
-        self.transaction_hash = None
-        self.transaction_index = None
-        self.block_hash = None
-        self.block_number = None
-        self.address = None
-        self.data = None
-        self.topics = []
+@dataclass(slots=True)
+class EthReceiptLog:
+    log_index: int
+    transaction_hash: str
+    block_number: int
+    address: str
+    data: str
+    topics: list[str] = field(default_factory=list)
+    block_hash: str | None = None
+    transaction_index: int | None = None

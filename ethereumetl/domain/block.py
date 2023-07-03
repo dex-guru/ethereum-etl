@@ -24,7 +24,7 @@ from dataclasses import dataclass, field
 from ethereumetl.domain.transaction import EthTransaction
 
 
-@dataclass
+@dataclass(slots=True)
 class EthBlock:
     number: int
     hash: str
