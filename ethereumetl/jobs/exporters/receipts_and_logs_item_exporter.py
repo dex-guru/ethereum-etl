@@ -19,9 +19,11 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
+from dataclasses import fields
 
 from blockchainetl.jobs.exporters.composite_item_exporter import CompositeItemExporter
+from ethereumetl.domain.receipt import EthReceipt
+from ethereumetl.domain.receipt_log import EthReceiptLog
 
 RECEIPT_FIELDS_TO_EXPORT = [
     'transaction_hash',
@@ -35,6 +37,7 @@ RECEIPT_FIELDS_TO_EXPORT = [
     'status',
     'effective_gas_price',
 ]
+assert set(f.name for f in fields(EthReceipt)) >= set(RECEIPT_FIELDS_TO_EXPORT)
 
 LOG_FIELDS_TO_EXPORT = [
     'log_index',
@@ -46,6 +49,7 @@ LOG_FIELDS_TO_EXPORT = [
     'data',
     'topics',
 ]
+assert set(f.name for f in fields(EthReceiptLog)) >= set(LOG_FIELDS_TO_EXPORT)
 
 
 def receipts_and_logs_item_exporter(receipts_output=None, logs_output=None):
