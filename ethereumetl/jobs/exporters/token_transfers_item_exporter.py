@@ -19,9 +19,10 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
+from dataclasses import fields
 
 from blockchainetl.jobs.exporters.composite_item_exporter import CompositeItemExporter
+from ethereumetl.domain.token_transfer import EthTokenTransfer
 
 FIELDS_TO_EXPORT = (
     'token_address',
@@ -34,6 +35,7 @@ FIELDS_TO_EXPORT = (
     'token_id',
     'operator_address',
 )
+assert set(f.name for f in fields(EthTokenTransfer)) >= set(FIELDS_TO_EXPORT)
 
 
 def token_transfers_item_exporter(token_transfer_output, converters=()):
