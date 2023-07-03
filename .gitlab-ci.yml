@@ -169,7 +169,6 @@ lint-python-mypy:
     reports:
       codequality: report.json
     expire_in: 1 month
-  allow_failure: true
   only:
     - merge_requests
     - master
@@ -187,7 +186,6 @@ lint-python-ruff:
     reports:
       codequality: report.json
     expire_in: 1 month
-  allow_failure: true
   only:
     - merge_requests
     - master
@@ -199,7 +197,6 @@ lint-python-formatting:
     - build-lint
   script:
     - black --check .
-  allow_failure: true
   only:
     - merge_requests
     - master
