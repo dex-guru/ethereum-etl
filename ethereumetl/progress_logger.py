@@ -45,9 +45,9 @@ class ProgressLogger:
     def start(self, total_items=None):
         self.total_items = total_items
         self.start_time = datetime.now()
-        start_message = 'Started {}.'.format(self.name)
+        start_message = f'Started {self.name}.'
         if self.total_items is not None:
-            start_message = start_message + ' Items to process: {}.'.format(self.total_items)
+            start_message = start_message + f' Items to process: {self.total_items}.'
         self.logger.info(start_message)
 
     # A race condition is possible where a message for the same percentage is printed twice, but it's a minor issue
@@ -60,7 +60,7 @@ class ProgressLogger:
             if int(processed_items_before / self.log_items_step) != int(
                 processed_items / self.log_items_step
             ):
-                track_message = '{} items processed.'.format(processed_items)
+                track_message = f'{processed_items} items processed.'
         else:
             percentage = processed_items * 100 / self.total_items
             percentage_before = processed_items_before * 100 / self.total_items
@@ -84,6 +84,6 @@ class ProgressLogger:
             self.name, self.counter.increment() - 1
         )
         if duration is not None:
-            finish_message = finish_message + ' Took {}.'.format(str(duration))
+            finish_message = finish_message + f' Took {str(duration)}.'
 
         self.logger.info(finish_message)

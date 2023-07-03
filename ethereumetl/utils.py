@@ -88,7 +88,7 @@ def rpc_response_to_result(response):
 
     result = response.get('result')
     if result is None:
-        error_message = 'result is None in response {}.'.format(response)
+        error_message = f'result is None in response {response}.'
         error: dict | None
         if response.get('error') is None:
             error_message = error_message + ' Make sure Ethereum node is synced.'

@@ -75,9 +75,7 @@ class BatchWorkExecutor:
         except self.retry_exceptions as e:
             self.logger.exception('An exception occurred while executing work_handler: %s', e)
             self._try_decrease_batch_size(len(batch))
-            self.logger.info(
-                'The batch of size {} will be retried one item at a time.'.format(len(batch))
-            )
+            self.logger.info(f'The batch of size {len(batch)} will be retried one item at a time.')
             for item in batch:
                 execute_with_retries(
                     work_handler,
@@ -93,7 +91,7 @@ class BatchWorkExecutor:
         batch_size = self.batch_size
         if batch_size == current_batch_size and batch_size > 1:
             new_batch_size = int(current_batch_size / 2)
-            self.logger.info('Reducing batch size to {}.'.format(new_batch_size))
+            self.logger.info(f'Reducing batch size to {new_batch_size}.')
             self.batch_size = new_batch_size
             self.latest_batch_size_change_time = time.time()
 
@@ -108,7 +106,7 @@ class BatchWorkExecutor:
             )
             if seconds_since_last_change > BATCH_CHANGE_COOLDOWN_PERIOD_SECONDS:
                 new_batch_size = current_batch_size * 2
-                self.logger.info('Increasing batch size to {}.'.format(new_batch_size))
+                self.logger.info(f'Increasing batch size to {new_batch_size}.')
                 self.batch_size = new_batch_size
                 self.latest_batch_size_change_time = current_time
 

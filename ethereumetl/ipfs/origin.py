@@ -28,19 +28,17 @@ def _get_origin_shop_products(receipt_log, listing_id, ipfs_client, shop_ipfs_ha
     shop_index_page = ipfs_client.get(shop_ipfs_hash + "/index.html")
     shop_data_dir = _get_shop_data_dir(shop_index_page)
 
-    path = "{}/{}".format(shop_ipfs_hash, shop_data_dir) if shop_data_dir else shop_ipfs_hash
-    logger.debug("Using shop path {}".format(path))
+    path = f"{shop_ipfs_hash}/{shop_data_dir}" if shop_data_dir else shop_ipfs_hash
+    logger.debug(f"Using shop path {path}")
 
     products_path = "{}/{}".format(path, 'products.json')
     try:
         products = ipfs_client.get_json(products_path)
     except Exception as e:
-        logger.error(
-            "Listing {} Failed downloading product {}: {}".format(listing_id, products_path, e)
-        )
+        logger.error(f"Listing {listing_id} Failed downloading product {products_path}: {e}")
         return results
 
-    logger.info("Found {} products in for listing {}".format(len(products), listing_id))
+    logger.info(f"Found {len(products)} products in for listing {listing_id}")
 
     # Go through all the products from the shop.
     for product in products:
@@ -49,15 +47,15 @@ def _get_origin_shop_products(receipt_log, listing_id, ipfs_client, shop_ipfs_ha
             logger.error('Product entry with missing id in products.json')
             continue
 
-        logger.info("Processing product {}".format(product_id))
+        logger.info(f"Processing product {product_id}")
 
         # Fetch the product details to get the variants.
-        product_base_path = "{}/{}".format(path, product_id)
+        product_base_path = f"{path}/{product_id}"
         product_data_path = "{}/{}".format(product_base_path, 'data.json')
         try:
             product = ipfs_client.get_json(product_data_path)
         except Exception as e:
-            logger.error("Failed downloading {}: {}".format(product_data_path, e))
+            logger.error(f"Failed downloading {product_data_path}: {e}")
             continue
 
         # Extract the top product.
@@ -65,7 +63,7 @@ def _get_origin_shop_products(receipt_log, listing_id, ipfs_client, shop_ipfs_ha
             block_number=receipt_log.block_number,
             log_index=receipt_log.log_index,
             listing_id=listing_id,
-            product_id="{}-{}".format(listing_id, product_id),
+            product_id=f"{listing_id}-{product_id}",
             ipfs_path=product_base_path,
             external_id=str(product.get('externalId')) if product.get('externalId') else None,
             parent_external_id=None,
@@ -83,7 +81,7 @@ def _get_origin_shop_products(receipt_log, listing_id, ipfs_client, shop_ipfs_ha
         # Extract the variants, if any.
         variants = product.get('variants', [])
         if len(variants) > 0:
-            logger.info("Found {} variants".format(len(variants)))
+            logger.info(f"Found {len(variants)} variants")
             for variant in variants:
                 result = OriginShopProduct(
                     block_number=receipt_log.block_number,
@@ -117,9 +115,7 @@ def get_origin_marketplace_data(receipt_log, listing_id, ipfs_client, ipfs_hash)
     try:
         listing_data = ipfs_client.get_json(ipfs_hash)
     except Exception as e:
-        logger.error(
-            "Extraction failed. Listing {} Listing hash {} - {}".format(listing_id, ipfs_hash, e)
-        )
+        logger.error(f"Extraction failed. Listing {listing_id} Listing hash {ipfs_hash} - {e}")
         return None, []
 
     # Fill-in an OriginMarketplaceListing object based on the IPFS data.

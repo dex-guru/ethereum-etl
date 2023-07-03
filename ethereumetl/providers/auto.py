@@ -45,4 +45,4 @@ def get_provider_from_uri(uri_string, timeout=DEFAULT_TIMEOUT, batch=False):
         else:
             return HTTPProvider(uri_string, request_kwargs=request_kwargs)
     else:
-        raise ValueError('Unknown uri scheme {}'.format(uri_string))
+        raise ValueError(f'Unknown uri scheme {uri_string}')

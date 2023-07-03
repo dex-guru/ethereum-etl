@@ -44,9 +44,7 @@ class GraphOperations:
 
     def _get_bounds_for_y_coordinate_recursive(self, y, start, end):
         if y < start.y or y > end.y:
-            raise OutOfBoundsError(
-                'y coordinate {} is out of bounds for points {}-{}'.format(y, start, end)
-            )
+            raise OutOfBoundsError(f'y coordinate {y} is out of bounds for points {start}-{end}')
 
         if y == start.y:
             return start.x, start.x
@@ -86,9 +84,7 @@ class GraphOperations:
 
             bounds = find_best_bounds(y, all_points)
             if bounds is None:
-                raise ValueError(
-                    'Unable to find bounds for points {} and y coordinate {}'.format(points, y)
-                )
+                raise ValueError(f'Unable to find bounds for points {points} and y coordinate {y}')
 
             return self._get_bounds_for_y_coordinate_recursive(y, *bounds)
 
@@ -120,7 +116,7 @@ def interpolate(point1, point2, y):
     x1, y1 = point1.x, point1.y
     x2, y2 = point2.x, point2.y
     if y1 == y2:
-        raise ValueError('The y coordinate for points is the same {}, {}'.format(point1, point2))
+        raise ValueError(f'The y coordinate for points is the same {point1}, {point2}')
     x = int((y - y1) * (x2 - x1) / (y2 - y1) + x1)
     return x
 
@@ -147,7 +143,7 @@ class Point:
         self.y = y
 
     def __str__(self):
-        return '({},{})'.format(self.x, self.y)
+        return f'({self.x},{self.y})'
 
     def __repr__(self):
-        return 'Point({},{})'.format(self.x, self.y)
+        return f'Point({self.x},{self.y})'

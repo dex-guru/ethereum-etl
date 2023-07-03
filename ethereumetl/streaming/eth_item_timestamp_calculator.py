@@ -38,7 +38,7 @@ class EthItemTimestampCalculator:
         elif item.get('block_timestamp') is not None:
             return epoch_seconds_to_rfc3339(item.get('block_timestamp'))
 
-        logging.warning('item_timestamp for item {} is None'.format(json.dumps(item)))
+        logging.warning(f'item_timestamp for item {json.dumps(item)} is None')
 
         return None
 

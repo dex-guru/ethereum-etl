@@ -78,4 +78,4 @@ def get_block_range_for_date(provider_uri, date, output, chain='ethereum'):
     start_block, end_block = eth_service.get_block_range_for_date(date)
 
     with smart_open(output, 'w') as output_file:
-        output_file.write('{},{}\n'.format(start_block, end_block))
+        output_file.write(f'{start_block},{end_block}\n')
