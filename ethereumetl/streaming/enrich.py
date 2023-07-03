@@ -26,7 +26,6 @@ from collections import defaultdict
 from dataclasses import fields
 from datetime import datetime
 
-from ethereumetl.config.envs import envs
 from ethereumetl.domain.internal_transfer import InternalTransfer
 from ethereumetl.domain.token_balance import EthTokenBalance
 from ethereumetl.mappers.error_mapper import EthErrorMapper
@@ -70,11 +69,6 @@ def join(left, right, join_fields, left_fields, right_fields):
 def enrich_transactions(transactions, receipts):
     transactions = dedup_list_of_dicts(transactions)
     receipts = dedup_list_of_dicts(receipts)
-    if envs.SKIP_NONE_RECEIPTS:
-        transactions_dict = {t['hash']: t for t in transactions}
-        transactions = []
-        for receipt in receipts:
-            transactions.append(transactions_dict[receipt['transaction_hash']])
     result = list(
         join(
             transactions,
@@ -110,8 +104,13 @@ def enrich_transactions(transactions, receipts):
         )
     )
 
-    if len(result) != len(transactions):
-        raise ValueError('The number of transactions is wrong ' + str(result))
+    if len(result) < min(len(transactions), len(receipts)):
+        raise ValueError(
+            "transaction count is wrong after enriching with receipt:"
+            f" before_transactions={len(transactions)}"
+            f", before_receipts={len(receipts)}"
+            f", after={len(result)}"
+        )
 
     return result
 
@@ -139,8 +138,10 @@ def enrich_logs(blocks, logs):
         )
     )
 
-    if len(result) != len(logs) and not envs.SKIP_NONE_RECEIPTS:
-        raise ValueError('The number of logs is wrong ' + str(result))
+    if len(result) != len(logs):
+        raise ValueError(
+            f"log count changed after enriching with block: {len(logs)} -> {len(result)}"
+        )
 
     return result
 
@@ -171,8 +172,11 @@ def enrich_token_transfers(blocks, token_transfers):
         )
     )
 
-    if len(result) != len(token_transfers) and not envs.SKIP_NONE_RECEIPTS:
-        raise ValueError('The number of token transfers is wrong ' + str(result))
+    if len(result) != len(token_transfers):
+        raise ValueError(
+            "token transfer count changed after enriching with block:"
+            f" {len(token_transfers)} -> {len(result)}"
+        )
 
     return result
 
