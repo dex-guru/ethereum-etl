@@ -232,7 +232,7 @@ class EthStreamerAdapter:
         end_block,
     ):
         blocks_and_transactions_item_exporter = InMemoryItemExporter(
-            item_types=['block', 'transaction']
+            item_types=[EntityType.BLOCK, EntityType.TRANSACTION]
         )
         blocks_and_transactions_job = ExportBlocksJob(
             start_block=start_block,
@@ -245,12 +245,12 @@ class EthStreamerAdapter:
             export_transactions=TRANSACTION in self.should_export,
         )
         blocks_and_transactions_job.run()
-        blocks = blocks_and_transactions_item_exporter.get_items('block')
-        transactions = blocks_and_transactions_item_exporter.get_items('transaction')
+        blocks = blocks_and_transactions_item_exporter.get_items(EntityType.BLOCK)
+        transactions = blocks_and_transactions_item_exporter.get_items(EntityType.TRANSACTION)
         return blocks, transactions
 
     def _export_receipts_and_logs(self, transactions):
-        exporter = InMemoryItemExporter(item_types=['receipt', 'log'])
+        exporter = InMemoryItemExporter(item_types=[EntityType.RECEIPT, EntityType.LOG])
         job = ExportReceiptsJob(
             transaction_hashes_iterable=(transaction['hash'] for transaction in transactions),
             batch_size=self.batch_size,
@@ -261,12 +261,12 @@ class EthStreamerAdapter:
             export_logs=LOG in self.should_export,
         )
         job.run()
-        receipts = exporter.get_items('receipt')
-        logs = exporter.get_items('log')
+        receipts = exporter.get_items(EntityType.RECEIPT)
+        logs = exporter.get_items(EntityType.LOG)
         return receipts, logs
 
     def _extract_token_transfers(self, logs):
-        exporter = InMemoryItemExporter(item_types=['token_transfer'])
+        exporter = InMemoryItemExporter(item_types=[EntityType.TOKEN_TRANSFER])
         job = ExtractTokenTransfersJob(
             logs_iterable=logs,
             batch_size=self.batch_size,
@@ -274,11 +274,11 @@ class EthStreamerAdapter:
             item_exporter=exporter,
         )
         job.run()
-        token_transfers = exporter.get_items('token_transfer')
+        token_transfers = exporter.get_items(EntityType.TOKEN_TRANSFER)
         return token_transfers
 
     def _export_token_balances(self, token_transfers):
-        exporter = InMemoryItemExporter(item_types=['token_balance', 'error'])
+        exporter = InMemoryItemExporter(item_types=[EntityType.TOKEN_BALANCE, EntityType.ERROR])
         job = ExportTokenBalancesJob(
             token_transfer_items_iterable=token_transfers,
             batch_size=self.batch_size,
@@ -292,7 +292,7 @@ class EthStreamerAdapter:
         return token_balances, errors
 
     def _export_traces(self, start_block, end_block):
-        exporter = InMemoryItemExporter(item_types=['trace'])
+        exporter = InMemoryItemExporter(item_types=[EntityType.TRACE])
         job = ExportTracesJob(
             start_block=start_block,
             end_block=end_block,
@@ -301,11 +301,11 @@ class EthStreamerAdapter:
             item_exporter=exporter,
         )
         job.run()
-        traces = exporter.get_items('trace')
+        traces = exporter.get_items(EntityType.TRACE)
         return traces
 
     def _export_geth_traces(self, transaction_hashes):
-        exporter = InMemoryItemExporter(item_types=['geth_trace'])
+        exporter = InMemoryItemExporter(item_types=[EntityType.GETH_TRACE])
         job = ExportGethTracesJob(
             transaction_hashes=transaction_hashes,
             batch_size=self.batch_size,
@@ -314,11 +314,11 @@ class EthStreamerAdapter:
             item_exporter=exporter,
         )
         job.run()
-        traces = exporter.get_items('geth_trace')
+        traces = exporter.get_items(EntityType.GETH_TRACE)
         return traces
 
     def _export_contracts(self, traces):
-        exporter = InMemoryItemExporter(item_types=['contract'])
+        exporter = InMemoryItemExporter(item_types=[EntityType.CONTRACT])
         job = ExtractContractsJob(
             traces_iterable=traces,
             batch_size=self.batch_size,
@@ -326,11 +326,11 @@ class EthStreamerAdapter:
             item_exporter=exporter,
         )
         job.run()
-        contracts = exporter.get_items('contract')
+        contracts = exporter.get_items(EntityType.CONTRACT)
         return contracts
 
     def _extract_tokens(self, contracts):
-        exporter = InMemoryItemExporter(item_types=['token'])
+        exporter = InMemoryItemExporter(item_types=[EntityType.TOKEN])
         job = ExtractTokensJob(
             contracts_iterable=contracts,
             web3=ThreadLocalProxy(lambda: build_web3(self.batch_web3_provider)),
@@ -338,11 +338,11 @@ class EthStreamerAdapter:
             item_exporter=exporter,
         )
         job.run()
-        tokens = exporter.get_items('token')
+        tokens = exporter.get_items(EntityType.TOKEN)
         return tokens
 
     def _extract_internal_transfers(self, geth_traces):
-        exporter = InMemoryItemExporter(item_types=['internal_transfer'])
+        exporter = InMemoryItemExporter(item_types=[EntityType.INTERNAL_TRANSFER])
         job = ExtractInternalTransfersJob(
             geth_traces_iterable=geth_traces,
             batch_size=self.batch_size,
@@ -350,7 +350,7 @@ class EthStreamerAdapter:
             item_exporter=exporter,
         )
         job.run()
-        internal_transfers = exporter.get_items('internal_transfer')
+        internal_transfers = exporter.get_items(EntityType.INTERNAL_TRANSFER)
         return internal_transfers
 
     def calculate_item_ids(self, items):
