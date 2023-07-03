@@ -27,7 +27,7 @@ from ethereumetl.domain.token_transfer import EthTokenTransfer
 from ethereumetl.enumeration.entity_type import EntityType
 
 
-class EthTokenTransferMapper(object):
+class EthTokenTransferMapper:
     @staticmethod
     def token_transfer_to_dict(token_transfer: EthTokenTransfer) -> dict[str, Any]:
         # return {

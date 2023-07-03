@@ -169,7 +169,6 @@ def check_data_consistency(
     export_from_clickhouse=None,
 ):
     """Streams all data types to console or Google Pub/Sub."""
-
     # TODO: use or remove:
     _, _ = start_block, end_block
 

@@ -23,7 +23,7 @@
 
 import csv
 import json
-from typing import Iterable
+from collections.abc import Iterable
 
 import click
 
@@ -80,7 +80,6 @@ logging_basic_config()
 )
 def extract_tokens(contracts, provider_uri, output, max_workers, values_as_strings=False):
     """Extracts tokens from contracts file."""
-
     set_max_field_size_limit()
 
     with smart_open(contracts, 'r') as contracts_file:

@@ -27,7 +27,7 @@ from ethereumetl.enumeration.entity_type import EntityType
 from ethereumetl.utils import hex_to_dec
 
 
-class EthReceiptLogMapper(object):
+class EthReceiptLogMapper:
     @staticmethod
     def json_dict_to_receipt_log(json_dict: dict) -> EthReceiptLog:
         receipt_log = EthReceiptLog(

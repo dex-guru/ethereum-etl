@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import kombu
 
@@ -16,7 +16,7 @@ class AMQPItemExporter(BaseItemExporter):
         self,
         amqp_url: str,
         exchange: str,
-        item_type_to_routing_key_mapping: Optional[dict[str, str]] = None,
+        item_type_to_routing_key_mapping: dict[str, str] | None = None,
     ):
         super().__init__()
         self._item_type_to_topic_mapping = item_type_to_routing_key_mapping or {}
@@ -24,12 +24,12 @@ class AMQPItemExporter(BaseItemExporter):
         self._exchange = exchange
         self._amqp_url = amqp_url
 
-        self._connection: Optional[kombu.Connection] = None
-        self._producer: Optional[kombu.Producer] = None
+        self._connection: kombu.Connection | None = None
+        self._producer: kombu.Producer | None = None
 
     def open(self):
         """
-        raises: IOError
+        raises: IOError.
         """
         if self._connection is not None:
             raise RuntimeError('already opened')
@@ -50,7 +50,7 @@ class AMQPItemExporter(BaseItemExporter):
                 exchange=exchange,
                 auto_declare=True,
             )
-        except IOError as e:
+        except OSError as e:
             logging.error('Failed to connect to AMQP broker: %s', e)
             raise
 
@@ -61,8 +61,9 @@ class AMQPItemExporter(BaseItemExporter):
             self._producer = None
 
     def export_item(self, item: dict[str, Any]):
-        """,
-        raises: ConnectionError
+        """
+        ,
+        raises: ConnectionError.
         """
         if self._producer is None:
             raise RuntimeError('not opened')
@@ -78,7 +79,7 @@ class AMQPItemExporter(BaseItemExporter):
 
         try:
             self._producer.publish(item, routing_key=routing_key, serializer='json')
-        except IOError as e:
+        except OSError as e:
             msg = f'Failed to publish item to AMQP broker: {e}'
             logging.error(msg)
             raise ConnectionError(msg) from e

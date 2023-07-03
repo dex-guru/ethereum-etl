@@ -1,12 +1,10 @@
-from typing import Tuple
-
 from clickhouse_driver import Client
 
 from ethereumetl.config.envs import envs
 from ethereumetl.utils import parse_clickhouse_url
 
 
-def clickhouse_client_from_url(url) -> Tuple[Client, str]:
+def clickhouse_client_from_url(url) -> tuple[Client, str]:
     connect_kwargs = parse_clickhouse_url(url)
     return (
         Client(**connect_kwargs, connect_timeout=600, send_receive_timeout=600),

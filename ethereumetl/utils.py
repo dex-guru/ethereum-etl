@@ -118,7 +118,7 @@ def is_retriable_error(error_code):
 
 
 def split_to_batches(start_incl, end_incl, batch_size):
-    """start_incl and end_incl are inclusive, the returned batch ranges are also inclusive"""
+    """start_incl and end_incl are inclusive, the returned batch ranges are also inclusive."""
     for batch_start in range(start_incl, end_incl + 1, batch_size):
         batch_end = min(batch_start + batch_size - 1, end_incl)
         yield batch_start, batch_end
@@ -138,7 +138,7 @@ def dynamic_batch_iterator(iterable, batch_size_getter):
 
 
 def pairwise(iterable):
-    """s -> (s0,s1), (s1,s2), (s2, s3), ..."""
+    """S -> (s0,s1), (s1,s2), (s2, s3), ..."""
     a, b = itertools.tee(iterable)
     next(b, None)
     return zip(a, b)
@@ -173,7 +173,8 @@ class HealthCheck:
     Health check decorator class. It touches the "healthy" file.
     If the worker is not alive, K8s kills the process.
 
-    IMPORTANT:
+    Important:
+    ---------
     This decorator should be set on the periodically called function.
     It needs to set livenessProbe in the helm chart.
 

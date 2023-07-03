@@ -23,7 +23,7 @@
 
 import csv
 import json
-from typing import Iterable
+from collections.abc import Iterable
 
 import click
 
@@ -64,7 +64,6 @@ logging_basic_config()
 )
 def extract_contracts(traces, batch_size, output, max_workers):
     """Extracts contracts from traces file."""
-
     set_max_field_size_limit()
 
     with smart_open(traces, 'r') as traces_file:

@@ -1,6 +1,7 @@
 import logging
+from collections.abc import Iterable
 from functools import cache, cached_property
-from typing import Any, Iterable, Optional
+from typing import Any
 
 import clickhouse_connect
 
@@ -34,12 +35,12 @@ class ClickhouseEthStreamerAdapter:
         eth_streamer_adapter: EthStreamerAdapter,
         clickhouse_url: str,
         chain_id: int,
-        item_type_to_table_mapping: Optional[dict[EntityType, str]] = None,
+        item_type_to_table_mapping: dict[EntityType, str] | None = None,
         rewrite_entity_types: Iterable[EntityType] = ALL,
     ):
         self._eth_streamer_adapter = eth_streamer_adapter
         self._clickhouse_url = clickhouse_url
-        self._clickhouse: Optional[clickhouse_connect.driver.HttpClient] = None
+        self._clickhouse: clickhouse_connect.driver.HttpClient | None = None
         self._rewrite_entity_types = frozenset(rewrite_entity_types)
 
         if item_type_to_table_mapping is None:

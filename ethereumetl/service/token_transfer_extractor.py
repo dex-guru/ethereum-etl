@@ -22,8 +22,7 @@
 
 
 import logging
-from builtins import map
-from typing import Callable, Iterable, Iterator
+from collections.abc import Callable, Iterable, Iterator
 
 import eth_abi
 import eth_abi.exceptions
@@ -172,7 +171,7 @@ def extract_erc1155_batch_transfers(receipt_log):
             yield token_transfer
 
 
-class EthTokenTransferExtractor(object):
+class EthTokenTransferExtractor:
     EXTRACT_BY_TOPICS_LEN_TOPIC0: dict[
         tuple[int, str], Callable[[dict], Iterable[EthTokenTransfer]]
     ] = {

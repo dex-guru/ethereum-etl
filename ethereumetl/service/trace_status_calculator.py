@@ -45,7 +45,7 @@ def calculate_trace_statuses(traces):
 
 
 def calculate_trace_statuses_for_single_transaction(all_traces):
-    """O(n * log(n))"""
+    """O(n * log(n))."""
     sorted_traces = sorted(all_traces, key=lambda trace: len(trace.trace_address or []))
     indexed_traces = {trace_address_to_str(trace.trace_address): trace for trace in sorted_traces}
 

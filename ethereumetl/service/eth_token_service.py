@@ -29,7 +29,7 @@ from ethereumetl.erc20_abi import ERC20_ABI, ERC20_ABI_ALTERNATIVE_1
 logger = logging.getLogger('eth_token_service')
 
 
-class EthTokenService(object):
+class EthTokenService:
     def __init__(self, web3, function_call_result_transformer=None):
         self._web3 = web3
         self._function_call_result_transformer = function_call_result_transformer

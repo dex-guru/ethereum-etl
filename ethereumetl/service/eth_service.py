@@ -26,7 +26,7 @@ from datetime import datetime, timezone
 from ethereumetl.service.graph_operations import GraphOperations, OutOfBoundsError, Point
 
 
-class EthService(object):
+class EthService:
     def __init__(self, web3):
         graph = BlockTimestampGraph(web3)
         self._graph_operations = GraphOperations(graph)
@@ -74,7 +74,7 @@ class EthService(object):
         return start_block, end_block
 
 
-class BlockTimestampGraph(object):
+class BlockTimestampGraph:
     def __init__(self, web3):
         self._web3 = web3
 

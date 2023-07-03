@@ -28,7 +28,7 @@ from ethereumetl.mappers.receipt_log_mapper import EthReceiptLogMapper
 from ethereumetl.utils import hex_to_dec, to_normalized_address
 
 
-class EthReceiptMapper(object):
+class EthReceiptMapper:
     def __init__(self, receipt_log_mapper=None):
         if receipt_log_mapper is None:
             self.receipt_log_mapper = EthReceiptLogMapper()

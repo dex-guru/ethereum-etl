@@ -46,9 +46,10 @@ class BaseItemExporter(ABC):
         self._configure(kwargs)
 
     def _configure(self, options, dont_fail=False):
-        """Configure the exporter by poping options from the ``options`` dict.
+        """
+        Configure the exporter by poping options from the ``options`` dict.
         If dont_fail is set, it won't raise an exception on unexpected options
-        (useful for using with keyword arguments in subclasses constructors)
+        (useful for using with keyword arguments in subclasses constructors).
         """
         self.encoding = options.pop('encoding', None)
         self.fields_to_export = options.pop('fields_to_export', None)
@@ -70,8 +71,9 @@ class BaseItemExporter(ABC):
         return serializer(value)
 
     def _get_serialized_fields(self, item, default_value=None, include_empty=None):
-        """Return the fields to export as an iterable of tuples
-        (name, serialized_value)
+        """
+        Return the fields to export as an iterable of tuples
+        (name, serialized_value).
         """
         if include_empty is None:
             include_empty = self.export_empty_fields

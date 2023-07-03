@@ -26,7 +26,7 @@ from ethereumetl.domain.geth_trace import EthGethTrace
 from ethereumetl.enumeration.entity_type import EntityType
 
 
-class EthGethTraceMapper(object):
+class EthGethTraceMapper:
     @staticmethod
     def json_dict_to_geth_trace(json_dict):
         transaction_hash = json_dict.get('transaction_hash')

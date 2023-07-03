@@ -27,7 +27,7 @@ from ethereumetl.mappers.transaction_mapper import EthTransactionMapper
 from ethereumetl.utils import hex_to_dec, to_normalized_address
 
 
-class EthBlockMapper(object):
+class EthBlockMapper:
     def __init__(self, transaction_mapper=None):
         if transaction_mapper is None:
             self.transaction_mapper = EthTransactionMapper()

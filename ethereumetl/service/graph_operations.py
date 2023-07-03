@@ -24,15 +24,16 @@
 from ethereumetl.utils import pairwise
 
 
-class GraphOperations(object):
+class GraphOperations:
     def __init__(self, graph):
-        """x-axis on the graph must be integers, y value must increase strictly monotonically with increase of x"""
+        """x-axis on the graph must be integers, y value must increase strictly monotonically with increase of x."""
         self._graph = graph
         self._cached_points = []
 
     def get_bounds_for_y_coordinate(self, y):
-        """given the y coordinate, outputs a pair of x coordinates for closest points that bound the y coordinate.
-        Left and right bounds are equal in case given y is equal to one of the points y coordinate
+        """
+        given the y coordinate, outputs a pair of x coordinates for closest points that bound the y coordinate.
+        Left and right bounds are equal in case given y is equal to one of the points y coordinate.
         """
         initial_bounds = find_best_bounds(y, self._cached_points)
         if initial_bounds is None:
@@ -140,7 +141,7 @@ class OutOfBoundsError(Exception):
     pass
 
 
-class Point(object):
+class Point:
     def __init__(self, x, y):
         self.x = x
         self.y = y

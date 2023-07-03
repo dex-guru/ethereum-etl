@@ -27,7 +27,7 @@ from ethereumetl.enumeration.entity_type import EntityType
 from ethereumetl.utils import hex_to_dec, to_normalized_address
 
 
-class EthTransactionMapper(object):
+class EthTransactionMapper:
     @staticmethod
     def json_dict_to_transaction(json_dict: dict, **kwargs) -> EthTransaction:
         transaction = EthTransaction(

@@ -7,7 +7,7 @@ from ethereumetl.service.token_transfer_extractor import word_to_address
 from ethereumetl.utils import hex_to_dec
 
 
-class InternalTransferMapper(object):
+class InternalTransferMapper:
     @staticmethod
     def geth_trace_to_internal_transfers(geth_trace: EthGethTrace):
         traces = geth_trace.transaction_traces

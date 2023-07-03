@@ -10,7 +10,29 @@ known_first_party = ["blockchainetl", "ethereumetl", "schemas", "tests"]
 
 [tool.ruff]
 line-length = 150
-ignore = ["E741"]
+ignore = [
+    "C90",
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "D104",
+    "D105",
+    "D107",
+    "D200",
+    "D203",
+    "D205",
+    "D212",
+    "D401",
+    "D415",
+    "E741",
+    "Q000",
+    "UP032",
+    "UP038",
+]
+extend-select = ["Q", "RUF100", "UP", "I", "PERF", "D"]
+isort = { known-first-party = ["blockchainetl", "ethereumetl", "schemas", "tests"] }
+target-version = "py310"
 
 [tool.mypy]
 python_version = "3.10"
