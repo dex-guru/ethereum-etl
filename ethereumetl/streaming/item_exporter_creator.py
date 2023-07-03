@@ -190,7 +190,7 @@ def determine_item_exporter_type(output: str | None) -> 'ItemExporterType':
         return ItemExporterType.GCS
     if output.startswith('clickhouse'):
         return ItemExporterType.CLICKHOUSE
-    if output.startswith('amqp') or output.startswith('rabbitmq'):
+    if output.startswith(('amqp', 'rabbitmq')):
         return ItemExporterType.AMQP
 
     return ItemExporterType.UNKNOWN

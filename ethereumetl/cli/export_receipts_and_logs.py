@@ -36,7 +36,7 @@ from ethereumetl.utils import check_classic_provider_uri
 logging_basic_config()
 
 
-@click.command(context_settings=dict(help_option_names=['-h', '--help']))
+@click.command(context_settings={'help_option_names': ['-h', '--help']})
 @click.option(
     '-b',
     '--batch-size',

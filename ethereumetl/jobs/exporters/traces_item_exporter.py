@@ -44,7 +44,7 @@ FIELDS_TO_EXPORT = [
     'status',
     'trace_id',
 ]
-assert set(f.name for f in fields(EthTrace)) >= set(FIELDS_TO_EXPORT)
+assert {f.name for f in fields(EthTrace)} >= set(FIELDS_TO_EXPORT)
 
 
 def traces_item_exporter(traces_output):

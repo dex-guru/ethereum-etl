@@ -27,7 +27,7 @@ from eth_utils import keccak
 from blockchainetl.file_utils import smart_open
 
 
-@click.command(context_settings=dict(help_option_names=['-h', '--help']))
+@click.command(context_settings={'help_option_names': ['-h', '--help']})
 @click.option(
     '-i',
     '--input-string',

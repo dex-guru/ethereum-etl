@@ -19,6 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+import contextlib
 import json
 import os
 from collections import Counter
@@ -77,10 +78,8 @@ def test_stream(
     entity_types,
     provider_type,
 ):
-    try:
+    with contextlib.suppress(OSError):
         os.remove('last_synced_block.txt')
-    except OSError:
-        pass
 
     blocks_output_file = str(tmpdir.join('actual_blocks.json'))
     transactions_output_file = str(tmpdir.join('actual_transactions.json'))
@@ -220,10 +219,8 @@ def test_stream_clickhouse(
     # first run - get data from blockchain
     ####################################################################
 
-    try:
+    with contextlib.suppress(OSError):
         os.remove('last_synced_block.txt')
-    except OSError:
-        pass
 
     batch_web3_provider = ThreadLocalProxy(
         lambda: get_web3_provider(
@@ -267,10 +264,8 @@ def test_stream_clickhouse(
     # second run - get data from clickhouse
     ####################################################################
 
-    try:
+    with contextlib.suppress(OSError):
         os.remove('last_synced_block.txt')
-    except OSError:
-        pass
 
     blocks_output_file = str(tmpdir.join('actual_blocks.json'))
     transactions_output_file = str(tmpdir.join('actual_transactions.json'))

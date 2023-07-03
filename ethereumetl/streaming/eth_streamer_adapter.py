@@ -146,7 +146,7 @@ class EthStreamerAdapter:
             results = export_func()
             if len(export_types) == 1:
                 results = (results,)
-            for result, export_type in zip(results, export_types):
+            for result, export_type in zip(results, export_types, strict=True):
                 exported.setdefault(export_type, []).extend(result)
             return exported[entity_type]
 

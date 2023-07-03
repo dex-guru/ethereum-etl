@@ -32,7 +32,7 @@ FIELDS_TO_EXPORT = [
     'is_erc721',
     'block_number',
 ]
-assert set(f.name for f in fields(EthContract)) >= set(FIELDS_TO_EXPORT)
+assert {f.name for f in fields(EthContract)} >= set(FIELDS_TO_EXPORT)
 
 
 def contracts_item_exporter(contracts_output):

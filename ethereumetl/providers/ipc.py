@@ -75,8 +75,4 @@ class BatchIPCProvider(IPCProvider):
 
 # A valid JSON RPC response can only end in } or ] http://www.jsonrpc.org/specification
 def has_valid_json_rpc_ending(raw_response):
-    for valid_ending in [b"}\n", b"]\n"]:
-        if raw_response.endswith(valid_ending):
-            return True
-    else:
-        return False
+    return any(raw_response.endswith(valid_ending) for valid_ending in [b'}\n', b']\n'])

@@ -46,7 +46,7 @@ BLOCK_FIELDS_TO_EXPORT = [
     'transaction_count',
     'base_fee_per_gas',
 ]
-assert set(f.name for f in fields(EthBlock)) >= set(BLOCK_FIELDS_TO_EXPORT)
+assert {f.name for f in fields(EthBlock)} >= set(BLOCK_FIELDS_TO_EXPORT)
 
 TRANSACTION_FIELDS_TO_EXPORT = [
     'hash',
@@ -65,7 +65,7 @@ TRANSACTION_FIELDS_TO_EXPORT = [
     'max_priority_fee_per_gas',
     'transaction_type',
 ]
-assert set(f.name for f in fields(EthTransaction)) >= set(TRANSACTION_FIELDS_TO_EXPORT)
+assert {f.name for f in fields(EthTransaction)} >= set(TRANSACTION_FIELDS_TO_EXPORT)
 
 
 def blocks_and_transactions_item_exporter(blocks_output=None, transactions_output=None):

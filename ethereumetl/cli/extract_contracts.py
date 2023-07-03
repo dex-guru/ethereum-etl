@@ -36,7 +36,7 @@ from ethereumetl.jobs.extract_contracts_job import ExtractContractsJob
 logging_basic_config()
 
 
-@click.command(context_settings=dict(help_option_names=['-h', '--help']))
+@click.command(context_settings={'help_option_names': ['-h', '--help']})
 @click.option('-t', '--traces', type=str, required=True, help='The CSV file containing traces.')
 @click.option(
     '-b',

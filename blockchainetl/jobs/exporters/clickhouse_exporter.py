@@ -146,9 +146,7 @@ class ClickHouseItemExporter(BaseItemExporter):
                                 column_name,
                                 column_type.__class__.__name__,
                                 column_value,
-                                json.dumps(
-                                    {name: value for name, value in zip(column_names, row)}
-                                ),
+                                json.dumps(dict(zip(column_names, row))),
                             )
                             raise OverflowError(
                                 f"Too large column value: table={table} column={column_name}"
@@ -160,7 +158,7 @@ class ClickHouseItemExporter(BaseItemExporter):
                             table,
                             column_name,
                             column_type.__class__.__name__,
-                            json.dumps({name: value for name, value in zip(column_names, row)}),
+                            json.dumps(dict(zip(column_names, row))),
                         )
                         raise TypeError(
                             "Cannot insert null value into non-nullable column:"
@@ -222,7 +220,7 @@ class ClickHouseItemExporter(BaseItemExporter):
         if not self.connection:
             raise RuntimeError('Connection not opened.')
         sql_template = (Path(__file__).parent / 'clickhouse_schemas.sql.tpl').read_text()
-        sql_mappings = {**self.item_type_to_table_mapping, **{'chain_id': self.chain_id}}
+        sql_mappings = {**self.item_type_to_table_mapping, 'chain_id': self.chain_id}
         sql = Template(sql_template).substitute(sql_mappings)
         for statement in sql.split(';'):
             statement = statement.strip()

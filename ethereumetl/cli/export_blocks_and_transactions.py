@@ -35,7 +35,7 @@ from ethereumetl.utils import check_classic_provider_uri
 logging_basic_config()
 
 
-@click.command(context_settings=dict(help_option_names=['-h', '--help']))
+@click.command(context_settings={'help_option_names': ['-h', '--help']})
 @click.option('-s', '--start-block', default=0, show_default=True, type=int, help='Start block')
 @click.option('-e', '--end-block', required=True, type=int, help='End block')
 @click.option(

@@ -55,7 +55,7 @@ def join(left, right, join_fields, left_fields, right_fields):
     for item in right:
         right_map[item[right_join_field]].append(item)
 
-    for key in left_map.keys():
+    for key in left_map:
         for left_item, right_item in itertools.product(left_map[key], right_map[key]):
             result_item = {}
             for src_field, dst_field in left_fields_as_dict.items():

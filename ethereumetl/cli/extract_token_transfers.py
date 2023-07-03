@@ -41,7 +41,7 @@ logging_basic_config()
 set_max_field_size_limit()
 
 
-@click.command(context_settings=dict(help_option_names=['-h', '--help']))
+@click.command(context_settings={'help_option_names': ['-h', '--help']})
 @click.option(
     '-l', '--logs', type=str, required=True, help='The CSV file containing receipt logs.'
 )

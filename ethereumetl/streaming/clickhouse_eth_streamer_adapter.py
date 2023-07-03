@@ -270,7 +270,7 @@ class ClickhouseEthStreamerAdapter:
                 TOKEN_TRANSFER, start_block, end_block, 'transaction_hash,log_index'
             )
             token_transfers = self._eth_streamer_adapter._extract_token_transfers(export_logs()[0])
-            from_ch = True if len(token_transfers_ch) == len(token_transfers) else False
+            from_ch = len(token_transfers_ch) == len(token_transfers)
             return token_transfers, from_ch
 
         @cache

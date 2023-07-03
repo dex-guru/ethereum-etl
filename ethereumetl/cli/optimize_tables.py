@@ -4,7 +4,7 @@ from ethereumetl.config.envs import envs
 from ethereumetl.scripts.optimize_tables import optimize_tables_service
 
 
-@click.command(context_settings=dict(help_option_names=['-h', '--help']))
+@click.command(context_settings={'help_option_names': ['-h', '--help']})
 @click.option(
     '-c', '--chain-id', default=envs.CHAIN_ID, show_default=True, type=int, help='Chain ID'
 )

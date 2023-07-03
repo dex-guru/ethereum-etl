@@ -35,7 +35,7 @@ FIELDS_TO_EXPORT = (
     'token_id',
     'operator_address',
 )
-assert set(f.name for f in fields(EthTokenTransfer)) >= set(FIELDS_TO_EXPORT)
+assert {f.name for f in fields(EthTokenTransfer)} >= set(FIELDS_TO_EXPORT)
 
 
 def token_transfers_item_exporter(token_transfer_output, converters=()):
