@@ -150,7 +150,6 @@ lint-python-pyright:
   allow_failure: true
   only:
     - merge_requests
-    - master
 
 lint-python-mypy:
   stage: lint
@@ -171,7 +170,6 @@ lint-python-mypy:
     expire_in: 1 month
   only:
     - merge_requests
-    - master
 
 lint-python-ruff:
   stage: lint
@@ -188,7 +186,6 @@ lint-python-ruff:
     expire_in: 1 month
   only:
     - merge_requests
-    - master
 
 lint-python-formatting:
   stage: lint
@@ -199,7 +196,6 @@ lint-python-formatting:
     - black --check .
   only:
     - merge_requests
-    - master
 
 lint-helm:
   stage: lint
