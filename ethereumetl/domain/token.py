@@ -22,7 +22,7 @@
 from dataclasses import dataclass
 
 
-@dataclass
+@dataclass(slots=True)
 class EthToken:
     address: str
     symbol: str

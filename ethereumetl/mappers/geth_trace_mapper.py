@@ -23,6 +23,7 @@
 import json
 
 from ethereumetl.domain.geth_trace import EthGethTrace
+from ethereumetl.enumeration.entity_type import EntityType
 
 
 class EthGethTraceMapper(object):
@@ -47,7 +48,7 @@ class EthGethTraceMapper(object):
     @staticmethod
     def geth_trace_to_dict(geth_trace: EthGethTrace):
         return {
-            'type': 'geth_trace',
+            'type': EntityType.GETH_TRACE.value,
             'transaction_hash': geth_trace.transaction_hash,
             'transaction_traces': json.dumps(geth_trace.transaction_traces),
         }

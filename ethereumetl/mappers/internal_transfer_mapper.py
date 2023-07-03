@@ -2,6 +2,7 @@ from dataclasses import asdict
 
 from ethereumetl.domain.geth_trace import EthGethTrace
 from ethereumetl.domain.internal_transfer import InternalTransfer
+from ethereumetl.enumeration.entity_type import EntityType
 from ethereumetl.service.token_transfer_extractor import word_to_address
 from ethereumetl.utils import hex_to_dec
 
@@ -39,5 +40,5 @@ class InternalTransferMapper(object):
     @staticmethod
     def internal_transfer_to_dict(internal_transfer):
         internal_transfer_as_dict = asdict(internal_transfer)
-        internal_transfer_as_dict['type'] = 'internal_transfer'
+        internal_transfer_as_dict['type'] = EntityType.INTERNAL_TRANSFER.value
         return internal_transfer_as_dict

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from ethereumetl.domain.token_transfer import TokenStandard
 
 
-@dataclass
+@dataclass(slots=True)
 class EthTokenBalance:
     """
     Represents an ERC20 or ERC721 or ERC1155 token balance of an address after the block is

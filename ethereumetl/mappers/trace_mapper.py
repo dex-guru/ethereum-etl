@@ -19,32 +19,31 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
+from dataclasses import asdict
+from typing import Any
 
 from ethereumetl.domain.trace import EthTrace
+from ethereumetl.enumeration.entity_type import EntityType
 from ethereumetl.mainnet_daofork_state_changes import DAOFORK_BLOCK_NUMBER
 from ethereumetl.utils import hex_to_dec, to_normalized_address
 
 
 class EthTraceMapper(object):
     @staticmethod
-    def json_dict_to_trace(json_dict: dict):
-        trace = EthTrace()
-
-        trace.block_number = json_dict.get('blockNumber')
-        trace.transaction_hash = json_dict.get('transactionHash')
-        trace.transaction_index = json_dict.get('transactionPosition')
-        trace.subtraces = json_dict.get('subtraces')
-        trace.trace_address = json_dict.get('traceAddress', [])
-
-        error = json_dict.get('error')
-
-        if error:
-            trace.error = error
-
+    def json_dict_to_trace(json_dict: dict) -> EthTrace:
         action = json_dict.get('action')
         if action is None:
             action = {}
+
+        trace = EthTrace(
+            block_number=json_dict.get('blockNumber'),
+            transaction_hash=json_dict.get('transactionHash'),
+            transaction_index=json_dict.get('transactionPosition'),
+            subtraces=json_dict.get('subtraces'),
+            trace_address=json_dict.get('traceAddress', []),
+            error=json_dict.get('error'),
+        )
+
         result = json_dict.get('result')
         if result is None:
             result = {}
@@ -102,13 +101,13 @@ class EthTraceMapper(object):
         address = allocation[0]
         value = allocation[1]
 
-        trace = EthTrace()
-
-        trace.block_number = 0
-        trace.to_address = address
-        trace.value = value
-        trace.trace_type = 'genesis'
-        trace.status = 1
+        trace = EthTrace(
+            block_number=0,
+            to_address=address,
+            value=value,
+            trace_type='genesis',
+            status=1,
+        )
 
         return trace
 
@@ -118,40 +117,33 @@ class EthTraceMapper(object):
         to_address = state_change[1]
         value = state_change[2]
 
-        trace = EthTrace()
-
-        trace.block_number = DAOFORK_BLOCK_NUMBER
-        trace.from_address = from_address
-        trace.to_address = to_address
-        trace.value = value
-        trace.trace_type = 'daofork'
-        trace.status = 1
-
+        trace = EthTrace(
+            block_number=DAOFORK_BLOCK_NUMBER,
+            from_address=from_address,
+            to_address=to_address,
+            value=value,
+            trace_type='daofork',
+            status=1,
+        )
         return trace
 
     def _iterate_transaction_trace(self, block_number, tx_index, tx_trace, trace_address=None):
         if trace_address is None:
             trace_address = []
-        trace = EthTrace()
-
-        trace.block_number = block_number
-        trace.transaction_index = tx_index
-
-        trace.from_address = to_normalized_address(tx_trace.get('from'))
-        trace.to_address = to_normalized_address(tx_trace.get('to'))
-
-        trace.input = tx_trace.get('input')
-        trace.output = tx_trace.get('output')
-
-        trace.value = hex_to_dec(tx_trace.get('value'))
-        trace.gas = hex_to_dec(tx_trace.get('gas'))
-        trace.gas_used = hex_to_dec(tx_trace.get('gasUsed'))
-
-        trace.error = tx_trace.get('error')
-
-        # lowercase for compatibility with parity traces
-        trace.trace_type = tx_trace.get('type').lower()
-
+        trace = EthTrace(
+            block_number=block_number,
+            transaction_index=tx_index,
+            from_address=to_normalized_address(tx_trace.get('from')),
+            to_address=to_normalized_address(tx_trace.get('to')),
+            input=tx_trace.get('input'),
+            output=tx_trace.get('output'),
+            value=hex_to_dec(tx_trace.get('value')),
+            gas=hex_to_dec(tx_trace.get('gas')),
+            gas_used=hex_to_dec(tx_trace.get('gasUsed')),
+            error=tx_trace.get('error'),
+            # lowercase for compatibility with parity traces
+            trace_type=tx_trace.get('type').lower(),
+        )
         if trace.trace_type == 'selfdestruct':
             # rename to suicide for compatibility with parity traces
             trace.trace_type = 'suicide'
@@ -176,26 +168,7 @@ class EthTraceMapper(object):
         return result
 
     @staticmethod
-    def trace_to_dict(trace):
-        return {
-            'type': 'trace',
-            'block_number': trace.block_number,
-            'transaction_hash': trace.transaction_hash,
-            'transaction_index': trace.transaction_index,
-            'from_address': trace.from_address,
-            'to_address': trace.to_address,
-            'value': trace.value,
-            'input': trace.input,
-            'output': trace.output,
-            'trace_type': trace.trace_type,
-            'call_type': trace.call_type,
-            'reward_type': trace.reward_type,
-            'gas': trace.gas,
-            'gas_used': trace.gas_used,
-            'subtraces': trace.subtraces,
-            'trace_address': trace.trace_address,
-            'error': trace.error,
-            'status': trace.status,
-            'trace_id': trace.trace_id,
-            'trace_index': trace.trace_index,
-        }
+    def trace_to_dict(trace: EthTrace) -> dict[str, Any]:
+        result = asdict(trace)
+        result['type'] = EntityType.TRACE.value
+        return result

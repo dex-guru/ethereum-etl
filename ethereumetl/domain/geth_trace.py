@@ -22,7 +22,7 @@
 from dataclasses import dataclass
 
 
-@dataclass
+@dataclass(slots=True)
 class EthGethTrace:
     transaction_hash: str
     transaction_traces: dict
