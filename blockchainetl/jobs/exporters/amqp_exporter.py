@@ -6,17 +6,6 @@ import kombu
 from blockchainetl.exporters import BaseItemExporter
 from ethereumetl.enumeration.entity_type import EntityType
 
-_DEFAULT_ITEM_TYPE_TO_ROUTING_KEY = {
-    EntityType.BLOCK: 'block',
-    EntityType.TRANSACTION: 'transaction',
-    EntityType.RECEIPT: 'receipt',
-    EntityType.LOG: 'log',
-    EntityType.TOKEN_TRANSFER: 'token_transfer',
-    EntityType.TRACE: 'trace',
-    EntityType.CONTRACT: 'contract',
-    EntityType.TOKEN: 'token',
-}
-
 
 class AMQPItemExporter(BaseItemExporter):
     """
@@ -30,9 +19,7 @@ class AMQPItemExporter(BaseItemExporter):
         item_type_to_routing_key_mapping: Optional[dict[str, str]] = None,
     ):
         super().__init__()
-        self._item_type_to_topic_mapping = (
-            item_type_to_routing_key_mapping or _DEFAULT_ITEM_TYPE_TO_ROUTING_KEY
-        )
+        self._item_type_to_topic_mapping = item_type_to_routing_key_mapping or {}
 
         self._exchange = exchange
         self._amqp_url = amqp_url
@@ -81,7 +68,9 @@ class AMQPItemExporter(BaseItemExporter):
             raise RuntimeError('not opened')
 
         item_type = item['type']
-        routing_key = self._item_type_to_topic_mapping.get(item_type)
+        routing_key = (
+            self._item_type_to_topic_mapping.get(item_type) or EntityType(item_type).value
+        )
 
         if routing_key is None:
             logging.warning('Routing key for item type "%s" is not configured.', item_type)
