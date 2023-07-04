@@ -177,6 +177,7 @@ lint-python-ruff:
     - build-lint
   image: "${CI_REGISTRY_IMAGE}:lint-ci"
   script:
+    - ruff check . || true
     - ruff check --format gitlab . > report.json
   artifacts:
     paths:
