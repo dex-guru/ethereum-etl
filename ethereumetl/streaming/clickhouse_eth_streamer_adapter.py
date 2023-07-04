@@ -360,6 +360,7 @@ class ClickhouseEthStreamerAdapter:
                 from_ch.get(entity_type)
                 and self.exporting_to_the_same_clickhouse
                 and entity_type not in self._rewrite_entity_types
+                and entity_type != EntityType.ERROR
             ):
                 continue
             items = exported[entity_type]
