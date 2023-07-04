@@ -98,6 +98,7 @@ class ExportReceiptsJob(BaseJob):
                                 'transaction_hash': transaction['hash'],
                                 'rpc_request': receipt_rpc,
                                 'rpc_response': response,
+                                'env': envs.dict(),
                             },
                         )
                     )
