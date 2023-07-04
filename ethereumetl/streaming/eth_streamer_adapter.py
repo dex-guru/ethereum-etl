@@ -254,7 +254,7 @@ class EthStreamerAdapter:
             item_types=(EntityType.RECEIPT, EntityType.LOG, EntityType.ERROR)
         )
         job = ExportReceiptsJob(
-            transaction_hashes_iterable=(transaction['hash'] for transaction in transactions),
+            transactions=transactions,
             batch_size=self.batch_size,
             batch_web3_provider=self.batch_web3_provider,
             max_workers=self.max_workers,

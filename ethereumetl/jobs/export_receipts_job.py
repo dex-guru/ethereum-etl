@@ -23,6 +23,7 @@
 
 import json
 import time
+from collections.abc import Iterable
 
 from blockchainetl.jobs.base_job import BaseJob
 from ethereumetl.config.envs import envs
@@ -39,7 +40,7 @@ from ethereumetl.utils import rpc_response_batch_to_results
 class ExportReceiptsJob(BaseJob):
     def __init__(
         self,
-        transaction_hashes_iterable,
+        transactions: Iterable[dict],
         batch_size,
         batch_web3_provider,
         max_workers,
@@ -49,7 +50,7 @@ class ExportReceiptsJob(BaseJob):
         skip_none_receipts=envs.SKIP_NONE_RECEIPTS,
     ):
         self.batch_web3_provider = batch_web3_provider
-        self.transaction_hashes_iterable = transaction_hashes_iterable
+        self.transactions = transactions
 
         self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers)
         self.item_exporter = item_exporter
@@ -68,30 +69,33 @@ class ExportReceiptsJob(BaseJob):
         self.item_exporter.open()
 
     def _export(self):
-        self.batch_work_executor.execute(self.transaction_hashes_iterable, self._export_receipts)
+        self.batch_work_executor.execute(self.transactions, self._export_receipts)
 
-    def _export_receipts(self, transaction_hashes):
-        receipts_rpc = list(generate_get_receipt_json_rpc(transaction_hashes))
+    def _export_receipts(self, transactions):
+        transactions = tuple(transactions)
+        receipts_rpc = list(generate_get_receipt_json_rpc(t['hash'] for t in transactions))
         responses = self.batch_web3_provider.make_batch_request(json.dumps(receipts_rpc))
         errors = []
 
         if self.skip_none_receipts:
             all_responses = responses
             responses = []
-            receipt_rpc_by_id = {r['id']: r for r in receipts_rpc}
+            receipt_rpc_transaction_by_id = {
+                r['id']: (r, transactions[i]) for i, r in enumerate(receipts_rpc)
+            }
             for response in all_responses:
                 try:
-                    receipt_rpc = receipt_rpc_by_id[response['id']]
+                    receipt_rpc, transaction = receipt_rpc_transaction_by_id[response['id']]
                 except KeyError as e:
                     raise KeyError(f'RPC response id does not match any request id: {e}') from e
                 if response.get('result') is None and response.get('error') is None:
                     errors.append(
                         EthError(
-                            block_number=0,
+                            block_number=transaction['block_number'],
                             timestamp=int(time.time()),
                             kind='get_receipt_result_none',
                             data={
-                                'transaction_hash': receipt_rpc['params'][0],
+                                'transaction_hash': transaction['hash'],
                                 'rpc_request': receipt_rpc,
                                 'rpc_response': response,
                             },
