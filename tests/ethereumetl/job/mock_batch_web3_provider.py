@@ -43,7 +43,9 @@ class MockBatchWeb3Provider(MockWeb3Provider):
             params = req['params']
             file_name = build_file_name(method, params)
             file_content = self.read_resource(file_name)
-            web3_response.append(json.loads(file_content))
+            response = json.loads(file_content)
+            response['id'] = req['id']
+            web3_response.append(response)
         return web3_response
 
 

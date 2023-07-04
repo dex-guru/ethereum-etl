@@ -173,9 +173,11 @@ class ClickhouseEthStreamerAdapter:
         def export_receipts_and_logs():
             logger.info("exporting RECEIPTS and LOGS...")
             blocks, transactions, _ = export_blocks_and_transactions()
-            receipts, logs = self._eth_streamer_adapter._export_receipts_and_logs(transactions)
+            receipts, logs, errors = self._eth_streamer_adapter._export_receipts_and_logs(
+                transactions
+            )
             from_ch = False
-            return receipts, logs, from_ch
+            return receipts, logs, errors, from_ch
 
         @cache
         def export_receipts():
@@ -189,8 +191,8 @@ class ClickhouseEthStreamerAdapter:
                 ]
                 return receipt_items, from_ch
 
-            receipt_items, _, from_ch = export_receipts_and_logs()
-            return receipt_items, from_ch
+            receipt_items, _logs, errors, from_ch = export_receipts_and_logs()
+            return receipt_items, errors, from_ch
 
         @cache
         def export_logs():
@@ -208,14 +210,14 @@ class ClickhouseEthStreamerAdapter:
                     for l in logs:
                         l['type'] = LOG
                     from_ch = True
-                    return logs, from_ch
+                    return logs, (), from_ch
 
             logger.info(
                 f"Logs. Not enough data found in clickhouse: falling back to Eth node:"
                 f" entity_types=receipt,log block_range={start_block}-{end_block}"
             )
-            _, logs, from_ch = export_receipts_and_logs()
-            return logs, from_ch
+            _receipts, logs, errors, from_ch = export_receipts_and_logs()
+            return logs, errors, from_ch
 
         @cache
         def export_traces():
@@ -327,8 +329,8 @@ class ClickhouseEthStreamerAdapter:
 
         for entity_types, export_func in (
             ((BLOCK, TRANSACTION), export_blocks_and_transactions),
-            ((RECEIPT,), export_receipts),
-            ((LOG,), export_logs),
+            ((RECEIPT, ERROR), export_receipts),
+            ((LOG, ERROR), export_logs),
             ((TOKEN_TRANSFER,), extract_token_transfers),
             ((TOKEN_BALANCE, ERROR), export_token_balances),
             ((TRACE,), export_traces),
@@ -360,14 +362,22 @@ class ClickhouseEthStreamerAdapter:
                 continue
             items = exported[entity_type]
             enriched_items = self._eth_streamer_adapter.enrich(entity_type, exported.__getitem__)
+            if len(enriched_items) != len(items):
+                logger.warning(
+                    "%s item count has changed after enrichment: %i -> %i",
+                    len(items),
+                    len(enriched_items),
+                    extra={
+                        "start_block": start_block,
+                        "end_block": end_block,
+                        "entity_type": entity_type,
+                        "count_before_enrichment": len(items),
+                        "count_after_enrichment": len(enriched_items),
+                    },
+                )
             sorted_items = sort_by(
                 enriched_items, self._eth_streamer_adapter.SORT_BY_FIELDS[entity_type]
             )
-            if len(sorted_items) != len(items):
-                raise AssertionError(
-                    f"Number of {entity_type} items has changed after enrichment and sorting: "
-                    f"{len(items)} -> {len(sorted_items)}"
-                )
             all_items.extend(sorted_items)
             items_by_type[entity_type] = sorted_items
 

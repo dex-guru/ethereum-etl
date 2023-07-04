@@ -123,7 +123,7 @@ class EthStreamerAdapter:
                 (BLOCK, TRANSACTION): lambda: self._export_blocks_and_transactions(
                     start_block, end_block
                 ),
-                (RECEIPT, LOG): lambda: self._export_receipts_and_logs(export(TRANSACTION)),
+                (RECEIPT, LOG, ERROR): lambda: self._export_receipts_and_logs(export(TRANSACTION)),
                 (TOKEN_TRANSFER,): lambda: self._extract_token_transfers(export(LOG)),
                 (TOKEN_BALANCE, ERROR): lambda: self._export_token_balances(
                     export(TOKEN_TRANSFER)
@@ -249,8 +249,10 @@ class EthStreamerAdapter:
         transactions = blocks_and_transactions_item_exporter.get_items(EntityType.TRANSACTION)
         return blocks, transactions
 
-    def _export_receipts_and_logs(self, transactions):
-        exporter = InMemoryItemExporter(item_types=[EntityType.RECEIPT, EntityType.LOG])
+    def _export_receipts_and_logs(self, transactions) -> tuple[list[dict], list[dict], list[dict]]:
+        exporter = InMemoryItemExporter(
+            item_types=(EntityType.RECEIPT, EntityType.LOG, EntityType.ERROR)
+        )
         job = ExportReceiptsJob(
             transaction_hashes_iterable=(transaction['hash'] for transaction in transactions),
             batch_size=self.batch_size,
@@ -263,7 +265,8 @@ class EthStreamerAdapter:
         job.run()
         receipts = exporter.get_items(EntityType.RECEIPT)
         logs = exporter.get_items(EntityType.LOG)
-        return receipts, logs
+        errors = exporter.get_items(EntityType.ERROR)
+        return receipts, logs, errors
 
     def _extract_token_transfers(self, logs):
         exporter = InMemoryItemExporter(item_types=[EntityType.TOKEN_TRANSFER])
