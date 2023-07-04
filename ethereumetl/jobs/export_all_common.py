@@ -175,19 +175,6 @@ def export_all_common(partitions, output_dir, provider_uri, max_workers, batch_s
         )
         os.makedirs(os.path.dirname(cache_output_dir), exist_ok=True)
 
-        transaction_hashes_file = (
-            '{cache_output_dir}/transaction_hashes_{file_name_suffix}.csv'.format(
-                cache_output_dir=cache_output_dir,
-                file_name_suffix=file_name_suffix,
-            )
-        )
-        logger.info(
-            'Extracting hash column from transaction file {transactions_file}'.format(
-                transactions_file=transactions_file,
-            )
-        )
-        extract_csv_column_unique(transactions_file, transaction_hashes_file, 'hash')
-
         receipts_output_dir = '{output_dir}/receipts{partition_dir}'.format(
             output_dir=output_dir,
             partition_dir=partition_dir,
@@ -216,11 +203,9 @@ def export_all_common(partitions, output_dir, provider_uri, max_workers, batch_s
             )
         )
 
-        with smart_open(transaction_hashes_file, 'r') as transaction_hashes:
+        with smart_open(transactions_file, 'r') as f:
             job = ExportReceiptsJob(
-                transaction_hashes_iterable=(
-                    transaction_hash.strip() for transaction_hash in transaction_hashes
-                ),
+                transactions=csv.DictReader(f),
                 batch_size=batch_size,
                 batch_web3_provider=ThreadLocalProxy(
                     lambda: get_provider_from_uri(provider_uri, batch=True)

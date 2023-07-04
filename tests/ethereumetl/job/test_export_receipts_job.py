@@ -39,31 +39,43 @@ def read_resource(resource_group, file_name):
     return tests.resources.read_resource([RESOURCE_GROUP, resource_group], file_name)
 
 
-DEFAULT_TX_HASHES = [
-    '0x04cbcb236043d8fb7839e07bbc7f5eed692fb2ca55d897f1101eac3e3ad4fab8',
-    '0x463d53f0ad57677a3b430a007c1c31d15d62c37fab5eee598551697c297c235c',
-    '0x05287a561f218418892ab053adfb3d919860988b19458c570c5c30f51c146f02',
-    '0xcea6f89720cc1d2f46cc7a935463ae0b99dd5fad9c91bb7357de5421511cee49',
+DEFAULT_TXS = [
+    {
+        'hash': '0x04cbcb236043d8fb7839e07bbc7f5eed692fb2ca55d897f1101eac3e3ad4fab8',
+        'block_number': 1,
+    },
+    {
+        'hash': '0x463d53f0ad57677a3b430a007c1c31d15d62c37fab5eee598551697c297c235c',
+        'block_number': 2,
+    },
+    {
+        'hash': '0x05287a561f218418892ab053adfb3d919860988b19458c570c5c30f51c146f02',
+        'block_number': 3,
+    },
+    {
+        'hash': '0xcea6f89720cc1d2f46cc7a935463ae0b99dd5fad9c91bb7357de5421511cee49',
+        'block_number': 4,
+    },
 ]
 
 
 # fmt: off
-@pytest.mark.parametrize("batch_size,transaction_hashes,output_format,resource_group,web3_provider_type", [
-    (1, DEFAULT_TX_HASHES, 'csv', 'receipts_with_logs', 'mock'),
-    (2, DEFAULT_TX_HASHES, 'csv', 'receipts_with_logs', 'mock'),
-    (2, DEFAULT_TX_HASHES, 'json', 'receipts_with_logs', 'mock'),
-    skip_if_slow_tests_disabled((1, DEFAULT_TX_HASHES, 'csv', 'receipts_with_logs', 'infura')),
-    skip_if_slow_tests_disabled((2, DEFAULT_TX_HASHES, 'json', 'receipts_with_logs', 'infura'))
+@pytest.mark.parametrize("batch_size,transactions,output_format,resource_group,web3_provider_type", [
+    (1, DEFAULT_TXS, 'csv', 'receipts_with_logs', 'mock'),
+    (2, DEFAULT_TXS, 'csv', 'receipts_with_logs', 'mock'),
+    (2, DEFAULT_TXS, 'json', 'receipts_with_logs', 'mock'),
+    skip_if_slow_tests_disabled((1, DEFAULT_TXS, 'csv', 'receipts_with_logs', 'infura')),
+    skip_if_slow_tests_disabled((2, DEFAULT_TXS, 'json', 'receipts_with_logs', 'infura'))
 ])
 # fmt: on
 def test_export_receipts_job(
-    tmpdir, batch_size, transaction_hashes, output_format, resource_group, web3_provider_type
+    tmpdir, batch_size, transactions, output_format, resource_group, web3_provider_type
 ):
     receipts_output_file = str(tmpdir.join('actual_receipts.' + output_format))
     logs_output_file = str(tmpdir.join('actual_logs.' + output_format))
 
     job = ExportReceiptsJob(
-        transaction_hashes_iterable=transaction_hashes,
+        transactions=transactions,
         batch_size=batch_size,
         batch_web3_provider=ThreadLocalProxy(
             lambda: get_web3_provider(

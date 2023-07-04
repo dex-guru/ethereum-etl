@@ -367,7 +367,7 @@ class ClickhouseEthStreamerAdapter:
             enriched_items = self._eth_streamer_adapter.enrich(entity_type, exported.__getitem__)
             if len(enriched_items) != len(items):
                 logger.warning(
-                    "%s item count has changed after enrichment: %i -> %i",
+                    "'%s' item count has changed after enrichment: %i -> %i",
                     entity_type,
                     len(items),
                     len(enriched_items),

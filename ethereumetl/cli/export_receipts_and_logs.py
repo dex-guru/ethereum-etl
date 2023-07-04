@@ -19,7 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
+import csv
 
 import click
 
@@ -47,10 +47,10 @@ logging_basic_config()
 )
 @click.option(
     '-t',
-    '--transaction-hashes',
+    '--transactions',
     required=True,
     type=str,
-    help='The file containing transaction hashes, one per line.',
+    help='The file containing transactions csv.',
 )
 @click.option(
     '-p',
@@ -94,7 +94,7 @@ logging_basic_config()
 )
 def export_receipts_and_logs(
     batch_size,
-    transaction_hashes,
+    transactions_file,
     provider_uri,
     max_workers,
     receipts_output,
@@ -103,11 +103,9 @@ def export_receipts_and_logs(
 ):
     """Exports receipts and logs."""
     provider_uri = check_classic_provider_uri(chain, provider_uri)
-    with smart_open(transaction_hashes, 'r') as transaction_hashes_file:
+    with smart_open(transactions_file, 'r') as f:
         job = ExportReceiptsJob(
-            transaction_hashes_iterable=(
-                transaction_hash.strip() for transaction_hash in transaction_hashes_file
-            ),
+            transactions=csv.DictReader(f),
             batch_size=batch_size,
             batch_web3_provider=ThreadLocalProxy(
                 lambda: get_provider_from_uri(provider_uri, batch=True)
