@@ -30,7 +30,15 @@ ignore = [
     "UP032",
     "UP038",
 ]
-extend-select = ["Q", "RUF100", "UP", "I", "PERF", "D"]
+extend-select = [
+    "D",
+    "I",
+    "PERF101",
+    "PERF102",
+    "Q",
+    "RUF100",
+    "UP",
+]
 isort = { known-first-party = ["blockchainetl", "ethereumetl", "schemas", "tests"] }
 target-version = "py310"
 
