@@ -4,6 +4,8 @@ from functools import cache, cached_property
 from typing import Any
 
 import clickhouse_connect
+from clickhouse_connect.driver import Client
+from clickhouse_connect.driver.exceptions import DatabaseError
 
 from blockchainetl.jobs.exporters.clickhouse_exporter import ClickHouseItemExporter
 from blockchainetl.jobs.exporters.multi_item_exporter import MultiItemExporter
@@ -40,7 +42,7 @@ class ClickhouseEthStreamerAdapter:
     ):
         self._eth_streamer_adapter = eth_streamer_adapter
         self._clickhouse_url = clickhouse_url
-        self._clickhouse: clickhouse_connect.driver.HttpClient | None = None
+        self._clickhouse: Client | None = None
         self._rewrite_entity_types = frozenset(rewrite_entity_types)
 
         if item_type_to_table_mapping is None:
@@ -67,7 +69,7 @@ class ClickhouseEthStreamerAdapter:
             raise NotImplementedError("Receipt export is not implemented for ClickHouse")
 
     @staticmethod
-    def clickhouse_client_from_url(url) -> clickhouse_connect.driver.HttpClient:
+    def clickhouse_client_from_url(url) -> Client:
         connect_kwargs = parse_clickhouse_url(url)
         return clickhouse_connect.create_client(
             **connect_kwargs, compress=False, query_limit=0, send_receive_timeout=600
@@ -97,7 +99,7 @@ class ClickhouseEthStreamerAdapter:
         )
         try:
             return tuple(self._clickhouse.query(query).named_results())
-        except clickhouse_connect.driver.exceptions.DatabaseError as e:
+        except DatabaseError as e:
             if 'UNKNOWN_TABLE' in str(e):  # The error code is not exposed by the driver
                 logger.warning("Cannot export %s items from clickhouse: %s", entity_type, e)
                 return ()

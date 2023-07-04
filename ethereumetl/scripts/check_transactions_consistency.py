@@ -9,8 +9,10 @@ database = 'dex_etl'
 # Initialize the client
 client = Client(host=host, port=port, user=user, password=password, database=database)
 
+# fmt: off
 # Determine the max block number in the blocks table
-max_block_number = client.execute('SELECT max(number) FROM dex_etl.`7700_blocks`')[0][0]
+max_block_number = client.execute('SELECT max(number) FROM dex_etl.`7700_blocks`')[0][0]  # pyright: ignore
+# fmt: on
 
 # Initialize the starting block number
 start_block_number = 0
