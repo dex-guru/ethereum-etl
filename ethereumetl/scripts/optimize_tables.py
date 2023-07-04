@@ -28,7 +28,7 @@ def optimize_tables_service(chain_id: int, by_partition: bool = True):
             print(f"Optimizing table {table[0]}")
             if by_partition:
                 # Get the list of all partitions for the current table
-                partitions = client.execute(
+                partitions: list[tuple] = client.execute(
                     f"SELECT DISTINCT partition FROM system.parts WHERE table = '{table_name}' AND active = 1"
                 )
                 # Execute the OPTIMIZE command for each partition
