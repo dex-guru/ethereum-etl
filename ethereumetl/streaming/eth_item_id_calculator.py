@@ -37,7 +37,7 @@ class EthItemIdCalculator:
         EntityType.TRACE: ('trace_id',),
         EntityType.CONTRACT: ('block_number', 'address'),
         EntityType.TOKEN: ('block_number', 'address'),
-        EntityType.ERROR: ('block_number', uuid.uuid4().hex),
+        EntityType.ERROR: ('block_number',),
         EntityType.GETH_TRACE: ('block_number', 'transaction_hash'),
         EntityType.INTERNAL_TRANSFER: ('block_number', 'transaction_hash', 'id'),
     }
