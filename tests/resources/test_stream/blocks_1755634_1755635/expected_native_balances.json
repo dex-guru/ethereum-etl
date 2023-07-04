@@ -1,0 +1,2 @@
+{"type": "native_balance", "address": "0x5b3c526b152b1f3d8eabe2ec27f49b904ad51cad", "block_number": 1755635, "value": 58743759480048, "block_timestamp": 1466669562, "item_id": "native_balance_1755635_0x5b3c526b152b1f3d8eabe2ec27f49b904ad51cad", "item_timestamp": "2016-06-23T08:12:42Z"}
+{"type": "native_balance", "address": "0xaf21e07e5a929d16026a7b4d88f3906a8d2e4942", "block_number": 1755635, "value": 0, "block_timestamp": 1466669562, "item_id": "native_balance_1755635_0xaf21e07e5a929d16026a7b4d88f3906a8d2e4942", "item_timestamp": "2016-06-23T08:12:42Z"}

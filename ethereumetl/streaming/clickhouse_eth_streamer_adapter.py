@@ -29,6 +29,7 @@ TOKEN = EntityType.TOKEN
 INTERNAL_TRANSFER = EntityType.INTERNAL_TRANSFER
 TOKEN_BALANCE = EntityType.TOKEN_BALANCE
 ERROR = EntityType.ERROR
+NATIVE_BALANCE = EntityType.NATIVE_BALANCE
 
 
 # noinspection PyProtectedMember
@@ -59,6 +60,7 @@ class ClickhouseEthStreamerAdapter:
                 ERROR: 'errors',
                 GETH_TRACE: 'geth_traces',
                 INTERNAL_TRANSFER: 'internal_transfers',
+                NATIVE_BALANCE: 'native_balances',
             }
         else:
             self._item_type_to_table_mapping = item_type_to_table_mapping
@@ -319,6 +321,7 @@ class ClickhouseEthStreamerAdapter:
 
         @cache
         def extract_internal_transfers():
+            logger.info("exporting INTERNAL_TRANSFERS...")
             internal_transfers_ch = self._select_distinct(
                 INTERNAL_TRANSFER, start_block, end_block, 'transaction_hash'
             )
@@ -328,6 +331,34 @@ class ClickhouseEthStreamerAdapter:
             )
             from_ch = geth_traces_from_ch and len(internal_transfers_ch) == len(internal_transfers)
             return internal_transfers, from_ch
+
+        @cache
+        def export_native_balances():
+            logger.info("exporting NATIVE_BALANCES...")
+            native_balances_ch = self._select_distinct(
+                NATIVE_BALANCE, start_block, end_block, 'address,block_number'
+            )
+            _blocks, transactions, transactions_from_ch = export_blocks_and_transactions()
+            internal_transfers, internal_transfers_from_ch = extract_internal_transfers()
+
+            if transactions_from_ch and internal_transfers_from_ch and native_balances_ch:
+                from_ch = True
+                for nb in native_balances_ch:
+                    nb['type'] = NATIVE_BALANCE
+                return native_balances_ch, from_ch
+
+            logger.info(
+                f"Native balances. Not enough data found in clickhouse: falling back to Eth node:"
+                f" entity_type=native_balance block_range={start_block}-{end_block}"
+            )
+
+            native_balances = self._eth_streamer_adapter._export_native_balances(
+                internal_transfers=internal_transfers,
+                transactions=transactions,
+            )
+
+            from_ch = False
+            return native_balances, from_ch
 
         exported: dict[EntityType, list] = {ERROR: []}
         from_ch: dict[EntityType, bool] = {}
@@ -342,6 +373,7 @@ class ClickhouseEthStreamerAdapter:
             ((GETH_TRACE,), export_geth_traces),
             ((CONTRACT,), extract_contracts),
             ((INTERNAL_TRANSFER,), extract_internal_transfers),
+            ((NATIVE_BALANCE,), export_native_balances),
             ((TOKEN,), extract_tokens),
         ):
             for entity_type in entity_types:

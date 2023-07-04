@@ -1,6 +1,8 @@
 import logging
+from collections.abc import Collection
 from datetime import datetime
 from functools import cached_property
+from typing import Any
 
 from blockchainetl.exporters import BaseItemExporter
 from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExporter
@@ -8,6 +10,7 @@ from blockchainetl.jobs.exporters.in_memory_item_exporter import InMemoryItemExp
 from ethereumetl.enumeration.entity_type import ALL_FOR_STREAMING, EntityType
 from ethereumetl.jobs.export_blocks_job import ExportBlocksJob
 from ethereumetl.jobs.export_geth_traces_job import ExportGethTracesJob
+from ethereumetl.jobs.export_native_balances_job import ExportNativeBalancesJob
 from ethereumetl.jobs.export_receipts_job import ExportReceiptsJob
 from ethereumetl.jobs.export_token_balances_job import ExportTokenBalancesJob
 from ethereumetl.jobs.export_traces_job import ExportTracesJob
@@ -21,6 +24,7 @@ from ethereumetl.streaming.enrich import (
     enrich_geth_traces,
     enrich_internal_transfers,
     enrich_logs,
+    enrich_native_balances,
     enrich_token_balances,
     enrich_token_transfers,
     enrich_tokens,
@@ -44,6 +48,7 @@ TOKEN = EntityType.TOKEN
 INTERNAL_TRANSFER = EntityType.INTERNAL_TRANSFER
 TOKEN_BALANCE = EntityType.TOKEN_BALANCE
 ERROR = EntityType.ERROR
+NATIVE_BALANCE = EntityType.NATIVE_BALANCE
 
 
 class EthStreamerAdapter:
@@ -60,6 +65,7 @@ class EthStreamerAdapter:
         ERROR: ('block_number',),
         INTERNAL_TRANSFER: ('block_number', 'transaction_hash', 'id'),
         RECEIPT: ('block_number', 'transaction_index'),
+        NATIVE_BALANCE: ('address', 'block_number'),
     }
 
     ENRICH = {
@@ -73,6 +79,7 @@ class EthStreamerAdapter:
         ERROR: (BLOCK, enrich_errors),
         GETH_TRACE: (TRANSACTION, enrich_geth_traces),
         INTERNAL_TRANSFER: (TRANSACTION, enrich_internal_transfers),
+        NATIVE_BALANCE: (BLOCK, enrich_native_balances),
         # lambda because here the arg order is different
         TRANSACTION: (RECEIPT, lambda r, t: enrich_transactions(t, r)),
     }
@@ -88,6 +95,7 @@ class EthStreamerAdapter:
         CONTRACT: (TRACE,),
         TOKEN: (CONTRACT,),
         INTERNAL_TRANSFER: (GETH_TRACE,),
+        NATIVE_BALANCE: (TRANSACTION, INTERNAL_TRANSFER),
     }
 
     def __init__(
@@ -134,6 +142,9 @@ class EthStreamerAdapter:
                 (CONTRACT,): lambda: self._export_contracts(export(TRACE)),
                 (TOKEN,): lambda: self._extract_tokens(export(CONTRACT)),
                 (INTERNAL_TRANSFER,): lambda: self._extract_internal_transfers(export(GETH_TRACE)),
+                (NATIVE_BALANCE,): lambda: self._export_native_balances(
+                    transactions=export(TRANSACTION), internal_transfers=export(INTERNAL_TRANSFER)
+                ),
             }.items()
             for entity_type in export_types
         }
@@ -357,6 +368,25 @@ class EthStreamerAdapter:
         job.run()
         internal_transfers = exporter.get_items(EntityType.INTERNAL_TRANSFER)
         return internal_transfers
+
+    def _export_native_balances(
+        self,
+        *,
+        internal_transfers: Collection[dict],
+        transactions: Collection[dict],
+    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+        exporter = InMemoryItemExporter(item_types=(EntityType.NATIVE_BALANCE,))
+        job = ExportNativeBalancesJob(
+            batch_web3_provider=self.batch_web3_provider,
+            batch_size=self.batch_size,
+            max_workers=self.max_workers,
+            item_exporter=exporter,
+            internal_transfers=internal_transfers,
+            transactions=transactions,
+        )
+        job.run()
+        native_balances = exporter.get_items(EntityType.NATIVE_BALANCE)
+        return native_balances
 
     def calculate_item_ids(self, items):
         for item in items:

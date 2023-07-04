@@ -69,6 +69,14 @@ def generate_get_code_json_rpc(contract_addresses, block='latest'):
         )
 
 
+def generate_get_native_balance_json_rpc(address: str, block: int, request_id: int) -> dict:
+    return generate_json_rpc(
+        method='eth_getBalance',
+        params=[address, to_hex(block)],
+        request_id=request_id,
+    )
+
+
 ERC20_BALANCE_OF_SELECTOR = keccak(text='balanceOf(address)')[:4]
 ERC1155_BALANCE_OF_SELECTOR = keccak(text='balanceOf(address,uint256)')[:4]
 

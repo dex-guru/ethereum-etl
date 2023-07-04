@@ -57,7 +57,7 @@ from tests.helpers import (
 )
 
 RESOURCE_GROUP = 'test_stream'
-TEST_TABLE_NAME_PREFIX = 'test_stream_clickhouse_etl_99'
+TEST_TABLE_NAME_INFIX = 'test_stream_clickhouse_etl_99'
 
 
 def read_resource(resource_group, file_name):
@@ -191,7 +191,7 @@ def cleanup():
     )
 
     def do_cleanup():
-        records = clickhouse.query(f"show tables like '{TEST_TABLE_NAME_PREFIX}%'").named_results()
+        records = clickhouse.query(f"show tables like '%{TEST_TABLE_NAME_INFIX}%'").named_results()
         for record in records:
             table_name = record['name']
             clickhouse.query(f'drop table if exists {table_name}')
@@ -240,7 +240,7 @@ def test_stream_clickhouse(
 
     item_type_to_table_mapping = make_item_type_to_table_mapping(chain_id)
     item_type_to_table_mapping = {
-        k: f"{TEST_TABLE_NAME_PREFIX}_{v}" for k, v in item_type_to_table_mapping.items()
+        k: f"{TEST_TABLE_NAME_INFIX}_{v}" for k, v in item_type_to_table_mapping.items()
     }
 
     item_exporter = ClickHouseItemExporter(envs.EXPORT_FROM_CLICKHOUSE, item_type_to_table_mapping)
@@ -285,6 +285,7 @@ def test_stream_clickhouse(
     tokens_output_file = str(tmpdir.join('actual_tokens.json'))
     geth_traces_output_file = str(tmpdir.join('actual_geth_traces.json'))
     internal_transfers_output_file = str(tmpdir.join('actual_internal_transfers.json'))
+    native_balances_output_file = str(tmpdir.join('actual_native_balances.json'))
 
     item_exporter = CompositeItemExporter(  # type: ignore
         filename_mapping={
@@ -298,6 +299,7 @@ def test_stream_clickhouse(
             EntityType.TOKEN: tokens_output_file,
             EntityType.GETH_TRACE: geth_traces_output_file,
             EntityType.INTERNAL_TRANSFER: internal_transfers_output_file,
+            EntityType.NATIVE_BALANCE: native_balances_output_file,
         }
     )
 
@@ -382,6 +384,13 @@ def test_stream_clickhouse(
     print(read_file(tokens_output_file))
     compare_lines_ignore_order(
         read_resource(resource_group, 'expected_tokens.json'), read_file(tokens_output_file)
+    )
+
+    print('=====================')
+    print(read_file(native_balances_output_file))
+    compare_lines_ignore_order(
+        read_resource(resource_group, 'expected_native_balances.json'),
+        read_file(native_balances_output_file),
     )
 
     ####################################################################
@@ -543,18 +552,18 @@ def test_stream_token_balances(tmp_path: Path, streamer_adapter_cls, cleanup):
     assert len(token_balance_items) == 429
 
 
-def test_clickhouse_exporter(tmp_path, cleanup):
+def test_eth_streamer_with_clickhouse_exporter(tmp_path, cleanup):
     item_type_to_table_mapping = make_item_type_to_table_mapping(chain_id=1)
     item_type_to_table_mapping = {
-        k: f"{TEST_TABLE_NAME_PREFIX}_{v}" for k, v in item_type_to_table_mapping.items()
+        k: f"{TEST_TABLE_NAME_INFIX}_{v}" for k, v in item_type_to_table_mapping.items()
     }
     exporter = ClickHouseItemExporter(envs.EXPORT_FROM_CLICKHOUSE, item_type_to_table_mapping)
 
     streamer_adapter = EthStreamerAdapter(
         batch_web3_provider=ThreadLocalProxy(lambda: get_web3_provider('infura', batch=True)),
-        batch_size=100,
+        batch_size=10,
         item_exporter=exporter,
-        entity_types=entity_type.ALL_FOR_INFURA,
+        entity_types=entity_type.ALL,
     )
     streamer = Streamer(
         chain_id=1,
@@ -579,12 +588,15 @@ def test_clickhouse_exporter(tmp_path, cleanup):
         assert_table_not_empty(EntityType.LOG)
         assert_table_not_empty(EntityType.TOKEN_TRANSFER)
         assert_table_not_empty(EntityType.TOKEN_BALANCE)
+        assert_table_not_empty(EntityType.GETH_TRACE)
+        assert_table_not_empty(EntityType.INTERNAL_TRANSFER)
+        assert_table_not_empty(EntityType.NATIVE_BALANCE)
 
 
 def test_clickhouse_exporter_export_items(tmp_path, cleanup):
     item_type_to_table_mapping = make_item_type_to_table_mapping(chain_id=1)
     item_type_to_table_mapping = {
-        k: f"{TEST_TABLE_NAME_PREFIX}_{v}" for k, v in item_type_to_table_mapping.items()
+        k: f"{TEST_TABLE_NAME_INFIX}_{v}" for k, v in item_type_to_table_mapping.items()
     }
     exporter = ClickHouseItemExporter(envs.EXPORT_FROM_CLICKHOUSE, item_type_to_table_mapping)
     exporter.open()

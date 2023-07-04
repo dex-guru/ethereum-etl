@@ -1,5 +1,3 @@
-import json
-import threading
 import time
 from collections.abc import Iterable
 from typing import NamedTuple

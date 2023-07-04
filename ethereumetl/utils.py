@@ -239,8 +239,11 @@ def execute_in_batches(
     batch_work_executor.execute(rpc_requests, execute_rpc_batch)
     batch_work_executor.shutdown()
 
-    rpc_responses_by_id = {response['id']: response for response in rpc_responses}
+    if len(rpc_responses) != len(rpc_requests):
+        raise ValueError('batch RPC: response count does not match request count')
+
+    rpc_responses_by_id = {r['id']: r for r in rpc_responses}
     try:
         return [rpc_responses_by_id[request['id']] for request in rpc_requests]
     except KeyError:
-        raise ValueError('bad rpc response: some response ids are missing')
+        raise ValueError('batch RPC: some request ids are missing in the response')
