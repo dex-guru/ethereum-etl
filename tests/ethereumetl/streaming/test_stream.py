@@ -226,6 +226,9 @@ def test_stream_clickhouse(
         lambda: get_web3_provider(
             provider_type,
             read_resource_lambda=lambda file: read_resource(resource_group, file),
+            # write_resource_lambda=lambda file, content: tests.resources.write_resource(
+            #     [RESOURCE_GROUP, resource_group], file, content
+            # ),
             batch=True,
         )
     )

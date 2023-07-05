@@ -58,19 +58,24 @@ class MockBatchWeb3OrWeb3Provider(MockWeb3OrWeb3Provider):
 
     def make_batch_request(self, text):
         batch = json.loads(text)
+        assert isinstance(batch, list)
         web3_response = []
         for req in batch:
             method = req['method']
             params = req['params']
             file_name = build_file_name(method, params)
+            print(f'{type(self).__name__}: reading {file_name=}')
             try:
                 file_content = self.read_resource(file_name)
+                response = json.loads(file_content)
             except ValueError:
                 response = self.web3.make_request(method, params)
-                response['id'] = req.get('id')
                 file_content = json.dumps(response)
                 print(f'Warning: {file_name} not found, using real web3 response')
                 self.write_resource(file_name, file_content)
                 print(f'Saved real web3 response to {file_name}')
-            web3_response.append(json.loads(file_content))
+            response['id'] = req['id']
+            web3_response.append(response)
+        assert len(batch) == len(web3_response)
+        assert {req['id'] for req in batch} == {res['id'] for res in web3_response}
         return web3_response
