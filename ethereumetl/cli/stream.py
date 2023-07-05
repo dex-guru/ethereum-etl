@@ -93,7 +93,6 @@ from ethereumetl.thread_local_proxy import ThreadLocalProxy
     '--start-block',
     default=envs.START_BLOCK,
     show_default=True,
-    type=int,
     help='Start block',
 )
 @click.option(
@@ -172,6 +171,8 @@ def stream(
     configure_logging(log_file)
     configure_signals()
     entity_types = parse_entity_types(entity_types)
+    if start_block and not (isinstance(start_block, int) or start_block == 'latest'):
+        raise click.BadParameter('start_block must be either integer or latest')
 
     from blockchainetl.streaming.streamer import Streamer
     from ethereumetl.streaming.clickhouse_eth_streamer_adapter import ClickhouseEthStreamerAdapter

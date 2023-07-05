@@ -27,7 +27,7 @@ class EnvsConfig(BaseSettings):
     # 'or Kinesis, e.g. kinesis://your-data-stream-name'
     # 'If not specified will print to console'
     OUTPUT: str | None = None
-    START_BLOCK: int | None = None
+    START_BLOCK: int | None | Literal['latest'] = None
     END_BLOCK: int | None = None
     ENTITY_TYPES: str = ','.join(entity_type.ALL_FOR_STREAMING)
     POLLING_PERIOD: int = 10

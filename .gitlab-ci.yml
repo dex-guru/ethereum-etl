@@ -43,6 +43,15 @@ variables:
     stage-indexation-base-84531
     stage-indexation-nova-42170
     stage-indexation-optimism-10
+  KUBE_NAMESPACE_PROD_TRACE: >-
+    stage-indexation-eth-1
+    stage-indexation-bsc-56
+    stage-indexation-polygon-137
+    stage-indexation-arbitrum-42161
+    stage-indexation-canto-7700
+    stage-indexation-base-84531
+    stage-indexation-nova-42170
+    stage-indexation-optimism-10
   KUBE_NAMESPACE_PROD: >-
     prod-indexation-eth-1
     prod-indexation-gnosis-100
@@ -53,7 +62,8 @@ variables:
     prod-indexation-acanto-7701
     prod-indexation-nova-42170
     prod-indexation-base-84531
-    prod-indexation-nova-42170
+    stage-indexation-bsc-56
+    stage-indexation-polygon-137
 
 # Build test:
 build:
@@ -275,6 +285,34 @@ raw-traces-data-streamer-stage:
     entrypoint: [""]
   variables:
     SERVICE_NAME: "raw-traces-data-streamer"
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE_TRACE}
+    HELM_CHART: ${HELM_CHART_STAGE_LAX}
+  script:
+    - helm/lax_stage_deploy.sh
+  only:
+    - master
+
+raw-traces-data-streamer-prod:
+  stage: deploy-prod
+  image:
+    name: ${IMAGE_HELM_KUBECTL}
+    entrypoint: [""]
+  variables:
+    SERVICE_NAME: "raw-traces-data-streamer"
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE_TRACE}
+    HELM_CHART: ${HELM_CHART_STAGE_LAX}
+  script:
+    - helm/lax_stage_deploy.sh
+  only:
+    - master
+
+raw-verify-data-streamer-stage:
+  stage: deploy-stage
+  image:
+    name: ${IMAGE_HELM_KUBECTL}
+    entrypoint: [""]
+  variables:
+    SERVICE_NAME: "raw-verify-data-streamer"
     KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE_TRACE}
     HELM_CHART: ${HELM_CHART_STAGE_LAX}
   script:
