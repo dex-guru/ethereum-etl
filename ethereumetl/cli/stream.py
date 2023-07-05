@@ -29,6 +29,9 @@ from blockchainetl.streaming.streaming_utils import configure_logging, configure
 from ethereumetl.config.envs import envs
 from ethereumetl.enumeration.entity_type import ALL_FOR_STREAMING, EntityType
 from ethereumetl.providers.auto import get_provider_from_uri
+from ethereumetl.streaming.clickhouse_eth_streamer_adapter import (
+    VerifyingClickhouseEthStreamerAdapter,
+)
 from ethereumetl.streaming.item_exporter_creator import (
     create_item_exporters,
     make_item_type_to_table_mapping,
@@ -150,6 +153,13 @@ from ethereumetl.thread_local_proxy import ThreadLocalProxy
     type=str,
     help='connection URL to Clickhouse containing data from previous exports, e.g. clickhouse://default:@localhost/ethereum',
 )
+@click.option(
+    '--is_verifier',
+    default=envs.IS_VERIFIER,
+    show_default=True,
+    type=bool,
+    help='Whether to verify the data',
+)
 def stream(
     chain_id,
     last_synced_block_provider_uri,
@@ -166,6 +176,7 @@ def stream(
     log_file=None,
     pid_file=None,
     export_from_clickhouse=None,
+    is_verifier=False,
 ):
     """Streams all data types to console or Google Pub/Sub."""
     configure_logging(log_file)
@@ -200,6 +211,13 @@ def stream(
             item_type_to_table_mapping=make_item_type_to_table_mapping(chain_id),
             rewrite_entity_types=[EntityType(x) for x in envs.REWRITE_CLICKHOUSE.split(',') if x],
         )
+        if is_verifier:
+            streamer_adapter._eth_streamer_adapter.entity_types = frozenset(
+                EntityType(x) for x in ALL_FOR_STREAMING
+            )
+            streamer_adapter = VerifyingClickhouseEthStreamerAdapter(
+                clickhouse_eth_streamer_adapter=streamer_adapter,
+            )
 
     streamer = Streamer(
         chain_id=chain_id,

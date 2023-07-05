@@ -1,6 +1,7 @@
 import logging
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from functools import cache, cached_property
+from itertools import groupby
 from typing import Any
 
 import clickhouse_connect
@@ -436,3 +437,135 @@ class ClickhouseEthStreamerAdapter:
             'effective_gas_price': transaction['receipt_effective_gas_price'],
             'logs_count': transaction['receipt_logs_count'],
         }
+
+
+class VerifyingClickhouseEthStreamerAdapter:
+    def __init__(self, clickhouse_eth_streamer_adapter: ClickhouseEthStreamerAdapter):
+        self.ch_streamer = clickhouse_eth_streamer_adapter
+        assert (
+            self.ch_streamer.exporting_to_the_same_clickhouse
+        ), 'VerifyingClickhouseEthStreamerAdapter can be used only when exporting to the same ClickHouse instance'
+
+    def open(self):
+        self.ch_streamer.open()
+
+    def close(self):
+        self.ch_streamer.close()
+
+    def get_current_block_number(self) -> int:
+        return self.ch_streamer.get_current_block_number()
+
+    def export_all(self, start_block: int, end_block: int):
+        def find_inconsistent_blocks(blocks_from_storage: Sequence, blocks_from_w3: Sequence):
+            if len(blocks_from_storage) != len(blocks_from_w3):
+                # check absent blocks
+                missing_blocks.update(
+                    block['number']
+                    for block in blocks_from_w3
+                    if block['number'] not in [block_['number'] for block_ in blocks_from_storage]
+                )
+                blocks_from_w3 = [
+                    block for block in blocks_from_w3 if block['number'] not in missing_blocks
+                ]
+                if missing_blocks:
+                    logger.info("BLOCKS absent: %s", ', '.join(map(str, missing_blocks)))
+
+            # check block hashes
+            for block_ch, block_w3 in zip(blocks_from_storage, blocks_from_w3):
+                try:
+                    check_blocks_consistency(block_ch, block_w3)
+                except AssertionError:
+                    inconsistent_blocks.add(block_ch['number'])
+            if inconsistent_blocks:
+                logger.info("BLOCKS mismatch: %s", ', '.join(map(str, inconsistent_blocks)))
+
+        def find_inconsistent_transactions(txns_from_storage: Sequence, txns_from_w3: Sequence):
+            if len(txns_from_storage) != len(txns_from_w3):
+                # check absent transactions
+                missing_blocks.update(
+                    txn['block_number']
+                    for txn in txns_from_w3
+                    if txn['block_number']
+                    not in [txn_['block_number'] for txn_ in txns_from_storage]
+                )
+                txns_from_w3 = [
+                    txn for txn in txns_from_w3 if txn['block_number'] not in missing_blocks
+                ]
+                logger.info("TRANSACTIONS mismatch: %s", ', '.join(map(str, missing_blocks)))
+
+            # check transaction hashes
+            for txn_ch, txn_w3 in zip(txns_from_storage, txns_from_w3):
+                try:
+                    check_transactions_consistency(txn_ch, txn_w3)
+                except AssertionError:
+                    inconsistent_blocks.add(txn_ch['block_number'])
+
+        def check_transactions_consistency(txn_ch, txn_w3):
+            assert txn_ch['hash'] == txn_w3['hash']
+            assert txn_ch['block_hash'] == txn_w3['block_hash']
+            assert txn_ch['block_number'] == txn_w3['block_number']
+            assert txn_ch['transaction_index'] == txn_w3['transaction_index']
+            assert txn_ch['from_address'] == txn_w3['from_address']
+            assert txn_ch['to_address'] == txn_w3['to_address']
+            assert txn_ch['value'] == txn_w3['value']
+            assert txn_ch['gas'] == txn_w3['gas']
+            assert txn_ch['gas_price'] == txn_w3['gas_price']
+            assert txn_ch['input'] == txn_w3['input']
+            assert txn_ch['nonce'] == txn_w3['nonce']
+
+        def check_blocks_consistency(block_ch, block_w3):
+            assert block_ch['number'] == block_w3['number']
+            assert block_ch['hash'] == block_w3['hash']
+            assert block_ch['transaction_count'] == block_w3['transaction_count']
+
+        def delete_inconsistent_records_from_ch(blocks: Iterable):
+            if not blocks:
+                return
+
+            assert self.ch_streamer._clickhouse, 'ClickHouse is not connected'
+            for entity, table in self.ch_streamer._item_type_to_table_mapping.items():
+                if entity == ERROR:
+                    continue
+                if entity == BLOCK:
+                    self.ch_streamer._clickhouse.command(
+                        f"DELETE FROM {table} WHERE number IN {tuple(blocks)}"
+                    )
+                else:
+                    self.ch_streamer._clickhouse.command(
+                        f"DELETE FROM {table} WHERE block_number IN {tuple(blocks)}"
+                    )
+            logger.info("Inconsistent records were deleted from ClickHouse")
+
+        logger.info("Checking BLOCKS and TRANSACTIONS... from %s to %s", start_block, end_block)
+        inconsistent_blocks: set[int] = set()
+        missing_blocks: set[int] = set()
+
+        blocks_ch = self.ch_streamer._select_distinct(BLOCK, start_block, end_block, 'number')
+        transactions_ch = self.ch_streamer._select_distinct(
+            TRANSACTION, start_block, end_block, 'hash'
+        )
+
+        (
+            blocks_w3,
+            transactions_w3,
+        ) = self.ch_streamer._eth_streamer_adapter._export_blocks_and_transactions(
+            start_block, end_block
+        )
+        blocks_w3 = sorted(blocks_w3, key=lambda x: x['number'])
+        blocks_ch = sorted(blocks_ch, key=lambda x: x['number'])  # type: ignore
+        transactions_w3 = sorted(transactions_w3, key=lambda x: x['hash'])
+        transactions_ch = sorted(transactions_ch, key=lambda x: x['hash'])  # type: ignore
+
+        find_inconsistent_blocks(blocks_ch, blocks_w3)
+        find_inconsistent_transactions(transactions_ch, transactions_w3)
+
+        if inconsistent_blocks or missing_blocks:
+            delete_inconsistent_records_from_ch(inconsistent_blocks)
+            blocks_to_resync = sorted(inconsistent_blocks | missing_blocks)
+            block_sequences = [
+                list(g)
+                for k, g in groupby(blocks_to_resync, key=lambda x: x - blocks_to_resync.index(x))
+            ]
+            for seq in block_sequences:
+                self.ch_streamer.export_all(start_block=min(seq), end_block=max(seq))
+                logger.info("Inconsistent records were exported to ClickHouse")
