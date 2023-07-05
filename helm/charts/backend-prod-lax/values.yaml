@@ -183,11 +183,10 @@ raw-traces-data-streamer:
     SERVICE_NAME: 'raw-traces-data-streamer'
     EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
     REWRITE_CLICKHOUSE: ''
+    START_BLOCK: 'latest'
   chainEnv:
     ENTITY_TYPES:
       default: 'geth_trace,internal_transfer'
-    START_BLOCK:
-      default: 'latest'
     PROVIDER_URL:
       default: 'http://rpc-gw-stage.dexguru.biz/full/1'
       polygon-137: 'http://rpc-gw-stage.dexguru.biz/full/137'
@@ -234,6 +233,7 @@ raw-verify-data-streamer:
     SERVICE_NAME: 'raw-data-streamer'
     EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
     REWRITE_CLICKHOUSE: 'block,transaction,log,token_transfer,token_balance'
+    START_BLOCK: 'latest'
   chainEnv:
     LAG:
       default: 64
@@ -247,18 +247,18 @@ raw-verify-data-streamer:
       gnosis-100: 'block,transaction,log,token_transfer,token_balance'
       optimism-10: 'block,transaction,log,token_transfer,token_balance'
     PROVIDER_URL:
-      default: 'http://rpc-gw-prod.dexguru.biz/full/1'
-      polygon-137: 'http://rpc-gw-prod.dexguru.biz/full/137'
-      bsc-56: 'http://rpc-gw-prod.dexguru.biz/full/56'
-      eth-1: 'http://rpc-gw-prod.dexguru.biz/full/1'
-      canto-7700: 'http://rpc-gw-prod.dexguru.biz/full/7700'
+      default: 'http://rpc-gw-stage.dexguru.biz/full/1'
+      polygon-137: 'http://rpc-gw-stage.dexguru.biz/full/137'
+      bsc-56: 'http://rpc-gw-stage.dexguru.biz/full/56'
+      eth-1: 'http://rpc-gw-stage.dexguru.biz/full/1'
+      canto-7700: 'http://rpc-gw-stage.dexguru.biz/full/7700'
       acanto-7701: 'http://canto-testnet.plexnode.wtf'
-      fantom-250: 'http://rpc-gw-prod.dexguru.biz/full/250'
-      optimism-10: 'http://rpc-gw-prod.dexguru.biz/full/10'
-      gnosis-100: 'http://rpc-gw-prod.dexguru.biz/full/100'
-      arbitrum-42161: 'http://rpc-gw-prod.dexguru.biz/full/42161'
-      nova-42170: 'http://rpc-gw-prod.dexguru.biz/full/42170'
-      base-84531: 'http://rpc-gw-prod.dexguru.biz/full/84531'
+      fantom-250: 'http://rpc-gw-stage.dexguru.biz/full/250'
+      optimism-10: 'http://rpc-gw-stage.dexguru.biz/full/10'
+      gnosis-100: 'http://rpc-gw-stage.dexguru.biz/full/100'
+      arbitrum-42161: 'http://rpc-gw-stage.dexguru.biz/full/42161'
+      nova-42170: 'http://rpc-gw-stage.dexguru.biz/full/42170'
+      base-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
     BLOCK_BATCH_SIZE:
       default: '1000'
     MAX_WORKERS:

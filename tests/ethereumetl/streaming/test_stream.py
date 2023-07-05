@@ -19,12 +19,13 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+
 import contextlib
 import json
 import os
 from collections import Counter
 from pathlib import Path
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -39,7 +40,10 @@ from ethereumetl.domain.token_transfer import TokenStandard
 from ethereumetl.enumeration import entity_type
 from ethereumetl.enumeration.entity_type import ALL, EntityType
 from ethereumetl.providers.rpc import BatchHTTPProvider
-from ethereumetl.streaming.clickhouse_eth_streamer_adapter import ClickhouseEthStreamerAdapter
+from ethereumetl.streaming.clickhouse_eth_streamer_adapter import (
+    ClickhouseEthStreamerAdapter,
+    VerifyingClickhouseEthStreamerAdapter,
+)
 from ethereumetl.streaming.eth_item_id_calculator import EthItemIdCalculator
 from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter
 from ethereumetl.streaming.item_exporter_creator import make_item_type_to_table_mapping
@@ -63,7 +67,8 @@ def read_resource(resource_group, file_name):
 # fmt: off
 @pytest.mark.parametrize("chain_id, start_block, end_block, batch_size, resource_group, entity_types, provider_type", [
     (1, 1755634, 1755635, 1, 'blocks_1755634_1755635', entity_type.ALL_FOR_INFURA, 'mock'),
-    skip_if_slow_tests_disabled([1, 1755634, 1755635, 1, 'blocks_1755634_1755635', entity_type.ALL_FOR_INFURA, 'infura']),
+    skip_if_slow_tests_disabled(
+        [1, 1755634, 1755635, 1, 'blocks_1755634_1755635', entity_type.ALL_FOR_INFURA, 'infura']),
     (1, 508110, 508110, 1, 'blocks_508110_508110', ['trace', 'contract', 'token'], 'mock'),
     (1, 2112234, 2112234, 1, 'blocks_2112234_2112234', ['trace', 'contract', 'token'], 'mock'),
 ])
@@ -640,3 +645,285 @@ def test_item_id_calculator_id_fields_contains_all_entity_types():
         assert (
             type_ in EthItemIdCalculator.ID_FIELDS
         ), f"missing item_id calculator for entity type {type_!r}"
+
+
+@pytest.fixture()
+def ch_verifier():
+    exporter = ClickHouseItemExporter(
+        envs.EXPORT_FROM_CLICKHOUSE, make_item_type_to_table_mapping(chain_id=1)
+    )
+
+    eth_streamer_adapter = EthStreamerAdapter(
+        batch_web3_provider=ThreadLocalProxy(lambda: get_web3_provider('mock', batch=True)),
+        batch_size=20,
+        item_exporter=exporter,
+        entity_types=[EntityType.TOKEN_BALANCE],
+    )
+
+    ch_streamer_adapter = ClickhouseEthStreamerAdapter(
+        eth_streamer_adapter=eth_streamer_adapter,
+        clickhouse_url=envs.EXPORT_FROM_CLICKHOUSE,
+        chain_id=1,
+        item_type_to_table_mapping=make_item_type_to_table_mapping(chain_id=1),
+    )
+
+    adapter = VerifyingClickhouseEthStreamerAdapter(
+        clickhouse_eth_streamer_adapter=ch_streamer_adapter,
+    )
+    adapter.open()
+    yield adapter
+    adapter.close()
+
+
+@patch(
+    'ethereumetl.streaming.clickhouse_eth_streamer_adapter.ClickhouseEthStreamerAdapter._select_distinct'
+)
+@patch(
+    'ethereumetl.streaming.eth_streamer_adapter.EthStreamerAdapter._export_blocks_and_transactions'
+)
+@patch(
+    'ethereumetl.streaming.clickhouse_eth_streamer_adapter.ClickhouseEthStreamerAdapter.export_all'
+)
+def test_verify_all_with_consistent_data(
+    export_all_mock, mock_export_blocks_and_transactions, mock_select_distinct, ch_verifier
+):
+    # Configure the mock return values
+    mock_select_distinct.side_effect = (
+        [
+            {'number': 1, 'hash': 'block_hash_1', 'transaction_count': 3},
+            {'number': 2, 'hash': 'block_hash_2', 'transaction_count': 2},
+            {'number': 3, 'hash': 'block_hash_3', 'transaction_count': 1},
+        ],
+        [
+            {
+                'hash': 'txn_hash_1',
+                'block_hash': 'block_hash_1',
+                'block_number': 1,
+                'transaction_index': 0,
+                'from_address': 'address_1',
+                'to_address': 'address_2',
+                'value': 100,
+                'gas': 200,
+                'gas_price': 20,
+                'input': 'input_1',
+                'nonce': 1,
+            },
+            {
+                'hash': 'txn_hash_2',
+                'block_hash': 'block_hash_1',
+                'block_number': 1,
+                'transaction_index': 1,
+                'from_address': 'address_2',
+                'to_address': 'address_3',
+                'value': 200,
+                'gas': 300,
+                'gas_price': 30,
+                'input': 'input_2',
+                'nonce': 2,
+            },
+            {
+                'hash': 'txn_hash_3',
+                'block_hash': 'block_hash_1',
+                'block_number': 1,
+                'transaction_index': 2,
+                'from_address': 'address_3',
+                'to_address': 'address_4',
+                'value': 300,
+                'gas': 400,
+                'gas_price': 40,
+                'input': 'input_3',
+                'nonce': 3,
+            },
+        ],
+    )
+    mock_export_blocks_and_transactions.return_value = (
+        [
+            {'number': 1, 'hash': 'block_hash_1', 'transaction_count': 3},
+            {'number': 2, 'hash': 'block_hash_2', 'transaction_count': 2},
+            {'number': 3, 'hash': 'block_hash_3', 'transaction_count': 1},
+        ],
+        [
+            {
+                'hash': 'txn_hash_1',
+                'block_hash': 'block_hash_1',
+                'block_number': 1,
+                'transaction_index': 0,
+                'from_address': 'address_1',
+                'to_address': 'address_2',
+                'value': 100,
+                'gas': 200,
+                'gas_price': 20,
+                'input': 'input_1',
+                'nonce': 1,
+            },
+            {
+                'hash': 'txn_hash_2',
+                'block_hash': 'block_hash_1',
+                'block_number': 1,
+                'transaction_index': 1,
+                'from_address': 'address_2',
+                'to_address': 'address_3',
+                'value': 200,
+                'gas': 300,
+                'gas_price': 30,
+                'input': 'input_2',
+                'nonce': 2,
+            },
+            {
+                'hash': 'txn_hash_3',
+                'block_hash': 'block_hash_1',
+                'block_number': 1,
+                'transaction_index': 2,
+                'from_address': 'address_3',
+                'to_address': 'address_4',
+                'value': 300,
+                'gas': 400,
+                'gas_price': 40,
+                'input': 'input_3',
+                'nonce': 3,
+            },
+        ],
+    )
+
+    # Mock the logger and assert that it is called with the expected log messages
+    mock_logger = Mock()
+    with patch('ethereumetl.streaming.clickhouse_eth_streamer_adapter.logger', mock_logger):
+        # Call the method under test
+        ch_verifier.export_all(start_block=1, end_block=3)
+
+    # Assert that the logger was called with the expected log messages
+    mock_logger.info.assert_called_with('Checking BLOCKS and TRANSACTIONS... from %s to %s', 1, 3)
+    with pytest.raises(AssertionError):
+        mock_logger.info.assert_called_with('Inconsistent records were deleted from ClickHouse')
+    with pytest.raises(AssertionError):
+        mock_logger.info.assert_called_with('Inconsistent records were exported to ClickHouse')
+    assert export_all_mock.not_called()
+
+
+@patch(
+    'ethereumetl.streaming.clickhouse_eth_streamer_adapter.ClickhouseEthStreamerAdapter._select_distinct'
+)
+@patch(
+    'ethereumetl.streaming.eth_streamer_adapter.EthStreamerAdapter._export_blocks_and_transactions'
+)
+@patch('clickhouse_connect.driver.httpclient.HttpClient.command', new_callable=Mock)
+@patch(
+    'ethereumetl.streaming.clickhouse_eth_streamer_adapter.ClickhouseEthStreamerAdapter.export_all',
+    new_callable=Mock,
+)
+def test_verify_all_with_inconsistent_data(
+    export_all_mock,
+    mock_ch_command,
+    mock_export_blocks_and_transactions,
+    mock_select_distinct,
+    ch_verifier,
+):
+    # Configure the mock return values to introduce inconsistencies
+    mock_select_distinct.side_effect = (
+        [
+            {'number': 1, 'hash': 'block_hash_1', 'transaction_count': 3},
+            {'number': 3, 'hash': 'block_hash_3', 'transaction_count': 1},
+        ],
+        [
+            {
+                'hash': 'txn_hash_1',
+                'block_hash': 'block_hash_1',
+                'block_number': 1,
+                'transaction_index': 0,
+                'from_address': 'address_2',
+                'to_address': 'address_3',
+                'value': 200,
+                'gas': 300,
+                'gas_price': 30,
+                'input': 'input_2',
+                'nonce': 2,
+            },
+            {
+                'hash': 'txn_hash_2',
+                'block_hash': 'block_hash_2',
+                'block_number': 2,
+                'transaction_index': 1,
+                'from_address': 'address_2',
+                'to_address': 'address_3',
+                'value': 200,
+                'gas': 300,
+                'gas_price': 30,
+                'input': 'input_2',
+                'nonce': 2,
+            },
+            {
+                'hash': 'txn_hash_3',
+                'block_hash': 'block_hash_3',
+                'block_number': 3,
+                'transaction_index': 2,
+                'from_address': 'address_3',
+                'to_address': 'address_4',
+                'value': 300,
+                'gas': 400,
+                'gas_price': 40,
+                'input': 'input_3',
+                'nonce': 3,
+            },
+        ],
+    )
+    mock_export_blocks_and_transactions.return_value = (
+        [
+            {'number': 1, 'hash': 'block_hash_1', 'transaction_count': 3},
+            {'number': 2, 'hash': 'block_hash_3', 'transaction_count': 1},
+            {'number': 3, 'hash': 'block_hash_4', 'transaction_count': 2},
+        ],
+        [
+            {
+                'hash': 'txn_hash_1',
+                'block_hash': 'block_hash_1',
+                'block_number': 1,
+                'transaction_index': 0,
+                'from_address': 'address_2',
+                'to_address': 'address_3',
+                'value': 200,
+                'gas': 300,
+                'gas_price': 30,
+                'input': 'input_2',
+                'nonce': 2,
+            },
+            {
+                'hash': 'txn_hash_2',
+                'block_hash': 'block_hash_2',
+                'block_number': 2,
+                'transaction_index': 1,
+                'from_address': 'address_2',
+                'to_address': 'address_3',
+                'value': 200,
+                'gas': 300,
+                'gas_price': 30,
+                'input': 'input_2',
+                'nonce': 2,
+            },
+            {
+                'hash': 'txn_hash_4',
+                'block_hash': 'block_hash_3',
+                'block_number': 3,
+                'transaction_index': 0,
+                'from_address': 'address_3',
+                'to_address': 'address_4',
+                'value': 300,
+                'gas': 400,
+                'gas_price': 40,
+                'input': 'input_4',
+                'nonce': 3,
+            },
+        ],
+    )
+
+    # Mock the logger and assert that it is called with the expected log messages
+    mock_logger = Mock()
+    with patch('ethereumetl.streaming.clickhouse_eth_streamer_adapter.logger', mock_logger):
+        # Call the method under test
+        ch_verifier.export_all(start_block=1, end_block=3)
+
+    # Assert that the logger was called with the expected log messages
+    mock_logger.info.assert_any_call('Inconsistent records were deleted from ClickHouse')
+    mock_logger.info.assert_any_call('Inconsistent records were exported to ClickHouse')
+    mock_ch_command.assert_any_call('DELETE FROM 1_blocks WHERE number IN (3,)')
+    mock_ch_command.assert_any_call('DELETE FROM 1_transactions WHERE block_number IN (3,)')
+    export_all_mock.assert_called_with(start_block=2, end_block=3)
