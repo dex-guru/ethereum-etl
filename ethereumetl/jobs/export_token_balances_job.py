@@ -15,6 +15,7 @@ from ethereumetl.json_rpc_requests import generate_balance_of_json_rpc
 from ethereumetl.mappers.error_mapper import EthErrorMapper
 from ethereumetl.mappers.token_balance_mapper import EthTokenBalanceMapper
 from ethereumetl.misc.info import NULL_ADDRESSES
+from ethereumetl.utils import execute_in_batches
 
 MAX_UINT256 = 2**256 - 1
 
@@ -64,7 +65,11 @@ class ExportTokenBalancesJob(BaseJob):
             self.make_rpc_request(i, params) for i, params in enumerate(all_rpc_params)
         ]
 
-        rpc_responses = self.execute_balance_of_rpcs(rpc_requests)  # i/o
+        rpc_responses = execute_in_batches(  # i/o
+            self.batch_web3_provider,
+            BatchWorkExecutor(self.batch_size, self.max_workers),
+            rpc_requests,
+        )
 
         balances, errors = self.process_balance_of_rpc_responses(
             zip(all_rpc_params, rpc_responses)
@@ -151,50 +156,6 @@ class ExportTokenBalancesJob(BaseJob):
             return rpc_params, erc721_token_balances
         else:
             raise ValueError(f'Unknown token standard: {erc}')
-
-    def execute_balance_of_rpcs(self, rpc_requests: list[dict]) -> list[dict]:
-        """
-        Returns responses, the order and count of which is guaranteed to
-        match the order of `rpc_requests`.
-        """
-        rpc_requests_indexed = list(enumerate(rpc_requests))
-        responses_ordered = [None] * len(rpc_requests_indexed)
-
-        lock = threading.Lock()
-
-        def handle_one_batch(rpc_requests_indexed_batch):
-            requests = []
-            request_idxs = []
-
-            for rpc_id, (request_idx, request) in enumerate(rpc_requests_indexed_batch):
-                request = {**request, 'id': rpc_id}
-                requests.append(request)
-                request_idxs.append(request_idx)
-
-            responses = self.batch_web3_provider.make_batch_request(json.dumps(requests))
-
-            response_by_rpc_id = {r['id']: r for r in responses}
-            if len(response_by_rpc_id) != len(requests):
-                raise Exception('batch JSON-RPC error: response ids do not match request ids')
-
-            with lock:
-                for rpc_id, request_idx in enumerate(request_idxs):
-                    try:
-                        response = response_by_rpc_id[rpc_id]
-                    except KeyError:
-                        raise Exception(
-                            'batch JSON-RPC error: response ids do not match request ids'
-                        )
-                    else:
-                        responses_ordered[request_idx] = response
-
-        executor = BatchWorkExecutor(self.batch_size, self.max_workers)
-        try:
-            executor.execute(rpc_requests_indexed, handle_one_batch)
-        finally:
-            executor.shutdown()
-
-        return responses_ordered  # type: ignore
 
     @staticmethod
     def process_balance_of_rpc_responses(
