@@ -11,33 +11,33 @@ known_first_party = ["blockchainetl", "ethereumetl", "schemas", "tests"]
 [tool.ruff]
 line-length = 150
 ignore = [
-    "C90",
-    "D100",
-    "D101",
-    "D102",
-    "D103",
-    "D104",
-    "D105",
-    "D107",
-    "D200",
-    "D203",
-    "D205",
-    "D212",
-    "D401",
-    "D415",
-    "E741",
-    "Q000",
-    "UP032",
-    "UP038",
+    "C90",    # line too long (handled by black)
+    "D100",   # missing docstring in public module
+    "D101",   # missing docstring in public class
+    "D102",   # missing docstring in public method
+    "D103",   # missing docstring in public function
+    "D104",   # missing docstring in public package
+    "D105",   # missing docstring in magic method
+    "D107",   # missing docstring in __init__
+    "D200",   # one-line docstring should fit on one line with quotes
+    "D203",   # 1 blank line required before class docstring
+    "D205",   # 1 blank line required between summary line and description
+    "D212",   # Multi-line docstring summary should start at the first line
+    "D401",   # First line should be in imperative mood
+    "D415",   # First line should end with a period
+    "E741",   # ambiguous variable name
+    "Q000",   # Double quotes found but single quotes preferred
+    "UP038",  # Use X | Y in {} call instead of (X, Y)
 ]
 extend-select = [
-    "D",
-    "I",
-    "PERF101",
-    "PERF102",
-    "Q",
-    "RUF100",
-    "UP",
+    "C4",       # comprehensions
+    "D",        # pydocstyle
+    "I",        # sort imports
+    "PERF101",  # unnecessary-list-cast
+    "PERF102",  # incorrect-dict-iterator
+    "Q",        # quotes
+    "RUF100",   # unused-noqa
+    "UP",       # pyupgrade
 ]
 isort = { known-first-party = ["blockchainetl", "ethereumetl", "schemas", "tests"] }
 target-version = "py310"
