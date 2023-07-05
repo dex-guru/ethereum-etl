@@ -78,6 +78,7 @@ class EthStreamerAdapter:
     }
 
     # both export and enrich dependencies
+    # TODO: remove enrich dependencies from here, as they can be found in ENRICH
     DEPENDENCIES = {
         RECEIPT: (TRANSACTION,),
         TRANSACTION: (RECEIPT,),
