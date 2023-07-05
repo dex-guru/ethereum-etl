@@ -299,9 +299,9 @@ raw-traces-data-streamer-prod:
     entrypoint: [""]
   variables:
     SERVICE_NAME: "raw-traces-data-streamer"
-    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE_TRACE}
-    HELM_CHART: ${HELM_CHART_STAGE_LAX}
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD_TRACE}
+    HELM_CHART: ${HELM_CHART_PROD_LAX}
   script:
-    - helm/lax_stage_deploy.sh
+    - helm/lax_prod_deploy.sh
   only:
-    - master
+    - tags
