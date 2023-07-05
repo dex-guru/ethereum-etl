@@ -62,6 +62,8 @@ class Streamer:
         self.retry_errors = retry_errors
         self.pid_file = pid_file
 
+        if self.start_block == 'latest':
+            self.start_block = self.blockchain_streamer_adapter.get_current_block_number()
         if self.start_block is not None:
             init_last_synced_block_provider(
                 (self.start_block or 0) - 1, self.last_synced_block_provider
