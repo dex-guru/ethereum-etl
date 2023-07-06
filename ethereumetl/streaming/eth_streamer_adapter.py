@@ -77,19 +77,17 @@ class EthStreamerAdapter:
         TRANSACTION: (RECEIPT, lambda r, t: enrich_transactions(t, r)),
     }
 
-    # both export and enrich dependencies
-    # TODO: remove enrich dependencies from here, as they can be found in ENRICH
-    DEPENDENCIES = {
+    EXPORT_DEPENDENCIES = {
         RECEIPT: (TRANSACTION,),
         TRANSACTION: (RECEIPT,),
         TRACE: (BLOCK,),
-        LOG: (TRANSACTION, BLOCK),
-        TOKEN_TRANSFER: (LOG, BLOCK),
-        TOKEN_BALANCE: (TOKEN_TRANSFER, BLOCK),
-        GETH_TRACE: (TRANSACTION, BLOCK),
-        CONTRACT: (TRACE, BLOCK),
-        TOKEN: (CONTRACT, BLOCK),
-        INTERNAL_TRANSFER: (GETH_TRACE, BLOCK),
+        LOG: (TRANSACTION,),
+        TOKEN_TRANSFER: (LOG,),
+        TOKEN_BALANCE: (TOKEN_TRANSFER,),
+        GETH_TRACE: (TRANSACTION,),
+        CONTRACT: (TRACE,),
+        TOKEN: (CONTRACT,),
+        INTERNAL_TRANSFER: (GETH_TRACE,),
     }
 
     def __init__(
@@ -183,7 +181,10 @@ class EthStreamerAdapter:
             if entity_type in should_export:
                 continue
             should_export.add(entity_type)
-            stack.extend(self.DEPENDENCIES.get(entity_type, ()))
+            stack.extend(self.EXPORT_DEPENDENCIES.get(entity_type, ()))
+            if entity_type in self.ENRICH:
+                enrich_with_type, _enrich_fn = self.ENRICH[entity_type]
+                stack.append(enrich_with_type)
         return should_export
 
     def enrich(self, entity_type, get_exported):
