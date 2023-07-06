@@ -7,7 +7,12 @@ CREATE TABLE IF NOT EXISTS `${log}`
     `block_number` UInt64,
     `address` String CODEC(ZSTD(1)),
     `data` String CODEC(ZSTD(1)),
-    `topics` Array(String) CODEC(ZSTD(1))
+    `topics` Array(String) CODEC(ZSTD(1)),
+    PROJECTION _logs_hash
+    (   SELECT *
+        ORDER BY (transaction_hash)
+    )
+
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY intDivOrZero(block_number, 100000)
@@ -38,6 +43,11 @@ CREATE TABLE IF NOT EXISTS `${transaction}`
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
     `receipt_logs_count` Nullable(UInt32)
+
+    PROJECTION _transactions_hash
+    (   SELECT *
+        ORDER BY (hash)
+    )
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
@@ -83,7 +93,19 @@ CREATE TABLE IF NOT EXISTS `${token_transfer}`
     `block_hash` String CODEC(ZSTD(1)),
     `operator_address` Nullable(String) CODEC(ZSTD(1)), // ERC721, ERC1155
     `token_id` Nullable(UInt256),  // ERC721, ERC1155
-    `is_nft` Bool MATERIALIZED isNotNull(token_id) // ERC721, ERC1155
+    `is_nft` Bool MATERIALIZED isNotNull(token_id), // ERC721, ERC1155
+    PROJECTION _transfers_token_address
+    (   SELECT *
+        ORDER BY (token_address, is_nft)
+    ),
+    PROJECTION _transfers_from_address
+    (   SELECT *
+        ORDER BY (from_address, is_nft)
+    ),
+    PROJECTION _transfers_to_address
+    (   SELECT *
+        ORDER BY (to_address, is_nft)
+    )
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
