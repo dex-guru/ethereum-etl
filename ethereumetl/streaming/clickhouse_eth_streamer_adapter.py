@@ -138,7 +138,7 @@ class ClickhouseEthStreamerAdapter:
             transaction_count = len(transactions)
             block_count = len(blocks)
 
-            if block_count < want_block_count or (
+            if (BLOCK in should_export and block_count < want_block_count) or (
                 TRANSACTION in should_export and transaction_count < want_transaction_count
             ):
                 logger.info(
@@ -149,12 +149,14 @@ class ClickhouseEthStreamerAdapter:
                     start_block, end_block
                 )
 
-                want_transaction_count = get_transaction_count_from_blocks(blocks)
+                if BLOCK in should_export:
+                    assert len(blocks) >= want_block_count, "got less blocks than expected"
 
-                assert len(blocks) >= want_block_count, "got less blocks than expected"
-                assert (
-                    len(transactions) >= want_transaction_count
-                ), "got less transactions than expected"
+                if TRANSACTION in should_export:
+                    want_transaction_count = get_transaction_count_from_blocks(blocks)
+                    assert (
+                        len(transactions) >= want_transaction_count
+                    ), "got less transactions than expected"
 
                 from_ch = False
                 return blocks, transactions, from_ch
@@ -327,7 +329,7 @@ class ClickhouseEthStreamerAdapter:
             from_ch = geth_traces_from_ch and len(internal_transfers_ch) == len(internal_transfers)
             return internal_transfers, from_ch
 
-        exported: dict[EntityType, list] = {}
+        exported: dict[EntityType, list] = {ERROR: []}
         from_ch: dict[EntityType, bool] = {}
 
         for entity_types, export_func in (
