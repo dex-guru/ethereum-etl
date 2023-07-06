@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS `${transaction}`
     `receipt_root` Nullable(String) CODEC(ZSTD(1)),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
 
     PROJECTION _transactions_hash
     (   SELECT *
