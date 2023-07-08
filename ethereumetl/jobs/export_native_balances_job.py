@@ -50,7 +50,7 @@ class ExportNativeBalancesJob(BaseJob):
         block_address_pairs = self.get_block_address_pairs(
             self.transactions, self.internal_transfers
         )
-        rpc_requests = tuple(self.geterate_rpc_requests(block_address_pairs))
+        rpc_requests = tuple(self.generate_rpc_requests(block_address_pairs))
 
         rpc_responses = execute_in_batches(  # i/o
             self.batch_web3_provider, self.batch_work_executor, rpc_requests
@@ -93,7 +93,7 @@ class ExportNativeBalancesJob(BaseJob):
         return block_address_pairs
 
     @staticmethod
-    def geterate_rpc_requests(
+    def generate_rpc_requests(
         block_address_pairs: Collection[BlockAddress],
     ) -> Iterable[RPCRequest]:
         for request_id, (block_number, address) in enumerate(block_address_pairs):
