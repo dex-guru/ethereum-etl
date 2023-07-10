@@ -162,7 +162,7 @@ class EthStreamerAdapter:
         for entity_type in self.entity_types:
             enriched_items = self.enrich(entity_type, exported.__getitem__)
             sorted_items = sort_by(enriched_items, self.SORT_BY_FIELDS[entity_type])
-            items_by_type.setdefault(entity_type, []).extend(sorted_items)
+            items_by_type[entity_type] = sorted_items
             all_items.extend(sorted_items)
 
         self.log_batch_export_progress(items_by_type)
