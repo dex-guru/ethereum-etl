@@ -357,7 +357,7 @@ class ClickhouseEthStreamerAdapter:
                 break
 
         all_items = []
-        items_by_type = {}
+        items_by_type: dict[EntityType, list[dict]] = {}
         for entity_type in self._entity_types:
             if (
                 from_ch.get(entity_type)
@@ -386,7 +386,7 @@ class ClickhouseEthStreamerAdapter:
                 enriched_items, self._eth_streamer_adapter.SORT_BY_FIELDS[entity_type]
             )
             all_items.extend(sorted_items)
-            items_by_type[entity_type] = sorted_items
+            items_by_type.setdefault(entity_type, []).extend(sorted_items)
 
         self._eth_streamer_adapter.log_batch_export_progress(items_by_type)
 
