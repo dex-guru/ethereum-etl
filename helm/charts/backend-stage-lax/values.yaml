@@ -203,27 +203,27 @@ raw-verify-data-streamer:
   command: '[ "ethereumetl", "stream" ]'
   env:
     LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl?table_name=last_synced_block_verify'
-    OUTPUT: 'clickhouse+native://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl'
+    OUTPUT: 'clickhouse+native://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl?allow_experimental_lightweight_delete=true'
     POLLING_PERIOD: '2'
-    BATCH_SIZE: '10'
+    BATCH_SIZE: '100'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
-    SERVICE_NAME: 'raw-data-streamer'
+    SERVICE_NAME: 'raw-verify-data-streamer'
     EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl'
     REWRITE_CLICKHOUSE: 'block,transaction,log,token_transfer,token_balance'
     IS_VERIFIER: 'True'
   chainEnv:
     LAG:
-      default: 64
+      default: 100
       eth-1: 64
       bsc-56: 64
-      polygon-137: 100
+      polygon-137: 150
+      arbitrum-42161: 200
     ENTITY_TYPES:
       default: 'block,transaction,log,token_transfer,internal_transfer,geth_trace,token_balance'
       fantom-250: 'block,transaction,log,token_transfer,token_balance'
       acanto-7701: 'block,transaction,log,token_transfer,token_balance'
       gnosis-100: 'block,transaction,log,token_transfer,token_balance'
-      optimism-10: 'block,transaction,log,token_transfer,token_balance'
     PROVIDER_URL:
       default: 'http://rpc-gw-stage.dexguru.biz/full/1'
       polygon-137: 'http://rpc-gw-stage.dexguru.biz/full/137'
@@ -238,7 +238,7 @@ raw-verify-data-streamer:
       nova-42170: 'http://rpc-gw-stage.dexguru.biz/full/42170'
       base-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
     BLOCK_BATCH_SIZE:
-      default: '1000'
+      default: '100'
     MAX_WORKERS:
       default: '5'
     SKIP_NONE_RECEIPTS:

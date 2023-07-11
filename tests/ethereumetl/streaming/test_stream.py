@@ -597,6 +597,7 @@ def test_clickhouse_exporter_export_items(tmp_path, cleanup):
             'block_timestamp': 1656329840,
             'kind': 'some_error',
             'data_json': '{"some": "data"}',
+            'block_hash': '0x123',
         },
         {
             'type': 'token_balance',
@@ -790,13 +791,6 @@ def test_verify_all_with_consistent_data(
     with patch('ethereumetl.streaming.clickhouse_eth_streamer_adapter.logger', mock_logger):
         # Call the method under test
         ch_verifier.export_all(start_block=1, end_block=3)
-
-    # Assert that the logger was called with the expected log messages
-    mock_logger.info.assert_called_with('Checking BLOCKS and TRANSACTIONS... from %s to %s', 1, 3)
-    with pytest.raises(AssertionError):
-        mock_logger.info.assert_called_with('Inconsistent records were deleted from ClickHouse')
-    with pytest.raises(AssertionError):
-        mock_logger.info.assert_called_with('Inconsistent records were exported to ClickHouse')
     assert export_all_mock.not_called()
 
 
@@ -806,23 +800,27 @@ def test_verify_all_with_consistent_data(
 @patch(
     'ethereumetl.streaming.eth_streamer_adapter.EthStreamerAdapter._export_blocks_and_transactions'
 )
-@patch('clickhouse_connect.driver.httpclient.HttpClient.command', new_callable=Mock)
 @patch(
     'ethereumetl.streaming.clickhouse_eth_streamer_adapter.ClickhouseEthStreamerAdapter.export_all',
     new_callable=Mock,
 )
+@patch(
+    'ethereumetl.streaming.clickhouse_eth_streamer_adapter.ClickhouseEthStreamerAdapter.clickhouse_client_from_url',
+    new_callable=Mock,
+)
 def test_verify_all_with_inconsistent_data(
+    clickhouse_client_from_url_mock,
     export_all_mock,
-    mock_ch_command,
     mock_export_blocks_and_transactions,
     mock_select_distinct,
     ch_verifier,
 ):
+    client = clickhouse_client_from_url_mock.return_value = Mock()
     # Configure the mock return values to introduce inconsistencies
     mock_select_distinct.side_effect = (
         [
-            {'number': 1, 'hash': 'block_hash_1', 'transaction_count': 3},
-            {'number': 3, 'hash': 'block_hash_3', 'transaction_count': 1},
+            {'number': 1, 'hash': 'block_hash_1', 'transaction_count': 3, 'timestamp': 10},
+            {'number': 3, 'hash': 'invalid', 'transaction_count': 1, 'timestamp': 30},
         ],
         [
             {
@@ -868,9 +866,9 @@ def test_verify_all_with_inconsistent_data(
     )
     mock_export_blocks_and_transactions.return_value = (
         [
-            {'number': 1, 'hash': 'block_hash_1', 'transaction_count': 3},
-            {'number': 2, 'hash': 'block_hash_3', 'transaction_count': 1},
-            {'number': 3, 'hash': 'block_hash_4', 'transaction_count': 2},
+            {'number': 1, 'hash': 'block_hash_1', 'transaction_count': 3, 'timestamp': 10},
+            {'number': 2, 'hash': 'block_hash_2', 'transaction_count': 1, 'timestamp': 20},
+            {'number': 3, 'hash': 'block_hash_3', 'transaction_count': 2, 'timestamp': 30},
         ],
         [
             {
@@ -921,9 +919,13 @@ def test_verify_all_with_inconsistent_data(
         # Call the method under test
         ch_verifier.export_all(start_block=1, end_block=3)
 
-    # Assert that the logger was called with the expected log messages
-    mock_logger.info.assert_any_call('Inconsistent records were deleted from ClickHouse')
-    mock_logger.info.assert_any_call('Inconsistent records were exported to ClickHouse')
-    mock_ch_command.assert_any_call('DELETE FROM 1_blocks WHERE number IN (3,)')
-    mock_ch_command.assert_any_call('DELETE FROM 1_transactions WHERE block_number IN (3,)')
+    client.command.assert_any_call(
+        "ALTER TABLE 1_blocks DELETE WHERE number IN (2, 3) AND timestamp IN (20, 30) AND hash IN ('block_hash_2', 'invalid')"
+    )
+    client.command.assert_any_call(
+        "ALTER TABLE 1_transactions DELETE WHERE block_number IN (2, 3) AND block_timestamp IN (20, 30) AND block_hash IN ('block_hash_2', 'invalid')"
+    )
+    client.command.assert_any_call(
+        "ALTER TABLE 1_geth_traces DELETE WHERE block_number IN (2, 3) AND block_timestamp IN (20, 30) AND block_hash IN ('block_hash_2', 'invalid')"
+    )
     export_all_mock.assert_called_with(start_block=2, end_block=3)

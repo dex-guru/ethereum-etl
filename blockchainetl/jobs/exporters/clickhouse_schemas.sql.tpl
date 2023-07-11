@@ -217,7 +217,7 @@ CREATE TABLE IF NOT EXISTS `${block}`
     `gas_used`          UInt64,
     `timestamp`         UInt32,
     `transaction_count` UInt64,
-    `base_fee_per_gas`  Nullable(Int64)
+    `base_fee_per_gas`  Nullable(Int64),
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(timestamp))
@@ -239,6 +239,7 @@ CREATE TABLE IF NOT EXISTS `${token_transfer}`
     `operator_address` Nullable(String) CODEC(ZSTD(1)), // ERC721, ERC1155
     `token_id` Nullable(UInt256),  // ERC721, ERC1155
     `is_nft` Bool MATERIALIZED isNotNull(token_id), // ERC721, ERC1155
+
     PROJECTION _transfers_token_address
     (   SELECT *
         ORDER BY (token_address, is_nft)
@@ -265,7 +266,8 @@ CREATE TABLE IF NOT EXISTS `${token_balance}`
     `block_number` UInt64 CODEC(DoubleDelta),
     `block_timestamp` UInt32 CODEC(DoubleDelta),
     `value` UInt256 CODEC(ZSTD),
-    `token_id` UInt256 CODEC(ZSTD)
+    `token_id` UInt256 CODEC(ZSTD),
+    `block_hash` String CODEC(ZSTD(1))
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
@@ -293,7 +295,7 @@ CREATE TABLE IF NOT EXISTS `${trace}`
     `block_timestamp` UInt32,
     `block_number` UInt64,
     `block_hash` String CODEC(ZSTD(1)),
-    `trace_id` String CODEC(ZSTD(1))
+    `trace_id` String CODEC(ZSTD(1)),
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMMDD(FROM_UNIXTIME(block_timestamp))
@@ -307,7 +309,8 @@ CREATE TABLE IF NOT EXISTS `${token}`
     `decimals` UInt8,
     `function_sighashes` Array(String) CODEC(ZSTD(1)),
     `total_supply` UInt256,
-    `block_number` UInt64
+    `block_number` UInt64,
+    `block_hash` String CODEC(ZSTD(1))
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (address, block_number);
@@ -319,7 +322,8 @@ CREATE TABLE IF NOT EXISTS `${contract}`
     `function_sighashes` Array(String) CODEC(ZSTD(1)),
     `is_erc20` UInt8,
     `is_erc721` UInt8,
-    `block_number` UInt64
+    `block_number` UInt64,
+    `block_hash` String CODEC(ZSTD(1))
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (address, block_number);
@@ -332,6 +336,7 @@ CREATE TABLE IF NOT EXISTS `${error}`
     `block_timestamp` UInt32 CODEC(Delta, LZ4),
     `kind` LowCardinality(String),
     `data_json` String CODEC(ZSTD(1)),
+    `block_hash` String CODEC(ZSTD(1))
 )
 ENGINE = MergeTree
 PARTITION BY toYYYYMM(fromUnixTimestamp(timestamp))
@@ -343,7 +348,8 @@ CREATE TABLE IF NOT EXISTS `${geth_trace}`
     `transaction_hash` String CODEC(ZSTD(1)),
     `block_timestamp` DateTime CODEC(DoubleDelta),
     `block_number` UInt64 CODEC(Delta(8), LZ4),
-    `traces_json` String CODEC(ZSTD(1))
+    `traces_json` String CODEC(ZSTD(1)),
+    `block_hash` String CODEC(ZSTD(1))
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY substring(transaction_hash, 1, 3)
@@ -359,7 +365,8 @@ CREATE TABLE IF NOT EXISTS `${internal_transfer}`
     `to_address` Nullable(String) CODEC(ZSTD(1)),
     `value` UInt256 CODEC(ZSTD(1)),
     `gas_limit` UInt64 CODEC(ZSTD(1)),
-    `id` String CODEC(ZSTD(1))
+    `id` String CODEC(ZSTD(1)),
+    `block_hash` String CODEC(ZSTD(1))
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY substring(transaction_hash, 1, 3)

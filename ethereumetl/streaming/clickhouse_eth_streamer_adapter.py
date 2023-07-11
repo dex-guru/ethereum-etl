@@ -2,7 +2,9 @@ import logging
 from collections.abc import Iterable, Sequence
 from functools import cache, cached_property
 from itertools import groupby
+from time import monotonic
 from typing import Any
+from uuid import uuid4
 
 import clickhouse_connect
 from clickhouse_connect.driver import Client
@@ -45,6 +47,7 @@ class ClickhouseEthStreamerAdapter:
         self._clickhouse_url = clickhouse_url
         self._clickhouse: Client | None = None
         self._rewrite_entity_types = frozenset(rewrite_entity_types)
+        self._verifying = False
 
         if item_type_to_table_mapping is None:
             self._item_type_to_table_mapping = {
@@ -139,7 +142,9 @@ class ClickhouseEthStreamerAdapter:
             block_count = len(blocks)
 
             if (BLOCK in should_export and block_count < want_block_count) or (
-                TRANSACTION in should_export and transaction_count < want_transaction_count
+                TRANSACTION in should_export
+                and transaction_count < want_transaction_count
+                or self._verifying
             ):
                 logger.info(
                     f"Block/Transactions. Not enough data found in clickhouse: falling back to Eth node:"
@@ -202,7 +207,7 @@ class ClickhouseEthStreamerAdapter:
         @cache
         def export_logs():
             logger.info("exporting LOGS...")
-            if blocks_previously_exported():
+            if blocks_previously_exported() and not self._verifying:
                 blocks, transactions, from_ch = export_blocks_and_transactions()
                 want_transaction_count = get_transaction_count_from_blocks(blocks)
                 if want_transaction_count == 0:
@@ -227,7 +232,7 @@ class ClickhouseEthStreamerAdapter:
         @cache
         def export_traces():
             logger.info("exporting TRACES...")
-            if blocks_previously_exported():
+            if blocks_previously_exported() and not self._verifying:
                 traces = self._select_distinct(TRACE, start_block, end_block, 'trace_id')
                 if len(traces) > 0:
                     for t in traces:
@@ -246,7 +251,7 @@ class ClickhouseEthStreamerAdapter:
         @cache
         def export_geth_traces():
             logger.info("exporting GETH_TRACES...")
-            if blocks_previously_exported():
+            if blocks_previously_exported() and not self._verifying:
                 geth_traces = self._select_distinct(
                     GETH_TRACE,
                     start_block,
@@ -277,7 +282,7 @@ class ClickhouseEthStreamerAdapter:
                 TOKEN_TRANSFER, start_block, end_block, 'transaction_hash,log_index'
             )
             token_transfers = self._eth_streamer_adapter._extract_token_transfers(export_logs()[0])
-            from_ch = len(token_transfers_ch) == len(token_transfers)
+            from_ch = len(token_transfers_ch) == len(token_transfers) and not self._verifying
             return token_transfers, from_ch
 
         @cache
@@ -297,7 +302,7 @@ class ClickhouseEthStreamerAdapter:
         @cache
         def export_token_balances():
             logger.info("exporting TOKEN_BALANCES...")
-            if blocks_previously_exported():
+            if blocks_previously_exported() and not self._verifying:
                 balances = self._select_distinct(
                     TOKEN_BALANCE,
                     start_block,
@@ -326,7 +331,11 @@ class ClickhouseEthStreamerAdapter:
             internal_transfers = self._eth_streamer_adapter._extract_internal_transfers(
                 geth_traces
             )
-            from_ch = geth_traces_from_ch and len(internal_transfers_ch) == len(internal_transfers)
+            from_ch = (
+                geth_traces_from_ch
+                and len(internal_transfers_ch) == len(internal_transfers)
+                and not self._verifying
+            )
             return internal_transfers, from_ch
 
         exported: dict[EntityType, list] = {ERROR: []}
@@ -447,6 +456,8 @@ class VerifyingClickhouseEthStreamerAdapter:
         assert (
             self.ch_streamer.exporting_to_the_same_clickhouse
         ), 'VerifyingClickhouseEthStreamerAdapter can be used only when exporting to the same ClickHouse instance'
+        self.chain_id = self.ch_streamer._chain_id
+        self.ch_streamer._verifying = True
 
     def open(self):
         self.ch_streamer.open()
@@ -461,16 +472,15 @@ class VerifyingClickhouseEthStreamerAdapter:
         def find_inconsistent_blocks(blocks_from_storage: Sequence, blocks_from_w3: Sequence):
             if len(blocks_from_storage) != len(blocks_from_w3):
                 # check absent blocks
-                missing_blocks.update(
-                    block['number']
-                    for block in blocks_from_w3
-                    if block['number'] not in [block_['number'] for block_ in blocks_from_storage]
-                )
+                block_numbers_from_storage = [block_['number'] for block_ in blocks_from_storage]
+                for block in blocks_from_w3:
+                    if block['number'] not in block_numbers_from_storage:
+                        missing_blocks.add(block['number'])
+                        inconsistent_timestamps.add(block['timestamp'])
+                        inconsistent_hashes.add(block['hash'])
                 blocks_from_w3 = [
                     block for block in blocks_from_w3 if block['number'] not in missing_blocks
                 ]
-                if missing_blocks:
-                    logger.info("BLOCKS absent: %s", ', '.join(map(str, missing_blocks)))
 
             # check block hashes
             for block_ch, block_w3 in zip(blocks_from_storage, blocks_from_w3):
@@ -478,74 +488,78 @@ class VerifyingClickhouseEthStreamerAdapter:
                     check_blocks_consistency(block_ch, block_w3)
                 except AssertionError:
                     inconsistent_blocks.add(block_ch['number'])
-            if inconsistent_blocks:
-                logger.info("BLOCKS mismatch: %s", ', '.join(map(str, inconsistent_blocks)))
-
-        def find_inconsistent_transactions(txns_from_storage: Sequence, txns_from_w3: Sequence):
-            if len(txns_from_storage) != len(txns_from_w3):
-                # check absent transactions
-                missing_blocks.update(
-                    txn['block_number']
-                    for txn in txns_from_w3
-                    if txn['block_number']
-                    not in [txn_['block_number'] for txn_ in txns_from_storage]
-                )
-                txns_from_w3 = [
-                    txn for txn in txns_from_w3 if txn['block_number'] not in missing_blocks
-                ]
-                logger.info("TRANSACTIONS mismatch: %s", ', '.join(map(str, missing_blocks)))
-
-            # check transaction hashes
-            for txn_ch, txn_w3 in zip(txns_from_storage, txns_from_w3):
-                try:
-                    check_transactions_consistency(txn_ch, txn_w3)
-                except AssertionError:
-                    inconsistent_blocks.add(txn_ch['block_number'])
-
-        def check_transactions_consistency(txn_ch, txn_w3):
-            assert txn_ch['hash'] == txn_w3['hash']
-            assert txn_ch['block_hash'] == txn_w3['block_hash']
-            assert txn_ch['block_number'] == txn_w3['block_number']
-            assert txn_ch['transaction_index'] == txn_w3['transaction_index']
-            assert txn_ch['from_address'] == txn_w3['from_address']
-            assert txn_ch['to_address'] == txn_w3['to_address']
-            assert txn_ch['value'] == txn_w3['value']
-            assert txn_ch['gas'] == txn_w3['gas']
-            assert txn_ch['gas_price'] == txn_w3['gas_price']
-            assert txn_ch['input'] == txn_w3['input']
-            assert txn_ch['nonce'] == txn_w3['nonce']
+                    inconsistent_timestamps.add(block_ch['timestamp'])
+                    inconsistent_hashes.add(block_ch['hash'])
 
         def check_blocks_consistency(block_ch, block_w3):
             assert block_ch['number'] == block_w3['number']
             assert block_ch['hash'] == block_w3['hash']
             assert block_ch['transaction_count'] == block_w3['transaction_count']
 
-        def delete_inconsistent_records_from_ch(blocks: Iterable):
+        def delete_inconsistent_records_from_ch(
+            blocks: Iterable,
+            timestamps: Iterable,
+            hashes: Iterable,
+        ):
             if not blocks:
                 return
 
-            assert self.ch_streamer._clickhouse, 'ClickHouse is not connected'
             for entity, table in self.ch_streamer._item_type_to_table_mapping.items():
                 if entity == ERROR:
                     continue
+                client = self.ch_streamer.clickhouse_client_from_url(
+                    # to prevent session locking
+                    f'{self.ch_streamer._clickhouse_url}?session_id={uuid4()}'
+                )
+                alter_condition = f'ALTER TABLE {table} DELETE WHERE'
+                t = monotonic()
+                logger.info('Deleting inconsistent records from table %s', table)
+
                 if entity == BLOCK:
-                    self.ch_streamer._clickhouse.command(
-                        f"DELETE FROM {table} WHERE number IN {tuple(blocks)}"
+                    client.command(
+                        f"{alter_condition} number IN {tuple(blocks)} "
+                        f"AND timestamp IN {tuple(timestamps)} "
+                        f"AND hash IN {tuple(hashes)}"
+                    )
+                elif entity in (LOG, TOKEN, CONTRACT):
+                    client.command(
+                        f"{alter_condition} block_number IN {tuple(blocks)} "
+                        f"AND block_hash IN {tuple(hashes)}"
                     )
                 else:
-                    self.ch_streamer._clickhouse.command(
-                        f"DELETE FROM {table} WHERE block_number IN {tuple(blocks)}"
+                    client.command(
+                        f"{alter_condition} block_number IN {tuple(blocks)} "
+                        f"AND block_timestamp IN {tuple(timestamps)} "
+                        f"AND block_hash IN {tuple(hashes)}"
                     )
-            logger.info("Inconsistent records were deleted from ClickHouse")
 
-        logger.info("Checking BLOCKS and TRANSACTIONS... from %s to %s", start_block, end_block)
+                logger.info(
+                    "Deleted inconsistent records from table %s in %.2f seconds",
+                    table,
+                    monotonic() - t,
+                )
+                client.close()
+
+            # custom tables
+            client = self.ch_streamer.clickhouse_client_from_url(
+                f'{self.ch_streamer._clickhouse_url}?session_id={uuid4()}'
+            )
+            client.command(
+                f"""
+                ALTER TABLE {self.chain_id}_transactions_address
+                DELETE WHERE block_number IN {tuple(blocks)}
+                AND block_timestamp IN {tuple(timestamps)}
+                AND block_hash IN {tuple(hashes)}
+                """
+            )
+            client.close()
+
         inconsistent_blocks: set[int] = set()
+        inconsistent_timestamps: set[int] = set()
+        inconsistent_hashes: set[str] = set()
         missing_blocks: set[int] = set()
 
         blocks_ch = self.ch_streamer._select_distinct(BLOCK, start_block, end_block, 'number')
-        transactions_ch = self.ch_streamer._select_distinct(
-            TRANSACTION, start_block, end_block, 'hash'
-        )
 
         (
             blocks_w3,
@@ -555,18 +569,36 @@ class VerifyingClickhouseEthStreamerAdapter:
         )
         blocks_w3 = sorted(blocks_w3, key=lambda x: x['number'])
         blocks_ch = sorted(blocks_ch, key=lambda x: x['number'])  # type: ignore
-        transactions_w3 = sorted(transactions_w3, key=lambda x: x['hash'])
-        transactions_ch = sorted(transactions_ch, key=lambda x: x['hash'])  # type: ignore
 
         find_inconsistent_blocks(blocks_ch, blocks_w3)
-        find_inconsistent_transactions(transactions_ch, transactions_w3)
 
         if inconsistent_blocks or missing_blocks:
-            delete_inconsistent_records_from_ch(inconsistent_blocks)
-            blocks_to_resync = sorted(inconsistent_blocks | missing_blocks)
+            if inconsistent_blocks:
+                logger.warning(
+                    "Inconsistent blocks were found: %s count %i",
+                    inconsistent_blocks,
+                    len(inconsistent_blocks),
+                    extra={
+                        'inconsistent_blocks': inconsistent_blocks,
+                        'inconsistent_blocks_count': len(inconsistent_blocks),
+                    },
+                )
+            if missing_blocks:
+                logger.warning(
+                    "Missing blocks were found: %s count: %i",
+                    missing_blocks,
+                    len(missing_blocks),
+                    extra={
+                        'missing_blocks': missing_blocks,
+                        'missing_blocks_count': len(missing_blocks),
+                    },
+                )
+            all_blocks = sorted(inconsistent_blocks | missing_blocks)
+            delete_inconsistent_records_from_ch(
+                all_blocks, sorted(inconsistent_timestamps), sorted(inconsistent_hashes)
+            )
             block_sequences = [
-                list(g)
-                for k, g in groupby(blocks_to_resync, key=lambda x: x - blocks_to_resync.index(x))
+                list(g) for k, g in groupby(all_blocks, key=lambda x: x - all_blocks.index(x))
             ]
             for seq in block_sequences:
                 self.ch_streamer.export_all(start_block=min(seq), end_block=max(seq))
