@@ -29,6 +29,6 @@ class EthReceiptLog:
     block_number: int
     address: str
     data: str
+    transaction_index: int
     topics: list[str] = field(default_factory=list)
     block_hash: str | None = None
-    transaction_index: int | None = None

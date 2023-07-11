@@ -39,6 +39,7 @@ def test_extract_transfer_from_receipt_log():
             '0x0000000000000000000000000000000000000000000000000000000000000000',
         ],
         transaction_hash='0xd62a74c7b04e8e0539398f6ba6a5eb11ad8aa862e77f0af718f0fad19b0b0480',
+        transaction_index=0,
     )
 
     [token_transfer] = token_transfer_extractor.extract_transfers_from_log(log)
