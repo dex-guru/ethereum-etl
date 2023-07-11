@@ -20,8 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from abc import ABC, abstractmethod
 
-class BaseJob:
+
+class BaseJob(ABC):
     def run(self):
         try:
             self._start()
@@ -29,11 +31,14 @@ class BaseJob:
         finally:
             self._end()
 
+    @abstractmethod
     def _start(self):
-        pass
+        ...
 
+    @abstractmethod
     def _export(self):
-        pass
+        ...
 
+    @abstractmethod
     def _end(self):
-        pass
+        ...
