@@ -2,7 +2,7 @@ import logging
 from collections.abc import Iterable, Sequence
 from functools import cache, cached_property
 from itertools import groupby
-from time import monotonic
+from time import monotonic, sleep
 from typing import Any
 from uuid import uuid4
 
@@ -504,6 +504,16 @@ class VerifyingClickhouseEthStreamerAdapter:
             if not blocks:
                 return
 
+            def safe_execute(command):
+                while True:
+                    try:
+                        client.command(command)
+                        break
+                    except Exception as e:
+                        logger.warning('Error while executing command: %s', e)
+                        logger.warning('Retrying in 2 seconds')
+                        sleep(2)
+
             for entity, table in self.ch_streamer._item_type_to_table_mapping.items():
                 if entity == ERROR:
                     continue
@@ -516,18 +526,18 @@ class VerifyingClickhouseEthStreamerAdapter:
                 logger.info('Deleting inconsistent records from table %s', table)
 
                 if entity == BLOCK:
-                    client.command(
+                    safe_execute(
                         f"{alter_condition} number IN {tuple(blocks)} "
                         f"AND timestamp IN {tuple(timestamps)} "
                         f"AND hash IN {tuple(hashes)}"
                     )
                 elif entity in (LOG, TOKEN, CONTRACT):
-                    client.command(
+                    safe_execute(
                         f"{alter_condition} block_number IN {tuple(blocks)} "
                         f"AND block_hash IN {tuple(hashes)}"
                     )
                 else:
-                    client.command(
+                    safe_execute(
                         f"{alter_condition} block_number IN {tuple(blocks)} "
                         f"AND block_timestamp IN {tuple(timestamps)} "
                         f"AND block_hash IN {tuple(hashes)}"
@@ -544,7 +554,7 @@ class VerifyingClickhouseEthStreamerAdapter:
             client = self.ch_streamer.clickhouse_client_from_url(
                 f'{self.ch_streamer._clickhouse_url}?session_id={uuid4()}'
             )
-            client.command(
+            safe_execute(
                 f"""
                 ALTER TABLE {self.chain_id}_transactions_address
                 DELETE WHERE block_number IN {tuple(blocks)}
@@ -602,4 +612,4 @@ class VerifyingClickhouseEthStreamerAdapter:
             ]
             for seq in block_sequences:
                 self.ch_streamer.export_all(start_block=min(seq), end_block=max(seq))
-                logger.info("Inconsistent records were exported to ClickHouse")
+            logger.info("Inconsistent records were exported to ClickHouse")
