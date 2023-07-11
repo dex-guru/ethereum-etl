@@ -234,7 +234,7 @@ raw-data-streamer-stage:
   script:
     - helm/lax_stage_deploy.sh
   only:
-    - merge_requests
+    - master
 
 #raw-data-streamer-resync-stage:
 #  stage: deploy-stage
@@ -290,7 +290,7 @@ raw-traces-data-streamer-stage:
   script:
     - helm/lax_stage_deploy.sh
   only:
-    - merge_requests
+    - master
 
 raw-traces-data-streamer-prod:
   stage: deploy-prod
@@ -318,4 +318,4 @@ raw-verify-data-streamer-stage:
   script:
     - helm/lax_stage_deploy.sh
   only:
-    - merge_requests
+    - master
