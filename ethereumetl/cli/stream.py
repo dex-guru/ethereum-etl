@@ -39,6 +39,18 @@ from ethereumetl.streaming.item_exporter_creator import (
 from ethereumetl.thread_local_proxy import ThreadLocalProxy
 
 
+def validate_start_block(_ctx, _param, value):
+    match value:
+        case str(x) if x.isdigit():
+            return int(x)
+        case int(x) if x >= 0:
+            return x
+        case 'latest':
+            return value
+        case _:
+            raise click.BadParameter('must be either unsigned integer or "latest"')
+
+
 @click.command(context_settings={'help_option_names': ['-h', '--help']})
 @click.option(
     '-c', '--chain-id', default=envs.CHAIN_ID, show_default=True, type=int, help='Chain ID'
@@ -97,6 +109,7 @@ from ethereumetl.thread_local_proxy import ThreadLocalProxy
     default=envs.START_BLOCK,
     show_default=True,
     help='Start block',
+    callback=validate_start_block,
 )
 @click.option(
     '--end-block',
@@ -212,9 +225,7 @@ def stream(
             rewrite_entity_types=[EntityType(x) for x in envs.REWRITE_CLICKHOUSE.split(',') if x],
         )
         if is_verifier:
-            streamer_adapter._eth_streamer_adapter.entity_types = frozenset(
-                EntityType(x) for x in ALL_FOR_STREAMING
-            )
+            streamer_adapter._rewrite_entity_types = frozenset(ALL_FOR_STREAMING)
             streamer_adapter = VerifyingClickhouseEthStreamerAdapter(
                 clickhouse_eth_streamer_adapter=streamer_adapter,
             )
