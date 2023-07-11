@@ -74,6 +74,6 @@ data-consistency-check:
       acanto-7701: '5'
     SKIP_NONE_RECEIPTS:
       default: 'False'
-      polygon-137: 'False'
+      polygon-137: 'True'
     MIN_INSERT_BATCH_SIZE:
       default: '1'
