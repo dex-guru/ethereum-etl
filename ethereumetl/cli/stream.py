@@ -47,6 +47,8 @@ def validate_start_block(_ctx, _param, value):
             return x
         case 'latest':
             return value
+        case None:
+            return value
         case _:
             raise click.BadParameter('must be either unsigned integer or "latest"')
 

@@ -249,7 +249,7 @@ def enrich_internal_transfers(transactions, internal_transfers):
                 'type',
                 *(f.name for f in fields(InternalTransfer)),
             ),
-            ('block_timestamp', 'block_number'),
+            ('block_timestamp', 'block_number', 'block_hash'),
         )
     )
 
@@ -272,6 +272,7 @@ def enrich_geth_traces(transactions, traces_for_transactions):
             [
                 'block_number',
                 'block_timestamp',
+                'block_hash',
             ],
         )
     )
