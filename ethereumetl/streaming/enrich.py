@@ -356,6 +356,7 @@ def enrich_native_balances(blocks, native_balances):
             EthNativeBalanceItem.__required_keys__,
             [
                 ('timestamp', 'block_timestamp'),
+                ('hash', 'block_hash'),
             ],
         )
     )

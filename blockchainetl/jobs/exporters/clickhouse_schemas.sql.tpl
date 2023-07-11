@@ -431,6 +431,7 @@ CREATE TABLE IF NOT EXISTS `${native_balance}`
 (
     `address` String CODEC(ZSTD),
     `block_number` UInt64 CODEC(DoubleDelta),
+    `block_hash` String CODEC(ZSTD),
     `block_timestamp` UInt32 CODEC(DoubleDelta),
     `value` UInt256 CODEC(ZSTD),
 )
