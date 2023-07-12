@@ -29,6 +29,7 @@ from datetime import datetime
 from ethereumetl.domain.internal_transfer import InternalTransfer
 from ethereumetl.domain.token_balance import EthTokenBalance
 from ethereumetl.mappers.error_mapper import EthErrorMapper
+from ethereumetl.mappers.native_balance_mapper import EthNativeBalanceItem
 from ethereumetl.utils import dedup_list_of_dicts
 
 
@@ -345,3 +346,18 @@ def enrich_errors(blocks, errors):
         )
     )
     return result
+
+
+def enrich_native_balances(blocks, native_balances):
+    return list(
+        join(
+            native_balances,
+            blocks,
+            ('block_number', 'number'),
+            EthNativeBalanceItem.__required_keys__,
+            [
+                ('timestamp', 'block_timestamp'),
+                ('hash', 'block_hash'),
+            ],
+        )
+    )

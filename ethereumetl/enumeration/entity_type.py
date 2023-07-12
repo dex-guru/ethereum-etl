@@ -15,6 +15,7 @@ class EntityType(str, Enum):
     INTERNAL_TRANSFER = 'internal_transfer'
     TOKEN_BALANCE = 'token_balance'
     ERROR = 'error'
+    NATIVE_BALANCE = 'native_balance'
 
     def __str__(self):
         return self.value
@@ -31,6 +32,7 @@ ALL_FOR_STREAMING = (
     EntityType.ERROR,
     EntityType.GETH_TRACE,
     EntityType.INTERNAL_TRANSFER,
+    EntityType.NATIVE_BALANCE,
 )
 ALL_FOR_INFURA = (
     EntityType.BLOCK,

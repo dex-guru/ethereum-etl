@@ -22,8 +22,11 @@
 
 
 import itertools
+import json
+import threading
 import time
 import warnings
+from collections.abc import Collection
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -32,7 +35,9 @@ from urllib.parse import parse_qs, urlparse
 import pytz
 
 from ethereumetl.config.envs import envs
+from ethereumetl.executors.batch_work_executor import BatchWorkExecutor
 from ethereumetl.misc.retriable_value_error import RetriableValueError
+from ethereumetl.providers.rpc import BatchHTTPProvider
 
 
 def hex_to_dec(hex_string):
@@ -124,19 +129,6 @@ def split_to_batches(start_incl, end_incl, batch_size):
         yield batch_start, batch_end
 
 
-def dynamic_batch_iterator(iterable, batch_size_getter):
-    batch = []
-    batch_size = batch_size_getter()
-    for item in iterable:
-        batch.append(item)
-        if len(batch) >= batch_size:
-            yield batch
-            batch = []
-            batch_size = batch_size_getter()
-    if len(batch) > 0:
-        yield batch
-
-
 def pairwise(iterable):
     """S -> (s0,s1), (s1,s2), (s2, s3), ..."""
     a, b = itertools.tee(iterable)
@@ -225,3 +217,33 @@ def parse_clickhouse_url(url) -> dict[str, Any]:
     if parsed.scheme == "https":
         connect_kwargs['secure'] = True
     return connect_kwargs
+
+
+def execute_in_batches(
+    batch_web3_provider: BatchHTTPProvider,
+    batch_work_executor: BatchWorkExecutor,
+    rpc_requests: Collection[dict],
+) -> list[dict]:
+    """
+    Returns a list of RPC responses. The order of responses is the same as the order of requests.
+    """
+    lock = threading.Lock()
+    rpc_responses: list[dict] = []
+
+    def execute_rpc_batch(rpc_requests):
+        request_text = json.dumps(rpc_requests, check_circular=False)
+        batch_response = batch_web3_provider.make_batch_request(request_text)
+        with lock:
+            rpc_responses.extend(batch_response)
+
+    batch_work_executor.execute(rpc_requests, execute_rpc_batch)
+    batch_work_executor.shutdown()
+
+    if len(rpc_responses) != len(rpc_requests):
+        raise ValueError('batch RPC: response count does not match request count')
+
+    rpc_responses_by_id = {r['id']: r for r in rpc_responses}
+    try:
+        return [rpc_responses_by_id[request['id']] for request in rpc_requests]
+    except KeyError:
+        raise ValueError('batch RPC: some request ids are missing in the response')

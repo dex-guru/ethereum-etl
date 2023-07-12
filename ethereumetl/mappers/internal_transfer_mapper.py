@@ -38,7 +38,7 @@ class InternalTransferMapper:
         return list(dfs(traces, depth_0))
 
     @staticmethod
-    def internal_transfer_to_dict(internal_transfer):
+    def internal_transfer_to_dict(internal_transfer: InternalTransfer):
         internal_transfer_as_dict = asdict(internal_transfer)
         internal_transfer_as_dict['type'] = EntityType.INTERNAL_TRANSFER.value
         return internal_transfer_as_dict

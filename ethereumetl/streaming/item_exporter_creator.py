@@ -47,6 +47,7 @@ def make_item_type_to_table_mapping(chain_id: int | None = None) -> dict[EntityT
         EntityType.ERROR: 'errors',
         EntityType.GETH_TRACE: 'geth_traces',
         EntityType.INTERNAL_TRANSFER: 'internal_transfers',
+        EntityType.NATIVE_BALANCE: 'native_balances',
     }
     if chain_id:
         item_type_to_table_mapping = {

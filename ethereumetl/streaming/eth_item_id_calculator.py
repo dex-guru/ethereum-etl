@@ -40,6 +40,7 @@ class EthItemIdCalculator:
         EntityType.ERROR: ('block_number',),
         EntityType.GETH_TRACE: ('block_number', 'transaction_hash'),
         EntityType.INTERNAL_TRANSFER: ('block_number', 'transaction_hash', 'id'),
+        EntityType.NATIVE_BALANCE: ('block_number', 'address'),
     }
 
     def calculate(self, item):
