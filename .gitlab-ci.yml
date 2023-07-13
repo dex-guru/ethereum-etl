@@ -43,6 +43,7 @@ variables:
     stage-indexation-base-84531
     stage-indexation-nova-42170
     stage-indexation-optimism-10
+    stage-indexation-fantom-250
   KUBE_NAMESPACE_PROD_TRACE: >-
     prod-indexation-eth-1
     prod-indexation-bsc-56
@@ -52,6 +53,7 @@ variables:
     prod-indexation-base-84531
     prod-indexation-nova-42170
     prod-indexation-optimism-10
+    prod-indexation-fantom-250
   KUBE_NAMESPACE_PROD: >-
     prod-indexation-eth-1
     prod-indexation-gnosis-100

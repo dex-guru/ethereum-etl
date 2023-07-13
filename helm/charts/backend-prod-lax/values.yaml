@@ -194,7 +194,7 @@ raw-traces-data-streamer:
       eth-1: 'http://rpc-gw-stage.dexguru.biz/full/1'
       canto-7700: 'http://rpc-gw-stage.dexguru.biz/full/7700'
       acanto-7701: 'http://canto-testnet.plexnode.wtf'
-      fantom-250: 'http://rpc-gw-stage.dexguru.biz/full/250'
+      fantom-250: 'http://rpc-gw-stage.dexguru.biz/debug/250'
       optimism-10: 'http://rpc-gw-stage.dexguru.biz/full/10'
       gnosis-100: 'http://rpc-gw-stage.dexguru.biz/full/100'
       arbitrum-42161: 'http://rpc-gw-stage.dexguru.biz/full/42161'
@@ -238,8 +238,11 @@ raw-verify-data-streamer:
     LAG:
       default: 100
       eth-1: 64
-      polygon-137: 150
+      bsc-56: 64
+      polygon-137: 200
       arbitrum-42161: 200
+      nova-42170: 200
+      optimism-10: 200
     ENTITY_TYPES:
       default: 'block,transaction,log,token_transfer,internal_transfer,geth_trace,token_balance'
       fantom-250: 'block,transaction,log,token_transfer,token_balance'
