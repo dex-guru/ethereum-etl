@@ -85,9 +85,7 @@ class ClickHouseItemExporter(BaseItemExporter):
                 # this may not be critical since the user may not be exporting the type and hence the table likely
                 # won't exist
                 logger.warning(
-                    'Unable to read columns for table "{}". This column will not be exported.'.format(
-                        table
-                    )
+                    f'Unable to read columns for table "{table}". This column will not be exported.'
                 )
                 logger.debug(de)
                 pass
@@ -111,9 +109,8 @@ class ClickHouseItemExporter(BaseItemExporter):
                 else:
                     # insufficient size, so cache
                     logger.debug(
-                        'Batch for "{}" is too small to be flushed ({}<{}), caching.'.format(
-                            item_type, len(batch), MIN_INSERT_BATCH_SIZE
-                        )
+                        f'Batch for "{item_type}" is too small to be flushed'
+                        f' ({len(batch)}<{MIN_INSERT_BATCH_SIZE}), caching.'
                     )
                     self.cached_batches[table] = batch
 
@@ -199,9 +196,7 @@ class ClickHouseItemExporter(BaseItemExporter):
                 table = self.item_type_to_table_mapping[type_]
                 if table not in self.tables:
                     logger.error(
-                        'Table "{}" does not exist. Type "{}" cannot be exported.'.format(
-                            table, type_
-                        )
+                        f'Table "{table}" does not exist. Type "{type_}" cannot be exported.'
                     )
                 result = []
                 # only insert the columns which we have in the database
@@ -210,9 +205,7 @@ class ClickHouseItemExporter(BaseItemExporter):
                 results[table].append(result)
             else:
                 logger.warning(
-                    'ClickHouse exporter ignoring {} items as type is not currently supported.'.format(
-                        type_
-                    )
+                    f'ClickHouse exporter ignoring {type_} items as type is not currently supported.'
                 )
         return results
 

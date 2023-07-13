@@ -40,9 +40,8 @@ class OriginEventExtractor:
         topics = receipt_log.topics
         if (topics is None) or (len(topics) == 0):
             logger.warning(
-                "Empty topics in log {} of transaction {}".format(
-                    receipt_log.log_index, receipt_log.transaction_hash
-                )
+                f"Empty topics in log {receipt_log.log_index}"
+                f" of transaction {receipt_log.transaction_hash}"
             )
             return None, []
 
@@ -53,9 +52,8 @@ class OriginEventExtractor:
 
         if len(topics) < TOPICS_LEN:
             logger.warning(
-                "Unexpected number of topics {} in log {} of transaction {}".format(
-                    len(topics), receipt_log.log_index, receipt_log.transaction_hash
-                )
+                f"Unexpected number of topics {len(topics)} in log {receipt_log.log_index}"
+                f" of transaction {receipt_log.transaction_hash}"
             )
             return None, []
 
