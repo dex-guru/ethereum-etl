@@ -127,22 +127,20 @@ class EthStreamerAdapter:
         export_plan = {
             entity_type: (export_func, export_types)
             for export_types, export_func in {
-                (BLOCK, TRANSACTION): lambda: self._export_blocks_and_transactions(
+                (BLOCK, TRANSACTION): lambda: self.export_blocks_and_transactions(
                     start_block, end_block
                 ),
-                (RECEIPT, LOG, ERROR): lambda: self._export_receipts_and_logs(export(TRANSACTION)),
-                (TOKEN_TRANSFER,): lambda: self._extract_token_transfers(export(LOG)),
-                (TOKEN_BALANCE, ERROR): lambda: self._export_token_balances(
-                    export(TOKEN_TRANSFER)
-                ),
-                (TRACE,): lambda: self._export_traces(start_block, end_block),
-                (GETH_TRACE,): lambda: self._export_geth_traces(
+                (RECEIPT, LOG, ERROR): lambda: self.export_receipts_and_logs(export(TRANSACTION)),
+                (TOKEN_TRANSFER,): lambda: self.extract_token_transfers(export(LOG)),
+                (TOKEN_BALANCE, ERROR): lambda: self.export_token_balances(export(TOKEN_TRANSFER)),
+                (TRACE,): lambda: self.export_traces(start_block, end_block),
+                (GETH_TRACE,): lambda: self.export_geth_traces(
                     [t["hash"] for t in export(TRANSACTION)]
                 ),
-                (CONTRACT,): lambda: self._export_contracts(export(TRACE)),
-                (TOKEN,): lambda: self._extract_tokens(export(CONTRACT)),
-                (INTERNAL_TRANSFER,): lambda: self._extract_internal_transfers(export(GETH_TRACE)),
-                (NATIVE_BALANCE,): lambda: self._export_native_balances(
+                (CONTRACT,): lambda: self.export_contracts(export(TRACE)),
+                (TOKEN,): lambda: self.extract_tokens(export(CONTRACT)),
+                (INTERNAL_TRANSFER,): lambda: self.extract_internal_transfers(export(GETH_TRACE)),
+                (NATIVE_BALANCE,): lambda: self.export_native_balances(
                     transactions=export(TRANSACTION), internal_transfers=export(INTERNAL_TRANSFER)
                 ),
             }.items()
@@ -239,7 +237,7 @@ class EthStreamerAdapter:
                 f"with {type(self.item_exporter).__name__}"
             )
 
-    def _export_blocks_and_transactions(
+    def export_blocks_and_transactions(
         self,
         start_block,
         end_block,
@@ -262,7 +260,7 @@ class EthStreamerAdapter:
         transactions = blocks_and_transactions_item_exporter.get_items(EntityType.TRANSACTION)
         return blocks, transactions
 
-    def _export_receipts_and_logs(self, transactions) -> tuple[list[dict], list[dict], list[dict]]:
+    def export_receipts_and_logs(self, transactions) -> tuple[list[dict], list[dict], list[dict]]:
         exporter = InMemoryItemExporter(
             item_types=(EntityType.RECEIPT, EntityType.LOG, EntityType.ERROR)
         )
@@ -281,7 +279,7 @@ class EthStreamerAdapter:
         errors = exporter.get_items(EntityType.ERROR)
         return receipts, logs, errors
 
-    def _extract_token_transfers(self, logs):
+    def extract_token_transfers(self, logs):
         exporter = InMemoryItemExporter(item_types=[EntityType.TOKEN_TRANSFER])
         job = ExtractTokenTransfersJob(
             logs_iterable=logs,
@@ -293,7 +291,7 @@ class EthStreamerAdapter:
         token_transfers = exporter.get_items(EntityType.TOKEN_TRANSFER)
         return token_transfers
 
-    def _export_token_balances(self, token_transfers):
+    def export_token_balances(self, token_transfers):
         exporter = InMemoryItemExporter(item_types=[EntityType.TOKEN_BALANCE, EntityType.ERROR])
         job = ExportTokenBalancesJob(
             token_transfer_items_iterable=token_transfers,
@@ -307,7 +305,7 @@ class EthStreamerAdapter:
         errors = exporter.get_items(EntityType.ERROR)
         return token_balances, errors
 
-    def _export_traces(self, start_block, end_block):
+    def export_traces(self, start_block, end_block):
         exporter = InMemoryItemExporter(item_types=[EntityType.TRACE])
         job = ExportTracesJob(
             start_block=start_block,
@@ -320,7 +318,7 @@ class EthStreamerAdapter:
         traces = exporter.get_items(EntityType.TRACE)
         return traces
 
-    def _export_geth_traces(self, transaction_hashes):
+    def export_geth_traces(self, transaction_hashes):
         exporter = InMemoryItemExporter(item_types=[EntityType.GETH_TRACE])
         job = ExportGethTracesJob(
             transaction_hashes=transaction_hashes,
@@ -333,7 +331,7 @@ class EthStreamerAdapter:
         traces = exporter.get_items(EntityType.GETH_TRACE)
         return traces
 
-    def _export_contracts(self, traces):
+    def export_contracts(self, traces):
         exporter = InMemoryItemExporter(item_types=[EntityType.CONTRACT])
         job = ExtractContractsJob(
             traces_iterable=traces,
@@ -345,7 +343,7 @@ class EthStreamerAdapter:
         contracts = exporter.get_items(EntityType.CONTRACT)
         return contracts
 
-    def _extract_tokens(self, contracts):
+    def extract_tokens(self, contracts):
         exporter = InMemoryItemExporter(item_types=[EntityType.TOKEN])
         job = ExtractTokensJob(
             contracts_iterable=contracts,
@@ -357,7 +355,7 @@ class EthStreamerAdapter:
         tokens = exporter.get_items(EntityType.TOKEN)
         return tokens
 
-    def _extract_internal_transfers(self, geth_traces):
+    def extract_internal_transfers(self, geth_traces):
         exporter = InMemoryItemExporter(item_types=[EntityType.INTERNAL_TRANSFER])
         job = ExtractInternalTransfersJob(
             geth_traces_iterable=geth_traces,
@@ -369,7 +367,7 @@ class EthStreamerAdapter:
         internal_transfers = exporter.get_items(EntityType.INTERNAL_TRANSFER)
         return internal_transfers
 
-    def _export_native_balances(
+    def export_native_balances(
         self,
         *,
         internal_transfers: Collection[dict],

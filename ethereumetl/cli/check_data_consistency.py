@@ -195,7 +195,7 @@ def check_data_consistency(
     )
     if export_from_clickhouse:
         streamer_adapter: StreamerAdapterStub = ClickhouseEthStreamerAdapter(
-            eth_streamer_adapter=eth_streamer_adapter,
+            eth_streamer=eth_streamer_adapter,
             clickhouse_url=export_from_clickhouse,
             chain_id=chain_id,
             item_type_to_table_mapping=make_item_type_to_table_mapping(chain_id),
