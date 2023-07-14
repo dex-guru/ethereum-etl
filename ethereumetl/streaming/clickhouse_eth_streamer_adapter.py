@@ -66,10 +66,10 @@ class ClickhouseEthStreamerAdapter:
         else:
             self.item_type_to_table_mapping = item_type_to_table_mapping
 
-        self._chain_id = chain_id
-        self._entity_types = frozenset(eth_streamer.entity_types)
+        self.chain_id = chain_id
+        self.entity_types = frozenset(eth_streamer.entity_types)
 
-        if RECEIPT in self._entity_types:
+        if RECEIPT in self.entity_types:
             raise NotImplementedError("Receipt export is not implemented for ClickHouse")
 
     @staticmethod
@@ -124,7 +124,7 @@ class ClickhouseEthStreamerAdapter:
         should_export = self.eth_streamer.should_export
 
         def get_transaction_count_from_blocks(blocks: tuple) -> int | float:
-            if self._chain_id == 137:
+            if self.chain_id == 137:
                 # workaround for Polygon where block.transaction_count doesn't match the number
                 # of transactions in the db
                 return float('-inf')
@@ -387,7 +387,7 @@ class ClickhouseEthStreamerAdapter:
 
         all_items = []
         items_by_type = {}
-        for entity_type in self._entity_types:
+        for entity_type in self.entity_types:
             if (
                 from_ch.get(entity_type)
                 and self.exporting_to_the_same_clickhouse
@@ -474,7 +474,7 @@ class VerifyingClickhouseEthStreamerAdapter:
         assert (
             self.ch_streamer.exporting_to_the_same_clickhouse
         ), 'VerifyingClickhouseEthStreamerAdapter can be used only when exporting to the same ClickHouse instance'
-        self.chain_id = self.ch_streamer._chain_id
+        self.chain_id = self.ch_streamer.chain_id
 
     def open(self):
         self.ch_streamer.open()
