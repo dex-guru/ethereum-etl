@@ -1023,20 +1023,20 @@ def test_verify_all_with_inconsistent_data(
 
     fake_ch_client.command.assert_any_call(
         "ALTER TABLE 1_blocks"
-        " DELETE WHERE number IN (2, 3)"
-        " AND timestamp IN (20, 30)"
-        " AND hash IN ('block_hash_2', 'invalid')"
+        " DELETE WHERE number IN (3,)"
+        " AND timestamp IN (30,)"
+        " AND hash IN ('invalid',)"
     )
     fake_ch_client.command.assert_any_call(
         "ALTER TABLE 1_transactions"
-        " DELETE WHERE block_number IN (2, 3)"
-        " AND block_timestamp IN (20, 30)"
-        " AND block_hash IN ('block_hash_2', 'invalid')"
+        " DELETE WHERE block_number IN (3,)"
+        " AND block_timestamp IN (30,)"
+        " AND block_hash IN ('invalid',)"
     )
     fake_ch_client.command.assert_any_call(
         "ALTER TABLE 1_geth_traces"
-        " DELETE WHERE block_number IN (2, 3)"
-        " AND block_timestamp IN (20, 30)"
-        " AND block_hash IN ('block_hash_2', 'invalid')"
+        " DELETE WHERE block_number IN (3,)"
+        " AND block_timestamp IN (30,)"
+        " AND block_hash IN ('invalid',)"
     )
     export_all_mock.assert_called_with(start_block=2, end_block=3)
