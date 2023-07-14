@@ -4,7 +4,6 @@ from functools import cache, cached_property
 from itertools import groupby
 from time import monotonic, sleep
 from typing import Any
-from uuid import uuid4
 
 import clickhouse_connect
 from clickhouse_connect.driver import Client
@@ -523,9 +522,10 @@ class VerifyingClickhouseEthStreamerAdapter:
                 return
 
             def safe_execute(command):
+                assert self.ch_streamer.clickhouse
                 while True:
                     try:
-                        client.command(command)
+                        self.ch_streamer.clickhouse.command(command)
                         break
                     except Exception as e:
                         logger.warning('Error while executing command: %s', e)
@@ -535,10 +535,6 @@ class VerifyingClickhouseEthStreamerAdapter:
             for entity, table in self.ch_streamer._item_type_to_table_mapping.items():
                 if entity == ERROR:
                     continue
-                client = self.ch_streamer.clickhouse_client_from_url(
-                    # to prevent session locking
-                    f'{self.ch_streamer.clickhouse_url}?session_id={uuid4()}'
-                )
                 alter_condition = f'ALTER TABLE {table} DELETE WHERE'
                 t = monotonic()
                 logger.info('Deleting inconsistent records from table %s', table)
@@ -566,12 +562,7 @@ class VerifyingClickhouseEthStreamerAdapter:
                     table,
                     monotonic() - t,
                 )
-                client.close()
 
-            # custom tables
-            client = self.ch_streamer.clickhouse_client_from_url(
-                f'{self.ch_streamer.clickhouse_url}?session_id={uuid4()}'
-            )
             safe_execute(
                 f"""
                 ALTER TABLE {self.chain_id}_transactions_address
@@ -580,7 +571,6 @@ class VerifyingClickhouseEthStreamerAdapter:
                 AND block_hash IN {tuple(hashes)}
                 """
             )
-            client.close()
 
         inconsistent_blocks: set[int] = set()
         inconsistent_timestamps: set[int] = set()

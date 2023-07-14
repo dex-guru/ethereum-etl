@@ -805,16 +805,14 @@ def test_verify_all_with_consistent_data(
 @patch.object(EthStreamerAdapter, 'export_blocks_and_transactions')
 @patch.object(EthStreamerAdapter, 'export_receipts_and_logs')
 @patch.object(EthStreamerAdapter, 'export_all', new_callable=Mock)
-@patch.object(ClickhouseEthStreamerAdapter, 'clickhouse_client_from_url', new_callable=Mock)
 def test_verify_all_with_inconsistent_data(
-    clickhouse_client_from_url_mock,
     export_all_mock,
     mock_export_receipts_and_logs,
     mock_export_blocks_and_transactions,
     mock_select_distinct,
     ch_verifier,
 ):
-    client = clickhouse_client_from_url_mock.return_value = Mock()
+    fake_ch_client = ch_verifier.ch_streamer.clickhouse = Mock()
 
     # Configure the mock return values to introduce inconsistencies
     mock_select_distinct.side_effect = (
@@ -1023,19 +1021,19 @@ def test_verify_all_with_inconsistent_data(
     # Call the method under test
     ch_verifier.export_all(start_block=1, end_block=3)
 
-    client.command.assert_any_call(
+    fake_ch_client.command.assert_any_call(
         "ALTER TABLE 1_blocks"
         " DELETE WHERE number IN (2, 3)"
         " AND timestamp IN (20, 30)"
         " AND hash IN ('block_hash_2', 'invalid')"
     )
-    client.command.assert_any_call(
+    fake_ch_client.command.assert_any_call(
         "ALTER TABLE 1_transactions"
         " DELETE WHERE block_number IN (2, 3)"
         " AND block_timestamp IN (20, 30)"
         " AND block_hash IN ('block_hash_2', 'invalid')"
     )
-    client.command.assert_any_call(
+    fake_ch_client.command.assert_any_call(
         "ALTER TABLE 1_geth_traces"
         " DELETE WHERE block_number IN (2, 3)"
         " AND block_timestamp IN (20, 30)"
