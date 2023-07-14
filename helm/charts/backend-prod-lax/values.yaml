@@ -226,7 +226,7 @@ raw-verify-data-streamer:
   env:
     LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl?table_name=last_synced_block_verify'
     OUTPUT: 'clickhouse://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
-    POLLING_PERIOD: '2'
+    POLLING_PERIOD: '30'
     BATCH_SIZE: '100'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'

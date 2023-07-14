@@ -616,7 +616,9 @@ class VerifyingClickhouseEthStreamerAdapter:
                     start_block=min(seq),
                     end_block=max(seq),
                 )
-            delete_inconsistent_records_from_ch(
-                inconsistent_blocks, sorted(inconsistent_timestamps), sorted(inconsistent_hashes)
-            )
+                delete_inconsistent_records_from_ch(
+                    inconsistent_blocks & set(seq),
+                    sorted(inconsistent_timestamps),
+                    sorted(inconsistent_hashes),
+                )
             logger.info("Inconsistent records were exported to ClickHouse")
