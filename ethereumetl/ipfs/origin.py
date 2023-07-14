@@ -144,9 +144,7 @@ def get_origin_marketplace_data(receipt_log, listing_id, ipfs_client, ipfs_hash)
             )
         except Exception as e:
             logger.error(
-                "Extraction failed. Listing {} Shop hash {} - {}".format(
-                    listing_id, shop_ipfs_hash, e
-                )
+                f"Extraction failed. Listing {listing_id} Shop hash {shop_ipfs_hash} - {e}"
             )
 
     return listing, shop_listings

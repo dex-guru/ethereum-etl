@@ -42,11 +42,7 @@ def get_blocks_missing_transactions(chain_id: int, client: Client):
     # Continue until all blocks have been checked
     while start_block_number <= max_block_number:
         # Query to compare the transaction sums
-        print(
-            'Checking blocks {} to {}'.format(
-                start_block_number, start_block_number + chunk_size - 1
-            )
-        )
+        print(f'Checking blocks {start_block_number} to {start_block_number + chunk_size - 1}')
 
         query = f"""
             SELECT

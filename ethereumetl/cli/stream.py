@@ -21,6 +21,7 @@
 # SOFTWARE.
 import logging
 import random
+from collections.abc import Iterable
 
 import click
 
@@ -219,15 +220,19 @@ def stream(
         entity_types=entity_types,
     )
     if export_from_clickhouse:
+        if is_verifier:
+            rewrite_entity_types: Iterable[EntityType] = ALL_FOR_STREAMING
+        else:
+            rewrite_entity_types = [EntityType(x) for x in envs.REWRITE_CLICKHOUSE.split(',') if x]
+
         streamer_adapter = ClickhouseEthStreamerAdapter(
-            eth_streamer_adapter=streamer_adapter,
+            eth_streamer=streamer_adapter,
             clickhouse_url=export_from_clickhouse,
             chain_id=chain_id,
             item_type_to_table_mapping=make_item_type_to_table_mapping(chain_id),
-            rewrite_entity_types=[EntityType(x) for x in envs.REWRITE_CLICKHOUSE.split(',') if x],
+            rewrite_entity_types=rewrite_entity_types,
         )
         if is_verifier:
-            streamer_adapter._rewrite_entity_types = frozenset(ALL_FOR_STREAMING)
             streamer_adapter = VerifyingClickhouseEthStreamerAdapter(
                 clickhouse_eth_streamer_adapter=streamer_adapter,
             )

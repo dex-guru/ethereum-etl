@@ -126,9 +126,7 @@ def execute_with_retries(
             )
             if i < max_retries - 1:
                 logging.info(
-                    'The request will be retried after {} seconds. Retry #{}'.format(
-                        sleep_seconds, i
-                    )
+                    f'The request will be retried after {sleep_seconds} seconds. Retry #{i}'
                 )
                 time.sleep(sleep_seconds)
                 continue

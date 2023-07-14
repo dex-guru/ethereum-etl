@@ -253,7 +253,7 @@ def test_stream_clickhouse(
     )
 
     ch_eth_streamer_adapter = ClickhouseEthStreamerAdapter(
-        eth_streamer_adapter=eth_streamer_adapter,
+        eth_streamer=eth_streamer_adapter,
         clickhouse_url=envs.EXPORT_FROM_CLICKHOUSE,
         chain_id=chain_id,
         item_type_to_table_mapping=item_type_to_table_mapping,
@@ -321,7 +321,7 @@ def test_stream_clickhouse(
     eth_streamer_adapter.get_current_block_number = lambda *_: 12242307  # type: ignore
 
     ch_eth_streamer_adapter = ClickhouseEthStreamerAdapter(
-        eth_streamer_adapter=eth_streamer_adapter,
+        eth_streamer=eth_streamer_adapter,
         clickhouse_url=envs.EXPORT_FROM_CLICKHOUSE,
         chain_id=chain_id,
         item_type_to_table_mapping=item_type_to_table_mapping,
@@ -417,7 +417,7 @@ def test_stream_clickhouse(
     eth_streamer_adapter.get_current_block_number = lambda *_: 12242307  # type: ignore
 
     ch_eth_streamer_adapter = ClickhouseEthStreamerAdapter(
-        eth_streamer_adapter=eth_streamer_adapter,
+        eth_streamer=eth_streamer_adapter,
         clickhouse_url=envs.EXPORT_FROM_CLICKHOUSE,
         chain_id=chain_id,
         item_type_to_table_mapping=item_type_to_table_mapping,
@@ -455,7 +455,7 @@ def test_stream_token_balances(tmp_path: Path, streamer_adapter_cls, cleanup):
         streamer_adapter: StreamerAdapterStub = eth_streamer_adapter
     elif streamer_adapter_cls is ClickhouseEthStreamerAdapter:
         streamer_adapter = ClickhouseEthStreamerAdapter(
-            eth_streamer_adapter=eth_streamer_adapter,
+            eth_streamer=eth_streamer_adapter,
             clickhouse_url=envs.EXPORT_FROM_CLICKHOUSE,
             chain_id=1,
             item_type_to_table_mapping=make_item_type_to_table_mapping(chain_id=1),
@@ -666,15 +666,19 @@ def ch_verifier():
         envs.EXPORT_FROM_CLICKHOUSE, make_item_type_to_table_mapping(chain_id=1)
     )
 
+    class NoMethodsShouldBeCalled:
+        def __getattr__(self, item):
+            raise AssertionError(f"method {item} should not be called")
+
     eth_streamer_adapter = EthStreamerAdapter(
-        batch_web3_provider=ThreadLocalProxy(lambda: get_web3_provider('mock', batch=True)),
+        batch_web3_provider=NoMethodsShouldBeCalled,
         batch_size=20,
         item_exporter=exporter,
         entity_types=[EntityType.TOKEN_BALANCE],
     )
 
     ch_streamer_adapter = ClickhouseEthStreamerAdapter(
-        eth_streamer_adapter=eth_streamer_adapter,
+        eth_streamer=eth_streamer_adapter,
         clickhouse_url=envs.EXPORT_FROM_CLICKHOUSE,
         chain_id=1,
         item_type_to_table_mapping=make_item_type_to_table_mapping(chain_id=1),
@@ -688,15 +692,9 @@ def ch_verifier():
     adapter.close()
 
 
-@patch(
-    'ethereumetl.streaming.clickhouse_eth_streamer_adapter.ClickhouseEthStreamerAdapter._select_distinct'
-)
-@patch(
-    'ethereumetl.streaming.eth_streamer_adapter.EthStreamerAdapter._export_blocks_and_transactions'
-)
-@patch(
-    'ethereumetl.streaming.clickhouse_eth_streamer_adapter.ClickhouseEthStreamerAdapter.export_all'
-)
+@patch.object(ClickhouseEthStreamerAdapter, 'select_distinct')
+@patch.object(EthStreamerAdapter, 'export_blocks_and_transactions')
+@patch.object(ClickhouseEthStreamerAdapter, 'export_all')
 def test_verify_all_with_consistent_data(
     export_all_mock, mock_export_blocks_and_transactions, mock_select_distinct, ch_verifier
 ):
@@ -798,36 +796,24 @@ def test_verify_all_with_consistent_data(
         ],
     )
 
-    # Mock the logger and assert that it is called with the expected log messages
-    mock_logger = Mock()
-    with patch('ethereumetl.streaming.clickhouse_eth_streamer_adapter.logger', mock_logger):
-        # Call the method under test
-        ch_verifier.export_all(start_block=1, end_block=3)
+    ch_verifier.export_all(start_block=1, end_block=3)
+
     assert export_all_mock.not_called()
 
 
-@patch(
-    'ethereumetl.streaming.clickhouse_eth_streamer_adapter.ClickhouseEthStreamerAdapter._select_distinct'
-)
-@patch(
-    'ethereumetl.streaming.eth_streamer_adapter.EthStreamerAdapter._export_blocks_and_transactions'
-)
-@patch(
-    'ethereumetl.streaming.clickhouse_eth_streamer_adapter.ClickhouseEthStreamerAdapter.export_all',
-    new_callable=Mock,
-)
-@patch(
-    'ethereumetl.streaming.clickhouse_eth_streamer_adapter.ClickhouseEthStreamerAdapter.clickhouse_client_from_url',
-    new_callable=Mock,
-)
+@patch.object(ClickhouseEthStreamerAdapter, 'select_distinct')
+@patch.object(EthStreamerAdapter, 'export_blocks_and_transactions')
+@patch.object(EthStreamerAdapter, 'export_receipts_and_logs')
+@patch.object(EthStreamerAdapter, 'export_all', new_callable=Mock)
 def test_verify_all_with_inconsistent_data(
-    clickhouse_client_from_url_mock,
     export_all_mock,
+    mock_export_receipts_and_logs,
     mock_export_blocks_and_transactions,
     mock_select_distinct,
     ch_verifier,
 ):
-    client = clickhouse_client_from_url_mock.return_value = Mock()
+    fake_ch_client = ch_verifier.ch_streamer.clickhouse = Mock()
+
     # Configure the mock return values to introduce inconsistencies
     mock_select_distinct.side_effect = (
         [
@@ -876,14 +862,34 @@ def test_verify_all_with_inconsistent_data(
             },
         ],
     )
-    mock_export_blocks_and_transactions.return_value = (
-        [
-            {'number': 1, 'hash': 'block_hash_1', 'transaction_count': 3, 'timestamp': 10},
-            {'number': 2, 'hash': 'block_hash_2', 'transaction_count': 1, 'timestamp': 20},
-            {'number': 3, 'hash': 'block_hash_3', 'transaction_count': 2, 'timestamp': 30},
-        ],
-        [
+
+    mock_blockchain_data = {
+        "blocks": [
             {
+                'type': 'block',
+                'number': 1,
+                'hash': 'block_hash_1',
+                'transaction_count': 3,
+                'timestamp': 10,
+            },
+            {
+                'type': 'block',
+                'number': 2,
+                'hash': 'block_hash_2',
+                'transaction_count': 1,
+                'timestamp': 20,
+            },
+            {
+                'type': 'block',
+                'number': 3,
+                'hash': 'block_hash_3',
+                'transaction_count': 2,
+                'timestamp': 30,
+            },
+        ],
+        "transactions": [
+            {
+                'type': 'transaction',
                 'hash': 'txn_hash_1',
                 'block_hash': 'block_hash_1',
                 'block_number': 1,
@@ -897,6 +903,7 @@ def test_verify_all_with_inconsistent_data(
                 'nonce': 2,
             },
             {
+                'type': 'transaction',
                 'hash': 'txn_hash_2',
                 'block_hash': 'block_hash_2',
                 'block_number': 2,
@@ -910,6 +917,7 @@ def test_verify_all_with_inconsistent_data(
                 'nonce': 2,
             },
             {
+                'type': 'transaction',
                 'hash': 'txn_hash_4',
                 'block_hash': 'block_hash_3',
                 'block_number': 3,
@@ -923,21 +931,112 @@ def test_verify_all_with_inconsistent_data(
                 'nonce': 3,
             },
         ],
+        "receipts": [
+            {
+                'type': 'receipt',
+                'transaction_hash': 'txn_hash_1',
+                'transaction_index': 0,
+                'block_hash': 'block_hash_1',
+                'block_number': 1,
+                'gas_used': 100,
+                'cumulative_gas_used': 100,
+                'contract_address': 'contract_address_1',
+                'root': 'root_1',
+                'status': 1,
+                'effective_gas_price': 10,
+            },
+            {
+                'type': 'receipt',
+                'transaction_hash': 'txn_hash_2',
+                'transaction_index': 1,
+                'block_hash': 'block_hash_2',
+                'block_number': 2,
+                'gas_used': 200,
+                'cumulative_gas_used': 200,
+                'contract_address': 'contract_address_2',
+                'root': 'root_2',
+                'status': 1,
+                'effective_gas_price': 20,
+            },
+            {
+                'type': 'receipt',
+                'transaction_hash': 'txn_hash_4',
+                'transaction_index': 0,
+                'block_hash': 'block_hash_3',
+                'block_number': 3,
+                'gas_used': 300,
+                'cumulative_gas_used': 300,
+                'contract_address': 'contract_address_4',
+                'root': 'root_4',
+                'status': 1,
+                'effective_gas_price': 40,
+            },
+        ],
+        "logs": [
+            {
+                'type': 'log',
+                'transaction_hash': 'txn_hash_1',
+                'transaction_index': 0,
+                'block_hash': 'block_hash_1',
+                'block_number': 1,
+                'address': 'address_1',
+                'topics': ['topic_1_1', 'topic_1_2'],
+                'data': 'data_1',
+                'log_index': 0,
+            },
+            {
+                'type': 'log',
+                'transaction_hash': 'txn_hash_2',
+                'transaction_index': 1,
+                'block_hash': 'block_hash_2',
+                'block_number': 2,
+                'address': 'address_2',
+                'topics': ['topic_2_1', 'topic_2_2'],
+                'data': 'data_2',
+                'log_index': 1,
+            },
+            {
+                'type': 'log',
+                'transaction_hash': 'txn_hash_3',
+                'transaction_index': 2,
+                'block_hash': 'block_hash_3',
+                'block_number': 3,
+                'address': 'address_3',
+                'topics': ['topic_3_1', 'topic_3_2'],
+                'data': 'data_3',
+                'log_index': 2,
+            },
+        ],
+    }
+    mock_export_blocks_and_transactions.return_value = (
+        mock_blockchain_data['blocks'],
+        mock_blockchain_data['transactions'],
+    )
+    mock_export_receipts_and_logs.return_value = (
+        mock_blockchain_data['receipts'],
+        mock_blockchain_data['logs'],
+        [],  # errors
     )
 
-    # Mock the logger and assert that it is called with the expected log messages
-    mock_logger = Mock()
-    with patch('ethereumetl.streaming.clickhouse_eth_streamer_adapter.logger', mock_logger):
-        # Call the method under test
-        ch_verifier.export_all(start_block=1, end_block=3)
+    # Call the method under test
+    ch_verifier.export_all(start_block=1, end_block=3)
 
-    client.command.assert_any_call(
-        "ALTER TABLE 1_blocks DELETE WHERE number IN (2, 3) AND timestamp IN (20, 30) AND hash IN ('block_hash_2', 'invalid')"
+    fake_ch_client.command.assert_any_call(
+        "ALTER TABLE 1_blocks"
+        " DELETE WHERE number IN (2, 3)"
+        " AND timestamp IN (20, 30)"
+        " AND hash IN ('block_hash_2', 'invalid')"
     )
-    client.command.assert_any_call(
-        "ALTER TABLE 1_transactions DELETE WHERE block_number IN (2, 3) AND block_timestamp IN (20, 30) AND block_hash IN ('block_hash_2', 'invalid')"
+    fake_ch_client.command.assert_any_call(
+        "ALTER TABLE 1_transactions"
+        " DELETE WHERE block_number IN (2, 3)"
+        " AND block_timestamp IN (20, 30)"
+        " AND block_hash IN ('block_hash_2', 'invalid')"
     )
-    client.command.assert_any_call(
-        "ALTER TABLE 1_geth_traces DELETE WHERE block_number IN (2, 3) AND block_timestamp IN (20, 30) AND block_hash IN ('block_hash_2', 'invalid')"
+    fake_ch_client.command.assert_any_call(
+        "ALTER TABLE 1_geth_traces"
+        " DELETE WHERE block_number IN (2, 3)"
+        " AND block_timestamp IN (20, 30)"
+        " AND block_hash IN ('block_hash_2', 'invalid')"
     )
     export_all_mock.assert_called_with(start_block=2, end_block=3)

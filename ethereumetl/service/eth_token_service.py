@@ -125,9 +125,7 @@ def call_contract_function(func, ignore_errors, default_value=None):
     except Exception as ex:
         if type(ex) in ignore_errors:
             logger.debug(
-                'An exception occurred in function {} of contract {}. '.format(
-                    func.fn_name, func.address
-                )
+                f'An exception occurred in function {func.fn_name} of contract {func.address}. '
                 + 'This exception can be safely ignored.',
                 exc_info=True,
             )

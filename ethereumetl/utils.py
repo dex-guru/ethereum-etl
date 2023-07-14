@@ -216,6 +216,7 @@ def parse_clickhouse_url(url) -> dict[str, Any]:
         connect_kwargs['database'] = 'default'
     if parsed.scheme == "https":
         connect_kwargs['secure'] = True
+    connect_kwargs.update((k, v) for k, vs in parse_qs(parsed.query).items() for v in vs)
     return connect_kwargs
 
 
