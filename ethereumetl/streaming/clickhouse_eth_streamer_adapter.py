@@ -49,7 +49,7 @@ class ClickhouseEthStreamerAdapter:
         self.rewrite_entity_types = frozenset(rewrite_entity_types)
 
         if item_type_to_table_mapping is None:
-            self._item_type_to_table_mapping = {
+            self.item_type_to_table_mapping = {
                 BLOCK: 'blocks',
                 TRANSACTION: 'transactions',
                 RECEIPT: 'receipts',
@@ -64,7 +64,7 @@ class ClickhouseEthStreamerAdapter:
                 NATIVE_BALANCE: 'native_balances',
             }
         else:
-            self._item_type_to_table_mapping = item_type_to_table_mapping
+            self.item_type_to_table_mapping = item_type_to_table_mapping
 
         self._chain_id = chain_id
         self._entity_types = frozenset(eth_streamer.entity_types)
@@ -91,7 +91,7 @@ class ClickhouseEthStreamerAdapter:
     ) -> tuple[dict[str, Any], ...]:
         assert self.clickhouse, "Clickhouse client is not initialized"
 
-        table_name = self._item_type_to_table_mapping[entity_type]
+        table_name = self.item_type_to_table_mapping[entity_type]
         if entity_type == BLOCK:
             block_number_column = 'number'
         else:
@@ -447,7 +447,7 @@ class ClickhouseEthStreamerAdapter:
             params['host'] == exporter.host
             and params['port'] == exporter.port
             and params.get('database', exporter.database) == exporter.database
-            and self._item_type_to_table_mapping == exporter.item_type_to_table_mapping
+            and self.item_type_to_table_mapping == exporter.item_type_to_table_mapping
         )
 
     @staticmethod
@@ -532,7 +532,7 @@ class VerifyingClickhouseEthStreamerAdapter:
                         logger.warning('Retrying in 2 seconds')
                         sleep(2)
 
-            for entity, table in self.ch_streamer._item_type_to_table_mapping.items():
+            for entity, table in self.ch_streamer.item_type_to_table_mapping.items():
                 if entity == ERROR:
                     continue
                 alter_condition = f'ALTER TABLE {table} DELETE WHERE'
