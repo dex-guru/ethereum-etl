@@ -493,8 +493,6 @@ class VerifyingClickhouseEthStreamerAdapter:
                 for block in blocks_from_w3:
                     if block['number'] not in block_numbers_from_storage:
                         missing_blocks.add(block['number'])
-                        inconsistent_timestamps.add(block['timestamp'])
-                        inconsistent_hashes.add(block['hash'])
                 blocks_from_w3 = [
                     block for block in blocks_from_w3 if block['number'] not in missing_blocks
                 ]
@@ -610,9 +608,6 @@ class VerifyingClickhouseEthStreamerAdapter:
                     },
                 )
             all_blocks = sorted(inconsistent_blocks | missing_blocks)
-            delete_inconsistent_records_from_ch(
-                all_blocks, sorted(inconsistent_timestamps), sorted(inconsistent_hashes)
-            )
             block_sequences = [
                 list(g) for k, g in groupby(all_blocks, key=lambda x: x - all_blocks.index(x))
             ]
@@ -621,4 +616,7 @@ class VerifyingClickhouseEthStreamerAdapter:
                     start_block=min(seq),
                     end_block=max(seq),
                 )
+            delete_inconsistent_records_from_ch(
+                inconsistent_blocks, sorted(inconsistent_timestamps), sorted(inconsistent_hashes)
+            )
             logger.info("Inconsistent records were exported to ClickHouse")
