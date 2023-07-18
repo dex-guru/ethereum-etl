@@ -23,7 +23,7 @@
 import json
 import logging
 
-from google.cloud import pubsub_v1  # type: ignore
+from google.cloud import pubsub_v1  # type: ignore[attr-defined]
 from timeout_decorator import timeout_decorator
 
 from blockchainetl.exporters import BaseItemExporter
