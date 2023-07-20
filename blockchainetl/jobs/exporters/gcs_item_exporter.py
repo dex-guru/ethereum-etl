@@ -24,7 +24,7 @@ import json
 import logging
 from collections import defaultdict
 
-from google.cloud import storage  # type: ignore
+from google.cloud import storage  # type: ignore[attr-defined]
 
 from blockchainetl.exporters import BaseItemExporter
 

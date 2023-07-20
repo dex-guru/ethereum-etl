@@ -57,7 +57,7 @@ class EthReceiptLogMapper:
 
         receipt_log = EthReceiptLog(
             log_index=d.get('logIndex'),  # type: ignore
-            transaction_index=d.get('transactionIndex'),
+            transaction_index=d.get('transactionIndex'),  # type: ignore
             transaction_hash=transaction_hash,
             block_hash=block_hash,
             block_number=d.get('blockNumber'),  # type: ignore
@@ -88,7 +88,7 @@ class EthReceiptLogMapper:
         receipt_log = EthReceiptLog(
             log_index=d.get('log_index'),  # type: ignore
             transaction_hash=d.get('transaction_hash'),  # type: ignore
-            transaction_index=d.get('transaction_index'),
+            transaction_index=d.get('transaction_index'),  # type: ignore
             block_hash=d.get('block_hash'),
             block_number=d.get('block_number'),  # type: ignore
             address=d.get('address'),  # type: ignore
