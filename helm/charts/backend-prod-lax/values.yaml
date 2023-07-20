@@ -185,7 +185,7 @@ raw-traces-data-streamer:
     START_BLOCK: 'latest'
   chainEnv:
     ENTITY_TYPES:
-      default: 'geth_trace,internal_transfer'
+      default: 'block,geth_trace,internal_transfer'
     PROVIDER_URL:
       default: 'http://rpc-gw-stage.dexguru.biz/full/1'
       polygon-137: 'http://rpc-gw-stage.dexguru.biz/full/137'

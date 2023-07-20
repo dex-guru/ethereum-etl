@@ -68,6 +68,10 @@ class ExportGethTracesJob(BaseJob):
                     response_item.get('error') is None
                     or response_item.get('error').get('message') == 'missing block number'
                     or response_item.get('error').get('message') == 'transaction not found'
+                    # tx reverted.
+                    # example: https://ftmscan.com/tx/0x5189a78e8feef1e74aa8ef251a877b9f0326082cdb073e0d0e195dfdfe4a70d6
+                    or "TypeError: cannot read property 'toString' of undefined"
+                    in response_item.get('error').get('message')
                 )
                 and response_item.get('result') is None
                 and any(r.get('result') for r in response)
