@@ -152,7 +152,7 @@ raw-traces-data-streamer:
     REWRITE_CLICKHOUSE: ''
   chainEnv:
     ENTITY_TYPES:
-      default: 'geth_trace,internal_transfer'
+      default: 'geth_trace,internal_transfer,native_balance'
     START_BLOCK:
       default: '1'
       eth-1: '17521027'
