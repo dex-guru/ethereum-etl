@@ -266,7 +266,11 @@ class ClickhouseEthStreamerAdapter:
                 f"Geth traces. Not enough data found in clickhouse: falling back to Eth node:"
                 f" entity_type=geth_trace block_range={start_block}-{end_block}"
             )
-            transaction_hashes = [t['hash'] for t in export_blocks_and_transactions()[1]]
+            transaction_hashes = [
+                t['hash']
+                for t in export_blocks_and_transactions()[1]
+                if t.get('receipt_status') != 0
+            ]
             geth_traces = self.eth_streamer.export_geth_traces(transaction_hashes)
             from_ch = False
             return geth_traces, from_ch
