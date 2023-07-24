@@ -178,7 +178,7 @@ raw-traces-data-streamer:
     MAX_WORKERS:
       default: '5'
       polygon-137: '10'
-      bsc-56: '2'
+      bsc-56: '10'
     SKIP_NONE_RECEIPTS:
       default: 'False'
       polygon-137: 'True'
@@ -187,7 +187,7 @@ raw-traces-data-streamer:
     BATCH_SIZE:
         default: '100'
         polygon-137: '10'
-        bsc-56: '30'
+        bsc-56: '10'
     LAG:
       default: 1
       arbitrum-42161: 40
@@ -224,7 +224,6 @@ raw-verify-data-streamer:
       optimism-10: 200
     ENTITY_TYPES:
       default: 'block,transaction,log,token_transfer,internal_transfer,geth_trace,token_balance'
-      fantom-250: 'block,transaction,log,token_transfer,token_balance'
       acanto-7701: 'block,transaction,log,token_transfer,token_balance'
       gnosis-100: 'block,transaction,log,token_transfer,token_balance'
     PROVIDER_URL:
@@ -234,7 +233,7 @@ raw-verify-data-streamer:
       eth-1: 'http://rpc-gw-stage.dexguru.biz/full/1'
       canto-7700: 'http://rpc-gw-stage.dexguru.biz/full/7700'
       acanto-7701: 'http://canto-testnet.plexnode.wtf'
-      fantom-250: 'http://rpc-gw-stage.dexguru.biz/full/250'
+      fantom-250: 'http://rpc-gw-stage.dexguru.biz/debug/250'
       optimism-10: 'http://rpc-gw-stage.dexguru.biz/full/10'
       gnosis-100: 'http://rpc-gw-stage.dexguru.biz/full/100'
       arbitrum-42161: 'http://rpc-gw-stage.dexguru.biz/full/42161'
@@ -245,11 +244,11 @@ raw-verify-data-streamer:
     MAX_WORKERS:
       default: '5'
       polygon-137: '10'
-      bsc-56: '2'
+      bsc-56: '10'
     BATCH_SIZE:
       default: '100'
       polygon-137: '10'
-      bsc-56: '30'
+      bsc-56: '6'
     SKIP_NONE_RECEIPTS:
       default: 'False'
     MIN_INSERT_BATCH_SIZE:

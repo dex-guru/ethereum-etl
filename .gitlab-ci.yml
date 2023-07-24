@@ -321,3 +321,17 @@ raw-verify-data-streamer-stage:
     - helm/lax_stage_deploy.sh
   only:
     - master
+
+raw-verify-data-streamer-prod:
+  stage: deploy-prod
+  image:
+    name: ${IMAGE_HELM_KUBECTL}
+    entrypoint: [""]
+  variables:
+    SERVICE_NAME: "raw-verify-data-streamer"
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD}
+    HELM_CHART: ${HELM_CHART_PROD_LAX}
+  script:
+    - helm/lax_prod_deploy.sh
+  only:
+    - tags
