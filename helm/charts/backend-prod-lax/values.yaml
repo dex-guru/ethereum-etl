@@ -277,3 +277,52 @@ raw-verify-data-streamer:
       default: 'False'
     MIN_INSERT_BATCH_SIZE:
       default: '1'
+
+raw-traces-data-resync:
+  replicas:
+    default: 1
+  limitsCpu: 4
+  limitsMemory: 9000Mi
+  requestsCpu: 1
+  requestsMemory: 1000Mi
+  strategyType: 'Recreate'
+  command: '[ "ethereumetl", "stream" ]'
+  env:
+    LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl?table_name=last_synced_block_traces_resync'
+    OUTPUT: 'clickhouse+native://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
+    POLLING_PERIOD: '2'
+    LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
+    LOG_HANDLERS: '["console","logstash"]'
+    SERVICE_NAME: 'raw-traces-data-streamer-resync'
+    REWRITE_CLICKHOUSE: ''
+    START_BLOCK: '1'
+  chainEnv:
+    ENTITY_TYPES:
+      default: 'block,geth_trace,internal_transfer'
+    PROVIDER_URL:
+      default: 'http://rpc-gw-stage.dexguru.biz/archive/1'
+      polygon-137: 'http://rpc-gw-stage.dexguru.biz/archive/137'
+      bsc-56: 'http://rpc-gw-stage.dexguru.biz/archive/56'
+      eth-1: 'http://rpc-gw-stage.dexguru.biz/archive/1'
+      canto-7700: 'http://rpc-gw-stage.dexguru.biz/archive/7700'
+      acanto-7701: 'http://canto-testnet.plexnode.wtf'
+      fantom-250: 'http://rpc-gw-stage.dexguru.biz/debug/250'
+      optimism-10: 'http://rpc-gw-stage.dexguru.biz/archive/10'
+      gnosis-100: 'http://rpc-gw-stage.dexguru.biz/archive/100'
+      arbitrum-42161: 'http://rpc-gw-stage.dexguru.biz/archive/42161'
+      nova-42170: 'http://rpc-gw-stage.dexguru.biz/archive/42170'
+      base-84531: 'http://rpc-gw-stage.dexguru.biz/archive/84531'
+    BLOCK_BATCH_SIZE:
+      default: '1000'
+    MAX_WORKERS:
+      default: '10'
+      polygon-137: '10'
+      bsc-56: '2'
+    BATCH_SIZE:
+      default: '10'
+      polygon-137: '10'
+      bsc-56: '30'
+    SKIP_NONE_RECEIPTS:
+      default: 'False'
+    MIN_INSERT_BATCH_SIZE:
+      default: '50000'

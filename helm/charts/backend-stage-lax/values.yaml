@@ -21,8 +21,8 @@ raw-data-streamer:
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
     SERVICE_NAME: 'raw-data-streamer'
-    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
-    REWRITE_CLICKHOUSE: 'block,transaction,log,token_transfer,token_balance'
+    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl'
+    REWRITE_CLICKHOUSE: ''
   chainEnv:
     ENTITY_TYPES:
       default: 'block,transaction,log,token_transfer,token_balance,error'
