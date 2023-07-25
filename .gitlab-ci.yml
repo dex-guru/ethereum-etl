@@ -342,7 +342,7 @@ raw-traces-data-resync-prod:
     name: ${IMAGE_HELM_KUBECTL}
     entrypoint: [""]
   variables:
-    SERVICE_NAME: "raw-traces-data-streamer-resync"
+    SERVICE_NAME: "raw-traces-data-resync"
     KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD_TRACE}
     HELM_CHART: ${HELM_CHART_PROD_LAX}
   script:
