@@ -1,8 +1,14 @@
 import json
 import os
+from collections.abc import Generator
+from random import randint
 from unittest import mock
+from urllib.parse import urlunparse
 
+import clickhouse_connect
 import pytest
+
+from ethereumetl.utils import parse_clickhouse_url
 
 pytest.register_assert_rewrite("tests.helpers")
 
@@ -54,3 +60,49 @@ def cache_web3_post_requests():
         ),
     ):
         yield
+
+
+@pytest.fixture
+def clickhouse_url() -> Generator[str, None, None]:
+    url = os.getenv('TEST_CLICKHOUSE_URL')
+    assert url, 'TEST_CLICKHOUSE_URL env var must be set'
+
+    test_db_name = (
+        os.getenv('TEST_CLICKHOUSE_DB_NAME') or f'_ethereum_etl_test_{randint(0, 999_999)}'
+    )
+
+    def cleanup(client):
+        client.command(f'DROP DATABASE IF EXISTS {test_db_name} SYNC')
+
+    params = parse_clickhouse_url(url)
+    with clickhouse_connect.create_client(**params) as admin_client:
+        cleanup(admin_client)
+        admin_client.command(f'CREATE DATABASE {test_db_name}')
+
+        test_params = params.copy()
+        test_params['database'] = test_db_name
+
+        test_url = urlunparse(
+            (
+                'http',
+                (
+                    f'{test_params["user"]}:{test_params["password"]}'
+                    f'@{test_params["host"]}:{test_params["port"]}'
+                ),
+                '/' + test_params['database'],
+                None,
+                None,
+                None,
+            )
+        )
+
+        yield test_url
+
+        cleanup(admin_client)
+
+
+@pytest.fixture
+def clickhouse(clickhouse_url) -> Generator[clickhouse_connect.driver.Client, None, None]:
+    params = parse_clickhouse_url(clickhouse_url)
+    with clickhouse_connect.create_client(**params) as client:
+        yield client
