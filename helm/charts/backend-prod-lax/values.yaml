@@ -237,7 +237,6 @@ raw-verify-data-streamer:
     EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
     REWRITE_CLICKHOUSE: 'block,transaction,log,token_transfer,geth_trace,internal_transfer'
     IS_VERIFIER: 'True'
-    START_BLOCK: 'latest'
   chainEnv:
     LAG:
       default: 100
@@ -295,6 +294,7 @@ raw-traces-data-resync:
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
     SERVICE_NAME: 'raw-traces-data-streamer-resync'
+    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
     REWRITE_CLICKHOUSE: ''
     START_BLOCK: '1'
   chainEnv:
