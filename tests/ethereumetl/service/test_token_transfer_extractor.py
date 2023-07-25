@@ -91,3 +91,4 @@ def test_extract_transfer_from_receipt_log_with_nft():
         == "0x54c60539f2dcca7b61924440413bb29139cbaa2a2931f539e1a31edbb6d7cc2e"
     )
     assert token_transfer.value == 1
+    assert token_transfer.token_standard == "ERC-1155"
