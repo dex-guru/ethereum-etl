@@ -118,7 +118,7 @@ test:
     - build
   image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
   variables:
-    EXPORT_FROM_CLICKHOUSE: "http://default:@clickhouse:8123"
+    TEST_CLICKHOUSE_URL: "http://default:@clickhouse:8123"
     ETHEREUM_ETL_RUN_SLOW_TESTS: "true"
     PROVIDER_URL: 'http://10.0.100.149:8080/archive/1'
   services:
