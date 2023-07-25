@@ -35,7 +35,6 @@ from blockchainetl.jobs.exporters.composite_item_exporter import CompositeItemEx
 from blockchainetl.jobs.exporters.in_memory_item_exporter import InMemoryItemExporter
 from blockchainetl.streaming.streamer import Streamer
 from blockchainetl.streaming.streamer_adapter_stub import StreamerAdapterStub
-from ethereumetl.config.envs import envs
 from ethereumetl.domain.token_transfer import TokenStandard
 from ethereumetl.enumeration import entity_type
 from ethereumetl.enumeration.entity_type import ALL, EntityType
@@ -57,7 +56,6 @@ from tests.helpers import (
 )
 
 RESOURCE_GROUP = 'test_stream'
-TEST_TABLE_NAME_INFIX = 'test_stream_clickhouse_etl_99'
 
 
 def read_resource(resource_group, file_name):
@@ -182,27 +180,7 @@ def test_stream(
         )
 
 
-@pytest.fixture
-def cleanup():
-    assert envs.EXPORT_FROM_CLICKHOUSE, 'EXPORT_FROM_CLICKHOUSE env var must be set'
-
-    clickhouse = ClickhouseEthStreamerAdapter.clickhouse_client_from_url(
-        envs.EXPORT_FROM_CLICKHOUSE
-    )
-
-    def do_cleanup():
-        records = clickhouse.query(f"show tables like '%{TEST_TABLE_NAME_INFIX}%'").named_results()
-        for record in records:
-            table_name = record['name']
-            clickhouse.query(f'drop table if exists {table_name}')
-
-    do_cleanup()
-    yield
-    do_cleanup()
-
-
 # fmt: off
-@pytest.mark.skipif(not envs.EXPORT_FROM_CLICKHOUSE, reason='EXPORT_FROM_CLICKHOUSE env var not set')
 @pytest.mark.parametrize("chain_id, start_block, end_block, batch_size, resource_group, entity_types, provider_type", [
     (1, 1755634, 1755635, 1, 'blocks_1755634_1755635', {*ALL} - {EntityType.RECEIPT}, 'mock'),
 ])
@@ -216,10 +194,8 @@ def test_stream_clickhouse(
     resource_group,
     entity_types,
     provider_type,
-    cleanup,
+    clickhouse_url,
 ):
-    assert envs.EXPORT_FROM_CLICKHOUSE, 'EXPORT_FROM_CLICKHOUSE env var must be set'
-
     ####################################################################
     # first run - get data from blockchain
     ####################################################################
@@ -239,11 +215,7 @@ def test_stream_clickhouse(
     )
 
     item_type_to_table_mapping = make_item_type_to_table_mapping(chain_id)
-    item_type_to_table_mapping = {
-        k: f"{TEST_TABLE_NAME_INFIX}_{v}" for k, v in item_type_to_table_mapping.items()
-    }
-
-    item_exporter = ClickHouseItemExporter(envs.EXPORT_FROM_CLICKHOUSE, item_type_to_table_mapping)
+    item_exporter = ClickHouseItemExporter(clickhouse_url, item_type_to_table_mapping)
 
     eth_streamer_adapter = EthStreamerAdapter(
         batch_web3_provider=batch_web3_provider,
@@ -254,7 +226,7 @@ def test_stream_clickhouse(
 
     ch_eth_streamer_adapter = ClickhouseEthStreamerAdapter(
         eth_streamer=eth_streamer_adapter,
-        clickhouse_url=envs.EXPORT_FROM_CLICKHOUSE,
+        clickhouse_url=clickhouse_url,
         chain_id=chain_id,
         item_type_to_table_mapping=item_type_to_table_mapping,
     )
@@ -322,7 +294,7 @@ def test_stream_clickhouse(
 
     ch_eth_streamer_adapter = ClickhouseEthStreamerAdapter(
         eth_streamer=eth_streamer_adapter,
-        clickhouse_url=envs.EXPORT_FROM_CLICKHOUSE,
+        clickhouse_url=clickhouse_url,
         chain_id=chain_id,
         item_type_to_table_mapping=item_type_to_table_mapping,
     )
@@ -399,7 +371,7 @@ def test_stream_clickhouse(
 
     os.remove('last_synced_block.txt')
 
-    item_exporter = ClickHouseItemExporter(envs.EXPORT_FROM_CLICKHOUSE, item_type_to_table_mapping)
+    item_exporter = ClickHouseItemExporter(clickhouse_url, item_type_to_table_mapping)
 
     def fake_ch_export_items(items):
         counter = Counter(item['type'] for item in items)
@@ -418,7 +390,7 @@ def test_stream_clickhouse(
 
     ch_eth_streamer_adapter = ClickhouseEthStreamerAdapter(
         eth_streamer=eth_streamer_adapter,
-        clickhouse_url=envs.EXPORT_FROM_CLICKHOUSE,
+        clickhouse_url=clickhouse_url,
         chain_id=chain_id,
         item_type_to_table_mapping=item_type_to_table_mapping,
         rewrite_entity_types=(  # <--------------------------------------- checking this
@@ -441,7 +413,7 @@ def test_stream_clickhouse(
 @pytest.mark.parametrize(
     'streamer_adapter_cls', [EthStreamerAdapter, ClickhouseEthStreamerAdapter]
 )
-def test_stream_token_balances(tmp_path: Path, streamer_adapter_cls, cleanup):
+def test_stream_token_balances(tmp_path: Path, streamer_adapter_cls, clickhouse_url):
     exporter = InMemoryItemExporter(item_types=[EntityType.TOKEN_BALANCE])
 
     eth_streamer_adapter = EthStreamerAdapter(
@@ -456,7 +428,7 @@ def test_stream_token_balances(tmp_path: Path, streamer_adapter_cls, cleanup):
     elif streamer_adapter_cls is ClickhouseEthStreamerAdapter:
         streamer_adapter = ClickhouseEthStreamerAdapter(
             eth_streamer=eth_streamer_adapter,
-            clickhouse_url=envs.EXPORT_FROM_CLICKHOUSE,
+            clickhouse_url=clickhouse_url,
             chain_id=1,
             item_type_to_table_mapping=make_item_type_to_table_mapping(chain_id=1),
         )
@@ -552,12 +524,9 @@ def test_stream_token_balances(tmp_path: Path, streamer_adapter_cls, cleanup):
     assert len(token_balance_items) == 429
 
 
-def test_eth_streamer_with_clickhouse_exporter(tmp_path, cleanup):
+def test_eth_streamer_with_clickhouse_exporter(tmp_path, clickhouse_url):
     item_type_to_table_mapping = make_item_type_to_table_mapping(chain_id=1)
-    item_type_to_table_mapping = {
-        k: f"{TEST_TABLE_NAME_INFIX}_{v}" for k, v in item_type_to_table_mapping.items()
-    }
-    exporter = ClickHouseItemExporter(envs.EXPORT_FROM_CLICKHOUSE, item_type_to_table_mapping)
+    exporter = ClickHouseItemExporter(clickhouse_url, item_type_to_table_mapping)
 
     streamer_adapter = EthStreamerAdapter(
         batch_web3_provider=ThreadLocalProxy(lambda: get_web3_provider('infura', batch=True)),
@@ -593,12 +562,9 @@ def test_eth_streamer_with_clickhouse_exporter(tmp_path, cleanup):
         assert_table_not_empty(EntityType.NATIVE_BALANCE)
 
 
-def test_clickhouse_exporter_export_items(tmp_path, cleanup):
+def test_clickhouse_exporter_export_items(tmp_path, clickhouse_url):
     item_type_to_table_mapping = make_item_type_to_table_mapping(chain_id=1)
-    item_type_to_table_mapping = {
-        k: f"{TEST_TABLE_NAME_INFIX}_{v}" for k, v in item_type_to_table_mapping.items()
-    }
-    exporter = ClickHouseItemExporter(envs.EXPORT_FROM_CLICKHOUSE, item_type_to_table_mapping)
+    exporter = ClickHouseItemExporter(clickhouse_url, item_type_to_table_mapping)
     exporter.open()
     items = [
         {
@@ -661,10 +627,8 @@ def test_item_id_calculator_id_fields_contains_all_entity_types():
 
 
 @pytest.fixture()
-def ch_verifier():
-    exporter = ClickHouseItemExporter(
-        envs.EXPORT_FROM_CLICKHOUSE, make_item_type_to_table_mapping(chain_id=1)
-    )
+def ch_verifier(clickhouse_url):
+    exporter = ClickHouseItemExporter(clickhouse_url, make_item_type_to_table_mapping(chain_id=1))
 
     class NoMethodsShouldBeCalled:
         def __getattr__(self, item):
@@ -679,7 +643,7 @@ def ch_verifier():
 
     ch_streamer_adapter = ClickhouseEthStreamerAdapter(
         eth_streamer=eth_streamer_adapter,
-        clickhouse_url=envs.EXPORT_FROM_CLICKHOUSE,
+        clickhouse_url=clickhouse_url,
         chain_id=1,
         item_type_to_table_mapping=make_item_type_to_table_mapping(chain_id=1),
     )
