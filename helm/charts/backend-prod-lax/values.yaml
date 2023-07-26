@@ -325,5 +325,18 @@ raw-traces-data-resync:
       bsc-56: '30'
     SKIP_NONE_RECEIPTS:
       default: 'False'
+      polygon-137: 'True'
     MIN_INSERT_BATCH_SIZE:
       default: '50000'
+    END_BLOCK:
+      default: '17770319'
+      polygon-137: '45502792'
+      bsc-56: '30272663'
+      eth-1: '17770319'
+      canto-7700: '5240814'
+      fantom-250: '66285832'
+      optimism-10: '107346470'
+      arbitrum-42161: '114809254'
+      nova-42170: '15637085'
+      acanto-7701: '1860704'
+      base-84531: '7549150'
