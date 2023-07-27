@@ -53,6 +53,7 @@ def test_export_native_balances_job():
             "from_address": "address_1",
             "to_address": "address_2",
             "transaction_hash": "tx_hash_1",
+            "value": 1,
             # the rest of the fields are irrelevant for this test
         },
         {
@@ -60,6 +61,7 @@ def test_export_native_balances_job():
             "from_address": "address_2",
             "to_address": "0x0000000000000000000000000000000000000000",  # NULL_ADDRESS should be ignored
             "transaction_hash": "tx_hash_1",
+            "value": 2,
             # the rest of the fields are irrelevant for this test
         },
     ]
