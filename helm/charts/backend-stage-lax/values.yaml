@@ -43,6 +43,7 @@ raw-data-streamer:
       arbitrum-42161: 'http://rpc-gw-stage.dexguru.biz/full/42161'
       nova-42170: 'http://rpc-gw-stage.dexguru.biz/full/42170'
       base-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
+      base-mainnet-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
     BLOCK_BATCH_SIZE:
       default: '1000'
     MAX_WORKERS:
@@ -110,6 +111,7 @@ raw-data-streamer-resync:
       arbitrum-42161: 'http://rpc-gw-stage.dexguru.biz/archive/42161'
       nova-42170: 'http://rpc-gw-stage.dexguru.biz/archive/42170'
       base-84531: 'http://rpc-gw-stage.dexguru.biz/archive/84531'
+      base-mainnet-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
 
     BLOCK_BATCH_SIZE:
       default: '1000'
@@ -173,6 +175,7 @@ raw-traces-data-streamer:
       arbitrum-42161: 'http://rpc-gw-stage.dexguru.biz/full/42161'
       nova-42170: 'http://rpc-gw-stage.dexguru.biz/full/42170'
       base-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
+      base-mainnet-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
     BLOCK_BATCH_SIZE:
       default: '1000'
     MAX_WORKERS:
@@ -239,6 +242,7 @@ raw-verify-data-streamer:
       arbitrum-42161: 'http://rpc-gw-stage.dexguru.biz/full/42161'
       nova-42170: 'http://rpc-gw-stage.dexguru.biz/full/42170'
       base-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
+      base-mainnet-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
