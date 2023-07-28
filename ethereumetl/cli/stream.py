@@ -21,6 +21,7 @@
 # SOFTWARE.
 import logging
 import random
+import sys
 from collections.abc import Iterable
 
 import click
@@ -195,6 +196,8 @@ def stream(
     is_verifier=False,
 ):
     """Streams all data types to console or Google Pub/Sub."""
+    # we need to increase recursion limit for traces
+    sys.setrecursionlimit(3000)
     configure_logging(log_file)
     configure_signals()
     entity_types = parse_entity_types(entity_types)

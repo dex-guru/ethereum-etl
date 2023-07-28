@@ -74,7 +74,6 @@ class ExportGethTracesJob(BaseJob):
                     in response_item.get('error').get('message')
                 )
                 and response_item.get('result') is None
-                and any(r.get('result') for r in response)
             ):
                 continue
 
