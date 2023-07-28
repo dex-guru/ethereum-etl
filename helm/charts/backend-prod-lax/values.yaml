@@ -48,7 +48,7 @@ raw-data-streamer:
       arbitrum-42161: 'http://rpc-gw-stage.dexguru.biz/full/42161'
       nova-42170: 'http://rpc-gw-stage.dexguru.biz/full/42170'
       base-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
-
+      basemainnet-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
     BLOCK_BATCH_SIZE:
       default: '1000'
       polygon-137: '1000'
@@ -143,7 +143,7 @@ raw-data-streamer-resync:
       arbitrum-42161: 'http://rpc-gw-prod.dexguru.biz/archive/42161'
       nova-42170: 'http://rpc-gw-prod.dexguru.biz/archive/42170'
       base-84531: 'http://rpc-gw-prod.dexguru.biz/archive/84531'
-
+      basemainnet-8453: 'http://rpc-gw-stage.dexguru.biz/archive/8453'
     BLOCK_BATCH_SIZE:
       default: '1000'
     MAX_WORKERS:
@@ -198,16 +198,20 @@ raw-traces-data-streamer:
       arbitrum-42161: 'http://rpc-gw-stage.dexguru.biz/full/42161'
       nova-42170: 'http://rpc-gw-stage.dexguru.biz/full/42170'
       base-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
+      basemainnet-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
     BLOCK_BATCH_SIZE:
       default: '1000'
+      fantom-250: '10'
     MAX_WORKERS:
       default: '5'
       polygon-137: '10'
       bsc-56: '2'
+      fantom-250: '5'
     BATCH_SIZE:
       default: '100'
       polygon-137: '10'
       bsc-56: '30'
+      fantom-250: '100'
     SKIP_NONE_RECEIPTS:
       default: 'False'
       polygon-137: 'True'
@@ -263,6 +267,7 @@ raw-verify-data-streamer:
       arbitrum-42161: 'http://rpc-gw-stage.dexguru.biz/full/42161'
       nova-42170: 'http://rpc-gw-stage.dexguru.biz/full/42170'
       base-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
+      basemainnet-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
@@ -281,6 +286,7 @@ raw-verify-data-streamer:
 raw-traces-data-resync:
   replicas:
     default: 1
+    basemainnet-8453: 0
   limitsCpu: 4
   limitsMemory: 9000Mi
   requestsCpu: 1
@@ -313,6 +319,7 @@ raw-traces-data-resync:
       arbitrum-42161: 'http://rpc-gw-stage.dexguru.biz/archive/42161'
       nova-42170: 'http://rpc-gw-stage.dexguru.biz/archive/42170'
       base-84531: 'http://rpc-gw-stage.dexguru.biz/archive/84531'
+      basemainnet-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
     BLOCK_BATCH_SIZE:
       default: '1000'
     MAX_WORKERS:
