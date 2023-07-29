@@ -21,7 +21,7 @@ raw-data-streamer:
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
     SERVICE_NAME: 'raw-data-streamer'
-    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl'
+    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
     REWRITE_CLICKHOUSE: ''
   chainEnv:
     ENTITY_TYPES:
@@ -150,7 +150,7 @@ raw-traces-data-streamer:
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
     SERVICE_NAME: 'raw-traces-data-streamer'
-    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl'
+    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
     REWRITE_CLICKHOUSE: ''
   chainEnv:
     ENTITY_TYPES:
@@ -213,7 +213,7 @@ raw-verify-data-streamer:
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
     SERVICE_NAME: 'raw-verify-data-streamer'
-    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl'
+    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
     REWRITE_CLICKHOUSE: 'block,transaction,log,token_transfer,token_balance'
     IS_VERIFIER: 'True'
   chainEnv:
