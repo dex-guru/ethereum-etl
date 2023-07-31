@@ -35,10 +35,7 @@ from ethereumetl.providers.auto import get_provider_from_uri
 from ethereumetl.streaming.clickhouse_eth_streamer_adapter import (
     VerifyingClickhouseEthStreamerAdapter,
 )
-from ethereumetl.streaming.item_exporter_creator import (
-    create_item_exporters,
-    make_item_type_to_table_mapping,
-)
+from ethereumetl.streaming.item_exporter_creator import create_item_exporters
 from ethereumetl.thread_local_proxy import ThreadLocalProxy
 
 
@@ -243,7 +240,6 @@ def stream(
             eth_streamer=streamer_adapter,
             clickhouse_url=export_from_clickhouse,
             chain_id=chain_id,
-            item_type_to_table_mapping=make_item_type_to_table_mapping(chain_id),
             rewrite_entity_types=rewrite_entity_types,
         )
         if is_verifier:

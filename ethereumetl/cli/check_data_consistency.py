@@ -29,10 +29,7 @@ from blockchainetl.streaming.streaming_utils import configure_logging, configure
 from ethereumetl.config.envs import envs
 from ethereumetl.providers.auto import get_provider_from_uri
 from ethereumetl.scripts.check_data_consistency import resolve_data_consistency_service
-from ethereumetl.streaming.item_exporter_creator import (
-    create_item_exporters,
-    make_item_type_to_table_mapping,
-)
+from ethereumetl.streaming.item_exporter_creator import create_item_exporters
 from ethereumetl.thread_local_proxy import ThreadLocalProxy
 
 
@@ -198,7 +195,6 @@ def check_data_consistency(
             eth_streamer=eth_streamer_adapter,
             clickhouse_url=export_from_clickhouse,
             chain_id=chain_id,
-            item_type_to_table_mapping=make_item_type_to_table_mapping(chain_id),
         )
     else:
         streamer_adapter = eth_streamer_adapter

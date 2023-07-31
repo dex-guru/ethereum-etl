@@ -48,10 +48,6 @@ from ethereumetl.streaming.clickhouse_eth_streamer_adapter import (
 )
 from ethereumetl.streaming.eth_item_id_calculator import EthItemIdCalculator
 from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter
-from ethereumetl.streaming.item_exporter_creator import (
-    create_item_exporter,
-    make_item_type_to_table_mapping,
-)
 from ethereumetl.thread_local_proxy import ThreadLocalProxy
 from tests.ethereumetl.job.helpers import get_web3_provider
 from tests.helpers import (
@@ -202,7 +198,7 @@ def test_stream_clickhouse(
     resource_group,
     entity_types,
     provider_type,
-    clickhouse_url,
+    clickhouse_migrated_url,
     elastic_url,
 ):
     ####################################################################
@@ -223,8 +219,7 @@ def test_stream_clickhouse(
         )
     )
 
-    item_type_to_table_mapping = make_item_type_to_table_mapping(chain_id)
-    item_exporter = ClickHouseItemExporter(clickhouse_url, item_type_to_table_mapping)
+    item_exporter = ClickHouseItemExporter(clickhouse_migrated_url)
 
     eth_streamer_adapter = EthStreamerAdapter(
         batch_web3_provider=batch_web3_provider,
@@ -237,9 +232,8 @@ def test_stream_clickhouse(
 
     ch_eth_streamer_adapter = ClickhouseEthStreamerAdapter(
         eth_streamer=eth_streamer_adapter,
-        clickhouse_url=clickhouse_url,
+        clickhouse_url=clickhouse_migrated_url,
         chain_id=chain_id,
-        item_type_to_table_mapping=item_type_to_table_mapping,
     )
 
     streamer = Streamer(
@@ -300,15 +294,13 @@ def test_stream_clickhouse(
         batch_size=batch_size,
         item_exporter=item_exporter,
         entity_types=entity_types - {EntityType.TOKEN_TRANSFER_PRICED},
-        chain_id=1,
     )
     eth_streamer_adapter.get_current_block_number = lambda *_: 12242307  # type: ignore
 
     ch_eth_streamer_adapter = ClickhouseEthStreamerAdapter(
         eth_streamer=eth_streamer_adapter,
-        clickhouse_url=clickhouse_url,
+        clickhouse_url=clickhouse_migrated_url,
         chain_id=chain_id,
-        item_type_to_table_mapping=item_type_to_table_mapping,
     )
 
     streamer = Streamer(
@@ -392,7 +384,7 @@ def test_stream_clickhouse(
 
     os.remove('last_synced_block.txt')
 
-    item_exporter = ClickHouseItemExporter(clickhouse_url, item_type_to_table_mapping)
+    item_exporter = ClickHouseItemExporter(clickhouse_migrated_url)
 
     def fake_ch_export_items(items):
         items = [item for item in items if item['type'] in item_type_to_table_mapping]
@@ -413,9 +405,8 @@ def test_stream_clickhouse(
 
     ch_eth_streamer_adapter = ClickhouseEthStreamerAdapter(
         eth_streamer=eth_streamer_adapter,
-        clickhouse_url=clickhouse_url,
+        clickhouse_url=clickhouse_migrated_url,
         chain_id=chain_id,
-        item_type_to_table_mapping=item_type_to_table_mapping,
         rewrite_entity_types=(  # <--------------------------------------- checking this
             EntityType.TOKEN_BALANCE,
             EntityType.TRACE,
@@ -453,7 +444,6 @@ def test_stream_token_balances(tmp_path: Path, streamer_adapter_cls, clickhouse_
             eth_streamer=eth_streamer_adapter,
             clickhouse_url=clickhouse_url,
             chain_id=1,
-            item_type_to_table_mapping=make_item_type_to_table_mapping(chain_id=1),
         )
     else:
         raise NotImplementedError(f'Unknown streamer adapter class: {streamer_adapter_cls}')
@@ -547,10 +537,8 @@ def test_stream_token_balances(tmp_path: Path, streamer_adapter_cls, clickhouse_
     assert len(token_balance_items) == 429
 
 
-def test_eth_streamer_with_clickhouse_exporter(tmp_path, clickhouse_url, elastic_url):
-    chain_id = 1
-    item_type_to_table_mapping = make_item_type_to_table_mapping(chain_id=chain_id)
-    exporter = ClickHouseItemExporter(clickhouse_url, item_type_to_table_mapping)
+def test_eth_streamer_with_clickhouse_exporter(tmp_path, clickhouse_migrated_url, elastic_url):
+    exporter = ClickHouseItemExporter(clickhouse_migrated_url)
 
     streamer_adapter = EthStreamerAdapter(
         batch_web3_provider=ThreadLocalProxy(lambda: get_web3_provider('infura', batch=True)),
@@ -558,10 +546,9 @@ def test_eth_streamer_with_clickhouse_exporter(tmp_path, clickhouse_url, elastic
         item_exporter=exporter,
         entity_types=entity_type.ALL,
         elastic_client=Elasticsearch(elastic_url),
-        chain_id=chain_id,
     )
     streamer = Streamer(
-        chain_id=chain_id,
+        chain_id=1,
         blockchain_streamer_adapter=streamer_adapter,
         start_block=17179063,
         end_block=17179063,
@@ -573,7 +560,7 @@ def test_eth_streamer_with_clickhouse_exporter(tmp_path, clickhouse_url, elastic
     with exporter.create_connection() as clickhouse:
 
         def assert_table_not_empty(entity_type):
-            table_name = item_type_to_table_mapping[entity_type]
+            table_name = exporter.item_type_to_table_mapping[entity_type]
             records = clickhouse.query(f"SELECT * FROM {table_name} LIMIT 1").named_results()
             record = next(records, None)
             assert record, f"Table {table_name} is empty"
@@ -588,9 +575,8 @@ def test_eth_streamer_with_clickhouse_exporter(tmp_path, clickhouse_url, elastic
         assert_table_not_empty(EntityType.NATIVE_BALANCE)
 
 
-def test_clickhouse_exporter_export_items(tmp_path, clickhouse_url):
-    item_type_to_table_mapping = make_item_type_to_table_mapping(chain_id=1)
-    exporter = ClickHouseItemExporter(clickhouse_url, item_type_to_table_mapping)
+def test_clickhouse_exporter_export_items(tmp_path, clickhouse_migrated_url):
+    exporter = ClickHouseItemExporter(clickhouse_migrated_url)
     exporter.open()
     items = [
         {
@@ -632,7 +618,7 @@ def test_clickhouse_exporter_export_items(tmp_path, clickhouse_url):
     with exporter.create_connection() as clickhouse:
 
         def assert_table_not_empty(entity_type):
-            table_name = item_type_to_table_mapping[entity_type]
+            table_name = exporter.item_type_to_table_mapping[entity_type]
             records = clickhouse.query(f"SELECT * FROM {table_name} LIMIT 1").named_results()
             record = next(records, None)
             assert record, f"Table {table_name} is empty"
@@ -654,7 +640,7 @@ def test_item_id_calculator_id_fields_contains_all_entity_types():
 
 @pytest.fixture()
 def ch_verifier(clickhouse_url):
-    exporter = ClickHouseItemExporter(clickhouse_url, make_item_type_to_table_mapping(chain_id=1))
+    exporter = ClickHouseItemExporter(clickhouse_url)
 
     class NoMethodsShouldBeCalled:
         def __getattr__(self, item):
@@ -671,7 +657,6 @@ def ch_verifier(clickhouse_url):
         eth_streamer=eth_streamer_adapter,
         clickhouse_url=clickhouse_url,
         chain_id=1,
-        item_type_to_table_mapping=make_item_type_to_table_mapping(chain_id=1),
     )
 
     adapter = VerifyingClickhouseEthStreamerAdapter(

@@ -10,7 +10,8 @@ charset-normalizer==3.1.0
 click==8.0.4
 clickhouse-connect==0.4.7
 clickhouse-driver==0.2.5
-clickhouse-sqlalchemy==0.2.3
+clickhouse-sqlalchemy==0.2.4
+alembic==1.11.1
 colorama==0.4.6
 cytoolz==0.12.1
 eth-abi==2.2.0

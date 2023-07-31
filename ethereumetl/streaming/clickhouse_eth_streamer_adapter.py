@@ -41,32 +41,26 @@ class ClickhouseEthStreamerAdapter:
         eth_streamer: EthStreamerAdapter,
         clickhouse_url: str,
         chain_id: int,
-        item_type_to_table_mapping: dict[EntityType, str] | None = None,
         rewrite_entity_types: Iterable[EntityType] = ALL,
     ):
         self.eth_streamer = eth_streamer
         self.clickhouse_url = clickhouse_url
         self.clickhouse: Client | None = None
         self.rewrite_entity_types = frozenset(rewrite_entity_types)
-
-        if item_type_to_table_mapping is None:
-            self.item_type_to_table_mapping = {
-                BLOCK: 'blocks',
-                TRANSACTION: 'transactions',
-                RECEIPT: 'receipts',
-                LOG: 'logs',
-                TOKEN_TRANSFER: 'token_transfers',
-                TRACE: 'traces',
-                CONTRACT: 'contracts',
-                TOKEN: 'tokens',
-                ERROR: 'errors',
-                GETH_TRACE: 'geth_traces',
-                INTERNAL_TRANSFER: 'internal_transfers',
-                NATIVE_BALANCE: 'native_balances',
-            }
-        else:
-            self.item_type_to_table_mapping = item_type_to_table_mapping
-
+        self.item_type_to_table_mapping = {
+            EntityType.BLOCK: f"{chain_id}_blocks",
+            EntityType.CONTRACT: f"{chain_id}_contracts",
+            EntityType.ERROR: f"{chain_id}_errors",
+            EntityType.GETH_TRACE: f"{chain_id}_geth_traces",
+            EntityType.INTERNAL_TRANSFER: f"{chain_id}_internal_transfers",
+            EntityType.LOG: f"{chain_id}_logs",
+            EntityType.NATIVE_BALANCE: f"{chain_id}_native_balances",
+            EntityType.TOKEN: f"{chain_id}_tokens",
+            EntityType.TOKEN_BALANCE: f"{chain_id}_token_balances",
+            EntityType.TOKEN_TRANSFER: f"{chain_id}_token_transfers",
+            EntityType.TRACE: f"{chain_id}_traces",
+            EntityType.TRANSACTION: f"{chain_id}_transactions",
+        }
         self.chain_id = chain_id
         self.entity_types = frozenset(eth_streamer.entity_types)
 

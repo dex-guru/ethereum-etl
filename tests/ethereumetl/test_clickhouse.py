@@ -5,7 +5,6 @@ import pytest
 from clickhouse_connect.driver.client import Client
 
 from blockchainetl.jobs.exporters.clickhouse_exporter import ClickHouseItemExporter
-from ethereumetl.enumeration.entity_type import EntityType
 from ethereumetl.scripts.execute_clickhouse_sql import execute_clickhouse_sql
 from ethereumetl.scripts.load_abi_to_event_inventory import load_abis_to_event_inventory
 from ethereumetl.streaming.clickhouse_eth_streamer_adapter import ClickhouseEthStreamerAdapter
@@ -57,17 +56,7 @@ def insert_records(clickhouse: Client, table: str, records: Sequence[dict]):
     clickhouse.insert(table, data, columns)
 
 
-def test_events_mat_view(clickhouse_url, clickhouse):
-    create_entity_tables(clickhouse_url)
-
-    execute_clickhouse_sql(
-        chain_id=1,
-        clickhouse_url=clickhouse_url,
-        on_cluster='',
-        replacing_merge_tree='ReplacingMergeTree',
-        dry_run=False,
-    )
-
+def test_events_mat_view(clickhouse_url, clickhouse_migrated):
     event_infos = [
         {
             'event_signature_hash': '0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62',
@@ -117,10 +106,12 @@ def test_events_mat_view(clickhouse_url, clickhouse):
     ]
 
     # Add some event infos to be captured my the MaterializedView
-    insert_records(clickhouse, '1_event_inventory_src', event_infos)
+    insert_records(clickhouse_migrated, '1_event_inventory_src', event_infos)
 
     # 1_event_inventory_src
-    assert list(clickhouse.query('SELECT * FROM 1_event_inventory_src').named_results()) == [
+    assert list(
+        clickhouse_migrated.query('SELECT * FROM 1_event_inventory_src').named_results()
+    ) == [
         {
             'event_abi_json': event_infos[0]['event_abi_json'],
             'event_name': event_infos[0]['event_name'],
@@ -132,7 +123,7 @@ def test_events_mat_view(clickhouse_url, clickhouse):
     ]
 
     # 1_event_inventory
-    assert list(clickhouse.query('SELECT * FROM 1_event_inventory').named_results()) == [
+    assert list(clickhouse_migrated.query('SELECT * FROM 1_event_inventory').named_results()) == [
         {
             'event_abi_json': event_infos[0]['event_abi_json'],
             'event_name': event_infos[0]['event_name'],
@@ -146,10 +137,10 @@ def test_events_mat_view(clickhouse_url, clickhouse):
     ]
 
     # Insert logs. This should join with event_infos and insert into 1_events
-    insert_records(clickhouse, '1_logs', logs)
+    insert_records(clickhouse_migrated, '1_logs', logs)
 
     events_records = list(
-        clickhouse.query(
+        clickhouse_migrated.query(
             'SELECT * FROM 1_events LIMIT 10 SETTINGS asterisk_include_alias_columns=1'
         ).named_results()
     )
@@ -181,16 +172,7 @@ def test_events_mat_view(clickhouse_url, clickhouse):
     ]
 
 
-def test_load_abis_to_event_inventory(clickhouse_url, clickhouse, tmp_path):
-    create_entity_tables(clickhouse_url)
-    execute_clickhouse_sql(
-        chain_id=1,
-        clickhouse_url=clickhouse_url,
-        on_cluster='',
-        replacing_merge_tree='ReplacingMergeTree',
-        dry_run=False,
-    )
-
+def test_load_abis_to_event_inventory(clickhouse_migrated_url, clickhouse, tmp_path):
     abi = [
         {
             'anonymous': False,
@@ -217,7 +199,7 @@ def test_load_abis_to_event_inventory(clickhouse_url, clickhouse, tmp_path):
     (subdir_path / file_name1).write_text(json.dumps(abi))
     (subdir_path / file_name2).write_text(json.dumps(abi))
 
-    load_abis_to_event_inventory(1, clickhouse_url, str(tmp_path), dry_run=False)
+    load_abis_to_event_inventory(1, clickhouse_migrated_url, str(tmp_path), dry_run=False)
 
     event_inventory_records = list(
         clickhouse.query(
