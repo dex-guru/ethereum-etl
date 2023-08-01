@@ -68,7 +68,12 @@ def event_abi_to_event_inventory_record(
     )
 
 
-def load_abis_to_event_inventory(chain_id, clickhouse_url, ABIs_dir_path, dry_run=True):
+def load_abis_to_event_inventory(
+    chain_id: int,
+    clickhouse_url: str,
+    ABIs_dir_path: str,
+    dry_run: bool = True,
+):
     event_abis = get_event_abis_with_file_paths(read_event_abis(ABIs_dir_path))
     event_registry_records = [
         event_abi_to_event_inventory_record(file_path, event_abi)
