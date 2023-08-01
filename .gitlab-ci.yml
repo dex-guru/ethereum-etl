@@ -18,7 +18,7 @@ variables:
   HELM_CHART_PROD_LAX: 'helm/charts/backend-prod-lax'
   DOCKER_DRIVER: overlay2
   DOCKER_HOST: tcp://docker:2375
-  DOCKER_BUILDKIT: 1
+  DOCKER_BUILDKIT: '1'
   GIT_SUBMODULE_STRATEGY: recursive
   LAX_STAGE_CLUSTER_NAME: stage-k8s
   LAX_PROD_CLUSTER_NAME: prod-k8s
