@@ -42,8 +42,8 @@ raw-data-streamer:
       gnosis-100: 'http://rpc-gw-stage.dexguru.biz/full/100'
       arbitrum-42161: 'http://rpc-gw-stage.dexguru.biz/full/42161'
       nova-42170: 'http://rpc-gw-stage.dexguru.biz/full/42170'
-      base-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
-      basemainnet-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
+      basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
+      base-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
     BLOCK_BATCH_SIZE:
       default: '1000'
     MAX_WORKERS:
@@ -85,7 +85,7 @@ raw-data-streamer-resync:
       default: '1'
       acanto-7701: '1299370'
       canto-7700: '1'
-      base-84531: '1'
+      basetestnet-84531: '1'
     END_BLOCK:
       default: '0'
       bsc-56: '7182894'
@@ -96,7 +96,7 @@ raw-data-streamer-resync:
       gnosis-100: '27961654'
       arbitrum-42161: '91065804'
       nova-42170: '8897049'
-      base-84531: '4922000'
+      basetestnet-84531: '4922000'
 
     PROVIDER_URL:
       default: 'http://rpc-gw-stage.dexguru.biz/archive/1'
@@ -110,8 +110,8 @@ raw-data-streamer-resync:
       gnosis-100: 'http://rpc-gw-stage.dexguru.biz/archive/100'
       arbitrum-42161: 'http://rpc-gw-stage.dexguru.biz/archive/42161'
       nova-42170: 'http://rpc-gw-stage.dexguru.biz/archive/42170'
-      base-84531: 'http://rpc-gw-stage.dexguru.biz/archive/84531'
-      basemainnet-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
+      basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/archive/84531'
+      base-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
 
     BLOCK_BATCH_SIZE:
       default: '1000'
@@ -158,7 +158,7 @@ raw-traces-data-streamer:
     START_BLOCK:
       default: '1'
       eth-1: '17521027'
-      base-84531: '5872449'
+      basetestnet-84531: '5872449'
       polygon-137: '44515554'
       bsc-56: '29553180'
       optimism-10: '106264005'
@@ -174,8 +174,8 @@ raw-traces-data-streamer:
       gnosis-100: 'http://rpc-gw-stage.dexguru.biz/full/100'
       arbitrum-42161: 'http://rpc-gw-stage.dexguru.biz/full/42161'
       nova-42170: 'http://rpc-gw-stage.dexguru.biz/full/42170'
-      base-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
-      basemainnet-8453: 'http://rpc-gw-stage.dexguru.biz/archive/8453'
+      basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
+      base-8453: 'http://rpc-gw-stage.dexguru.biz/archive/8453'
     BLOCK_BATCH_SIZE:
       default: '1000'
     MAX_WORKERS:
@@ -241,8 +241,8 @@ raw-verify-data-streamer:
       gnosis-100: 'http://rpc-gw-stage.dexguru.biz/full/100'
       arbitrum-42161: 'http://rpc-gw-stage.dexguru.biz/full/42161'
       nova-42170: 'http://rpc-gw-stage.dexguru.biz/full/42170'
-      base-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
-      basemainnet-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
+      basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
+      base-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
