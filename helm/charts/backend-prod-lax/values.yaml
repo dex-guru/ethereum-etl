@@ -34,7 +34,7 @@ raw-data-streamer:
       canto-7700: '4566159'
       eth-1: '17431241'
       acanto-7701: '1860704'
-      base-84531: '5490413'
+      basetestnet-84531: '5490413'
     PROVIDER_URL:
       default: 'http://rpc-gw-stage.dexguru.biz/full/1'
       polygon-137: 'http://rpc-gw-stage.dexguru.biz/full/137'
@@ -47,8 +47,8 @@ raw-data-streamer:
       gnosis-100: 'http://rpc-gw-stage.dexguru.biz/full/100'
       arbitrum-42161: 'http://rpc-gw-stage.dexguru.biz/full/42161'
       nova-42170: 'http://rpc-gw-stage.dexguru.biz/full/42170'
-      base-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
-      basemainnet-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
+      basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
+      base-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
     BLOCK_BATCH_SIZE:
       default: '1000'
       polygon-137: '1000'
@@ -118,7 +118,7 @@ raw-data-streamer-resync:
       canto-7700: '4388552'
       eth-1: '17335059'
       acanto-7701: '1644828'
-      base-84531: '4922000'
+      basetestnet-84531: '4922000'
     END_BLOCK:
       default: null
       optimism-10: '105287791'
@@ -129,7 +129,7 @@ raw-data-streamer-resync:
       canto-7700: '4566159'
       eth-1: '17431241'
       acanto-7701: '1860704'
-      base-84531: '5490413'
+      basetestnet-84531: '5490413'
     PROVIDER_URL:
       default: 'http://rpc-gw-prod.dexguru.biz/archive/1'
       polygon-137: 'http://rpc-gw-prod.dexguru.biz/archive/137'
@@ -142,8 +142,8 @@ raw-data-streamer-resync:
       gnosis-100: 'http://rpc-gw-prod.dexguru.biz/archive/100'
       arbitrum-42161: 'http://rpc-gw-prod.dexguru.biz/archive/42161'
       nova-42170: 'http://rpc-gw-prod.dexguru.biz/archive/42170'
-      base-84531: 'http://rpc-gw-prod.dexguru.biz/archive/84531'
-      basemainnet-8453: 'http://rpc-gw-stage.dexguru.biz/archive/8453'
+      basetestnet-84531: 'http://rpc-gw-prod.dexguru.biz/archive/84531'
+      base-8453: 'http://rpc-gw-stage.dexguru.biz/archive/8453'
     BLOCK_BATCH_SIZE:
       default: '1000'
     MAX_WORKERS:
@@ -197,8 +197,8 @@ raw-traces-data-streamer:
       gnosis-100: 'http://rpc-gw-stage.dexguru.biz/full/100'
       arbitrum-42161: 'http://rpc-gw-stage.dexguru.biz/full/42161'
       nova-42170: 'http://rpc-gw-stage.dexguru.biz/full/42170'
-      base-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
-      basemainnet-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
+      basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
+      base-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
     BLOCK_BATCH_SIZE:
       default: '1000'
       fantom-250: '10'
@@ -266,8 +266,8 @@ raw-verify-data-streamer:
       gnosis-100: 'http://rpc-gw-stage.dexguru.biz/full/100'
       arbitrum-42161: 'http://rpc-gw-stage.dexguru.biz/full/42161'
       nova-42170: 'http://rpc-gw-stage.dexguru.biz/full/42170'
-      base-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
-      basemainnet-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
+      basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
+      base-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
@@ -286,7 +286,7 @@ raw-verify-data-streamer:
 raw-traces-data-resync:
   replicas:
     default: 1
-    basemainnet-8453: 0
+    base-8453: 0
   limitsCpu: 4
   limitsMemory: 9000Mi
   requestsCpu: 1
@@ -318,8 +318,8 @@ raw-traces-data-resync:
       gnosis-100: 'http://rpc-gw-stage.dexguru.biz/archive/100'
       arbitrum-42161: 'http://rpc-gw-stage.dexguru.biz/archive/42161'
       nova-42170: 'http://rpc-gw-stage.dexguru.biz/archive/42170'
-      base-84531: 'http://rpc-gw-stage.dexguru.biz/archive/84531'
-      basemainnet-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
+      basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/archive/84531'
+      base-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
     BLOCK_BATCH_SIZE:
       default: '1000'
     MAX_WORKERS:
@@ -346,4 +346,4 @@ raw-traces-data-resync:
       arbitrum-42161: '114809254'
       nova-42170: '15637085'
       acanto-7701: '1860704'
-      base-84531: '7549150'
+      basetestnet-84531: '7549150'
