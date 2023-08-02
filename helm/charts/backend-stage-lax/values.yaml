@@ -8,7 +8,7 @@ raw-data-streamer:
     default: 1
   limitsCpu: 4
   limitsMemory: 9000Mi
-  requestsCpu: 1
+  requestsCpu: 100m
   requestsMemory: 1000Mi
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "stream" ]'
@@ -59,7 +59,7 @@ raw-data-streamer-resync:
     default: 1
   limitsCpu: 4
   limitsMemory: 9000Mi
-  requestsCpu: 1
+  requestsCpu: 100m
   requestsMemory: 1000Mi
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "stream" ]'
