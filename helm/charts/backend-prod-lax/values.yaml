@@ -16,7 +16,7 @@ raw-data-streamer:
     LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl?table_name=last_synced_block'
     LAG: '0'
     OUTPUT: 'clickhouse://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
-    ENTITY_TYPES: 'block,transaction,log,token_transfer'
+    ENTITY_TYPES: 'block,transaction,log,token_transfer,token_balance,error'
     POLLING_PERIOD: '2'
     BATCH_SIZE: '10'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
@@ -99,7 +99,6 @@ raw-data-streamer-resync:
     LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl?table_name=resync_blocks'
     LAG: '0'
     OUTPUT: 'clickhouse://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
-    ENTITY_TYPES: 'block,transaction,log,token_transfer'
     POLLING_PERIOD: '2'
     BATCH_SIZE: '10'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
@@ -108,6 +107,12 @@ raw-data-streamer-resync:
     EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@10.0.200.180:8123/dex_etl'
     REWRITE_CLICKHOUSE: 'block,transaction,receipt,log,token_transfer,trace,geth_trace,contract,token,internal_transfer,token_balance,error'
   chainEnv:
+    ENTITY_TYPES:
+      default: 'block,transaction,log,token_transfer,internal_transfer,geth_trace'
+      fantom-250: 'block,transaction,log,token_transfer'
+      acanto-7701: 'block,transaction,log,token_transfer'
+      gnosis-100: 'block,transaction,log,token_transfer'
+      optimism-10: 'block,transaction,log,token_transfer'
     START_BLOCK:
       default: '1'
       optimism-10: '101280306'
@@ -184,7 +189,7 @@ raw-traces-data-streamer:
     REWRITE_CLICKHOUSE: ''
   chainEnv:
     ENTITY_TYPES:
-      default: 'block,geth_trace,internal_transfer'
+      default: 'block,geth_trace,internal_transfer,native_balance'
     PROVIDER_URL:
       default: 'http://rpc-gw-stage.dexguru.biz/full/1'
       polygon-137: 'http://rpc-gw-stage.dexguru.biz/full/137'
@@ -239,7 +244,7 @@ raw-verify-data-streamer:
     LOG_HANDLERS: '["console","logstash"]'
     SERVICE_NAME: 'raw-verify-data-streamer'
     EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
-    REWRITE_CLICKHOUSE: 'block,transaction,log,token_transfer,geth_trace,internal_transfer'
+    REWRITE_CLICKHOUSE: 'block,transaction,log,token_transfer,token_balance,geth_trace,internal_transfer'
     IS_VERIFIER: 'True'
   chainEnv:
     LAG:
