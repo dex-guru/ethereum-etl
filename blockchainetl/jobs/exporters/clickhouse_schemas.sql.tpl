@@ -445,3 +445,38 @@ CREATE TABLE IF NOT EXISTS `${native_balance}`
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
 ORDER BY (address, block_number);
+
+CREATE TABLE IF NOT EXISTS `${chain_id}_chain_counts`
+(
+    chain_id                  UInt32,
+    active_addresses          AggregateFunction(uniq, Nullable(String)),
+    uniq_contracts            AggregateFunction(uniq, Nullable(String))
+)
+ENGINE = AggregatingMergeTree
+ORDER BY chain_id;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS `${chain_id}_count_active_addresses_mv`
+            TO `${chain_id}_chain_counts`
+(
+    chain_id                  UInt32,
+    active_addresses          AggregateFunction(uniq, Nullable(String)),
+    uniq_contracts            AggregateFunction(uniq, Nullable(String))
+)
+AS
+SELECT
+    ${chain_id} as chain_id,
+    uniqState(toNullable(from_address)) as active_addresses
+FROM `${chain_id}_transactions`;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS `${chain_id}_count_uniq_contracts_mv`
+            TO `${chain_id}_chain_counts`
+(
+    chain_id                  UInt32,
+    active_addresses          AggregateFunction(uniq, Nullable(String)),
+    uniq_contracts            AggregateFunction(uniq, Nullable(String))
+)
+AS
+SELECT
+    ${chain_id} as chain_id,
+    uniqState(toNullable(address)) as uniq_contracts
+FROM `${chain_id}_logs`;
