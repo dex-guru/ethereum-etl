@@ -119,14 +119,11 @@ raw-traces-data-resync:
       base-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
     BLOCK_BATCH_SIZE:
       default: '1000'
+      optimism-10: '100'
     MAX_WORKERS:
       default: '10'
-      polygon-137: '10'
-      bsc-56: '2'
     BATCH_SIZE:
-      default: '10'
-      polygon-137: '10'
-      bsc-56: '30'
+      default: '5'
     SKIP_NONE_RECEIPTS:
       default: 'False'
       polygon-137: 'True'
