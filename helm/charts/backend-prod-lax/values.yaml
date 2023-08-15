@@ -1,7 +1,7 @@
 ---
-image: 'registry.gitlab.com/telekomconsalting/dexguru/indexation-etl'
+image: '${CI_HARBOR_REGISTRY_HOST}/dex.guru/${CI_PROJECT_TITLE}/${CI_PROJECT_TITLE}'
 imageTag: ''
-registrySecretName: registry-gitlab
+registrySecretName: registry-harbor
 
 raw-data-streamer:
   replicas:

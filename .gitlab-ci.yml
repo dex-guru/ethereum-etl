@@ -1,12 +1,16 @@
 ---
-image: 
-  name: docker-registry.dexguru.biz/dex.guru/utils/docker:23.0.6
-  pull_policy: if-not-present
-
-services:
-  - name: docker-registry.dexguru.biz/dex.guru/utils/docker:23.0.6-dind # necessary for docker run
-    alias: docker
+default:
+  image:
+    name: ${IMAGE_DOCKER}
     pull_policy: if-not-present
+  services:
+    - name: ${IMAGE_DIND}
+      alias: docker
+      pull_policy: if-not-present
+      variables:
+        DOCKER_TLS_CERTDIR: ""
+        HEALTHCHECK_2375_TCP_ADDR: docker
+        HEALTHCHECK_2375_TCP_PORT: 2375
 
 stages:
   - build
@@ -16,10 +20,17 @@ stages:
   - deploy-prod
 
 variables:
-  IMAGE_HELM_KUBECTL: 'registry.gitlab.com/telekomconsalting/dexguru/dexguru-backend/helm-kubectl:3.7.1'
+  FF_SCRIPT_SECTIONS: 'true'
+  DOCKER_TLS_CERTDIR: ""
+
+  IMAGE_HELM_KUBECTL: ${CI_HARBOR_REGISTRY_HOST}/dex.guru/utils/helm-kubectl:3.7.2
+  IMAGE_CLICKHOUSE:   ${CI_HARBOR_REGISTRY_HOST}/dex.guru/utils/clickhouse-server:23.1.3.5
+  IMAGE_DOCKER:       ${CI_HARBOR_REGISTRY_HOST}/dex.guru/utils/docker:23.0.6
+  IMAGE_DIND:         ${CI_HARBOR_REGISTRY_HOST}/dex.guru/utils/docker:23.0.6-dind
+  IMAGE_APP:          ${CI_HARBOR_REGISTRY_HOST}/dex.guru/${CI_PROJECT_TITLE}/${CI_PROJECT_TITLE}
+
   HELM_CHART_STAGE_LAX: 'helm/charts/backend-stage-lax'
   HELM_CHART_PROD_LAX: 'helm/charts/backend-prod-lax'
-  DOCKER_BUILDKIT: '1'
   GIT_SUBMODULE_STRATEGY: recursive
   LAX_STAGE_CLUSTER_NAME: stage-k8s
   LAX_PROD_CLUSTER_NAME: prod-k8s
@@ -75,20 +86,20 @@ variables:
 # Build test:
 build:
   stage: build
+  before_script:
+    - docker login -u "${CI_HARBOR_REGISTRY_USER}" -p "${CI_HARBOR_REGISTRY_PASSWORD}" "${CI_HARBOR_REGISTRY_HOST}"
   script:
     - echo "Building docker image"
-    - docker login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
-    - docker login -u "${CI_HARBOR_REGISTRY_USER}" -p "${CI_HARBOR_REGISTRY_PASSWORD}" "${CI_HARBOR_REGISTRY_HOST}"
-    - docker pull $CI_REGISTRY_IMAGE:latest || true
-    - >
+    - docker pull $IMAGE_APP:latest || true
+    - >-
         docker build
-        --cache-from "${CI_REGISTRY_IMAGE}:latest"
+        --cache-from "$IMAGE_APP:latest"
         --build-arg BUILDKIT_INLINE_CACHE=1
-        --tag "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
-        --tag "${CI_REGISTRY_IMAGE}:latest"
+        --tag "$IMAGE_APP:$CI_COMMIT_SHORT_SHA"
+        --tag "$IMAGE_APP:latest"
         .
-    - docker push "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
-    - docker push "${CI_REGISTRY_IMAGE}:latest"
+    - docker push "${IMAGE_APP}:${CI_COMMIT_SHORT_SHA}"
+    - docker push "${IMAGE_APP}:latest"
   only:
     - merge_requests
     - master
@@ -96,17 +107,16 @@ build:
 
 build-lint:
   stage: build
+  variables:
+    IMAGE_BASE: "${IMAGE_APP}:base-ci"
+    IMAGE_BASE_PYRIGHT: "${IMAGE_APP}:base-pyright-ci"
+    IMAGE_BASE_LINTERS: "${IMAGE_APP}:base-linters-ci"
+    IMAGE: "${IMAGE_APP}:lint-ci"
+  before_script:
+    - docker login -u "${CI_HARBOR_REGISTRY_USER}" -p "${CI_HARBOR_REGISTRY_PASSWORD}" "${CI_HARBOR_REGISTRY_HOST}"
   script:
     - echo "Building docker image for linting"
-    - docker login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
-    - docker login -u "${CI_HARBOR_REGISTRY_USER}" -p "${CI_HARBOR_REGISTRY_PASSWORD}" "${CI_HARBOR_REGISTRY_HOST}"
-    - export IMAGE_BASE="${CI_REGISTRY_IMAGE}:base-ci"
-    - export IMAGE_BASE_PYRIGHT="${CI_REGISTRY_IMAGE}:base-pyright-ci"
-    - export IMAGE_BASE_LINTERS="${CI_REGISTRY_IMAGE}:base-linters-ci"
-    - export IMAGE="${CI_REGISTRY_IMAGE}:lint-ci"
-
     - docker pull $IMAGE || true
-
     - docker build --build-arg BUILDKIT_INLINE_CACHE=1 --tag $IMAGE_BASE --target base - < lint.Dockerfile
     - docker build --build-arg BUILDKIT_INLINE_CACHE=1 --tag $IMAGE_BASE_PYRIGHT --target base-pyright - < lint.Dockerfile
     - docker build --build-arg BUILDKIT_INLINE_CACHE=1 --tag $IMAGE_BASE_LINTERS --target base-linters - < lint.Dockerfile
@@ -122,14 +132,17 @@ test:
   stage: test
   needs:
     - build
-  image: "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
+  image: "${IMAGE_APP}:${CI_COMMIT_SHORT_SHA}"
   variables:
     TEST_CLICKHOUSE_URL: "http://default:@clickhouse:8123"
     ETHEREUM_ETL_RUN_SLOW_TESTS: "true"
     PROVIDER_URL: 'http://10.0.100.149:8080/archive/1'
   services:
-    - name: clickhouse/clickhouse-server
+    - name: ${IMAGE_CLICKHOUSE}
       alias: clickhouse
+      variables:
+        HEALTHCHECK_8123_TCP_ADDR: clickhouse
+        HEALTHCHECK_8123_TCP_PORT: '8123'
   script:
     - >-
         pytest
@@ -147,14 +160,14 @@ test:
         path: coverage.xml
       junit: report.xml
   only:
-    - master
     - merge_requests
 
 lint-python-pyright:
   stage: lint
   needs:
     - build-lint
-  image: "${CI_REGISTRY_IMAGE}:lint-ci"
+  image: "${IMAGE_APP}:lint-ci"
+  services: []
   script:
     - pyright --pythonversion 3.10 --outputjson . > report_raw.json
   after_script:
@@ -173,9 +186,10 @@ lint-python-mypy:
   stage: lint
   needs:
     - build-lint
-  image: "${CI_REGISTRY_IMAGE}:lint-ci"
+  image: "${IMAGE_APP}:lint-ci"
   variables:
     PYTHONHASHSEED: 0
+  services: []
   script:
     - mypy . | tee mypy.log
   after_script:
@@ -193,7 +207,8 @@ lint-python-ruff:
   stage: lint
   needs:
     - build-lint
-  image: "${CI_REGISTRY_IMAGE}:lint-ci"
+  image: "${IMAGE_APP}:lint-ci"
+  services: []
   script:
     - ruff check . || true
     - ruff check --format gitlab . > report.json
@@ -208,7 +223,8 @@ lint-python-ruff:
 
 lint-python-formatting:
   stage: lint
-  image: "${CI_REGISTRY_IMAGE}:lint-ci"
+  image: "${IMAGE_APP}:lint-ci"
+  services: []
   needs:
     - build-lint
   script:
@@ -219,6 +235,7 @@ lint-python-formatting:
 lint-helm:
   stage: lint
   needs: []
+  services: []
   image:
     name: ${IMAGE_HELM_KUBECTL}
     entrypoint: [""]
