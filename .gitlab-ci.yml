@@ -125,7 +125,6 @@ build-lint:
     - docker push $IMAGE
   only:
     - merge_requests
-    - master
   allow_failure: true
 
 test:
