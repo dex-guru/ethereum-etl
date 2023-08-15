@@ -17,7 +17,7 @@ raw-data-streamer:
     LAG: '0'
     OUTPUT: 'clickhouse+native://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl'
     POLLING_PERIOD: '2'
-    BATCH_SIZE: '10'
+    BATCH_SIZE: '5'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
     SERVICE_NAME: 'raw-data-streamer'
@@ -47,7 +47,7 @@ raw-data-streamer:
     BLOCK_BATCH_SIZE:
       default: '1000'
     MAX_WORKERS:
-      default: '5'
+      default: '10'
     SKIP_NONE_RECEIPTS:
       default: 'False'
       polygon-137: 'True'
@@ -179,18 +179,14 @@ raw-traces-data-streamer:
     BLOCK_BATCH_SIZE:
       default: '1000'
     MAX_WORKERS:
-      default: '5'
-      polygon-137: '10'
-      bsc-56: '10'
+      default: '10'
     SKIP_NONE_RECEIPTS:
       default: 'False'
       polygon-137: 'True'
     MIN_INSERT_BATCH_SIZE:
       default: '1'
     BATCH_SIZE:
-        default: '100'
-        polygon-137: '10'
-        bsc-56: '10'
+        default: '5'
     LAG:
       default: 1
       arbitrum-42161: 40
@@ -246,14 +242,11 @@ raw-verify-data-streamer:
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
-      default: '5'
-      polygon-137: '10'
-      bsc-56: '10'
+      default: '10'
     BATCH_SIZE:
-      default: '100'
-      polygon-137: '10'
-      bsc-56: '6'
+      default: '5'
     SKIP_NONE_RECEIPTS:
       default: 'False'
+      polygon-137: 'True'
     MIN_INSERT_BATCH_SIZE:
       default: '1'

@@ -18,10 +18,11 @@ raw-data-streamer:
     OUTPUT: 'clickhouse://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
     ENTITY_TYPES: 'block,transaction,log,token_transfer,token_balance,error'
     POLLING_PERIOD: '2'
-    BATCH_SIZE: '10'
+    BATCH_SIZE: '5'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
     SERVICE_NAME: 'raw-data-streamer'
+    MAX_WORKERS: '10'
 
   chainEnv:
     START_BLOCK:
@@ -61,18 +62,6 @@ raw-data-streamer:
       arbitrum-42161: '100'
       nova-42170: '100'
       acanto-7701: '100'
-    MAX_WORKERS:
-      default: '5'
-      polygon-137: '10'
-      eth-1: '10'
-      bsc-56: '12'
-      canto-7700: '5'
-      fantom-250: '5'
-      optimism-10: '5'
-      gnosis-100: '5'
-      arbitrum-42161: '5'
-      nova-42170: '5'
-      acanto-7701: '5'
     SKIP_NONE_RECEIPTS:
       default: 'False'
       polygon-137: 'True'
@@ -208,15 +197,10 @@ raw-traces-data-streamer:
       default: '1000'
       fantom-250: '10'
     MAX_WORKERS:
-      default: '5'
-      polygon-137: '10'
-      bsc-56: '2'
+      default: '10'
       fantom-250: '5'
     BATCH_SIZE:
-      default: '100'
-      polygon-137: '10'
-      bsc-56: '30'
-      fantom-250: '100'
+      default: '5'
     SKIP_NONE_RECEIPTS:
       default: 'False'
       polygon-137: 'True'
@@ -276,14 +260,11 @@ raw-verify-data-streamer:
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
-      default: '5'
-      polygon-137: '10'
-      bsc-56: '10'
+      default: '10'
     BATCH_SIZE:
-      default: '100'
-      polygon-137: '10'
-      bsc-56: '6'
+      default: '5'
     SKIP_NONE_RECEIPTS:
       default: 'False'
+      polygon-137: 'True'
     MIN_INSERT_BATCH_SIZE:
       default: '1'
