@@ -1,5 +1,5 @@
 ---
-image: '${CI_HARBOR_REGISTRY_HOST}/dex.guru/${CI_PROJECT_TITLE}/${CI_PROJECT_TITLE}'
+image: docker-registry.dexguru.biz/dex.guru/indexation-etl/indexation-etl
 imageTag: ''
 registrySecretName: registry-harbor
 
