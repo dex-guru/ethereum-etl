@@ -1,4 +1,4 @@
-FROM python:3.10-slim as base
+FROM docker-registry.dexguru.biz/dex.guru/utils/python:3.10-slim as base
 RUN pip install --no-cache-dir --upgrade pip
 
 FROM base AS base-pyright
