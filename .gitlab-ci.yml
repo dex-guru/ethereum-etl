@@ -1,10 +1,13 @@
 ---
-# Here we declaring ci/cd script as gitlab accepts it, more info at: https://docs.gitlab.com/ee/ci/
-image: registry.gitlab.com/telekomconsalting/dexguru/dexguru-backend/docker:stable
-services:
-  - registry.gitlab.com/telekomconsalting/dexguru/dexguru-backend/docker:19.03.5-dind
+image: 
+  name: docker-registry.dexguru.biz/dex.guru/utils/docker:23.0.6
+  pull_policy: if-not-present
 
-# List of stages to follow, to do steps in parallel assign same stage to parallel steps
+services:
+  - name: docker-registry.dexguru.biz/dex.guru/utils/docker:23.0.6-dind # necessary for docker run
+    alias: docker
+    pull_policy: if-not-present
+
 stages:
   - build
   - lint
@@ -16,8 +19,6 @@ variables:
   IMAGE_HELM_KUBECTL: 'registry.gitlab.com/telekomconsalting/dexguru/dexguru-backend/helm-kubectl:3.7.1'
   HELM_CHART_STAGE_LAX: 'helm/charts/backend-stage-lax'
   HELM_CHART_PROD_LAX: 'helm/charts/backend-prod-lax'
-  DOCKER_DRIVER: overlay2
-  DOCKER_HOST: tcp://docker:2375
   DOCKER_BUILDKIT: '1'
   GIT_SUBMODULE_STRATEGY: recursive
   LAX_STAGE_CLUSTER_NAME: stage-k8s
