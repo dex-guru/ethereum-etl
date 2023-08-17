@@ -14,7 +14,6 @@ raw-data-streamer:
   command: '[ "ethereumetl", "stream" ]'
   env:
     LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl?table_name=last_synced_block'
-    LAG: '0'
     OUTPUT: 'clickhouse+native://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl'
     POLLING_PERIOD: '2'
     BATCH_SIZE: '5'
@@ -53,6 +52,11 @@ raw-data-streamer:
       polygon-137: 'True'
     MIN_INSERT_BATCH_SIZE:
       default: '1'
+    LAG:
+      default: 20
+      eth-1: 5
+      arbitrum-42161: 50
+      fantom-250: 50
 
 raw-data-streamer-resync:
   replicas:
@@ -177,7 +181,7 @@ raw-traces-data-streamer:
       basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
       base-8453: 'http://rpc-gw-stage.dexguru.biz/archive/8453'
     BLOCK_BATCH_SIZE:
-      default: '1000'
+      default: '100'
     MAX_WORKERS:
       default: '10'
     SKIP_NONE_RECEIPTS:
@@ -188,9 +192,10 @@ raw-traces-data-streamer:
     BATCH_SIZE:
         default: '5'
     LAG:
-      default: 1
-      arbitrum-42161: 40
-      fantom-250: 10
+      default: 20
+      eth-1: 5
+      arbitrum-42161: 50
+      fantom-250: 50
 
 
 raw-verify-data-streamer:
@@ -205,11 +210,11 @@ raw-verify-data-streamer:
   env:
     LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl?table_name=last_synced_block_verify'
     OUTPUT: 'clickhouse+native://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl?allow_experimental_lightweight_delete=true'
-    POLLING_PERIOD: '30'
+    POLLING_PERIOD: '60'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
     SERVICE_NAME: 'raw-verify-data-streamer'
-    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
+    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl'
     REWRITE_CLICKHOUSE: 'block,transaction,log,token_transfer,token_balance'
     IS_VERIFIER: 'True'
   chainEnv:
