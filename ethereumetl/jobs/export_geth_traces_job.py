@@ -21,12 +21,15 @@
 # SOFTWARE.
 
 import json
+import logging
 
 from blockchainetl.jobs.base_job import BaseJob
 from ethereumetl.executors.batch_work_executor import BatchWorkExecutor
 from ethereumetl.json_rpc_requests import generate_trace_by_transaction_hashes_json_rpc
 from ethereumetl.mappers.geth_trace_mapper import EthGethTraceMapper
 from ethereumetl.utils import rpc_response_to_result
+
+logger = logging.getLogger(__name__)
 
 
 # Exports geth traces
@@ -66,17 +69,19 @@ class ExportGethTracesJob(BaseJob):
                 transaction_hash
                 and (
                     response_item.get('error') is None
-                    or response_item.get('error').get('message') == 'missing block number'
-                    or response_item.get('error').get('message') == 'transaction not found'
+                    or response_item.get('error', {}).get('message') == 'missing block number'
+                    or response_item.get('error', {}).get('message') == 'transaction not found'
                     # tx reverted.
                     # example: https://ftmscan.com/tx/0x5189a78e8feef1e74aa8ef251a877b9f0326082cdb073e0d0e195dfdfe4a70d6
                     or "TypeError: cannot read property 'toString' of undefined"
-                    in response_item.get('error').get('message')
+                    in response_item.get('error', {}).get('message')
+                    or response_item.get('error', {}).get('message', '')
+                    == 'genesis is not traceable'
                 )
                 and response_item.get('result') is None
             ):
+                logger.warning(f'Not traceable tx. Transaction hash: {transaction_hash}')
                 continue
-
             tx_traces = rpc_response_to_result(response_item)
 
             geth_trace = self.geth_trace_mapper.json_dict_to_geth_trace(
