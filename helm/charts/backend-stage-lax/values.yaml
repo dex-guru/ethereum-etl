@@ -15,7 +15,7 @@ raw-data-streamer:
   env:
     LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl?table_name=last_synced_block'
     OUTPUT: 'clickhouse+native://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl'
-    POLLING_PERIOD: '2'
+    POLLING_PERIOD: '30'
     BATCH_SIZE: '5'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
@@ -24,7 +24,7 @@ raw-data-streamer:
     REWRITE_CLICKHOUSE: ''
   chainEnv:
     ENTITY_TYPES:
-      default: 'block,transaction,log,token_transfer,token_balance,error'
+      default: 'block,transaction,log,token_transfer,token_balance,error,geth_trace,internal_transfer,native_balance'
     START_BLOCK:
       default: '1'
       polygon-137: '43954424'
@@ -54,9 +54,9 @@ raw-data-streamer:
       default: '1'
     LAG:
       default: 20
-      eth-1: 5
+      eth-1: 7
       arbitrum-42161: 50
-      fantom-250: 50
+      fantom-250: 30
 
 raw-data-streamer-resync:
   replicas:
