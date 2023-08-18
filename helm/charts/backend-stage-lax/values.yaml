@@ -25,6 +25,7 @@ raw-data-streamer:
   chainEnv:
     ENTITY_TYPES:
       default: 'block,transaction,log,token_transfer,token_balance,error,geth_trace,internal_transfer,native_balance'
+      gnosis-100: 'block,transaction,log,token_transfer,token_balance,error'
     START_BLOCK:
       default: '1'
       polygon-137: '43954424'
