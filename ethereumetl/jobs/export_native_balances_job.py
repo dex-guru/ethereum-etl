@@ -83,10 +83,9 @@ class ExportNativeBalancesJob(BaseJob):
         transaction_by_hash = {t['hash']: t for t in transactions}
         block_address_pairs: set[BlockAddress] = set()
         for transfer in internal_transfers:
-            try:
-                transaction = transaction_by_hash[transfer['transaction_hash']]
-            except KeyError:
-                raise ValueError('Not all internal transfers have corresponding transactions')
+            transaction = transaction_by_hash.get(transfer['transaction_hash'])
+            if transaction is None:
+                continue
             block_number = transaction['block_number']
             for address in (transfer['from_address'], transfer['to_address']):
                 if address is None or address in NULL_ADDRESSES:
