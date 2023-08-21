@@ -8,16 +8,12 @@ CREATE TABLE IF NOT EXISTS `${log}`
     `address` String CODEC(ZSTD(1)),
     `data` String CODEC(ZSTD(1)),
     `topics` Array(String) CODEC(ZSTD(1)),
-    PROJECTION _logs_hash
-    (   SELECT *
-        ORDER BY (transaction_hash)
-    )
+    INDEX logs_block_number block_number TYPE minmax GRANULARITY 1
 
 )
 ENGINE = ReplacingMergeTree
-PARTITION BY intDivOrZero(block_number, 100000)
-ORDER BY (address, transaction_hash, log_index)
-SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+ORDER BY (transaction_hash, address, log_index)
+SETTINGS index_granularity = 8192;
 
 
 CREATE TABLE IF NOT EXISTS `${transaction}`
@@ -44,76 +40,46 @@ CREATE TABLE IF NOT EXISTS `${transaction}`
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
     `receipt_logs_count` Nullable(UInt32),
-
-    PROJECTION _transactions_hash
-    (   SELECT *
-        ORDER BY (hash)
-    )
+    INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
-PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
-ORDER BY (block_number, block_timestamp, receipt_contract_address, from_address, to_address, hash)
+ORDER BY (block_number, hash)
 SETTINGS allow_nullable_key = 1, index_granularity = 8192;
 
 
 CREATE TABLE IF NOT EXISTS `${transaction}_address`
 (
-    address                     String,
-    hash                        String,
-    nonce                       UInt64,
-    block_hash                  String,
-    block_number                UInt64,
-    transaction_index           UInt32,
-    from_address                String,
-    to_address                  String,
-    value                       UInt256,
-    gas                         UInt64,
-    gas_price                   UInt64,
-    input                       String,
-    block_timestamp             DateTime,
-    max_fee_per_gas Nullable(Int64),
-    max_priority_fee_per_gas Nullable(Int64),
-    transaction_type            UInt32,
-    receipt_cumulative_gas_used UInt64,
-    receipt_gas_used            UInt64,
-    receipt_contract_address    Nullable(String),
-    receipt_root Nullable(String),
-    receipt_status              UInt32,
-    receipt_effective_gas_price Nullable(UInt256),
-    receipt_logs_count Nullable(UInt32)
+    `address` String CODEC(ZSTD(1)),
+    `hash` String CODEC(ZSTD(1)),
+    `nonce` UInt64,
+    `block_hash` String CODEC(ZSTD(1)),
+    `block_number` UInt64,
+    `transaction_index` UInt32,
+    `from_address` String CODEC(ZSTD(1)),
+    `to_address` Nullable(String) CODEC(ZSTD(1)),
+    `value` UInt256,
+    `gas` UInt64,
+    `gas_price` UInt64,
+    `input` String CODEC(ZSTD(1)),
+    `block_timestamp` UInt32,
+    `max_fee_per_gas` Nullable(Int64),
+    `max_priority_fee_per_gas` Nullable(Int64),
+    `transaction_type` UInt32,
+    `receipt_cumulative_gas_used` UInt64,
+    `receipt_gas_used` UInt64,
+    `receipt_contract_address` Nullable(String) CODEC(ZSTD(1)),
+    `receipt_root` Nullable(String) CODEC(ZSTD(1)),
+    `receipt_status` UInt32,
+    `receipt_effective_gas_price` UInt256,
+    `receipt_logs_count` Nullable(UInt32)
 )
 ENGINE = ReplacingMergeTree
-PARTITION BY substring(address, 1, 3)
-ORDER BY (address, block_timestamp, hash);
+ORDER BY (address, from_address, to_address, hash)
+SETTINGS allow_nullable_key = 1, index_granularity = 8192;
 
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS `${transaction}_by_from_address_mv`
             TO `${transaction}_address`
-            (
-             `address` String,
-             `hash` String,
-             `nonce` UInt64,
-             `block_hash` String,
-             `block_number` UInt64,
-             `transaction_index` UInt32,
-             `from_address` String,
-             `to_address` Nullable(String),
-             `value` UInt256,
-             `gas` UInt64,
-             `gas_price` UInt64,
-             `input` String,
-             `block_timestamp` DateTime,
-             `max_fee_per_gas` Nullable(Int64),
-             `max_priority_fee_per_gas` Nullable(Int64),
-             `transaction_type` UInt32,
-             `receipt_cumulative_gas_used` UInt64,
-             `receipt_gas_used` UInt64,
-             `receipt_contract_address` Nullable(String),
-             `receipt_root` Nullable(String),
-             `receipt_status` UInt32,
-             `receipt_effective_gas_price` Nullable(UInt256),
-             `receipt_logs_count` Nullable(UInt32)
-                )
 AS
 SELECT from_address                AS address,
        hash,
@@ -122,12 +88,12 @@ SELECT from_address                AS address,
        block_number,
        transaction_index,
        from_address,
-       ifNull(to_address, '')      AS to_address,
+       to_address,
        value,
        gas,
        gas_price,
        input,
-       toDateTime(block_timestamp) AS block_timestamp,
+       block_timestamp,
        max_fee_per_gas,
        max_priority_fee_per_gas,
        transaction_type,
@@ -144,31 +110,6 @@ WHERE from_address IS NOT NULL;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS `${transaction}_by_to_address_mv`
             TO `${transaction}_address`
-            (
-             `address` Nullable(String),
-             `hash` String,
-             `nonce` UInt64,
-             `block_hash` String,
-             `block_number` UInt64,
-             `transaction_index` UInt32,
-             `from_address` String,
-             `to_address` Nullable(String),
-             `value` UInt256,
-             `gas` UInt64,
-             `gas_price` UInt64,
-             `input` String,
-             `block_timestamp` DateTime,
-             `max_fee_per_gas` Nullable(Int64),
-             `max_priority_fee_per_gas` Nullable(Int64),
-             `transaction_type` UInt32,
-             `receipt_cumulative_gas_used` UInt64,
-             `receipt_gas_used` UInt64,
-             `receipt_contract_address` Nullable(String),
-             `receipt_root` Nullable(String),
-             `receipt_status` UInt32,
-             `receipt_effective_gas_price` Nullable(UInt256),
-             `receipt_logs_count` Nullable(UInt32)
-                )
 AS
 SELECT to_address                  AS address,
        hash,
@@ -182,7 +123,7 @@ SELECT to_address                  AS address,
        gas,
        gas_price,
        input,
-       toDateTime(block_timestamp) AS block_timestamp,
+       block_timestamp,
        max_fee_per_gas,
        max_priority_fee_per_gas,
        transaction_type,
@@ -196,6 +137,63 @@ SELECT to_address                  AS address,
 FROM `${transaction}`
 WHERE to_address IS NOT NULL;
 
+
+CREATE TABLE IF NOT EXISTS `${transaction}_hash`
+(
+    `hash` String CODEC(ZSTD(1)),
+    `nonce` UInt64,
+    `block_hash` String CODEC(ZSTD(1)),
+    `block_number` UInt64,
+    `transaction_index` UInt32,
+    `from_address` String CODEC(ZSTD(1)),
+    `to_address` Nullable(String) CODEC(ZSTD(1)),
+    `value` UInt256,
+    `gas` UInt64,
+    `gas_price` UInt64,
+    `input` String CODEC(ZSTD(1)),
+    `block_timestamp` UInt32,
+    `max_fee_per_gas` Nullable(Int64),
+    `max_priority_fee_per_gas` Nullable(Int64),
+    `transaction_type` UInt32,
+    `receipt_cumulative_gas_used` UInt64,
+    `receipt_gas_used` UInt64,
+    `receipt_contract_address` Nullable(String) CODEC(ZSTD(1)),
+    `receipt_root` Nullable(String) CODEC(ZSTD(1)),
+    `receipt_status` UInt32,
+    `receipt_effective_gas_price` UInt256,
+    `receipt_logs_count` Nullable(UInt32)
+)
+ENGINE = ReplacingMergeTree
+ORDER BY (hash, block_number)
+SETTINGS index_granularity = 8192;
+
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS `${transaction}_by_hash_mv`
+            TO `${transaction}_hash`
+AS
+SELECT hash,
+       nonce,
+       block_hash,
+       block_number,
+       transaction_index,
+       from_address,
+       to_address,
+       value,
+       gas,
+       gas_price,
+       input,
+       block_timestamp,
+       max_fee_per_gas,
+       max_priority_fee_per_gas,
+       transaction_type,
+       receipt_cumulative_gas_used,
+       receipt_gas_used,
+       receipt_contract_address,
+       receipt_root,
+       receipt_status,
+       receipt_effective_gas_price,
+       receipt_logs_count
+FROM `${transaction}`;
 
 CREATE TABLE IF NOT EXISTS `${block}`
 (
@@ -218,11 +216,11 @@ CREATE TABLE IF NOT EXISTS `${block}`
     `timestamp`         UInt32,
     `transaction_count` UInt64,
     `base_fee_per_gas`  Nullable(Int64),
+    INDEX blocks_timestamp timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
-PARTITION BY toYYYYMM(FROM_UNIXTIME(timestamp))
-ORDER BY (timestamp, number)
-SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+ORDER BY number
+SETTINGS index_granularity = 8192;
 
 CREATE TABLE IF NOT EXISTS `${token_transfer}`
 (
@@ -239,24 +237,48 @@ CREATE TABLE IF NOT EXISTS `${token_transfer}`
     `operator_address` Nullable(String) CODEC(ZSTD(1)), // ERC721, ERC1155
     `token_id` Nullable(UInt256),  // ERC721, ERC1155
     `is_nft` Bool MATERIALIZED isNotNull(token_id), // ERC721, ERC1155
-
-    PROJECTION _transfers_token_address
-    (   SELECT *
-        ORDER BY (token_address, is_nft)
-    ),
-    PROJECTION _transfers_from_address
-    (   SELECT *
-        ORDER BY (from_address, is_nft)
-    ),
-    PROJECTION _transfers_to_address
-    (   SELECT *
-        ORDER BY (to_address, is_nft)
-    )
+    INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
-PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
+ORDER BY (block_number, transaction_hash, log_index, token_id)
+SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+
+CREATE TABLE IF NOT EXISTS `${token_transfer}_transaction_hash`
+(
+    `token_address` String CODEC(ZSTD(1)),
+    `token_standard` LowCardinality(String) DEFAULT '',
+    `from_address` String CODEC(ZSTD(1)),
+    `to_address` String CODEC(ZSTD(1)),
+    `value` UInt256,
+    `transaction_hash` String CODEC(ZSTD(1)),
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String CODEC(ZSTD(1)),
+    `operator_address` Nullable(String) CODEC(ZSTD(1)),
+    `token_id` Nullable(UInt256),
+    `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+)
+ENGINE = ReplacingMergeTree
 ORDER BY (transaction_hash, log_index, token_id)
-SETTINGS allow_nullable_key=1;
+SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS `${token_transfer}_transaction_hash_mv`
+            TO `${token_transfer}_transaction_hash`
+AS
+SELECT  token_address,
+        token_standard,
+        from_address,
+        to_address,
+        value,
+        transaction_hash,
+        log_index,
+        block_timestamp,
+        block_number,
+        block_hash,
+        operator_address,
+        token_id
+FROM `${token_transfer}`;
 
 CREATE TABLE IF NOT EXISTS `${token_balance}`
 (
@@ -349,11 +371,13 @@ CREATE TABLE IF NOT EXISTS `${geth_trace}`
     `block_timestamp` DateTime CODEC(DoubleDelta),
     `block_number` UInt64 CODEC(Delta(8), LZ4),
     `traces_json` String CODEC(ZSTD(1)),
-    `block_hash` String CODEC(ZSTD(1))
+    `block_hash` String CODEC(ZSTD(1)),
+    INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1,
+    INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
-PARTITION BY substring(transaction_hash, 1, 3)
-ORDER BY (transaction_hash, block_number);
+ORDER BY transaction_hash
+SETTINGS index_granularity = 8192;
 
 
 CREATE TABLE IF NOT EXISTS `${internal_transfer}`
@@ -366,11 +390,67 @@ CREATE TABLE IF NOT EXISTS `${internal_transfer}`
     `value` UInt256 CODEC(ZSTD(1)),
     `gas_limit` UInt64 CODEC(ZSTD(1)),
     `id` String CODEC(ZSTD(1)),
-    `block_hash` String CODEC(ZSTD(1))
+    `block_hash` String CODEC(ZSTD(1)),
+    INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
-PARTITION BY substring(transaction_hash, 1, 3)
-ORDER BY (transaction_hash, block_number, id);
+ORDER BY (transaction_hash, id)
+SETTINGS index_granularity = 8192;
+
+
+CREATE TABLE IF NOT EXISTS `${internal_transfer}_address`
+(
+    `address` String CODEC(ZSTD(1)),
+    `transaction_hash` String CODEC(ZSTD(1)),
+    `block_timestamp` DateTime CODEC(DoubleDelta),
+    `block_number` UInt64 CODEC(Delta(8), LZ4),
+    `from_address` Nullable(String) CODEC(ZSTD(1)),
+    `to_address` Nullable(String) CODEC(ZSTD(1)),
+    `value` UInt256 CODEC(ZSTD(1)),
+    `gas_limit` UInt64 CODEC(ZSTD(1)),
+    `id` String CODEC(ZSTD(1)),
+    `block_hash` Nullable(String),
+    INDEX block_number block_number TYPE minmax GRANULARITY 1
+)
+ENGINE = ReplacingMergeTree
+ORDER BY (address, from_address, to_address, transaction_hash, id)
+SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS `${internal_transfer}_from_address_mv`
+            TO `${internal_transfer}_address`
+AS
+SELECT
+    from_address as address,
+    transaction_hash,
+    block_timestamp,
+    block_number,
+    from_address,
+    to_address,
+    value,
+    gas_limit,
+    id,
+    block_hash
+FROM `${internal_transfer}`
+WHERE from_address IS NOT NULL;
+
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS `${internal_transfer}_to_address_mv`
+            TO `${internal_transfer}_address`
+AS
+SELECT
+    to_address as address,
+    transaction_hash,
+    block_timestamp,
+    block_number,
+    from_address,
+    to_address,
+    value,
+    gas_limit,
+    id,
+    block_hash
+FROM `${internal_transfer}`
+WHERE to_address IS NOT NULL;
+
 
 CREATE TABLE IF NOT EXISTS etl_delay
 (
