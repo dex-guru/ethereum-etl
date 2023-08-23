@@ -2,7 +2,7 @@ import logging
 from collections.abc import Iterable, Sequence
 from functools import cache, cached_property
 from itertools import groupby
-from time import monotonic, sleep
+from time import sleep
 from typing import Any
 
 import clickhouse_connect
@@ -97,9 +97,10 @@ class ClickhouseEthStreamerAdapter:
         else:
             block_number_column = 'block_number'
         query = (
-            f"select distinct on ({distinct_on}) * from `{table_name}`"
+            f"select distinct on ({distinct_on}) * from `{table_name}` final"
             f" where {block_number_column} >= {start_block}"
             f"   and {block_number_column} <= {end_block}"
+            f"   and not is_reorged"
         )
         try:
             return tuple(self.clickhouse.query(query).named_results())
@@ -514,12 +515,16 @@ class VerifyingClickhouseEthStreamerAdapter:
             assert block_ch['hash'] == block_w3['hash']
             assert block_ch['transaction_count'] == block_w3['transaction_count']
 
-        def delete_inconsistent_records_from_ch(
+        def mark_records_as_reorged(
             blocks: Iterable,
             timestamps: Iterable,
             hashes: Iterable,
         ):
-            if not blocks:
+            """
+            Mark all records with the given block numbers and block hashes as reorged.
+            Timestamps are used to speed up some queries.
+            """
+            if not blocks or not timestamps or not hashes:
                 return
 
             def safe_execute(command):
@@ -534,44 +539,27 @@ class VerifyingClickhouseEthStreamerAdapter:
                         sleep(2)
 
             for entity, table in self.ch_streamer.item_type_to_table_mapping.items():
-                if entity == ERROR:
+                if entity in (ERROR, TOKEN, CONTRACT):
                     continue
-                alter_condition = f'ALTER TABLE {table} DELETE WHERE'
-                t = monotonic()
-                logger.info('Deleting inconsistent records from table %s', table)
-
                 if entity == BLOCK:
-                    safe_execute(
-                        f"{alter_condition} number IN {tuple(blocks)} "
-                        f"AND timestamp IN {tuple(timestamps)} "
-                        f"AND hash IN {tuple(hashes)}"
+                    where_condition = (
+                        f"WHERE number IN {tuple(blocks)}"
+                        f" AND timestamp IN {tuple(timestamps)}"
+                        f" AND hash IN {tuple(hashes)}"
                     )
-                elif entity in (LOG, TOKEN, CONTRACT):
-                    safe_execute(
-                        f"{alter_condition} block_number IN {tuple(blocks)} "
-                        f"AND block_hash IN {tuple(hashes)}"
+                elif entity in (LOG, CONTRACT, TOKEN):
+                    where_condition = (
+                        f"WHERE block_number IN {tuple(blocks)} AND block_hash IN {tuple(hashes)}"
                     )
                 else:
-                    safe_execute(
-                        f"{alter_condition} block_number IN {tuple(blocks)} "
-                        f"AND block_timestamp IN {tuple(timestamps)} "
-                        f"AND block_hash IN {tuple(hashes)}"
+                    where_condition = (
+                        f"WHERE block_number IN {tuple(blocks)}"
+                        f" AND block_timestamp IN {tuple(timestamps)}"
+                        f" AND block_hash IN {tuple(hashes)}"
                     )
-
-                logger.info(
-                    "Deleted inconsistent records from table %s in %.2f seconds",
-                    table,
-                    monotonic() - t,
-                )
-
-            safe_execute(
-                f"""
-                ALTER TABLE {self.chain_id}_transactions_address
-                DELETE WHERE block_number IN {tuple(blocks)}
-                AND block_timestamp IN {tuple(timestamps)}
-                AND block_hash IN {tuple(hashes)}
-                """
-            )
+                query = f"INSERT INTO {table} SELECT * EXCEPT is_reorged, 1 FROM {table} {where_condition}"
+                logger.warning('Marking records as reorged: %s', query)
+                safe_execute(query.strip())
 
         inconsistent_blocks: set[int] = set()
         inconsistent_timestamps: set[int] = set()
@@ -615,13 +603,13 @@ class VerifyingClickhouseEthStreamerAdapter:
                 list(g) for k, g in groupby(all_blocks, key=lambda x: x - all_blocks.index(x))
             ]
             for seq in block_sequences:
-                self.ch_streamer.eth_streamer.export_all(
-                    start_block=min(seq),
-                    end_block=max(seq),
-                )
-                delete_inconsistent_records_from_ch(
+                mark_records_as_reorged(
                     inconsistent_blocks & set(seq),
                     sorted(inconsistent_timestamps),
                     sorted(inconsistent_hashes),
+                )
+                self.ch_streamer.eth_streamer.export_all(
+                    start_block=min(seq),
+                    end_block=max(seq),
                 )
             logger.info("Inconsistent records were exported to ClickHouse")

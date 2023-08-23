@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS `${log}`
     `address` String CODEC(ZSTD(1)),
     `data` String CODEC(ZSTD(1)),
     `topics` Array(String) CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX logs_block_number block_number TYPE minmax GRANULARITY 1
 
 )
@@ -40,6 +41,7 @@ CREATE TABLE IF NOT EXISTS `${transaction}`
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
     `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -71,7 +73,8 @@ CREATE TABLE IF NOT EXISTS `${transaction}_address`
     `receipt_root` Nullable(String) CODEC(ZSTD(1)),
     `receipt_status` UInt32,
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0,
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (address, from_address, to_address, hash)
@@ -103,7 +106,8 @@ SELECT from_address                AS address,
        receipt_root,
        receipt_status,
        receipt_effective_gas_price,
-       receipt_logs_count
+       receipt_logs_count,
+       is_reorged
 FROM `${transaction}`
 WHERE from_address IS NOT NULL;
 
@@ -133,7 +137,8 @@ SELECT to_address                  AS address,
        receipt_root,
        receipt_status,
        receipt_effective_gas_price,
-       receipt_logs_count
+       receipt_logs_count,
+       is_reorged
 FROM `${transaction}`
 WHERE to_address IS NOT NULL;
 
@@ -161,7 +166,8 @@ CREATE TABLE IF NOT EXISTS `${transaction}_hash`
     `receipt_root` Nullable(String) CODEC(ZSTD(1)),
     `receipt_status` UInt32,
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0,
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (hash, block_number)
@@ -192,7 +198,8 @@ SELECT hash,
        receipt_root,
        receipt_status,
        receipt_effective_gas_price,
-       receipt_logs_count
+       receipt_logs_count,
+       is_reorged
 FROM `${transaction}`;
 
 CREATE TABLE IF NOT EXISTS `${block}`
@@ -207,8 +214,8 @@ CREATE TABLE IF NOT EXISTS `${block}`
     `state_root`        String CODEC(ZSTD(1)),
     `receipts_root`     String CODEC(ZSTD(1)),
     `miner`             String CODEC(ZSTD(1)),
-    `difficulty`        UInt256,
-    `total_difficulty`  UInt256,
+    `difficulty`         UInt256,
+    `total_difficulty`   UInt256,
     `size`              UInt64,
     `extra_data`        String CODEC(ZSTD(1)),
     `gas_limit`         UInt64,
@@ -216,6 +223,7 @@ CREATE TABLE IF NOT EXISTS `${block}`
     `timestamp`         UInt32,
     `transaction_count` UInt64,
     `base_fee_per_gas`  Nullable(Int64),
+    `is_reorged`        Bool DEFAULT 0,
     INDEX blocks_timestamp timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -237,6 +245,7 @@ CREATE TABLE IF NOT EXISTS `${token_transfer}`
     `operator_address` Nullable(String) CODEC(ZSTD(1)), // ERC721, ERC1155
     `token_id` Nullable(UInt256),  // ERC721, ERC1155
     `is_nft` Bool MATERIALIZED isNotNull(token_id), // ERC721, ERC1155
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -333,6 +342,7 @@ CREATE TABLE IF NOT EXISTS `${token_transfer}_transaction_hash`
     `operator_address` Nullable(String) CODEC(ZSTD(1)),
     `token_id` Nullable(UInt256),
     `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0,
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (transaction_hash, log_index, token_id)
@@ -352,7 +362,8 @@ SELECT  token_address,
         block_number,
         block_hash,
         operator_address,
-        token_id
+        token_id,
+        is_reorged
 FROM `${token_transfer}`;
 
 CREATE TABLE IF NOT EXISTS `${token_balance}`
@@ -364,7 +375,8 @@ CREATE TABLE IF NOT EXISTS `${token_balance}`
     `block_timestamp` UInt32 CODEC(DoubleDelta),
     `value` UInt256 CODEC(ZSTD),
     `token_id` UInt256 CODEC(ZSTD),
-    `block_hash` String CODEC(ZSTD(1))
+    `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
@@ -393,6 +405,7 @@ CREATE TABLE IF NOT EXISTS `${trace}`
     `block_number` UInt64,
     `block_hash` String CODEC(ZSTD(1)),
     `trace_id` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMMDD(FROM_UNIXTIME(block_timestamp))
@@ -407,7 +420,7 @@ CREATE TABLE IF NOT EXISTS `${token}`
     `function_sighashes` Array(String) CODEC(ZSTD(1)),
     `total_supply` UInt256,
     `block_number` UInt64,
-    `block_hash` String CODEC(ZSTD(1))
+    `block_hash` String CODEC(ZSTD(1)),
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (address, block_number);
@@ -447,6 +460,7 @@ CREATE TABLE IF NOT EXISTS `${geth_trace}`
     `block_number` UInt64 CODEC(Delta(8), LZ4),
     `traces_json` String CODEC(ZSTD(1)),
     `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
@@ -466,6 +480,7 @@ CREATE TABLE IF NOT EXISTS `${internal_transfer}`
     `gas_limit` UInt64 CODEC(ZSTD(1)),
     `id` String CODEC(ZSTD(1)),
     `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -485,6 +500,7 @@ CREATE TABLE IF NOT EXISTS `${internal_transfer}_address`
     `gas_limit` UInt64 CODEC(ZSTD(1)),
     `id` String CODEC(ZSTD(1)),
     `block_hash` Nullable(String),
+    `is_reorged` Bool DEFAULT 0,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -504,7 +520,8 @@ SELECT
     value,
     gas_limit,
     id,
-    block_hash
+    block_hash,
+    is_reorged
 FROM `${internal_transfer}`
 WHERE from_address IS NOT NULL;
 
@@ -522,7 +539,8 @@ SELECT
     value,
     gas_limit,
     id,
-    block_hash
+    block_hash,
+    is_reorged
 FROM `${internal_transfer}`
 WHERE to_address IS NOT NULL;
 
@@ -596,6 +614,7 @@ CREATE TABLE IF NOT EXISTS `${native_balance}`
     `block_hash` String CODEC(ZSTD),
     `block_timestamp` UInt32 CODEC(DoubleDelta),
     `value` UInt256 CODEC(ZSTD),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
