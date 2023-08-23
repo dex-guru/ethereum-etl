@@ -54,10 +54,10 @@ raw-data-streamer:
     MIN_INSERT_BATCH_SIZE:
       default: '1'
     LAG:
-      default: 20
-      eth-1: 7
-      arbitrum-42161: 50
-      fantom-250: 30
+      default: 0
+#      eth-1: 7
+#      arbitrum-42161: 50
+#      fantom-250: 30
 
 raw-data-streamer-resync:
   replicas:
@@ -182,7 +182,7 @@ raw-traces-data-streamer:
       basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
       base-8453: 'http://rpc-gw-stage.dexguru.biz/archive/8453'
     BLOCK_BATCH_SIZE:
-      default: '100'
+      default: '10'
     MAX_WORKERS:
       default: '10'
     SKIP_NONE_RECEIPTS:
@@ -193,8 +193,8 @@ raw-traces-data-streamer:
     BATCH_SIZE:
         default: '5'
     LAG:
-      default: 20
-      eth-1: 5
+      default: 5
+      eth-1: 1
       arbitrum-42161: 50
       fantom-250: 50
 
