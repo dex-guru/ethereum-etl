@@ -25,8 +25,7 @@ logger = logging.getLogger(__name__)
 SCHEMA_FILE_PATH = Path(ethereumetl.__file__).parent.parent / 'db/migrations/schema.sql'
 
 
-def table_names_sort_key(s: str) -> list[str]:
-    return re.split(r'(\d+|_)', s)
+table_names_sort_key = re.compile(r'(\d+|_)').split
 
 
 def get_schema_ddls(url: str, strip_db_prefix: bool = True, parallel=40) -> Iterable[str]:
@@ -134,15 +133,15 @@ def dump_migration_schema(clickhouse_url, schema_file_path, temp_db_name: str | 
             connection.execute(f'USE {temp_db_name}')
             assert connection.scalar('SELECT currentDatabase()') == temp_db_name
 
-            test_db_url = connection.engine.url.set(database=temp_db_name)
+            temp_db_url = connection.engine.url.set(database=temp_db_name)
             logger.info(
                 f'Exporting schema DDL'
-                f' from "{test_db_url.render_as_string()}"'
+                f' from "{temp_db_url.render_as_string()}"'
                 f' to "{schema_file_path}"...'
             )
 
-            migrate_up(test_db_url.render_as_string(), 'head')
-            write_schema_ddl(connection, f)
+            migrate_up(temp_db_url.render_as_string(hide_password=False), 'head')
+            write_schema_ddl(temp_db_url.render_as_string(hide_password=False), f)
         finally:
             connection.execute(f'drop database {temp_db_name} sync')
 
