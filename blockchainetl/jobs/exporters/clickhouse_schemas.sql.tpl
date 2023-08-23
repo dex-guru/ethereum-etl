@@ -268,6 +268,7 @@ CREATE TABLE IF NOT EXISTS `${token_transfer}_address`
     `operator_address` Nullable(String) CODEC(ZSTD(1)),
     `token_id` Nullable(UInt256),
     `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0,
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (address, token_standard, token_id, transaction_hash, log_index)
@@ -288,7 +289,8 @@ SELECT  from_address as address,
         block_number,
         block_hash,
         operator_address,
-        token_id
+        token_id,
+        is_reorged
 FROM `${token_transfer}`;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS `${token_transfer}_to_address_mv`
@@ -306,7 +308,8 @@ SELECT  to_address as address,
         block_number,
         block_hash,
         operator_address,
-        token_id
+        token_id,
+        is_reorged
 FROM `${token_transfer}`;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS `${token_transfer}_token_address_mv`
@@ -324,7 +327,8 @@ SELECT  token_address as address,
         block_number,
         block_hash,
         operator_address,
-        token_id
+        token_id,
+        is_reorged
 FROM `${token_transfer}`;
 
 CREATE TABLE IF NOT EXISTS `${token_transfer}_transaction_hash`
