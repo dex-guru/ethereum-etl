@@ -243,6 +243,81 @@ ENGINE = ReplacingMergeTree
 ORDER BY (block_number, transaction_hash, log_index, token_id)
 SETTINGS allow_nullable_key = 1, index_granularity = 8192;
 
+CREATE TABLE IF NOT EXISTS `${token_transfer}_address`
+(
+    `address` String CODEC(ZSTD(1)),
+    `token_address` String CODEC(ZSTD(1)),
+    `token_standard` LowCardinality(String) DEFAULT '',
+    `from_address` String CODEC(ZSTD(1)),
+    `to_address` String CODEC(ZSTD(1)),
+    `value` UInt256,
+    `transaction_hash` String CODEC(ZSTD(1)),
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String CODEC(ZSTD(1)),
+    `operator_address` Nullable(String) CODEC(ZSTD(1)),
+    `token_id` Nullable(UInt256),
+    `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+)
+ENGINE = ReplacingMergeTree
+ORDER BY (address, token_standard, token_id, transaction_hash, log_index)
+SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS `${token_transfer}_from_address_mv`
+            TO `${token_transfer}_address`
+AS
+SELECT  from_address as address,
+        token_address,
+        token_standard,
+        from_address,
+        to_address,
+        value,
+        transaction_hash,
+        log_index,
+        block_timestamp,
+        block_number,
+        block_hash,
+        operator_address,
+        token_id
+FROM `${token_transfer}`;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS `${token_transfer}_to_address_mv`
+            TO `${token_transfer}_address`
+AS
+SELECT  to_address as address,
+        token_address,
+        token_standard,
+        from_address,
+        to_address,
+        value,
+        transaction_hash,
+        log_index,
+        block_timestamp,
+        block_number,
+        block_hash,
+        operator_address,
+        token_id
+FROM `${token_transfer}`;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS `${token_transfer}_token_address_mv`
+            TO `${token_transfer}_address`
+AS
+SELECT  token_address as address,
+        token_address,
+        token_standard,
+        from_address,
+        to_address,
+        value,
+        transaction_hash,
+        log_index,
+        block_timestamp,
+        block_number,
+        block_hash,
+        operator_address,
+        token_id
+FROM `${token_transfer}`;
+
 CREATE TABLE IF NOT EXISTS `${token_transfer}_transaction_hash`
 (
     `token_address` String CODEC(ZSTD(1)),
