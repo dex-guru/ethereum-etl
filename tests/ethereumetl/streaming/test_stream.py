@@ -310,8 +310,17 @@ def test_stream_clickhouse(
 
     print('=====================')
     print(read_file(blocks_output_file))
+
+    # This is a bad thing, but this is because the current architecture
+    # of the program takes item dicts from clickhouse as is without validation
+    # and filtering extra fields.
+    actual_blocks = '\n'.join(
+        json.dumps({k: v for k, v in json.loads(line).items() if k != 'is_reorged'})
+        for line in read_file(blocks_output_file).splitlines()
+    )
+
     compare_lines_ignore_order(
-        read_resource(resource_group, 'expected_blocks.json'), read_file(blocks_output_file)
+        read_resource(resource_group, 'expected_blocks.json'), actual_blocks
     )
 
     print('=====================')
@@ -660,7 +669,10 @@ def ch_verifier(clickhouse_url):
 @patch.object(EthStreamerAdapter, 'export_blocks_and_transactions')
 @patch.object(ClickhouseEthStreamerAdapter, 'export_all')
 def test_verify_all_with_consistent_data(
-    export_all_mock, mock_export_blocks_and_transactions, mock_select_distinct, ch_verifier
+    export_all_mock,
+    mock_export_blocks_and_transactions,
+    mock_select_distinct,
+    ch_verifier,
 ):
     # Configure the mock return values
     mock_select_distinct.side_effect = (
@@ -986,21 +998,18 @@ def test_verify_all_with_inconsistent_data(
     ch_verifier.export_all(start_block=1, end_block=3)
 
     fake_ch_client.command.assert_any_call(
-        "ALTER TABLE 1_blocks"
-        " DELETE WHERE number IN (3,)"
+        "INSERT INTO 1_blocks"
+        " SELECT * EXCEPT is_reorged, 1 FROM 1_blocks"
+        " WHERE number IN (3,)"
         " AND timestamp IN (30,)"
         " AND hash IN ('invalid',)"
     )
     fake_ch_client.command.assert_any_call(
-        "ALTER TABLE 1_transactions"
-        " DELETE WHERE block_number IN (3,)"
+        "INSERT INTO 1_transactions"
+        " SELECT * EXCEPT is_reorged, 1 FROM 1_transactions"
+        " WHERE block_number IN (3,)"
         " AND block_timestamp IN (30,)"
         " AND block_hash IN ('invalid',)"
     )
-    fake_ch_client.command.assert_any_call(
-        "ALTER TABLE 1_geth_traces"
-        " DELETE WHERE block_number IN (3,)"
-        " AND block_timestamp IN (30,)"
-        " AND block_hash IN ('invalid',)"
-    )
+
     export_all_mock.assert_called_with(start_block=2, end_block=3)

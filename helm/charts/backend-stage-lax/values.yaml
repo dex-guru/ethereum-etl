@@ -228,9 +228,9 @@ raw-verify-data-streamer:
       nova-42170: 200
       optimism-10: 200
     ENTITY_TYPES:
-      default: 'block,transaction,log,token_transfer,internal_transfer,geth_trace,token_balance'
-      acanto-7701: 'block,transaction,log,token_transfer,token_balance'
-      gnosis-100: 'block,transaction,log,token_transfer,token_balance'
+      default: 'block,transaction,log,token_transfer,token_balance,error,geth_trace,internal_transfer,native_balance'
+      gnosis-100: 'block,transaction,log,token_transfer,token_balance,error'
+      acanto-7701: 'block,transaction,log,token_transfer,token_balance,error'
     PROVIDER_URL:
       default: 'http://rpc-gw-stage.dexguru.biz/full/1'
       polygon-137: 'http://rpc-gw-stage.dexguru.biz/full/137'
@@ -246,7 +246,7 @@ raw-verify-data-streamer:
       basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
       base-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
     BLOCK_BATCH_SIZE:
-      default: '100'
+      default: '10'
     MAX_WORKERS:
       default: '10'
     BATCH_SIZE:
