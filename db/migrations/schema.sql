@@ -19,6 +19,7 @@ CREATE TABLE `1_blocks`
     `timestamp` UInt32,
     `transaction_count` UInt64,
     `base_fee_per_gas` Nullable(Int64),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -73,6 +74,7 @@ CREATE TABLE `1_transactions`
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
     `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -100,6 +102,7 @@ CREATE TABLE `1_logs`
     `address` String CODEC(ZSTD(1)),
     `data` String CODEC(ZSTD(1)),
     `topics` Array(String) CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX logs_block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -213,6 +216,7 @@ CREATE TABLE `1_geth_traces`
     `block_number` UInt64 CODEC(Delta(8), LZ4),
     `traces_json` String CODEC(ZSTD(1)),
     `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
@@ -231,6 +235,7 @@ CREATE TABLE `1_internal_transfers`
     `gas_limit` UInt64 CODEC(ZSTD(1)),
     `id` String CODEC(ZSTD(1)),
     `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -249,6 +254,7 @@ CREATE TABLE `1_internal_transfers_address`
     `gas_limit` UInt64 CODEC(ZSTD(1)),
     `id` String CODEC(ZSTD(1)),
     `block_hash` Nullable(String),
+    `is_reorged` Bool DEFAULT 0,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -266,7 +272,8 @@ CREATE MATERIALIZED VIEW `1_internal_transfers_from_address_mv` TO `1_internal_t
     `value` UInt256,
     `gas_limit` UInt64,
     `id` String,
-    `block_hash` String
+    `block_hash` String,
+    `is_reorged` Bool
 ) AS
 SELECT
     from_address AS address,
@@ -278,7 +285,8 @@ SELECT
     value,
     gas_limit,
     id,
-    block_hash
+    block_hash,
+    is_reorged
 FROM `1_internal_transfers`
 WHERE from_address IS NOT NULL;
 
@@ -293,7 +301,8 @@ CREATE MATERIALIZED VIEW `1_internal_transfers_to_address_mv` TO `1_internal_tra
     `value` UInt256,
     `gas_limit` UInt64,
     `id` String,
-    `block_hash` String
+    `block_hash` String,
+    `is_reorged` Bool
 ) AS
 SELECT
     to_address AS address,
@@ -305,7 +314,8 @@ SELECT
     value,
     gas_limit,
     id,
-    block_hash
+    block_hash,
+    is_reorged
 FROM `1_internal_transfers`
 WHERE to_address IS NOT NULL;
 
@@ -341,7 +351,8 @@ CREATE TABLE `1_native_balances`
     `block_number` UInt64 CODEC(DoubleDelta),
     `block_hash` String CODEC(ZSTD(1)),
     `block_timestamp` UInt32 CODEC(DoubleDelta),
-    `value` UInt256 CODEC(ZSTD(1))
+    `value` UInt256 CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
@@ -357,7 +368,8 @@ CREATE TABLE `1_token_balances`
     `block_timestamp` UInt32 CODEC(DoubleDelta),
     `value` UInt256 CODEC(ZSTD(1)),
     `token_id` UInt256 CODEC(ZSTD(1)),
-    `block_hash` String CODEC(ZSTD(1))
+    `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
@@ -379,11 +391,136 @@ CREATE TABLE `1_token_transfers`
     `operator_address` Nullable(String) CODEC(ZSTD(1)),
     `token_id` Nullable(UInt256),
     `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (block_number, transaction_hash, log_index, token_id)
 SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+
+CREATE TABLE `1_token_transfers_address`
+(
+    `address` String CODEC(ZSTD(1)),
+    `token_address` String CODEC(ZSTD(1)),
+    `token_standard` LowCardinality(String) DEFAULT '',
+    `from_address` String CODEC(ZSTD(1)),
+    `to_address` String CODEC(ZSTD(1)),
+    `value` UInt256,
+    `transaction_hash` String CODEC(ZSTD(1)),
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String CODEC(ZSTD(1)),
+    `operator_address` Nullable(String) CODEC(ZSTD(1)),
+    `token_id` Nullable(UInt256),
+    `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0
+)
+ENGINE = ReplacingMergeTree
+ORDER BY (address, token_standard, token_id, transaction_hash, log_index)
+SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+
+CREATE MATERIALIZED VIEW `1_token_transfers_from_address_mv` TO `1_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    from_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `1_token_transfers`;
+
+CREATE MATERIALIZED VIEW `1_token_transfers_to_address_mv` TO `1_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    to_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `1_token_transfers`;
+
+CREATE MATERIALIZED VIEW `1_token_transfers_token_address_mv` TO `1_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    token_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `1_token_transfers`;
 
 CREATE TABLE `1_token_transfers_transaction_hash`
 (
@@ -399,7 +536,8 @@ CREATE TABLE `1_token_transfers_transaction_hash`
     `block_hash` String CODEC(ZSTD(1)),
     `operator_address` Nullable(String) CODEC(ZSTD(1)),
     `token_id` Nullable(UInt256),
-    `is_nft` Bool MATERIALIZED token_id IS NOT NULL
+    `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (transaction_hash, log_index, token_id)
@@ -418,7 +556,8 @@ CREATE MATERIALIZED VIEW `1_token_transfers_transaction_hash_mv` TO `1_token_tra
     `block_number` UInt64,
     `block_hash` String,
     `operator_address` Nullable(String),
-    `token_id` Nullable(UInt256)
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
 ) AS
 SELECT
     token_address,
@@ -432,7 +571,8 @@ SELECT
     block_number,
     block_hash,
     operator_address,
-    token_id
+    token_id,
+    is_reorged
 FROM `1_token_transfers`;
 
 CREATE TABLE `1_tokens`
@@ -471,7 +611,8 @@ CREATE TABLE `1_traces`
     `block_timestamp` UInt32,
     `block_number` UInt64,
     `block_hash` String CODEC(ZSTD(1)),
-    `trace_id` String CODEC(ZSTD(1))
+    `trace_id` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMMDD(FROM_UNIXTIME(block_timestamp))
@@ -501,8 +642,9 @@ CREATE TABLE `1_transactions_address`
     `receipt_contract_address` Nullable(String) CODEC(ZSTD(1)),
     `receipt_root` Nullable(String) CODEC(ZSTD(1)),
     `receipt_status` UInt32,
-    `receipt_effective_gas_price` UInt256,
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_effective_gas_price` Nullable(UInt256),
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (address, from_address, to_address, hash)
@@ -532,7 +674,8 @@ CREATE MATERIALIZED VIEW `1_transactions_by_from_address_mv` TO `1_transactions_
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     from_address AS address,
@@ -557,7 +700,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `1_transactions`
 WHERE from_address IS NOT NULL;
 
@@ -584,7 +728,8 @@ CREATE MATERIALIZED VIEW `1_transactions_by_hash_mv` TO `1_transactions_hash`
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     hash,
@@ -608,7 +753,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `1_transactions`;
 
 CREATE MATERIALIZED VIEW `1_transactions_by_to_address_mv` TO `1_transactions_address`
@@ -635,7 +781,8 @@ CREATE MATERIALIZED VIEW `1_transactions_by_to_address_mv` TO `1_transactions_ad
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     to_address AS address,
@@ -660,7 +807,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `1_transactions`
 WHERE to_address IS NOT NULL;
 
@@ -686,8 +834,9 @@ CREATE TABLE `1_transactions_hash`
     `receipt_contract_address` Nullable(String) CODEC(ZSTD(1)),
     `receipt_root` Nullable(String) CODEC(ZSTD(1)),
     `receipt_status` UInt32,
-    `receipt_effective_gas_price` UInt256,
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_effective_gas_price` Nullable(UInt256),
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (hash, block_number)
@@ -714,6 +863,7 @@ CREATE TABLE `10_blocks`
     `timestamp` UInt32,
     `transaction_count` UInt64,
     `base_fee_per_gas` Nullable(Int64),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -768,6 +918,7 @@ CREATE TABLE `10_transactions`
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
     `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -795,6 +946,7 @@ CREATE TABLE `10_logs`
     `address` String CODEC(ZSTD(1)),
     `data` String CODEC(ZSTD(1)),
     `topics` Array(String) CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX logs_block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -908,6 +1060,7 @@ CREATE TABLE `10_geth_traces`
     `block_number` UInt64 CODEC(Delta(8), LZ4),
     `traces_json` String CODEC(ZSTD(1)),
     `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
@@ -926,6 +1079,7 @@ CREATE TABLE `10_internal_transfers`
     `gas_limit` UInt64 CODEC(ZSTD(1)),
     `id` String CODEC(ZSTD(1)),
     `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -944,6 +1098,7 @@ CREATE TABLE `10_internal_transfers_address`
     `gas_limit` UInt64 CODEC(ZSTD(1)),
     `id` String CODEC(ZSTD(1)),
     `block_hash` Nullable(String),
+    `is_reorged` Bool DEFAULT 0,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -961,7 +1116,8 @@ CREATE MATERIALIZED VIEW `10_internal_transfers_from_address_mv` TO `10_internal
     `value` UInt256,
     `gas_limit` UInt64,
     `id` String,
-    `block_hash` String
+    `block_hash` String,
+    `is_reorged` Bool
 ) AS
 SELECT
     from_address AS address,
@@ -973,7 +1129,8 @@ SELECT
     value,
     gas_limit,
     id,
-    block_hash
+    block_hash,
+    is_reorged
 FROM `10_internal_transfers`
 WHERE from_address IS NOT NULL;
 
@@ -988,7 +1145,8 @@ CREATE MATERIALIZED VIEW `10_internal_transfers_to_address_mv` TO `10_internal_t
     `value` UInt256,
     `gas_limit` UInt64,
     `id` String,
-    `block_hash` String
+    `block_hash` String,
+    `is_reorged` Bool
 ) AS
 SELECT
     to_address AS address,
@@ -1000,7 +1158,8 @@ SELECT
     value,
     gas_limit,
     id,
-    block_hash
+    block_hash,
+    is_reorged
 FROM `10_internal_transfers`
 WHERE to_address IS NOT NULL;
 
@@ -1036,7 +1195,8 @@ CREATE TABLE `10_native_balances`
     `block_number` UInt64 CODEC(DoubleDelta),
     `block_hash` String CODEC(ZSTD(1)),
     `block_timestamp` UInt32 CODEC(DoubleDelta),
-    `value` UInt256 CODEC(ZSTD(1))
+    `value` UInt256 CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
@@ -1052,7 +1212,8 @@ CREATE TABLE `10_token_balances`
     `block_timestamp` UInt32 CODEC(DoubleDelta),
     `value` UInt256 CODEC(ZSTD(1)),
     `token_id` UInt256 CODEC(ZSTD(1)),
-    `block_hash` String CODEC(ZSTD(1))
+    `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
@@ -1074,11 +1235,136 @@ CREATE TABLE `10_token_transfers`
     `operator_address` Nullable(String) CODEC(ZSTD(1)),
     `token_id` Nullable(UInt256),
     `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (block_number, transaction_hash, log_index, token_id)
 SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+
+CREATE TABLE `10_token_transfers_address`
+(
+    `address` String CODEC(ZSTD(1)),
+    `token_address` String CODEC(ZSTD(1)),
+    `token_standard` LowCardinality(String) DEFAULT '',
+    `from_address` String CODEC(ZSTD(1)),
+    `to_address` String CODEC(ZSTD(1)),
+    `value` UInt256,
+    `transaction_hash` String CODEC(ZSTD(1)),
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String CODEC(ZSTD(1)),
+    `operator_address` Nullable(String) CODEC(ZSTD(1)),
+    `token_id` Nullable(UInt256),
+    `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0
+)
+ENGINE = ReplacingMergeTree
+ORDER BY (address, token_standard, token_id, transaction_hash, log_index)
+SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+
+CREATE MATERIALIZED VIEW `10_token_transfers_from_address_mv` TO `10_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    from_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `10_token_transfers`;
+
+CREATE MATERIALIZED VIEW `10_token_transfers_to_address_mv` TO `10_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    to_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `10_token_transfers`;
+
+CREATE MATERIALIZED VIEW `10_token_transfers_token_address_mv` TO `10_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    token_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `10_token_transfers`;
 
 CREATE TABLE `10_token_transfers_transaction_hash`
 (
@@ -1094,7 +1380,8 @@ CREATE TABLE `10_token_transfers_transaction_hash`
     `block_hash` String CODEC(ZSTD(1)),
     `operator_address` Nullable(String) CODEC(ZSTD(1)),
     `token_id` Nullable(UInt256),
-    `is_nft` Bool MATERIALIZED token_id IS NOT NULL
+    `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (transaction_hash, log_index, token_id)
@@ -1113,7 +1400,8 @@ CREATE MATERIALIZED VIEW `10_token_transfers_transaction_hash_mv` TO `10_token_t
     `block_number` UInt64,
     `block_hash` String,
     `operator_address` Nullable(String),
-    `token_id` Nullable(UInt256)
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
 ) AS
 SELECT
     token_address,
@@ -1127,7 +1415,8 @@ SELECT
     block_number,
     block_hash,
     operator_address,
-    token_id
+    token_id,
+    is_reorged
 FROM `10_token_transfers`;
 
 CREATE TABLE `10_tokens`
@@ -1166,7 +1455,8 @@ CREATE TABLE `10_traces`
     `block_timestamp` UInt32,
     `block_number` UInt64,
     `block_hash` String CODEC(ZSTD(1)),
-    `trace_id` String CODEC(ZSTD(1))
+    `trace_id` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMMDD(FROM_UNIXTIME(block_timestamp))
@@ -1196,8 +1486,9 @@ CREATE TABLE `10_transactions_address`
     `receipt_contract_address` Nullable(String) CODEC(ZSTD(1)),
     `receipt_root` Nullable(String) CODEC(ZSTD(1)),
     `receipt_status` UInt32,
-    `receipt_effective_gas_price` UInt256,
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_effective_gas_price` Nullable(UInt256),
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (address, from_address, to_address, hash)
@@ -1227,7 +1518,8 @@ CREATE MATERIALIZED VIEW `10_transactions_by_from_address_mv` TO `10_transaction
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     from_address AS address,
@@ -1252,7 +1544,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `10_transactions`
 WHERE from_address IS NOT NULL;
 
@@ -1279,7 +1572,8 @@ CREATE MATERIALIZED VIEW `10_transactions_by_hash_mv` TO `10_transactions_hash`
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     hash,
@@ -1303,7 +1597,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `10_transactions`;
 
 CREATE MATERIALIZED VIEW `10_transactions_by_to_address_mv` TO `10_transactions_address`
@@ -1330,7 +1625,8 @@ CREATE MATERIALIZED VIEW `10_transactions_by_to_address_mv` TO `10_transactions_
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     to_address AS address,
@@ -1355,7 +1651,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `10_transactions`
 WHERE to_address IS NOT NULL;
 
@@ -1381,8 +1678,9 @@ CREATE TABLE `10_transactions_hash`
     `receipt_contract_address` Nullable(String) CODEC(ZSTD(1)),
     `receipt_root` Nullable(String) CODEC(ZSTD(1)),
     `receipt_status` UInt32,
-    `receipt_effective_gas_price` UInt256,
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_effective_gas_price` Nullable(UInt256),
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (hash, block_number)
@@ -1409,6 +1707,7 @@ CREATE TABLE `100_blocks`
     `timestamp` UInt32,
     `transaction_count` UInt64,
     `base_fee_per_gas` Nullable(Int64),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -1463,6 +1762,7 @@ CREATE TABLE `100_transactions`
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
     `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -1490,6 +1790,7 @@ CREATE TABLE `100_logs`
     `address` String CODEC(ZSTD(1)),
     `data` String CODEC(ZSTD(1)),
     `topics` Array(String) CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX logs_block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -1603,6 +1904,7 @@ CREATE TABLE `100_geth_traces`
     `block_number` UInt64 CODEC(Delta(8), LZ4),
     `traces_json` String CODEC(ZSTD(1)),
     `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
@@ -1621,6 +1923,7 @@ CREATE TABLE `100_internal_transfers`
     `gas_limit` UInt64 CODEC(ZSTD(1)),
     `id` String CODEC(ZSTD(1)),
     `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -1639,6 +1942,7 @@ CREATE TABLE `100_internal_transfers_address`
     `gas_limit` UInt64 CODEC(ZSTD(1)),
     `id` String CODEC(ZSTD(1)),
     `block_hash` Nullable(String),
+    `is_reorged` Bool DEFAULT 0,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -1656,7 +1960,8 @@ CREATE MATERIALIZED VIEW `100_internal_transfers_from_address_mv` TO `100_intern
     `value` UInt256,
     `gas_limit` UInt64,
     `id` String,
-    `block_hash` String
+    `block_hash` String,
+    `is_reorged` Bool
 ) AS
 SELECT
     from_address AS address,
@@ -1668,7 +1973,8 @@ SELECT
     value,
     gas_limit,
     id,
-    block_hash
+    block_hash,
+    is_reorged
 FROM `100_internal_transfers`
 WHERE from_address IS NOT NULL;
 
@@ -1683,7 +1989,8 @@ CREATE MATERIALIZED VIEW `100_internal_transfers_to_address_mv` TO `100_internal
     `value` UInt256,
     `gas_limit` UInt64,
     `id` String,
-    `block_hash` String
+    `block_hash` String,
+    `is_reorged` Bool
 ) AS
 SELECT
     to_address AS address,
@@ -1695,7 +2002,8 @@ SELECT
     value,
     gas_limit,
     id,
-    block_hash
+    block_hash,
+    is_reorged
 FROM `100_internal_transfers`
 WHERE to_address IS NOT NULL;
 
@@ -1731,7 +2039,8 @@ CREATE TABLE `100_native_balances`
     `block_number` UInt64 CODEC(DoubleDelta),
     `block_hash` String CODEC(ZSTD(1)),
     `block_timestamp` UInt32 CODEC(DoubleDelta),
-    `value` UInt256 CODEC(ZSTD(1))
+    `value` UInt256 CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
@@ -1747,7 +2056,8 @@ CREATE TABLE `100_token_balances`
     `block_timestamp` UInt32 CODEC(DoubleDelta),
     `value` UInt256 CODEC(ZSTD(1)),
     `token_id` UInt256 CODEC(ZSTD(1)),
-    `block_hash` String CODEC(ZSTD(1))
+    `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
@@ -1769,11 +2079,136 @@ CREATE TABLE `100_token_transfers`
     `operator_address` Nullable(String) CODEC(ZSTD(1)),
     `token_id` Nullable(UInt256),
     `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (block_number, transaction_hash, log_index, token_id)
 SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+
+CREATE TABLE `100_token_transfers_address`
+(
+    `address` String CODEC(ZSTD(1)),
+    `token_address` String CODEC(ZSTD(1)),
+    `token_standard` LowCardinality(String) DEFAULT '',
+    `from_address` String CODEC(ZSTD(1)),
+    `to_address` String CODEC(ZSTD(1)),
+    `value` UInt256,
+    `transaction_hash` String CODEC(ZSTD(1)),
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String CODEC(ZSTD(1)),
+    `operator_address` Nullable(String) CODEC(ZSTD(1)),
+    `token_id` Nullable(UInt256),
+    `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0
+)
+ENGINE = ReplacingMergeTree
+ORDER BY (address, token_standard, token_id, transaction_hash, log_index)
+SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+
+CREATE MATERIALIZED VIEW `100_token_transfers_from_address_mv` TO `100_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    from_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `100_token_transfers`;
+
+CREATE MATERIALIZED VIEW `100_token_transfers_to_address_mv` TO `100_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    to_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `100_token_transfers`;
+
+CREATE MATERIALIZED VIEW `100_token_transfers_token_address_mv` TO `100_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    token_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `100_token_transfers`;
 
 CREATE TABLE `100_token_transfers_transaction_hash`
 (
@@ -1789,7 +2224,8 @@ CREATE TABLE `100_token_transfers_transaction_hash`
     `block_hash` String CODEC(ZSTD(1)),
     `operator_address` Nullable(String) CODEC(ZSTD(1)),
     `token_id` Nullable(UInt256),
-    `is_nft` Bool MATERIALIZED token_id IS NOT NULL
+    `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (transaction_hash, log_index, token_id)
@@ -1808,7 +2244,8 @@ CREATE MATERIALIZED VIEW `100_token_transfers_transaction_hash_mv` TO `100_token
     `block_number` UInt64,
     `block_hash` String,
     `operator_address` Nullable(String),
-    `token_id` Nullable(UInt256)
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
 ) AS
 SELECT
     token_address,
@@ -1822,7 +2259,8 @@ SELECT
     block_number,
     block_hash,
     operator_address,
-    token_id
+    token_id,
+    is_reorged
 FROM `100_token_transfers`;
 
 CREATE TABLE `100_tokens`
@@ -1861,7 +2299,8 @@ CREATE TABLE `100_traces`
     `block_timestamp` UInt32,
     `block_number` UInt64,
     `block_hash` String CODEC(ZSTD(1)),
-    `trace_id` String CODEC(ZSTD(1))
+    `trace_id` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMMDD(FROM_UNIXTIME(block_timestamp))
@@ -1891,8 +2330,9 @@ CREATE TABLE `100_transactions_address`
     `receipt_contract_address` Nullable(String) CODEC(ZSTD(1)),
     `receipt_root` Nullable(String) CODEC(ZSTD(1)),
     `receipt_status` UInt32,
-    `receipt_effective_gas_price` UInt256,
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_effective_gas_price` Nullable(UInt256),
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (address, from_address, to_address, hash)
@@ -1922,7 +2362,8 @@ CREATE MATERIALIZED VIEW `100_transactions_by_from_address_mv` TO `100_transacti
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     from_address AS address,
@@ -1947,7 +2388,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `100_transactions`
 WHERE from_address IS NOT NULL;
 
@@ -1974,7 +2416,8 @@ CREATE MATERIALIZED VIEW `100_transactions_by_hash_mv` TO `100_transactions_hash
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     hash,
@@ -1998,7 +2441,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `100_transactions`;
 
 CREATE MATERIALIZED VIEW `100_transactions_by_to_address_mv` TO `100_transactions_address`
@@ -2025,7 +2469,8 @@ CREATE MATERIALIZED VIEW `100_transactions_by_to_address_mv` TO `100_transaction
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     to_address AS address,
@@ -2050,7 +2495,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `100_transactions`
 WHERE to_address IS NOT NULL;
 
@@ -2076,8 +2522,9 @@ CREATE TABLE `100_transactions_hash`
     `receipt_contract_address` Nullable(String) CODEC(ZSTD(1)),
     `receipt_root` Nullable(String) CODEC(ZSTD(1)),
     `receipt_status` UInt32,
-    `receipt_effective_gas_price` UInt256,
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_effective_gas_price` Nullable(UInt256),
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (hash, block_number)
@@ -2104,6 +2551,7 @@ CREATE TABLE `137_blocks`
     `timestamp` UInt32,
     `transaction_count` UInt64,
     `base_fee_per_gas` Nullable(Int64),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -2158,6 +2606,7 @@ CREATE TABLE `137_transactions`
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
     `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -2185,6 +2634,7 @@ CREATE TABLE `137_logs`
     `address` String CODEC(ZSTD(1)),
     `data` String CODEC(ZSTD(1)),
     `topics` Array(String) CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX logs_block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -2298,6 +2748,7 @@ CREATE TABLE `137_geth_traces`
     `block_number` UInt64 CODEC(Delta(8), LZ4),
     `traces_json` String CODEC(ZSTD(1)),
     `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
@@ -2316,6 +2767,7 @@ CREATE TABLE `137_internal_transfers`
     `gas_limit` UInt64 CODEC(ZSTD(1)),
     `id` String CODEC(ZSTD(1)),
     `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -2334,6 +2786,7 @@ CREATE TABLE `137_internal_transfers_address`
     `gas_limit` UInt64 CODEC(ZSTD(1)),
     `id` String CODEC(ZSTD(1)),
     `block_hash` Nullable(String),
+    `is_reorged` Bool DEFAULT 0,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -2351,7 +2804,8 @@ CREATE MATERIALIZED VIEW `137_internal_transfers_from_address_mv` TO `137_intern
     `value` UInt256,
     `gas_limit` UInt64,
     `id` String,
-    `block_hash` String
+    `block_hash` String,
+    `is_reorged` Bool
 ) AS
 SELECT
     from_address AS address,
@@ -2363,7 +2817,8 @@ SELECT
     value,
     gas_limit,
     id,
-    block_hash
+    block_hash,
+    is_reorged
 FROM `137_internal_transfers`
 WHERE from_address IS NOT NULL;
 
@@ -2378,7 +2833,8 @@ CREATE MATERIALIZED VIEW `137_internal_transfers_to_address_mv` TO `137_internal
     `value` UInt256,
     `gas_limit` UInt64,
     `id` String,
-    `block_hash` String
+    `block_hash` String,
+    `is_reorged` Bool
 ) AS
 SELECT
     to_address AS address,
@@ -2390,7 +2846,8 @@ SELECT
     value,
     gas_limit,
     id,
-    block_hash
+    block_hash,
+    is_reorged
 FROM `137_internal_transfers`
 WHERE to_address IS NOT NULL;
 
@@ -2426,7 +2883,8 @@ CREATE TABLE `137_native_balances`
     `block_number` UInt64 CODEC(DoubleDelta),
     `block_hash` String CODEC(ZSTD(1)),
     `block_timestamp` UInt32 CODEC(DoubleDelta),
-    `value` UInt256 CODEC(ZSTD(1))
+    `value` UInt256 CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
@@ -2442,7 +2900,8 @@ CREATE TABLE `137_token_balances`
     `block_timestamp` UInt32 CODEC(DoubleDelta),
     `value` UInt256 CODEC(ZSTD(1)),
     `token_id` UInt256 CODEC(ZSTD(1)),
-    `block_hash` String CODEC(ZSTD(1))
+    `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
@@ -2464,11 +2923,136 @@ CREATE TABLE `137_token_transfers`
     `operator_address` Nullable(String) CODEC(ZSTD(1)),
     `token_id` Nullable(UInt256),
     `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (block_number, transaction_hash, log_index, token_id)
 SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+
+CREATE TABLE `137_token_transfers_address`
+(
+    `address` String CODEC(ZSTD(1)),
+    `token_address` String CODEC(ZSTD(1)),
+    `token_standard` LowCardinality(String) DEFAULT '',
+    `from_address` String CODEC(ZSTD(1)),
+    `to_address` String CODEC(ZSTD(1)),
+    `value` UInt256,
+    `transaction_hash` String CODEC(ZSTD(1)),
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String CODEC(ZSTD(1)),
+    `operator_address` Nullable(String) CODEC(ZSTD(1)),
+    `token_id` Nullable(UInt256),
+    `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0
+)
+ENGINE = ReplacingMergeTree
+ORDER BY (address, token_standard, token_id, transaction_hash, log_index)
+SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+
+CREATE MATERIALIZED VIEW `137_token_transfers_from_address_mv` TO `137_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    from_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `137_token_transfers`;
+
+CREATE MATERIALIZED VIEW `137_token_transfers_to_address_mv` TO `137_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    to_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `137_token_transfers`;
+
+CREATE MATERIALIZED VIEW `137_token_transfers_token_address_mv` TO `137_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    token_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `137_token_transfers`;
 
 CREATE TABLE `137_token_transfers_transaction_hash`
 (
@@ -2484,7 +3068,8 @@ CREATE TABLE `137_token_transfers_transaction_hash`
     `block_hash` String CODEC(ZSTD(1)),
     `operator_address` Nullable(String) CODEC(ZSTD(1)),
     `token_id` Nullable(UInt256),
-    `is_nft` Bool MATERIALIZED token_id IS NOT NULL
+    `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (transaction_hash, log_index, token_id)
@@ -2503,7 +3088,8 @@ CREATE MATERIALIZED VIEW `137_token_transfers_transaction_hash_mv` TO `137_token
     `block_number` UInt64,
     `block_hash` String,
     `operator_address` Nullable(String),
-    `token_id` Nullable(UInt256)
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
 ) AS
 SELECT
     token_address,
@@ -2517,7 +3103,8 @@ SELECT
     block_number,
     block_hash,
     operator_address,
-    token_id
+    token_id,
+    is_reorged
 FROM `137_token_transfers`;
 
 CREATE TABLE `137_tokens`
@@ -2556,7 +3143,8 @@ CREATE TABLE `137_traces`
     `block_timestamp` UInt32,
     `block_number` UInt64,
     `block_hash` String CODEC(ZSTD(1)),
-    `trace_id` String CODEC(ZSTD(1))
+    `trace_id` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMMDD(FROM_UNIXTIME(block_timestamp))
@@ -2586,8 +3174,9 @@ CREATE TABLE `137_transactions_address`
     `receipt_contract_address` Nullable(String) CODEC(ZSTD(1)),
     `receipt_root` Nullable(String) CODEC(ZSTD(1)),
     `receipt_status` UInt32,
-    `receipt_effective_gas_price` UInt256,
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_effective_gas_price` Nullable(UInt256),
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (address, from_address, to_address, hash)
@@ -2617,7 +3206,8 @@ CREATE MATERIALIZED VIEW `137_transactions_by_from_address_mv` TO `137_transacti
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     from_address AS address,
@@ -2642,7 +3232,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `137_transactions`
 WHERE from_address IS NOT NULL;
 
@@ -2669,7 +3260,8 @@ CREATE MATERIALIZED VIEW `137_transactions_by_hash_mv` TO `137_transactions_hash
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     hash,
@@ -2693,7 +3285,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `137_transactions`;
 
 CREATE MATERIALIZED VIEW `137_transactions_by_to_address_mv` TO `137_transactions_address`
@@ -2720,7 +3313,8 @@ CREATE MATERIALIZED VIEW `137_transactions_by_to_address_mv` TO `137_transaction
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     to_address AS address,
@@ -2745,7 +3339,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `137_transactions`
 WHERE to_address IS NOT NULL;
 
@@ -2771,8 +3366,9 @@ CREATE TABLE `137_transactions_hash`
     `receipt_contract_address` Nullable(String) CODEC(ZSTD(1)),
     `receipt_root` Nullable(String) CODEC(ZSTD(1)),
     `receipt_status` UInt32,
-    `receipt_effective_gas_price` UInt256,
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_effective_gas_price` Nullable(UInt256),
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (hash, block_number)
@@ -2799,6 +3395,7 @@ CREATE TABLE `250_blocks`
     `timestamp` UInt32,
     `transaction_count` UInt64,
     `base_fee_per_gas` Nullable(Int64),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -2853,6 +3450,7 @@ CREATE TABLE `250_transactions`
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
     `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -2880,6 +3478,7 @@ CREATE TABLE `250_logs`
     `address` String CODEC(ZSTD(1)),
     `data` String CODEC(ZSTD(1)),
     `topics` Array(String) CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX logs_block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -2993,6 +3592,7 @@ CREATE TABLE `250_geth_traces`
     `block_number` UInt64 CODEC(Delta(8), LZ4),
     `traces_json` String CODEC(ZSTD(1)),
     `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
@@ -3011,6 +3611,7 @@ CREATE TABLE `250_internal_transfers`
     `gas_limit` UInt64 CODEC(ZSTD(1)),
     `id` String CODEC(ZSTD(1)),
     `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -3029,6 +3630,7 @@ CREATE TABLE `250_internal_transfers_address`
     `gas_limit` UInt64 CODEC(ZSTD(1)),
     `id` String CODEC(ZSTD(1)),
     `block_hash` Nullable(String),
+    `is_reorged` Bool DEFAULT 0,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -3046,7 +3648,8 @@ CREATE MATERIALIZED VIEW `250_internal_transfers_from_address_mv` TO `250_intern
     `value` UInt256,
     `gas_limit` UInt64,
     `id` String,
-    `block_hash` String
+    `block_hash` String,
+    `is_reorged` Bool
 ) AS
 SELECT
     from_address AS address,
@@ -3058,7 +3661,8 @@ SELECT
     value,
     gas_limit,
     id,
-    block_hash
+    block_hash,
+    is_reorged
 FROM `250_internal_transfers`
 WHERE from_address IS NOT NULL;
 
@@ -3073,7 +3677,8 @@ CREATE MATERIALIZED VIEW `250_internal_transfers_to_address_mv` TO `250_internal
     `value` UInt256,
     `gas_limit` UInt64,
     `id` String,
-    `block_hash` String
+    `block_hash` String,
+    `is_reorged` Bool
 ) AS
 SELECT
     to_address AS address,
@@ -3085,7 +3690,8 @@ SELECT
     value,
     gas_limit,
     id,
-    block_hash
+    block_hash,
+    is_reorged
 FROM `250_internal_transfers`
 WHERE to_address IS NOT NULL;
 
@@ -3121,7 +3727,8 @@ CREATE TABLE `250_native_balances`
     `block_number` UInt64 CODEC(DoubleDelta),
     `block_hash` String CODEC(ZSTD(1)),
     `block_timestamp` UInt32 CODEC(DoubleDelta),
-    `value` UInt256 CODEC(ZSTD(1))
+    `value` UInt256 CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
@@ -3137,7 +3744,8 @@ CREATE TABLE `250_token_balances`
     `block_timestamp` UInt32 CODEC(DoubleDelta),
     `value` UInt256 CODEC(ZSTD(1)),
     `token_id` UInt256 CODEC(ZSTD(1)),
-    `block_hash` String CODEC(ZSTD(1))
+    `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
@@ -3159,11 +3767,136 @@ CREATE TABLE `250_token_transfers`
     `operator_address` Nullable(String) CODEC(ZSTD(1)),
     `token_id` Nullable(UInt256),
     `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (block_number, transaction_hash, log_index, token_id)
 SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+
+CREATE TABLE `250_token_transfers_address`
+(
+    `address` String CODEC(ZSTD(1)),
+    `token_address` String CODEC(ZSTD(1)),
+    `token_standard` LowCardinality(String) DEFAULT '',
+    `from_address` String CODEC(ZSTD(1)),
+    `to_address` String CODEC(ZSTD(1)),
+    `value` UInt256,
+    `transaction_hash` String CODEC(ZSTD(1)),
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String CODEC(ZSTD(1)),
+    `operator_address` Nullable(String) CODEC(ZSTD(1)),
+    `token_id` Nullable(UInt256),
+    `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0
+)
+ENGINE = ReplacingMergeTree
+ORDER BY (address, token_standard, token_id, transaction_hash, log_index)
+SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+
+CREATE MATERIALIZED VIEW `250_token_transfers_from_address_mv` TO `250_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    from_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `250_token_transfers`;
+
+CREATE MATERIALIZED VIEW `250_token_transfers_to_address_mv` TO `250_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    to_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `250_token_transfers`;
+
+CREATE MATERIALIZED VIEW `250_token_transfers_token_address_mv` TO `250_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    token_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `250_token_transfers`;
 
 CREATE TABLE `250_token_transfers_transaction_hash`
 (
@@ -3179,7 +3912,8 @@ CREATE TABLE `250_token_transfers_transaction_hash`
     `block_hash` String CODEC(ZSTD(1)),
     `operator_address` Nullable(String) CODEC(ZSTD(1)),
     `token_id` Nullable(UInt256),
-    `is_nft` Bool MATERIALIZED token_id IS NOT NULL
+    `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (transaction_hash, log_index, token_id)
@@ -3198,7 +3932,8 @@ CREATE MATERIALIZED VIEW `250_token_transfers_transaction_hash_mv` TO `250_token
     `block_number` UInt64,
     `block_hash` String,
     `operator_address` Nullable(String),
-    `token_id` Nullable(UInt256)
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
 ) AS
 SELECT
     token_address,
@@ -3212,7 +3947,8 @@ SELECT
     block_number,
     block_hash,
     operator_address,
-    token_id
+    token_id,
+    is_reorged
 FROM `250_token_transfers`;
 
 CREATE TABLE `250_tokens`
@@ -3251,7 +3987,8 @@ CREATE TABLE `250_traces`
     `block_timestamp` UInt32,
     `block_number` UInt64,
     `block_hash` String CODEC(ZSTD(1)),
-    `trace_id` String CODEC(ZSTD(1))
+    `trace_id` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMMDD(FROM_UNIXTIME(block_timestamp))
@@ -3281,8 +4018,9 @@ CREATE TABLE `250_transactions_address`
     `receipt_contract_address` Nullable(String) CODEC(ZSTD(1)),
     `receipt_root` Nullable(String) CODEC(ZSTD(1)),
     `receipt_status` UInt32,
-    `receipt_effective_gas_price` UInt256,
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_effective_gas_price` Nullable(UInt256),
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (address, from_address, to_address, hash)
@@ -3312,7 +4050,8 @@ CREATE MATERIALIZED VIEW `250_transactions_by_from_address_mv` TO `250_transacti
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     from_address AS address,
@@ -3337,7 +4076,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `250_transactions`
 WHERE from_address IS NOT NULL;
 
@@ -3364,7 +4104,8 @@ CREATE MATERIALIZED VIEW `250_transactions_by_hash_mv` TO `250_transactions_hash
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     hash,
@@ -3388,7 +4129,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `250_transactions`;
 
 CREATE MATERIALIZED VIEW `250_transactions_by_to_address_mv` TO `250_transactions_address`
@@ -3415,7 +4157,8 @@ CREATE MATERIALIZED VIEW `250_transactions_by_to_address_mv` TO `250_transaction
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     to_address AS address,
@@ -3440,7 +4183,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `250_transactions`
 WHERE to_address IS NOT NULL;
 
@@ -3466,8 +4210,9 @@ CREATE TABLE `250_transactions_hash`
     `receipt_contract_address` Nullable(String) CODEC(ZSTD(1)),
     `receipt_root` Nullable(String) CODEC(ZSTD(1)),
     `receipt_status` UInt32,
-    `receipt_effective_gas_price` UInt256,
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_effective_gas_price` Nullable(UInt256),
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (hash, block_number)
@@ -3494,6 +4239,7 @@ CREATE TABLE `42161_blocks`
     `timestamp` UInt32,
     `transaction_count` UInt64,
     `base_fee_per_gas` Nullable(Int64),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -3548,6 +4294,7 @@ CREATE TABLE `42161_transactions`
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
     `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -3575,6 +4322,7 @@ CREATE TABLE `42161_logs`
     `address` String CODEC(ZSTD(1)),
     `data` String CODEC(ZSTD(1)),
     `topics` Array(String) CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX logs_block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -3688,6 +4436,7 @@ CREATE TABLE `42161_geth_traces`
     `block_number` UInt64 CODEC(Delta(8), LZ4),
     `traces_json` String CODEC(ZSTD(1)),
     `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
@@ -3706,6 +4455,7 @@ CREATE TABLE `42161_internal_transfers`
     `gas_limit` UInt64 CODEC(ZSTD(1)),
     `id` String CODEC(ZSTD(1)),
     `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -3724,6 +4474,7 @@ CREATE TABLE `42161_internal_transfers_address`
     `gas_limit` UInt64 CODEC(ZSTD(1)),
     `id` String CODEC(ZSTD(1)),
     `block_hash` Nullable(String),
+    `is_reorged` Bool DEFAULT 0,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -3741,7 +4492,8 @@ CREATE MATERIALIZED VIEW `42161_internal_transfers_from_address_mv` TO `42161_in
     `value` UInt256,
     `gas_limit` UInt64,
     `id` String,
-    `block_hash` String
+    `block_hash` String,
+    `is_reorged` Bool
 ) AS
 SELECT
     from_address AS address,
@@ -3753,7 +4505,8 @@ SELECT
     value,
     gas_limit,
     id,
-    block_hash
+    block_hash,
+    is_reorged
 FROM `42161_internal_transfers`
 WHERE from_address IS NOT NULL;
 
@@ -3768,7 +4521,8 @@ CREATE MATERIALIZED VIEW `42161_internal_transfers_to_address_mv` TO `42161_inte
     `value` UInt256,
     `gas_limit` UInt64,
     `id` String,
-    `block_hash` String
+    `block_hash` String,
+    `is_reorged` Bool
 ) AS
 SELECT
     to_address AS address,
@@ -3780,7 +4534,8 @@ SELECT
     value,
     gas_limit,
     id,
-    block_hash
+    block_hash,
+    is_reorged
 FROM `42161_internal_transfers`
 WHERE to_address IS NOT NULL;
 
@@ -3816,7 +4571,8 @@ CREATE TABLE `42161_native_balances`
     `block_number` UInt64 CODEC(DoubleDelta),
     `block_hash` String CODEC(ZSTD(1)),
     `block_timestamp` UInt32 CODEC(DoubleDelta),
-    `value` UInt256 CODEC(ZSTD(1))
+    `value` UInt256 CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
@@ -3832,7 +4588,8 @@ CREATE TABLE `42161_token_balances`
     `block_timestamp` UInt32 CODEC(DoubleDelta),
     `value` UInt256 CODEC(ZSTD(1)),
     `token_id` UInt256 CODEC(ZSTD(1)),
-    `block_hash` String CODEC(ZSTD(1))
+    `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
@@ -3854,11 +4611,136 @@ CREATE TABLE `42161_token_transfers`
     `operator_address` Nullable(String) CODEC(ZSTD(1)),
     `token_id` Nullable(UInt256),
     `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (block_number, transaction_hash, log_index, token_id)
 SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+
+CREATE TABLE `42161_token_transfers_address`
+(
+    `address` String CODEC(ZSTD(1)),
+    `token_address` String CODEC(ZSTD(1)),
+    `token_standard` LowCardinality(String) DEFAULT '',
+    `from_address` String CODEC(ZSTD(1)),
+    `to_address` String CODEC(ZSTD(1)),
+    `value` UInt256,
+    `transaction_hash` String CODEC(ZSTD(1)),
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String CODEC(ZSTD(1)),
+    `operator_address` Nullable(String) CODEC(ZSTD(1)),
+    `token_id` Nullable(UInt256),
+    `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0
+)
+ENGINE = ReplacingMergeTree
+ORDER BY (address, token_standard, token_id, transaction_hash, log_index)
+SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+
+CREATE MATERIALIZED VIEW `42161_token_transfers_from_address_mv` TO `42161_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    from_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `42161_token_transfers`;
+
+CREATE MATERIALIZED VIEW `42161_token_transfers_to_address_mv` TO `42161_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    to_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `42161_token_transfers`;
+
+CREATE MATERIALIZED VIEW `42161_token_transfers_token_address_mv` TO `42161_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    token_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `42161_token_transfers`;
 
 CREATE TABLE `42161_token_transfers_transaction_hash`
 (
@@ -3874,7 +4756,8 @@ CREATE TABLE `42161_token_transfers_transaction_hash`
     `block_hash` String CODEC(ZSTD(1)),
     `operator_address` Nullable(String) CODEC(ZSTD(1)),
     `token_id` Nullable(UInt256),
-    `is_nft` Bool MATERIALIZED token_id IS NOT NULL
+    `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (transaction_hash, log_index, token_id)
@@ -3893,7 +4776,8 @@ CREATE MATERIALIZED VIEW `42161_token_transfers_transaction_hash_mv` TO `42161_t
     `block_number` UInt64,
     `block_hash` String,
     `operator_address` Nullable(String),
-    `token_id` Nullable(UInt256)
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
 ) AS
 SELECT
     token_address,
@@ -3907,7 +4791,8 @@ SELECT
     block_number,
     block_hash,
     operator_address,
-    token_id
+    token_id,
+    is_reorged
 FROM `42161_token_transfers`;
 
 CREATE TABLE `42161_tokens`
@@ -3946,7 +4831,8 @@ CREATE TABLE `42161_traces`
     `block_timestamp` UInt32,
     `block_number` UInt64,
     `block_hash` String CODEC(ZSTD(1)),
-    `trace_id` String CODEC(ZSTD(1))
+    `trace_id` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMMDD(FROM_UNIXTIME(block_timestamp))
@@ -3976,8 +4862,9 @@ CREATE TABLE `42161_transactions_address`
     `receipt_contract_address` Nullable(String) CODEC(ZSTD(1)),
     `receipt_root` Nullable(String) CODEC(ZSTD(1)),
     `receipt_status` UInt32,
-    `receipt_effective_gas_price` UInt256,
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_effective_gas_price` Nullable(UInt256),
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (address, from_address, to_address, hash)
@@ -4007,7 +4894,8 @@ CREATE MATERIALIZED VIEW `42161_transactions_by_from_address_mv` TO `42161_trans
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     from_address AS address,
@@ -4032,7 +4920,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `42161_transactions`
 WHERE from_address IS NOT NULL;
 
@@ -4059,7 +4948,8 @@ CREATE MATERIALIZED VIEW `42161_transactions_by_hash_mv` TO `42161_transactions_
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     hash,
@@ -4083,7 +4973,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `42161_transactions`;
 
 CREATE MATERIALIZED VIEW `42161_transactions_by_to_address_mv` TO `42161_transactions_address`
@@ -4110,7 +5001,8 @@ CREATE MATERIALIZED VIEW `42161_transactions_by_to_address_mv` TO `42161_transac
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     to_address AS address,
@@ -4135,7 +5027,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `42161_transactions`
 WHERE to_address IS NOT NULL;
 
@@ -4161,8 +5054,9 @@ CREATE TABLE `42161_transactions_hash`
     `receipt_contract_address` Nullable(String) CODEC(ZSTD(1)),
     `receipt_root` Nullable(String) CODEC(ZSTD(1)),
     `receipt_status` UInt32,
-    `receipt_effective_gas_price` UInt256,
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_effective_gas_price` Nullable(UInt256),
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (hash, block_number)
@@ -4189,6 +5083,7 @@ CREATE TABLE `42170_blocks`
     `timestamp` UInt32,
     `transaction_count` UInt64,
     `base_fee_per_gas` Nullable(Int64),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -4243,6 +5138,7 @@ CREATE TABLE `42170_transactions`
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
     `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -4270,6 +5166,7 @@ CREATE TABLE `42170_logs`
     `address` String CODEC(ZSTD(1)),
     `data` String CODEC(ZSTD(1)),
     `topics` Array(String) CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX logs_block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -4383,6 +5280,7 @@ CREATE TABLE `42170_geth_traces`
     `block_number` UInt64 CODEC(Delta(8), LZ4),
     `traces_json` String CODEC(ZSTD(1)),
     `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
@@ -4401,6 +5299,7 @@ CREATE TABLE `42170_internal_transfers`
     `gas_limit` UInt64 CODEC(ZSTD(1)),
     `id` String CODEC(ZSTD(1)),
     `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -4419,6 +5318,7 @@ CREATE TABLE `42170_internal_transfers_address`
     `gas_limit` UInt64 CODEC(ZSTD(1)),
     `id` String CODEC(ZSTD(1)),
     `block_hash` Nullable(String),
+    `is_reorged` Bool DEFAULT 0,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -4436,7 +5336,8 @@ CREATE MATERIALIZED VIEW `42170_internal_transfers_from_address_mv` TO `42170_in
     `value` UInt256,
     `gas_limit` UInt64,
     `id` String,
-    `block_hash` String
+    `block_hash` String,
+    `is_reorged` Bool
 ) AS
 SELECT
     from_address AS address,
@@ -4448,7 +5349,8 @@ SELECT
     value,
     gas_limit,
     id,
-    block_hash
+    block_hash,
+    is_reorged
 FROM `42170_internal_transfers`
 WHERE from_address IS NOT NULL;
 
@@ -4463,7 +5365,8 @@ CREATE MATERIALIZED VIEW `42170_internal_transfers_to_address_mv` TO `42170_inte
     `value` UInt256,
     `gas_limit` UInt64,
     `id` String,
-    `block_hash` String
+    `block_hash` String,
+    `is_reorged` Bool
 ) AS
 SELECT
     to_address AS address,
@@ -4475,7 +5378,8 @@ SELECT
     value,
     gas_limit,
     id,
-    block_hash
+    block_hash,
+    is_reorged
 FROM `42170_internal_transfers`
 WHERE to_address IS NOT NULL;
 
@@ -4511,7 +5415,8 @@ CREATE TABLE `42170_native_balances`
     `block_number` UInt64 CODEC(DoubleDelta),
     `block_hash` String CODEC(ZSTD(1)),
     `block_timestamp` UInt32 CODEC(DoubleDelta),
-    `value` UInt256 CODEC(ZSTD(1))
+    `value` UInt256 CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
@@ -4527,7 +5432,8 @@ CREATE TABLE `42170_token_balances`
     `block_timestamp` UInt32 CODEC(DoubleDelta),
     `value` UInt256 CODEC(ZSTD(1)),
     `token_id` UInt256 CODEC(ZSTD(1)),
-    `block_hash` String CODEC(ZSTD(1))
+    `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
@@ -4549,11 +5455,136 @@ CREATE TABLE `42170_token_transfers`
     `operator_address` Nullable(String) CODEC(ZSTD(1)),
     `token_id` Nullable(UInt256),
     `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (block_number, transaction_hash, log_index, token_id)
 SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+
+CREATE TABLE `42170_token_transfers_address`
+(
+    `address` String CODEC(ZSTD(1)),
+    `token_address` String CODEC(ZSTD(1)),
+    `token_standard` LowCardinality(String) DEFAULT '',
+    `from_address` String CODEC(ZSTD(1)),
+    `to_address` String CODEC(ZSTD(1)),
+    `value` UInt256,
+    `transaction_hash` String CODEC(ZSTD(1)),
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String CODEC(ZSTD(1)),
+    `operator_address` Nullable(String) CODEC(ZSTD(1)),
+    `token_id` Nullable(UInt256),
+    `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0
+)
+ENGINE = ReplacingMergeTree
+ORDER BY (address, token_standard, token_id, transaction_hash, log_index)
+SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+
+CREATE MATERIALIZED VIEW `42170_token_transfers_from_address_mv` TO `42170_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    from_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `42170_token_transfers`;
+
+CREATE MATERIALIZED VIEW `42170_token_transfers_to_address_mv` TO `42170_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    to_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `42170_token_transfers`;
+
+CREATE MATERIALIZED VIEW `42170_token_transfers_token_address_mv` TO `42170_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    token_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `42170_token_transfers`;
 
 CREATE TABLE `42170_token_transfers_transaction_hash`
 (
@@ -4569,7 +5600,8 @@ CREATE TABLE `42170_token_transfers_transaction_hash`
     `block_hash` String CODEC(ZSTD(1)),
     `operator_address` Nullable(String) CODEC(ZSTD(1)),
     `token_id` Nullable(UInt256),
-    `is_nft` Bool MATERIALIZED token_id IS NOT NULL
+    `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (transaction_hash, log_index, token_id)
@@ -4588,7 +5620,8 @@ CREATE MATERIALIZED VIEW `42170_token_transfers_transaction_hash_mv` TO `42170_t
     `block_number` UInt64,
     `block_hash` String,
     `operator_address` Nullable(String),
-    `token_id` Nullable(UInt256)
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
 ) AS
 SELECT
     token_address,
@@ -4602,7 +5635,8 @@ SELECT
     block_number,
     block_hash,
     operator_address,
-    token_id
+    token_id,
+    is_reorged
 FROM `42170_token_transfers`;
 
 CREATE TABLE `42170_tokens`
@@ -4641,7 +5675,8 @@ CREATE TABLE `42170_traces`
     `block_timestamp` UInt32,
     `block_number` UInt64,
     `block_hash` String CODEC(ZSTD(1)),
-    `trace_id` String CODEC(ZSTD(1))
+    `trace_id` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMMDD(FROM_UNIXTIME(block_timestamp))
@@ -4671,8 +5706,9 @@ CREATE TABLE `42170_transactions_address`
     `receipt_contract_address` Nullable(String) CODEC(ZSTD(1)),
     `receipt_root` Nullable(String) CODEC(ZSTD(1)),
     `receipt_status` UInt32,
-    `receipt_effective_gas_price` UInt256,
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_effective_gas_price` Nullable(UInt256),
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (address, from_address, to_address, hash)
@@ -4702,7 +5738,8 @@ CREATE MATERIALIZED VIEW `42170_transactions_by_from_address_mv` TO `42170_trans
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     from_address AS address,
@@ -4727,7 +5764,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `42170_transactions`
 WHERE from_address IS NOT NULL;
 
@@ -4754,7 +5792,8 @@ CREATE MATERIALIZED VIEW `42170_transactions_by_hash_mv` TO `42170_transactions_
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     hash,
@@ -4778,7 +5817,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `42170_transactions`;
 
 CREATE MATERIALIZED VIEW `42170_transactions_by_to_address_mv` TO `42170_transactions_address`
@@ -4805,7 +5845,8 @@ CREATE MATERIALIZED VIEW `42170_transactions_by_to_address_mv` TO `42170_transac
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     to_address AS address,
@@ -4830,7 +5871,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `42170_transactions`
 WHERE to_address IS NOT NULL;
 
@@ -4856,8 +5898,9 @@ CREATE TABLE `42170_transactions_hash`
     `receipt_contract_address` Nullable(String) CODEC(ZSTD(1)),
     `receipt_root` Nullable(String) CODEC(ZSTD(1)),
     `receipt_status` UInt32,
-    `receipt_effective_gas_price` UInt256,
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_effective_gas_price` Nullable(UInt256),
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (hash, block_number)
@@ -4884,6 +5927,7 @@ CREATE TABLE `56_blocks`
     `timestamp` UInt32,
     `transaction_count` UInt64,
     `base_fee_per_gas` Nullable(Int64),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -4938,6 +5982,7 @@ CREATE TABLE `56_transactions`
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
     `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -4965,6 +6010,7 @@ CREATE TABLE `56_logs`
     `address` String CODEC(ZSTD(1)),
     `data` String CODEC(ZSTD(1)),
     `topics` Array(String) CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX logs_block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -5078,6 +6124,7 @@ CREATE TABLE `56_geth_traces`
     `block_number` UInt64 CODEC(Delta(8), LZ4),
     `traces_json` String CODEC(ZSTD(1)),
     `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
@@ -5096,6 +6143,7 @@ CREATE TABLE `56_internal_transfers`
     `gas_limit` UInt64 CODEC(ZSTD(1)),
     `id` String CODEC(ZSTD(1)),
     `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -5114,6 +6162,7 @@ CREATE TABLE `56_internal_transfers_address`
     `gas_limit` UInt64 CODEC(ZSTD(1)),
     `id` String CODEC(ZSTD(1)),
     `block_hash` Nullable(String),
+    `is_reorged` Bool DEFAULT 0,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -5131,7 +6180,8 @@ CREATE MATERIALIZED VIEW `56_internal_transfers_from_address_mv` TO `56_internal
     `value` UInt256,
     `gas_limit` UInt64,
     `id` String,
-    `block_hash` String
+    `block_hash` String,
+    `is_reorged` Bool
 ) AS
 SELECT
     from_address AS address,
@@ -5143,7 +6193,8 @@ SELECT
     value,
     gas_limit,
     id,
-    block_hash
+    block_hash,
+    is_reorged
 FROM `56_internal_transfers`
 WHERE from_address IS NOT NULL;
 
@@ -5158,7 +6209,8 @@ CREATE MATERIALIZED VIEW `56_internal_transfers_to_address_mv` TO `56_internal_t
     `value` UInt256,
     `gas_limit` UInt64,
     `id` String,
-    `block_hash` String
+    `block_hash` String,
+    `is_reorged` Bool
 ) AS
 SELECT
     to_address AS address,
@@ -5170,7 +6222,8 @@ SELECT
     value,
     gas_limit,
     id,
-    block_hash
+    block_hash,
+    is_reorged
 FROM `56_internal_transfers`
 WHERE to_address IS NOT NULL;
 
@@ -5206,7 +6259,8 @@ CREATE TABLE `56_native_balances`
     `block_number` UInt64 CODEC(DoubleDelta),
     `block_hash` String CODEC(ZSTD(1)),
     `block_timestamp` UInt32 CODEC(DoubleDelta),
-    `value` UInt256 CODEC(ZSTD(1))
+    `value` UInt256 CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
@@ -5222,7 +6276,8 @@ CREATE TABLE `56_token_balances`
     `block_timestamp` UInt32 CODEC(DoubleDelta),
     `value` UInt256 CODEC(ZSTD(1)),
     `token_id` UInt256 CODEC(ZSTD(1)),
-    `block_hash` String CODEC(ZSTD(1))
+    `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
@@ -5244,11 +6299,136 @@ CREATE TABLE `56_token_transfers`
     `operator_address` Nullable(String) CODEC(ZSTD(1)),
     `token_id` Nullable(UInt256),
     `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (block_number, transaction_hash, log_index, token_id)
 SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+
+CREATE TABLE `56_token_transfers_address`
+(
+    `address` String CODEC(ZSTD(1)),
+    `token_address` String CODEC(ZSTD(1)),
+    `token_standard` LowCardinality(String) DEFAULT '',
+    `from_address` String CODEC(ZSTD(1)),
+    `to_address` String CODEC(ZSTD(1)),
+    `value` UInt256,
+    `transaction_hash` String CODEC(ZSTD(1)),
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String CODEC(ZSTD(1)),
+    `operator_address` Nullable(String) CODEC(ZSTD(1)),
+    `token_id` Nullable(UInt256),
+    `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0
+)
+ENGINE = ReplacingMergeTree
+ORDER BY (address, token_standard, token_id, transaction_hash, log_index)
+SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+
+CREATE MATERIALIZED VIEW `56_token_transfers_from_address_mv` TO `56_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    from_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `56_token_transfers`;
+
+CREATE MATERIALIZED VIEW `56_token_transfers_to_address_mv` TO `56_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    to_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `56_token_transfers`;
+
+CREATE MATERIALIZED VIEW `56_token_transfers_token_address_mv` TO `56_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    token_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `56_token_transfers`;
 
 CREATE TABLE `56_token_transfers_transaction_hash`
 (
@@ -5264,7 +6444,8 @@ CREATE TABLE `56_token_transfers_transaction_hash`
     `block_hash` String CODEC(ZSTD(1)),
     `operator_address` Nullable(String) CODEC(ZSTD(1)),
     `token_id` Nullable(UInt256),
-    `is_nft` Bool MATERIALIZED token_id IS NOT NULL
+    `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (transaction_hash, log_index, token_id)
@@ -5283,7 +6464,8 @@ CREATE MATERIALIZED VIEW `56_token_transfers_transaction_hash_mv` TO `56_token_t
     `block_number` UInt64,
     `block_hash` String,
     `operator_address` Nullable(String),
-    `token_id` Nullable(UInt256)
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
 ) AS
 SELECT
     token_address,
@@ -5297,7 +6479,8 @@ SELECT
     block_number,
     block_hash,
     operator_address,
-    token_id
+    token_id,
+    is_reorged
 FROM `56_token_transfers`;
 
 CREATE TABLE `56_tokens`
@@ -5336,7 +6519,8 @@ CREATE TABLE `56_traces`
     `block_timestamp` UInt32,
     `block_number` UInt64,
     `block_hash` String CODEC(ZSTD(1)),
-    `trace_id` String CODEC(ZSTD(1))
+    `trace_id` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMMDD(FROM_UNIXTIME(block_timestamp))
@@ -5366,8 +6550,9 @@ CREATE TABLE `56_transactions_address`
     `receipt_contract_address` Nullable(String) CODEC(ZSTD(1)),
     `receipt_root` Nullable(String) CODEC(ZSTD(1)),
     `receipt_status` UInt32,
-    `receipt_effective_gas_price` UInt256,
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_effective_gas_price` Nullable(UInt256),
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (address, from_address, to_address, hash)
@@ -5397,7 +6582,8 @@ CREATE MATERIALIZED VIEW `56_transactions_by_from_address_mv` TO `56_transaction
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     from_address AS address,
@@ -5422,7 +6608,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `56_transactions`
 WHERE from_address IS NOT NULL;
 
@@ -5449,7 +6636,8 @@ CREATE MATERIALIZED VIEW `56_transactions_by_hash_mv` TO `56_transactions_hash`
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     hash,
@@ -5473,7 +6661,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `56_transactions`;
 
 CREATE MATERIALIZED VIEW `56_transactions_by_to_address_mv` TO `56_transactions_address`
@@ -5500,7 +6689,8 @@ CREATE MATERIALIZED VIEW `56_transactions_by_to_address_mv` TO `56_transactions_
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     to_address AS address,
@@ -5525,7 +6715,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `56_transactions`
 WHERE to_address IS NOT NULL;
 
@@ -5551,8 +6742,9 @@ CREATE TABLE `56_transactions_hash`
     `receipt_contract_address` Nullable(String) CODEC(ZSTD(1)),
     `receipt_root` Nullable(String) CODEC(ZSTD(1)),
     `receipt_status` UInt32,
-    `receipt_effective_gas_price` UInt256,
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_effective_gas_price` Nullable(UInt256),
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (hash, block_number)
@@ -5579,6 +6771,7 @@ CREATE TABLE `7700_blocks`
     `timestamp` UInt32,
     `transaction_count` UInt64,
     `base_fee_per_gas` Nullable(Int64),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -5633,6 +6826,7 @@ CREATE TABLE `7700_transactions`
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
     `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -5660,6 +6854,7 @@ CREATE TABLE `7700_logs`
     `address` String CODEC(ZSTD(1)),
     `data` String CODEC(ZSTD(1)),
     `topics` Array(String) CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX logs_block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -5773,6 +6968,7 @@ CREATE TABLE `7700_geth_traces`
     `block_number` UInt64 CODEC(Delta(8), LZ4),
     `traces_json` String CODEC(ZSTD(1)),
     `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
@@ -5791,6 +6987,7 @@ CREATE TABLE `7700_internal_transfers`
     `gas_limit` UInt64 CODEC(ZSTD(1)),
     `id` String CODEC(ZSTD(1)),
     `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -5809,6 +7006,7 @@ CREATE TABLE `7700_internal_transfers_address`
     `gas_limit` UInt64 CODEC(ZSTD(1)),
     `id` String CODEC(ZSTD(1)),
     `block_hash` Nullable(String),
+    `is_reorged` Bool DEFAULT 0,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -5826,7 +7024,8 @@ CREATE MATERIALIZED VIEW `7700_internal_transfers_from_address_mv` TO `7700_inte
     `value` UInt256,
     `gas_limit` UInt64,
     `id` String,
-    `block_hash` String
+    `block_hash` String,
+    `is_reorged` Bool
 ) AS
 SELECT
     from_address AS address,
@@ -5838,7 +7037,8 @@ SELECT
     value,
     gas_limit,
     id,
-    block_hash
+    block_hash,
+    is_reorged
 FROM `7700_internal_transfers`
 WHERE from_address IS NOT NULL;
 
@@ -5853,7 +7053,8 @@ CREATE MATERIALIZED VIEW `7700_internal_transfers_to_address_mv` TO `7700_intern
     `value` UInt256,
     `gas_limit` UInt64,
     `id` String,
-    `block_hash` String
+    `block_hash` String,
+    `is_reorged` Bool
 ) AS
 SELECT
     to_address AS address,
@@ -5865,7 +7066,8 @@ SELECT
     value,
     gas_limit,
     id,
-    block_hash
+    block_hash,
+    is_reorged
 FROM `7700_internal_transfers`
 WHERE to_address IS NOT NULL;
 
@@ -5901,7 +7103,8 @@ CREATE TABLE `7700_native_balances`
     `block_number` UInt64 CODEC(DoubleDelta),
     `block_hash` String CODEC(ZSTD(1)),
     `block_timestamp` UInt32 CODEC(DoubleDelta),
-    `value` UInt256 CODEC(ZSTD(1))
+    `value` UInt256 CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
@@ -5917,7 +7120,8 @@ CREATE TABLE `7700_token_balances`
     `block_timestamp` UInt32 CODEC(DoubleDelta),
     `value` UInt256 CODEC(ZSTD(1)),
     `token_id` UInt256 CODEC(ZSTD(1)),
-    `block_hash` String CODEC(ZSTD(1))
+    `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
@@ -5939,11 +7143,136 @@ CREATE TABLE `7700_token_transfers`
     `operator_address` Nullable(String) CODEC(ZSTD(1)),
     `token_id` Nullable(UInt256),
     `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (block_number, transaction_hash, log_index, token_id)
 SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+
+CREATE TABLE `7700_token_transfers_address`
+(
+    `address` String CODEC(ZSTD(1)),
+    `token_address` String CODEC(ZSTD(1)),
+    `token_standard` LowCardinality(String) DEFAULT '',
+    `from_address` String CODEC(ZSTD(1)),
+    `to_address` String CODEC(ZSTD(1)),
+    `value` UInt256,
+    `transaction_hash` String CODEC(ZSTD(1)),
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String CODEC(ZSTD(1)),
+    `operator_address` Nullable(String) CODEC(ZSTD(1)),
+    `token_id` Nullable(UInt256),
+    `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0
+)
+ENGINE = ReplacingMergeTree
+ORDER BY (address, token_standard, token_id, transaction_hash, log_index)
+SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+
+CREATE MATERIALIZED VIEW `7700_token_transfers_from_address_mv` TO `7700_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    from_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `7700_token_transfers`;
+
+CREATE MATERIALIZED VIEW `7700_token_transfers_to_address_mv` TO `7700_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    to_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `7700_token_transfers`;
+
+CREATE MATERIALIZED VIEW `7700_token_transfers_token_address_mv` TO `7700_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    token_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `7700_token_transfers`;
 
 CREATE TABLE `7700_token_transfers_transaction_hash`
 (
@@ -5959,7 +7288,8 @@ CREATE TABLE `7700_token_transfers_transaction_hash`
     `block_hash` String CODEC(ZSTD(1)),
     `operator_address` Nullable(String) CODEC(ZSTD(1)),
     `token_id` Nullable(UInt256),
-    `is_nft` Bool MATERIALIZED token_id IS NOT NULL
+    `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (transaction_hash, log_index, token_id)
@@ -5978,7 +7308,8 @@ CREATE MATERIALIZED VIEW `7700_token_transfers_transaction_hash_mv` TO `7700_tok
     `block_number` UInt64,
     `block_hash` String,
     `operator_address` Nullable(String),
-    `token_id` Nullable(UInt256)
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
 ) AS
 SELECT
     token_address,
@@ -5992,7 +7323,8 @@ SELECT
     block_number,
     block_hash,
     operator_address,
-    token_id
+    token_id,
+    is_reorged
 FROM `7700_token_transfers`;
 
 CREATE TABLE `7700_tokens`
@@ -6031,7 +7363,8 @@ CREATE TABLE `7700_traces`
     `block_timestamp` UInt32,
     `block_number` UInt64,
     `block_hash` String CODEC(ZSTD(1)),
-    `trace_id` String CODEC(ZSTD(1))
+    `trace_id` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMMDD(FROM_UNIXTIME(block_timestamp))
@@ -6061,8 +7394,9 @@ CREATE TABLE `7700_transactions_address`
     `receipt_contract_address` Nullable(String) CODEC(ZSTD(1)),
     `receipt_root` Nullable(String) CODEC(ZSTD(1)),
     `receipt_status` UInt32,
-    `receipt_effective_gas_price` UInt256,
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_effective_gas_price` Nullable(UInt256),
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (address, from_address, to_address, hash)
@@ -6092,7 +7426,8 @@ CREATE MATERIALIZED VIEW `7700_transactions_by_from_address_mv` TO `7700_transac
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     from_address AS address,
@@ -6117,7 +7452,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `7700_transactions`
 WHERE from_address IS NOT NULL;
 
@@ -6144,7 +7480,8 @@ CREATE MATERIALIZED VIEW `7700_transactions_by_hash_mv` TO `7700_transactions_ha
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     hash,
@@ -6168,7 +7505,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `7700_transactions`;
 
 CREATE MATERIALIZED VIEW `7700_transactions_by_to_address_mv` TO `7700_transactions_address`
@@ -6195,7 +7533,8 @@ CREATE MATERIALIZED VIEW `7700_transactions_by_to_address_mv` TO `7700_transacti
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     to_address AS address,
@@ -6220,7 +7559,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `7700_transactions`
 WHERE to_address IS NOT NULL;
 
@@ -6246,8 +7586,9 @@ CREATE TABLE `7700_transactions_hash`
     `receipt_contract_address` Nullable(String) CODEC(ZSTD(1)),
     `receipt_root` Nullable(String) CODEC(ZSTD(1)),
     `receipt_status` UInt32,
-    `receipt_effective_gas_price` UInt256,
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_effective_gas_price` Nullable(UInt256),
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (hash, block_number)
@@ -6274,6 +7615,7 @@ CREATE TABLE `7701_blocks`
     `timestamp` UInt32,
     `transaction_count` UInt64,
     `base_fee_per_gas` Nullable(Int64),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -6328,6 +7670,7 @@ CREATE TABLE `7701_transactions`
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
     `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -6355,6 +7698,7 @@ CREATE TABLE `7701_logs`
     `address` String CODEC(ZSTD(1)),
     `data` String CODEC(ZSTD(1)),
     `topics` Array(String) CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX logs_block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -6468,6 +7812,7 @@ CREATE TABLE `7701_geth_traces`
     `block_number` UInt64 CODEC(Delta(8), LZ4),
     `traces_json` String CODEC(ZSTD(1)),
     `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
@@ -6486,6 +7831,7 @@ CREATE TABLE `7701_internal_transfers`
     `gas_limit` UInt64 CODEC(ZSTD(1)),
     `id` String CODEC(ZSTD(1)),
     `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -6504,6 +7850,7 @@ CREATE TABLE `7701_internal_transfers_address`
     `gas_limit` UInt64 CODEC(ZSTD(1)),
     `id` String CODEC(ZSTD(1)),
     `block_hash` Nullable(String),
+    `is_reorged` Bool DEFAULT 0,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -6521,7 +7868,8 @@ CREATE MATERIALIZED VIEW `7701_internal_transfers_from_address_mv` TO `7701_inte
     `value` UInt256,
     `gas_limit` UInt64,
     `id` String,
-    `block_hash` String
+    `block_hash` String,
+    `is_reorged` Bool
 ) AS
 SELECT
     from_address AS address,
@@ -6533,7 +7881,8 @@ SELECT
     value,
     gas_limit,
     id,
-    block_hash
+    block_hash,
+    is_reorged
 FROM `7701_internal_transfers`
 WHERE from_address IS NOT NULL;
 
@@ -6548,7 +7897,8 @@ CREATE MATERIALIZED VIEW `7701_internal_transfers_to_address_mv` TO `7701_intern
     `value` UInt256,
     `gas_limit` UInt64,
     `id` String,
-    `block_hash` String
+    `block_hash` String,
+    `is_reorged` Bool
 ) AS
 SELECT
     to_address AS address,
@@ -6560,7 +7910,8 @@ SELECT
     value,
     gas_limit,
     id,
-    block_hash
+    block_hash,
+    is_reorged
 FROM `7701_internal_transfers`
 WHERE to_address IS NOT NULL;
 
@@ -6596,7 +7947,8 @@ CREATE TABLE `7701_native_balances`
     `block_number` UInt64 CODEC(DoubleDelta),
     `block_hash` String CODEC(ZSTD(1)),
     `block_timestamp` UInt32 CODEC(DoubleDelta),
-    `value` UInt256 CODEC(ZSTD(1))
+    `value` UInt256 CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
@@ -6612,7 +7964,8 @@ CREATE TABLE `7701_token_balances`
     `block_timestamp` UInt32 CODEC(DoubleDelta),
     `value` UInt256 CODEC(ZSTD(1)),
     `token_id` UInt256 CODEC(ZSTD(1)),
-    `block_hash` String CODEC(ZSTD(1))
+    `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
@@ -6634,11 +7987,136 @@ CREATE TABLE `7701_token_transfers`
     `operator_address` Nullable(String) CODEC(ZSTD(1)),
     `token_id` Nullable(UInt256),
     `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (block_number, transaction_hash, log_index, token_id)
 SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+
+CREATE TABLE `7701_token_transfers_address`
+(
+    `address` String CODEC(ZSTD(1)),
+    `token_address` String CODEC(ZSTD(1)),
+    `token_standard` LowCardinality(String) DEFAULT '',
+    `from_address` String CODEC(ZSTD(1)),
+    `to_address` String CODEC(ZSTD(1)),
+    `value` UInt256,
+    `transaction_hash` String CODEC(ZSTD(1)),
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String CODEC(ZSTD(1)),
+    `operator_address` Nullable(String) CODEC(ZSTD(1)),
+    `token_id` Nullable(UInt256),
+    `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0
+)
+ENGINE = ReplacingMergeTree
+ORDER BY (address, token_standard, token_id, transaction_hash, log_index)
+SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+
+CREATE MATERIALIZED VIEW `7701_token_transfers_from_address_mv` TO `7701_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    from_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `7701_token_transfers`;
+
+CREATE MATERIALIZED VIEW `7701_token_transfers_to_address_mv` TO `7701_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    to_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `7701_token_transfers`;
+
+CREATE MATERIALIZED VIEW `7701_token_transfers_token_address_mv` TO `7701_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    token_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `7701_token_transfers`;
 
 CREATE TABLE `7701_token_transfers_transaction_hash`
 (
@@ -6654,7 +8132,8 @@ CREATE TABLE `7701_token_transfers_transaction_hash`
     `block_hash` String CODEC(ZSTD(1)),
     `operator_address` Nullable(String) CODEC(ZSTD(1)),
     `token_id` Nullable(UInt256),
-    `is_nft` Bool MATERIALIZED token_id IS NOT NULL
+    `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (transaction_hash, log_index, token_id)
@@ -6673,7 +8152,8 @@ CREATE MATERIALIZED VIEW `7701_token_transfers_transaction_hash_mv` TO `7701_tok
     `block_number` UInt64,
     `block_hash` String,
     `operator_address` Nullable(String),
-    `token_id` Nullable(UInt256)
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
 ) AS
 SELECT
     token_address,
@@ -6687,7 +8167,8 @@ SELECT
     block_number,
     block_hash,
     operator_address,
-    token_id
+    token_id,
+    is_reorged
 FROM `7701_token_transfers`;
 
 CREATE TABLE `7701_tokens`
@@ -6726,7 +8207,8 @@ CREATE TABLE `7701_traces`
     `block_timestamp` UInt32,
     `block_number` UInt64,
     `block_hash` String CODEC(ZSTD(1)),
-    `trace_id` String CODEC(ZSTD(1))
+    `trace_id` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMMDD(FROM_UNIXTIME(block_timestamp))
@@ -6756,8 +8238,9 @@ CREATE TABLE `7701_transactions_address`
     `receipt_contract_address` Nullable(String) CODEC(ZSTD(1)),
     `receipt_root` Nullable(String) CODEC(ZSTD(1)),
     `receipt_status` UInt32,
-    `receipt_effective_gas_price` UInt256,
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_effective_gas_price` Nullable(UInt256),
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (address, from_address, to_address, hash)
@@ -6787,7 +8270,8 @@ CREATE MATERIALIZED VIEW `7701_transactions_by_from_address_mv` TO `7701_transac
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     from_address AS address,
@@ -6812,7 +8296,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `7701_transactions`
 WHERE from_address IS NOT NULL;
 
@@ -6839,7 +8324,8 @@ CREATE MATERIALIZED VIEW `7701_transactions_by_hash_mv` TO `7701_transactions_ha
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     hash,
@@ -6863,7 +8349,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `7701_transactions`;
 
 CREATE MATERIALIZED VIEW `7701_transactions_by_to_address_mv` TO `7701_transactions_address`
@@ -6890,7 +8377,8 @@ CREATE MATERIALIZED VIEW `7701_transactions_by_to_address_mv` TO `7701_transacti
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     to_address AS address,
@@ -6915,7 +8403,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `7701_transactions`
 WHERE to_address IS NOT NULL;
 
@@ -6941,8 +8430,9 @@ CREATE TABLE `7701_transactions_hash`
     `receipt_contract_address` Nullable(String) CODEC(ZSTD(1)),
     `receipt_root` Nullable(String) CODEC(ZSTD(1)),
     `receipt_status` UInt32,
-    `receipt_effective_gas_price` UInt256,
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_effective_gas_price` Nullable(UInt256),
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (hash, block_number)
@@ -6969,6 +8459,7 @@ CREATE TABLE `8453_blocks`
     `timestamp` UInt32,
     `transaction_count` UInt64,
     `base_fee_per_gas` Nullable(Int64),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -7023,6 +8514,7 @@ CREATE TABLE `8453_transactions`
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
     `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -7050,6 +8542,7 @@ CREATE TABLE `8453_logs`
     `address` String CODEC(ZSTD(1)),
     `data` String CODEC(ZSTD(1)),
     `topics` Array(String) CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX logs_block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -7163,6 +8656,7 @@ CREATE TABLE `8453_geth_traces`
     `block_number` UInt64 CODEC(Delta(8), LZ4),
     `traces_json` String CODEC(ZSTD(1)),
     `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
@@ -7181,6 +8675,7 @@ CREATE TABLE `8453_internal_transfers`
     `gas_limit` UInt64 CODEC(ZSTD(1)),
     `id` String CODEC(ZSTD(1)),
     `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -7199,6 +8694,7 @@ CREATE TABLE `8453_internal_transfers_address`
     `gas_limit` UInt64 CODEC(ZSTD(1)),
     `id` String CODEC(ZSTD(1)),
     `block_hash` Nullable(String),
+    `is_reorged` Bool DEFAULT 0,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -7216,7 +8712,8 @@ CREATE MATERIALIZED VIEW `8453_internal_transfers_from_address_mv` TO `8453_inte
     `value` UInt256,
     `gas_limit` UInt64,
     `id` String,
-    `block_hash` String
+    `block_hash` String,
+    `is_reorged` Bool
 ) AS
 SELECT
     from_address AS address,
@@ -7228,7 +8725,8 @@ SELECT
     value,
     gas_limit,
     id,
-    block_hash
+    block_hash,
+    is_reorged
 FROM `8453_internal_transfers`
 WHERE from_address IS NOT NULL;
 
@@ -7243,7 +8741,8 @@ CREATE MATERIALIZED VIEW `8453_internal_transfers_to_address_mv` TO `8453_intern
     `value` UInt256,
     `gas_limit` UInt64,
     `id` String,
-    `block_hash` String
+    `block_hash` String,
+    `is_reorged` Bool
 ) AS
 SELECT
     to_address AS address,
@@ -7255,7 +8754,8 @@ SELECT
     value,
     gas_limit,
     id,
-    block_hash
+    block_hash,
+    is_reorged
 FROM `8453_internal_transfers`
 WHERE to_address IS NOT NULL;
 
@@ -7291,7 +8791,8 @@ CREATE TABLE `8453_native_balances`
     `block_number` UInt64 CODEC(DoubleDelta),
     `block_hash` String CODEC(ZSTD(1)),
     `block_timestamp` UInt32 CODEC(DoubleDelta),
-    `value` UInt256 CODEC(ZSTD(1))
+    `value` UInt256 CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
@@ -7307,7 +8808,8 @@ CREATE TABLE `8453_token_balances`
     `block_timestamp` UInt32 CODEC(DoubleDelta),
     `value` UInt256 CODEC(ZSTD(1)),
     `token_id` UInt256 CODEC(ZSTD(1)),
-    `block_hash` String CODEC(ZSTD(1))
+    `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
@@ -7329,11 +8831,136 @@ CREATE TABLE `8453_token_transfers`
     `operator_address` Nullable(String) CODEC(ZSTD(1)),
     `token_id` Nullable(UInt256),
     `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (block_number, transaction_hash, log_index, token_id)
 SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+
+CREATE TABLE `8453_token_transfers_address`
+(
+    `address` String CODEC(ZSTD(1)),
+    `token_address` String CODEC(ZSTD(1)),
+    `token_standard` LowCardinality(String) DEFAULT '',
+    `from_address` String CODEC(ZSTD(1)),
+    `to_address` String CODEC(ZSTD(1)),
+    `value` UInt256,
+    `transaction_hash` String CODEC(ZSTD(1)),
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String CODEC(ZSTD(1)),
+    `operator_address` Nullable(String) CODEC(ZSTD(1)),
+    `token_id` Nullable(UInt256),
+    `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0
+)
+ENGINE = ReplacingMergeTree
+ORDER BY (address, token_standard, token_id, transaction_hash, log_index)
+SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+
+CREATE MATERIALIZED VIEW `8453_token_transfers_from_address_mv` TO `8453_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    from_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `8453_token_transfers`;
+
+CREATE MATERIALIZED VIEW `8453_token_transfers_to_address_mv` TO `8453_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    to_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `8453_token_transfers`;
+
+CREATE MATERIALIZED VIEW `8453_token_transfers_token_address_mv` TO `8453_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    token_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `8453_token_transfers`;
 
 CREATE TABLE `8453_token_transfers_transaction_hash`
 (
@@ -7349,7 +8976,8 @@ CREATE TABLE `8453_token_transfers_transaction_hash`
     `block_hash` String CODEC(ZSTD(1)),
     `operator_address` Nullable(String) CODEC(ZSTD(1)),
     `token_id` Nullable(UInt256),
-    `is_nft` Bool MATERIALIZED token_id IS NOT NULL
+    `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (transaction_hash, log_index, token_id)
@@ -7368,7 +8996,8 @@ CREATE MATERIALIZED VIEW `8453_token_transfers_transaction_hash_mv` TO `8453_tok
     `block_number` UInt64,
     `block_hash` String,
     `operator_address` Nullable(String),
-    `token_id` Nullable(UInt256)
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
 ) AS
 SELECT
     token_address,
@@ -7382,7 +9011,8 @@ SELECT
     block_number,
     block_hash,
     operator_address,
-    token_id
+    token_id,
+    is_reorged
 FROM `8453_token_transfers`;
 
 CREATE TABLE `8453_tokens`
@@ -7421,7 +9051,8 @@ CREATE TABLE `8453_traces`
     `block_timestamp` UInt32,
     `block_number` UInt64,
     `block_hash` String CODEC(ZSTD(1)),
-    `trace_id` String CODEC(ZSTD(1))
+    `trace_id` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMMDD(FROM_UNIXTIME(block_timestamp))
@@ -7451,8 +9082,9 @@ CREATE TABLE `8453_transactions_address`
     `receipt_contract_address` Nullable(String) CODEC(ZSTD(1)),
     `receipt_root` Nullable(String) CODEC(ZSTD(1)),
     `receipt_status` UInt32,
-    `receipt_effective_gas_price` UInt256,
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_effective_gas_price` Nullable(UInt256),
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (address, from_address, to_address, hash)
@@ -7482,7 +9114,8 @@ CREATE MATERIALIZED VIEW `8453_transactions_by_from_address_mv` TO `8453_transac
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     from_address AS address,
@@ -7507,7 +9140,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `8453_transactions`
 WHERE from_address IS NOT NULL;
 
@@ -7534,7 +9168,8 @@ CREATE MATERIALIZED VIEW `8453_transactions_by_hash_mv` TO `8453_transactions_ha
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     hash,
@@ -7558,7 +9193,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `8453_transactions`;
 
 CREATE MATERIALIZED VIEW `8453_transactions_by_to_address_mv` TO `8453_transactions_address`
@@ -7585,7 +9221,8 @@ CREATE MATERIALIZED VIEW `8453_transactions_by_to_address_mv` TO `8453_transacti
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     to_address AS address,
@@ -7610,7 +9247,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `8453_transactions`
 WHERE to_address IS NOT NULL;
 
@@ -7636,8 +9274,9 @@ CREATE TABLE `8453_transactions_hash`
     `receipt_contract_address` Nullable(String) CODEC(ZSTD(1)),
     `receipt_root` Nullable(String) CODEC(ZSTD(1)),
     `receipt_status` UInt32,
-    `receipt_effective_gas_price` UInt256,
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_effective_gas_price` Nullable(UInt256),
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (hash, block_number)
@@ -7664,6 +9303,7 @@ CREATE TABLE `84531_blocks`
     `timestamp` UInt32,
     `transaction_count` UInt64,
     `base_fee_per_gas` Nullable(Int64),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -7718,6 +9358,7 @@ CREATE TABLE `84531_transactions`
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
     `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -7745,6 +9386,7 @@ CREATE TABLE `84531_logs`
     `address` String CODEC(ZSTD(1)),
     `data` String CODEC(ZSTD(1)),
     `topics` Array(String) CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX logs_block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -7858,6 +9500,7 @@ CREATE TABLE `84531_geth_traces`
     `block_number` UInt64 CODEC(Delta(8), LZ4),
     `traces_json` String CODEC(ZSTD(1)),
     `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
@@ -7876,6 +9519,7 @@ CREATE TABLE `84531_internal_transfers`
     `gas_limit` UInt64 CODEC(ZSTD(1)),
     `id` String CODEC(ZSTD(1)),
     `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -7894,6 +9538,7 @@ CREATE TABLE `84531_internal_transfers_address`
     `gas_limit` UInt64 CODEC(ZSTD(1)),
     `id` String CODEC(ZSTD(1)),
     `block_hash` Nullable(String),
+    `is_reorged` Bool DEFAULT 0,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
@@ -7911,7 +9556,8 @@ CREATE MATERIALIZED VIEW `84531_internal_transfers_from_address_mv` TO `84531_in
     `value` UInt256,
     `gas_limit` UInt64,
     `id` String,
-    `block_hash` String
+    `block_hash` String,
+    `is_reorged` Bool
 ) AS
 SELECT
     from_address AS address,
@@ -7923,7 +9569,8 @@ SELECT
     value,
     gas_limit,
     id,
-    block_hash
+    block_hash,
+    is_reorged
 FROM `84531_internal_transfers`
 WHERE from_address IS NOT NULL;
 
@@ -7938,7 +9585,8 @@ CREATE MATERIALIZED VIEW `84531_internal_transfers_to_address_mv` TO `84531_inte
     `value` UInt256,
     `gas_limit` UInt64,
     `id` String,
-    `block_hash` String
+    `block_hash` String,
+    `is_reorged` Bool
 ) AS
 SELECT
     to_address AS address,
@@ -7950,7 +9598,8 @@ SELECT
     value,
     gas_limit,
     id,
-    block_hash
+    block_hash,
+    is_reorged
 FROM `84531_internal_transfers`
 WHERE to_address IS NOT NULL;
 
@@ -7986,7 +9635,8 @@ CREATE TABLE `84531_native_balances`
     `block_number` UInt64 CODEC(DoubleDelta),
     `block_hash` String CODEC(ZSTD(1)),
     `block_timestamp` UInt32 CODEC(DoubleDelta),
-    `value` UInt256 CODEC(ZSTD(1))
+    `value` UInt256 CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
@@ -8002,7 +9652,8 @@ CREATE TABLE `84531_token_balances`
     `block_timestamp` UInt32 CODEC(DoubleDelta),
     `value` UInt256 CODEC(ZSTD(1)),
     `token_id` UInt256 CODEC(ZSTD(1)),
-    `block_hash` String CODEC(ZSTD(1))
+    `block_hash` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(FROM_UNIXTIME(block_timestamp))
@@ -8024,11 +9675,136 @@ CREATE TABLE `84531_token_transfers`
     `operator_address` Nullable(String) CODEC(ZSTD(1)),
     `token_id` Nullable(UInt256),
     `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (block_number, transaction_hash, log_index, token_id)
 SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+
+CREATE TABLE `84531_token_transfers_address`
+(
+    `address` String CODEC(ZSTD(1)),
+    `token_address` String CODEC(ZSTD(1)),
+    `token_standard` LowCardinality(String) DEFAULT '',
+    `from_address` String CODEC(ZSTD(1)),
+    `to_address` String CODEC(ZSTD(1)),
+    `value` UInt256,
+    `transaction_hash` String CODEC(ZSTD(1)),
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String CODEC(ZSTD(1)),
+    `operator_address` Nullable(String) CODEC(ZSTD(1)),
+    `token_id` Nullable(UInt256),
+    `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0
+)
+ENGINE = ReplacingMergeTree
+ORDER BY (address, token_standard, token_id, transaction_hash, log_index)
+SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+
+CREATE MATERIALIZED VIEW `84531_token_transfers_from_address_mv` TO `84531_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    from_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `84531_token_transfers`;
+
+CREATE MATERIALIZED VIEW `84531_token_transfers_to_address_mv` TO `84531_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    to_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `84531_token_transfers`;
+
+CREATE MATERIALIZED VIEW `84531_token_transfers_token_address_mv` TO `84531_token_transfers_address`
+(
+    `address` String,
+    `token_address` String,
+    `token_standard` LowCardinality(String),
+    `from_address` String,
+    `to_address` String,
+    `value` UInt256,
+    `transaction_hash` String,
+    `log_index` UInt32,
+    `block_timestamp` UInt32,
+    `block_number` UInt64,
+    `block_hash` String,
+    `operator_address` Nullable(String),
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
+) AS
+SELECT
+    token_address AS address,
+    token_address,
+    token_standard,
+    from_address,
+    to_address,
+    value,
+    transaction_hash,
+    log_index,
+    block_timestamp,
+    block_number,
+    block_hash,
+    operator_address,
+    token_id,
+    is_reorged
+FROM `84531_token_transfers`;
 
 CREATE TABLE `84531_token_transfers_transaction_hash`
 (
@@ -8044,7 +9820,8 @@ CREATE TABLE `84531_token_transfers_transaction_hash`
     `block_hash` String CODEC(ZSTD(1)),
     `operator_address` Nullable(String) CODEC(ZSTD(1)),
     `token_id` Nullable(UInt256),
-    `is_nft` Bool MATERIALIZED token_id IS NOT NULL
+    `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (transaction_hash, log_index, token_id)
@@ -8063,7 +9840,8 @@ CREATE MATERIALIZED VIEW `84531_token_transfers_transaction_hash_mv` TO `84531_t
     `block_number` UInt64,
     `block_hash` String,
     `operator_address` Nullable(String),
-    `token_id` Nullable(UInt256)
+    `token_id` Nullable(UInt256),
+    `is_reorged` Bool
 ) AS
 SELECT
     token_address,
@@ -8077,7 +9855,8 @@ SELECT
     block_number,
     block_hash,
     operator_address,
-    token_id
+    token_id,
+    is_reorged
 FROM `84531_token_transfers`;
 
 CREATE TABLE `84531_tokens`
@@ -8116,7 +9895,8 @@ CREATE TABLE `84531_traces`
     `block_timestamp` UInt32,
     `block_number` UInt64,
     `block_hash` String CODEC(ZSTD(1)),
-    `trace_id` String CODEC(ZSTD(1))
+    `trace_id` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMMDD(FROM_UNIXTIME(block_timestamp))
@@ -8146,8 +9926,9 @@ CREATE TABLE `84531_transactions_address`
     `receipt_contract_address` Nullable(String) CODEC(ZSTD(1)),
     `receipt_root` Nullable(String) CODEC(ZSTD(1)),
     `receipt_status` UInt32,
-    `receipt_effective_gas_price` UInt256,
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_effective_gas_price` Nullable(UInt256),
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (address, from_address, to_address, hash)
@@ -8177,7 +9958,8 @@ CREATE MATERIALIZED VIEW `84531_transactions_by_from_address_mv` TO `84531_trans
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     from_address AS address,
@@ -8202,7 +9984,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `84531_transactions`
 WHERE from_address IS NOT NULL;
 
@@ -8229,7 +10012,8 @@ CREATE MATERIALIZED VIEW `84531_transactions_by_hash_mv` TO `84531_transactions_
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     hash,
@@ -8253,7 +10037,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `84531_transactions`;
 
 CREATE MATERIALIZED VIEW `84531_transactions_by_to_address_mv` TO `84531_transactions_address`
@@ -8280,7 +10065,8 @@ CREATE MATERIALIZED VIEW `84531_transactions_by_to_address_mv` TO `84531_transac
     `receipt_root` Nullable(String),
     `receipt_status` Nullable(UInt32),
     `receipt_effective_gas_price` Nullable(UInt256),
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool
 ) AS
 SELECT
     to_address AS address,
@@ -8305,7 +10091,8 @@ SELECT
     receipt_root,
     receipt_status,
     receipt_effective_gas_price,
-    receipt_logs_count
+    receipt_logs_count,
+    is_reorged
 FROM `84531_transactions`
 WHERE to_address IS NOT NULL;
 
@@ -8331,8 +10118,9 @@ CREATE TABLE `84531_transactions_hash`
     `receipt_contract_address` Nullable(String) CODEC(ZSTD(1)),
     `receipt_root` Nullable(String) CODEC(ZSTD(1)),
     `receipt_status` UInt32,
-    `receipt_effective_gas_price` UInt256,
-    `receipt_logs_count` Nullable(UInt32)
+    `receipt_effective_gas_price` Nullable(UInt256),
+    `receipt_logs_count` Nullable(UInt32),
+    `is_reorged` Bool DEFAULT 0
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (hash, block_number)
