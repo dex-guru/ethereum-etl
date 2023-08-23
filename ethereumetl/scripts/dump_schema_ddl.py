@@ -14,12 +14,18 @@ from ethereumetl.clickhouse import write_schema_ddl_by_url_to_file_path
     default='/dev/stdout',
     show_default=True,
 )
-def cli(clickhouse_url: str, output_file_path: str):
+@click.option(
+    '-d',
+    '--no-strip-db-prefix',
+    is_flag=True,
+    show_default=True,
+)
+def cli(clickhouse_url: str, output_file_path: str, no_strip_db_prefix: bool):
     logging.basicConfig(level=logging.INFO, format='%(levelname)-5.5s [%(name)s] %(message)s')
 
     logging.info(f'Exporting schema DDL to "{output_file_path}"...')
 
-    write_schema_ddl_by_url_to_file_path(clickhouse_url, output_file_path)
+    write_schema_ddl_by_url_to_file_path(clickhouse_url, output_file_path, not no_strip_db_prefix)
 
     logging.info(f'Done. Schema DDL is written to "{output_file_path}".')
 

@@ -6,6 +6,7 @@ import re
 import string
 from collections import defaultdict
 from collections.abc import Iterable
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from string import ascii_uppercase
 from textwrap import dedent
@@ -24,20 +25,30 @@ logger = logging.getLogger(__name__)
 SCHEMA_FILE_PATH = Path(ethereumetl.__file__).parent.parent / 'db/migrations/schema.sql'
 
 
-def show_create(connection: Connection, what: str, name: str, strip_db_prefix: str = '') -> str:
-    [ddl] = connection.execute(f"SHOW CREATE {what} `{name}`").one()
-    if strip_db_prefix:
-        ddl = ddl.replace(f'{strip_db_prefix}.', '')
-    return ddl
-
-
 def table_names_sort_key(s: str) -> list[str]:
     return re.split(r'(\d+|_)', s)
 
 
-def get_schema_ddls(connection: Connection) -> Iterable[str]:
-    [db_name] = connection.execute('SELECT currentDatabase()').one()
+def get_schema_ddls(url: str, strip_db_prefix: bool = True, parallel=40) -> Iterable[str]:
+    engine = create_engine(url, pool_size=parallel)
+    queries = list(schema_ddl_queries(engine))
+    with ThreadPoolExecutor(parallel) as pool:
+        ddls = pool.map(engine.scalar, queries)
 
+        if strip_db_prefix:
+            db_name = engine.scalar("SELECT currentDatabase()")
+            db_prefix1 = f'{db_name}.'
+            db_prefix2 = f'`{db_name}`.'
+
+            def rm_db_prefix(ddl):
+                return ddl.replace(db_prefix1, '').replace(db_prefix2, '')
+
+            ddls = map(rm_db_prefix, ddls)
+
+        yield from ddls
+
+
+def schema_ddl_queries(connection: Connection) -> Iterable[str]:
     table_dependents = {
         name: json.loads(deps)
         for name, deps in connection.execute(
@@ -45,7 +56,7 @@ def get_schema_ddls(connection: Connection) -> Iterable[str]:
             " FROM system.tables"
             " WHERE database = currentDatabase()"
             " ORDER BY name"
-        ).all()
+        )
     }
 
     table_dependencies: dict[str, list[str]] = defaultdict(list)
@@ -66,19 +77,19 @@ def get_schema_ddls(connection: Connection) -> Iterable[str]:
         for dependent in table_dependencies[table]:
             yield from process_table(dependent)
 
-        yield show_create(connection, "", table, db_name)
+        yield f"SHOW CREATE TABLE `{table}`"
 
         processed.add(table)
 
     for table in sorted(table_dependents, key=table_names_sort_key):
         yield from process_table(table)
 
-    for [dictionary_name] in connection.execute("SHOW DICTIONARIES").all():
-        yield show_create(connection, "DICTIONARY", dictionary_name, db_name)
+    for dictionary_name in connection.execute("SHOW DICTIONARIES").scalars():
+        yield f"SHOW CREATE DICTIONARY `{ dictionary_name }`"
 
 
-def write_schema_ddl(connection: Connection, f: TextIO):
-    ddls = iter(get_schema_ddls(connection))
+def write_schema_ddl(url: str, f: TextIO, strip_db_prefix=True):
+    ddls = iter(get_schema_ddls(url, strip_db_prefix))
     for ddl in ddls:
         f.write(ddl)
         f.write(';\n')
@@ -89,12 +100,11 @@ def write_schema_ddl(connection: Connection, f: TextIO):
         f.write(';\n')
 
 
-def write_schema_ddl_by_url_to_file_path(clickhouse_url: str, file_path: str):
-    with (
-        create_engine(clickhouse_url).connect() as connection,
-        open(file_path, 'w') as f,
-    ):
-        write_schema_ddl(connection, f)
+def write_schema_ddl_by_url_to_file_path(
+    clickhouse_url: str, file_path: str, strip_db_prefix=True
+):
+    with open(file_path, 'w') as f:
+        write_schema_ddl(clickhouse_url, f, strip_db_prefix)
 
 
 def migrate_up(clickhouse_url: str, revision: str = 'head'):
@@ -122,7 +132,7 @@ def dump_migration_schema(clickhouse_url, schema_file_path, temp_db_name: str | 
         connection.execute(f'create database {temp_db_name}')
         try:
             connection.execute(f'USE {temp_db_name}')
-            assert connection.execute('SELECT currentDatabase()').one()[0] == temp_db_name
+            assert connection.scalar('SELECT currentDatabase()') == temp_db_name
 
             test_db_url = connection.engine.url.set(database=temp_db_name)
             logger.info(

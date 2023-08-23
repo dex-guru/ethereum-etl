@@ -89,18 +89,18 @@ def run_migrations_online() -> None:
         poolclass=pool.NullPool,
         connect_args=connection_args,
     )
+    assert engine.dialect.name == 'clickhouse'
 
     with engine.connect() as connection:
-        if engine.dialect.name == 'clickhouse':
-            mutations_sync = connection.execute(
-                "select value from system.settings where name = 'mutations_sync'"
-            ).one()[0]
-            if mutations_sync not in ('1', '2'):
-                raise ValueError(
-                    f"mutations_sync setting is {mutations_sync!r}, but should be '1' or '2'."
-                    f" Make sure you use native connection URL and"
-                    f" mutations_sync parameter is set to 1 or 2"
-                )
+        mutations_sync = connection.execute(
+            "select value from system.settings where name = 'mutations_sync'"
+        ).scalar()
+        if mutations_sync not in ('1', '2'):
+            raise ValueError(
+                f"mutations_sync setting is {mutations_sync!r}, but should be '1' or '2'."
+                f" Make sure you use native connection URL and"
+                f" mutations_sync parameter is set to 1 or 2"
+            )
 
         context.configure(
             connection=connection,
