@@ -20,7 +20,7 @@ raw-data-streamer:
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
     SERVICE_NAME: 'raw-data-streamer'
-    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl'
+    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
     REWRITE_CLICKHOUSE: ''
   chainEnv:
     ENTITY_TYPES:
@@ -54,10 +54,10 @@ raw-data-streamer:
     MIN_INSERT_BATCH_SIZE:
       default: '1'
     LAG:
-      default: 0
-#      eth-1: 7
-#      arbitrum-42161: 50
-#      fantom-250: 30
+      default: 20
+      eth-1: 7
+      arbitrum-42161: 50
+      fantom-250: 30
 
 raw-data-streamer-resync:
   replicas:
@@ -155,7 +155,7 @@ raw-traces-data-streamer:
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
     SERVICE_NAME: 'raw-traces-data-streamer'
-    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl'
+    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
     REWRITE_CLICKHOUSE: ''
   chainEnv:
     ENTITY_TYPES:
@@ -182,7 +182,7 @@ raw-traces-data-streamer:
       basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
       base-8453: 'http://rpc-gw-stage.dexguru.biz/archive/8453'
     BLOCK_BATCH_SIZE:
-      default: '10'
+      default: '100'
     MAX_WORKERS:
       default: '10'
     SKIP_NONE_RECEIPTS:
@@ -193,8 +193,8 @@ raw-traces-data-streamer:
     BATCH_SIZE:
         default: '5'
     LAG:
-      default: 5
-      eth-1: 1
+      default: 20
+      eth-1: 5
       arbitrum-42161: 50
       fantom-250: 50
 
