@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS `${transaction}_address`
     `receipt_contract_address` Nullable(String) CODEC(ZSTD(1)),
     `receipt_root` Nullable(String) CODEC(ZSTD(1)),
     `receipt_status` UInt32,
-    `receipt_effective_gas_price` UInt256,
+    `receipt_effective_gas_price` Nullable(UInt256),
     `receipt_logs_count` Nullable(UInt32)
 )
 ENGINE = ReplacingMergeTree
@@ -160,7 +160,7 @@ CREATE TABLE IF NOT EXISTS `${transaction}_hash`
     `receipt_contract_address` Nullable(String) CODEC(ZSTD(1)),
     `receipt_root` Nullable(String) CODEC(ZSTD(1)),
     `receipt_status` UInt32,
-    `receipt_effective_gas_price` UInt256,
+    `receipt_effective_gas_price` Nullable(UInt256),
     `receipt_logs_count` Nullable(UInt32)
 )
 ENGINE = ReplacingMergeTree
