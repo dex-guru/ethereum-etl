@@ -14,7 +14,7 @@ raw-data-streamer:
   command: '[ "ethereumetl", "stream" ]'
   env:
     LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl?table_name=last_synced_block'
-    OUTPUT: 'clickhouse://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl'
+    OUTPUT: 'clickhouse+native://testuser3:testplpassword@10.0.200.180:8123/dex_etl'
     POLLING_PERIOD: '2'
     BATCH_SIZE: '5'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
@@ -157,13 +157,6 @@ raw-traces-data-streamer:
   chainEnv:
     ENTITY_TYPES:
       default: 'block,geth_trace,internal_transfer,native_balance'
-    START_BLOCK:
-      default: '1'
-      eth-1: '17521027'
-      basetestnet-84531: '5872449'
-      polygon-137: '44515554'
-      bsc-56: '29553180'
-      optimism-10: '106264005'
     PROVIDER_URL:
       default: 'http://rpc-gw-stage.dexguru.biz/full/1'
       polygon-137: 'http://rpc-gw-stage.dexguru.biz/full/137'
