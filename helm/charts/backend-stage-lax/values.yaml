@@ -45,7 +45,7 @@ raw-data-streamer:
       basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
       base-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
     BLOCK_BATCH_SIZE:
-      default: '1000'
+      default: '100'
     MAX_WORKERS:
       default: '10'
     SKIP_NONE_RECEIPTS:
