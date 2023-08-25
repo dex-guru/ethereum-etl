@@ -24,7 +24,7 @@ raw-data-streamer:
     REWRITE_CLICKHOUSE: ''
   chainEnv:
     ENTITY_TYPES:
-      default: 'block,transaction,log,token_transfer,token_balance,error,geth_trace,internal_transfer,native_balance'
+      default: 'block,transaction,log,token_transfer,error,geth_trace,internal_transfer'
       gnosis-100: 'block,transaction,log,token_transfer,token_balance,error'
     START_BLOCK:
       default: '1'
