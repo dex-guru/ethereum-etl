@@ -153,10 +153,11 @@ raw-traces-data-streamer:
     SERVICE_NAME: 'raw-traces-data-streamer'
     EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl'
     REWRITE_CLICKHOUSE: ''
-    START_BLOCK: 'latest'
   chainEnv:
     ENTITY_TYPES:
       default: 'block,geth_trace,internal_transfer,native_balance'
+    START_BLOCK:
+      default: 'latest'
     PROVIDER_URL:
       default: 'http://rpc-gw-stage.dexguru.biz/full/1'
       polygon-137: 'http://rpc-gw-stage.dexguru.biz/full/137'
