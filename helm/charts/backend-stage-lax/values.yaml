@@ -24,8 +24,6 @@ raw-data-streamer:
   chainEnv:
     ENTITY_TYPES:
       default: 'block,transaction,log,token_transfer,token_balance,error'
-    START_BLOCK:
-      default: 'latest'
     PROVIDER_URL:
       default: 'http://rpc-gw-stage.dexguru.biz/full/1'
       polygon-137: 'http://rpc-gw-stage.dexguru.biz/full/137'
@@ -156,8 +154,6 @@ raw-traces-data-streamer:
   chainEnv:
     ENTITY_TYPES:
       default: 'block,geth_trace,internal_transfer,native_balance'
-    START_BLOCK:
-      default: 'latest'
     PROVIDER_URL:
       default: 'http://rpc-gw-stage.dexguru.biz/full/1'
       polygon-137: 'http://rpc-gw-stage.dexguru.biz/full/137'
