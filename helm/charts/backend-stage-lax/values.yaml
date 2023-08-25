@@ -20,16 +20,12 @@ raw-data-streamer:
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
     SERVICE_NAME: 'raw-data-streamer'
-    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl'
     REWRITE_CLICKHOUSE: ''
   chainEnv:
     ENTITY_TYPES:
-      default: 'block,transaction,log,token_transfer,error'
-      gnosis-100: 'block,transaction,log,token_transfer,token_balance,error'
+      default: 'block,transaction,log,token_transfer,token_balance,error'
     START_BLOCK:
-      default: '1'
-      polygon-137: '43954424'
-      bsc-56: '29134953'
+      default: 'latest'
     PROVIDER_URL:
       default: 'http://rpc-gw-stage.dexguru.biz/full/1'
       polygon-137: 'http://rpc-gw-stage.dexguru.biz/full/137'
@@ -54,10 +50,10 @@ raw-data-streamer:
     MIN_INSERT_BATCH_SIZE:
       default: '1'
     LAG:
-      default: 20
-      eth-1: 7
-      arbitrum-42161: 50
-      fantom-250: 30
+      default: 0
+#      eth-1: 7
+#      arbitrum-42161: 50
+#      fantom-250: 30
 
 raw-data-streamer-resync:
   replicas:
@@ -157,6 +153,7 @@ raw-traces-data-streamer:
     SERVICE_NAME: 'raw-traces-data-streamer'
     EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl'
     REWRITE_CLICKHOUSE: ''
+    START_BLOCK: 'latest'
   chainEnv:
     ENTITY_TYPES:
       default: 'block,geth_trace,internal_transfer,native_balance'
@@ -193,10 +190,7 @@ raw-traces-data-streamer:
     BATCH_SIZE:
         default: '5'
     LAG:
-      default: 20
-      eth-1: 5
-      arbitrum-42161: 50
-      fantom-250: 50
+      default: 1
 
 
 raw-verify-data-streamer:
@@ -218,6 +212,7 @@ raw-verify-data-streamer:
     EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl'
     REWRITE_CLICKHOUSE: 'block,transaction,log,token_transfer,token_balance'
     IS_VERIFIER: 'True'
+    START_BLOCK: 'latest'
   chainEnv:
     LAG:
       default: 100

@@ -97,9 +97,10 @@ class ClickhouseEthStreamerAdapter:
         else:
             block_number_column = 'block_number'
         query = (
-            f"select distinct on ({distinct_on}) * from `{table_name}`"
+            f"select distinct on ({distinct_on}) * from `{table_name}` final"
             f" where {block_number_column} >= {start_block}"
             f"   and {block_number_column} <= {end_block}"
+            f"   and not is_reorged"
         )
         try:
             return tuple(self.clickhouse.query(query).named_results())
