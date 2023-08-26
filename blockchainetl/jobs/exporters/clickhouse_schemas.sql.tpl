@@ -108,7 +108,6 @@ ENGINE = ReplacingMergeTree
 ORDER BY (block_number, hash)
 SETTINGS allow_nullable_key = 1, index_granularity = 8192;
 
-
 CREATE TABLE IF NOT EXISTS `${transaction}_address`
 (
     `address` String CODEC(ZSTD(1)),
@@ -140,7 +139,6 @@ ENGINE = ReplacingMergeTree
 ORDER BY (address, from_address, to_address, hash)
 SETTINGS allow_nullable_key = 1, index_granularity = 8192;
 
-
 CREATE MATERIALIZED VIEW IF NOT EXISTS `${transaction}_by_from_address_mv`
             TO `${transaction}_address`
 AS
@@ -170,7 +168,6 @@ SELECT from_address                AS address,
        is_reorged
 FROM `${transaction}`
 WHERE from_address IS NOT NULL;
-
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS `${transaction}_by_to_address_mv`
             TO `${transaction}_address`
@@ -202,7 +199,6 @@ SELECT to_address                  AS address,
 FROM `${transaction}`
 WHERE to_address IS NOT NULL;
 
-
 CREATE TABLE IF NOT EXISTS `${transaction}_hash`
 (
     `hash` String CODEC(ZSTD(1)),
@@ -232,7 +228,6 @@ CREATE TABLE IF NOT EXISTS `${transaction}_hash`
 ENGINE = ReplacingMergeTree
 ORDER BY (hash, block_number)
 SETTINGS index_granularity = 8192;
-
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS `${transaction}_by_hash_mv`
             TO `${transaction}_hash`
@@ -516,7 +511,6 @@ ENGINE = MergeTree
 PARTITION BY toYYYYMM(fromUnixTimestamp(timestamp))
 ORDER BY (timestamp);
 
-
 CREATE TABLE IF NOT EXISTS `${geth_trace}`
 (
     `transaction_hash` String CODEC(ZSTD(1)),
@@ -662,7 +656,6 @@ SELECT
     is_reorged
 FROM `${internal_transfer}`
 WHERE to_address IS NOT NULL;
-
 
 CREATE TABLE IF NOT EXISTS etl_delay
 (
