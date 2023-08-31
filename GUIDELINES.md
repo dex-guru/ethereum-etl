@@ -109,7 +109,7 @@ def greet(name, age):
 
 ## Function signature
 
-* A Function's logic should be clear from its signature (and comments, rearly).
+* A Function's logic should be clear from its signature (and docstring, rearly).
 * The user of a function should not be forced to read the function source to understand what it does.
 
 ```python
