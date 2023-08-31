@@ -28,7 +28,8 @@ class Car(Engine):
 * **Abstract methods or properties must be defined** in base classes.
 * **Protocols**: More flexible, facilitates duck typing. Define protocols where the interface is consumed, not provided.
 * **MyPy**: Use MyPy for type-checking, especially when using Protocols.
-* **Signatures** of methods must exactly match the base class or protocol. 
+* **Signatures** of methods must exactly match the base class or protocol.
+* **Only inherit once from a base class**. Don't use multiple inheritance. 
 
 For choosing between `abc` and Protocols, use `abc` when you want to enforce 
 that implementers inherit the base class. Protocols are more flexible and suitable for 
