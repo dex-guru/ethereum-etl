@@ -305,7 +305,7 @@ CREATE TABLE IF NOT EXISTS `${token_transfer}`
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (block_number, transaction_hash, log_index, token_id, block_hash)
-SETTINGS index_granularity = 8192;
+SETTINGS allow_nullable_key = 1, index_granularity = 8192;
 
 CREATE TABLE IF NOT EXISTS `${token_transfer}_address`
 (
