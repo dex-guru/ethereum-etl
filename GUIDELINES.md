@@ -135,3 +135,9 @@ def rectangle_area(width: int, height: int) -> int:
 * Help reviewers: highlight key code sections, summarize changes and objective in MR description.
 * Use `Draft` status until ready for review.
 * Remove `Draft` status after CI pipeline succeeds.
+
+## Optimizations
+
+* Measure, don't guess.
+* Optimize the slowest parts first.
+* Measure again after optimization. Validate that the optimization was effective. Then merge.
