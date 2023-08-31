@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS `${log}`
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (block_number, transaction_hash, log_index, block_hash)
-SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+SETTINGS index_granularity = 8192;
 
 CREATE TABLE IF NOT EXISTS `${log}_transaction_hash`
 (
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS `${log}_transaction_hash`
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (transaction_hash, log_index, block_hash)
-SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+SETTINGS index_granularity = 8192;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS `${log}_by_transaction_hash_mv`
             TO `${log}_transaction_hash`
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS `${log}_address`
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (address, transaction_hash, log_index, block_hash)
-SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+SETTINGS index_granularity = 8192;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS `${log}_by_address_mv`
             TO `${log}_address`
@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS `${transaction}`
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (block_number, hash, block_hash)
-SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+SETTINGS index_granularity = 8192;
 
 CREATE TABLE IF NOT EXISTS `${transaction}_address`
 (
@@ -283,7 +283,7 @@ CREATE TABLE IF NOT EXISTS `${block}`
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (number, hash)
-SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+SETTINGS index_granularity = 8192;
 
 CREATE TABLE IF NOT EXISTS `${token_transfer}`
 (
@@ -305,7 +305,7 @@ CREATE TABLE IF NOT EXISTS `${token_transfer}`
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (block_number, transaction_hash, log_index, token_id, block_hash)
-SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+SETTINGS index_granularity = 8192;
 
 CREATE TABLE IF NOT EXISTS `${token_transfer}_address`
 (
@@ -523,7 +523,7 @@ CREATE TABLE IF NOT EXISTS `${geth_trace}`
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (block_number, transaction_hash, block_hash)
-SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+SETTINGS index_granularity = 8192;
 
 CREATE TABLE IF NOT EXISTS `${geth_trace}_transaction_hash`
 (
@@ -536,7 +536,7 @@ CREATE TABLE IF NOT EXISTS `${geth_trace}_transaction_hash`
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (transaction_hash, block_hash)
-SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+SETTINGS index_granularity = 8192;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS `${geth_trace}_by_transaction_hash`
             TO `${geth_trace}_transaction_hash`
@@ -566,7 +566,7 @@ CREATE TABLE IF NOT EXISTS `${internal_transfer}`
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (block_number, transaction_hash, id, block_hash)
-SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+SETTINGS index_granularity = 8192;
 
 CREATE TABLE IF NOT EXISTS `${internal_transfer}_transaction_hash`
 (
@@ -583,7 +583,7 @@ CREATE TABLE IF NOT EXISTS `${internal_transfer}_transaction_hash`
 )
 ENGINE = ReplacingMergeTree
 ORDER BY (transaction_hash, block_number, id, block_hash)
-SETTINGS allow_nullable_key = 1, index_granularity = 8192;
+SETTINGS index_granularity = 8192;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS `${internal_transfer}_transaction_hash_mv`
             TO `${internal_transfer}_transaction_hash`
@@ -612,7 +612,7 @@ CREATE TABLE IF NOT EXISTS `${internal_transfer}_address`
     `value` UInt256 CODEC(ZSTD(1)),
     `gas_limit` UInt64 CODEC(ZSTD(1)),
     `id` String CODEC(ZSTD(1)),
-    `block_hash` Nullable(String),
+    `block_hash` String CODEC(ZSTD(1)),
     `is_reorged` Bool DEFAULT 0,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
