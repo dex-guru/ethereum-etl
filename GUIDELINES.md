@@ -96,6 +96,7 @@ def main(): # Chaining I/O and logic
 
 * Make function signatures explicit
 * Easier type-checking for static analysis tools
+* Mistyped arguments are silently ignored with `**kwargs` which can lead to unexpected behavior.
 
 ```python
 # Bad
