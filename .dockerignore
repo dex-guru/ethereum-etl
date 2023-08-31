@@ -3,6 +3,7 @@
 */**/last_block.txt
 */**/last_synced_block.txt
 .*
+./**/*.md
 helm
 output
 pid.txt
