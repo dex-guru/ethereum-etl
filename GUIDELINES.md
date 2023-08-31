@@ -2,6 +2,7 @@
 
 ## Favor Class Composition Over Inheritance
 * **Reduced Coupling**: Using composition over inheritance reduces coupling between classes, making the codebase easier to maintain and understand.
+* **Explicit Dependencies**: It's clear what dependencies are required by a class.
 * **Increased Flexibility**: Composition allows dynamic behavior swapping, unlike inheritance which is static.
 * **Ease of Testing**: Testing composed objects is often simpler because you can isolate components.
     
@@ -12,8 +13,8 @@ class Engine:
         print("Engine started")
 
 class Car:
-    def __init__(self):
-        self.engine = Engine()
+    def __init__(self, engine):  # Clearly defined dependencies
+        self.engine = engine
     
     def start(self):
         self.engine.start()
