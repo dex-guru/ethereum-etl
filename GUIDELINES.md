@@ -2,6 +2,7 @@
 
 ## Favor Class Composition Over Inheritance
 * **Reduced Coupling**: Using composition over inheritance reduces coupling between classes, making the codebase easier to maintain and understand.
+* **Explicit Dependencies**: It's clear what dependencies are required by a class.
 * **Increased Flexibility**: Composition allows dynamic behavior swapping, unlike inheritance which is static.
 * **Ease of Testing**: Testing composed objects is often simpler because you can isolate components.
     
@@ -12,8 +13,8 @@ class Engine:
         print("Engine started")
 
 class Car:
-    def __init__(self):
-        self.engine = Engine()
+    def __init__(self, engine):  # Clearly defined dependencies
+        self.engine = engine
     
     def start(self):
         self.engine.start()
@@ -28,7 +29,8 @@ class Car(Engine):
 * **Abstract methods or properties must be defined** in base classes.
 * **Protocols**: More flexible, facilitates duck typing. Define protocols where the interface is consumed, not provided.
 * **MyPy**: Use MyPy for type-checking, especially when using Protocols.
-* **Signatures** of methods must exactly match the base class or protocol. 
+* **Signatures** of methods must exactly match the base class or protocol.
+* **Only inherit once from a base class**. Don't use multiple inheritance. 
 
 For choosing between `abc` and Protocols, use `abc` when you want to enforce 
 that implementers inherit the base class. Protocols are more flexible and suitable for 
@@ -94,6 +96,7 @@ def main(): # Chaining I/O and logic
 
 * Make function signatures explicit
 * Easier type-checking for static analysis tools
+* Mistyped arguments are silently ignored with `**kwargs` which can lead to unexpected behavior.
 
 ```python
 # Bad
@@ -107,7 +110,7 @@ def greet(name, age):
 
 ## Function signature
 
-* A Function's logic should be clear from its signature (and comments, rearly).
+* A Function's logic should be clear from its signature (and docstring, rearly).
 * The user of a function should not be forced to read the function source to understand what it does.
 
 ```python
@@ -134,3 +137,9 @@ def rectangle_area(width: int, height: int) -> int:
 * Help reviewers: highlight key code sections, summarize changes and objective in MR description.
 * Use `Draft` status until ready for review.
 * Remove `Draft` status after CI pipeline succeeds.
+
+## Optimizations
+
+* Measure, don't guess.
+* Optimize the slowest parts first.
+* Measure again after optimization. Validate that the optimization was effective. Then merge.
