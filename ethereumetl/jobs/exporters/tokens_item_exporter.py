@@ -24,7 +24,7 @@ from dataclasses import fields
 from blockchainetl.jobs.exporters.composite_item_exporter import CompositeItemExporter
 from ethereumetl.domain.token import EthToken
 
-FIELDS_TO_EXPORT = ['address', 'symbol', 'name', 'decimals', 'total_supply', 'block_number']
+FIELDS_TO_EXPORT = ['address', 'symbol', 'name', 'decimals', 'total_supply']
 assert {f.name for f in fields(EthToken)} >= set(FIELDS_TO_EXPORT)
 
 

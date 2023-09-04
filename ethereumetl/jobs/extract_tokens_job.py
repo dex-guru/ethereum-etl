@@ -42,4 +42,4 @@ class ExtractTokensJob(ExportTokensJob):
         ]
 
         for token in tokens:
-            self._export_token(token_address=token['address'], block_number=token['block_number'])
+            self._export_token(token_address=token['address'])

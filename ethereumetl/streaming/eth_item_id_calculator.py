@@ -36,7 +36,7 @@ class EthItemIdCalculator:
         EntityType.TOKEN_BALANCE: ('block_number', 'token_address', 'holder_address', 'token_id'),
         EntityType.TRACE: ('trace_id',),
         EntityType.CONTRACT: ('block_number', 'address'),
-        EntityType.TOKEN: ('block_number', 'address'),
+        EntityType.TOKEN: ('address',),
         EntityType.ERROR: ('block_number',),
         EntityType.GETH_TRACE: ('block_number', 'transaction_hash'),
         EntityType.INTERNAL_TRANSFER: ('block_number', 'transaction_hash', 'id'),

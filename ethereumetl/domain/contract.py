@@ -31,4 +31,4 @@ class EthContract:
     is_erc20: bool = False
     is_erc721: bool = False
     function_sighashes: list[Any] = field(default_factory=list)
-    block_number: int | None = None
+    block_number: int = 0

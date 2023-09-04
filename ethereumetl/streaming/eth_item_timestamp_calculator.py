@@ -32,6 +32,8 @@ class EthItemTimestampCalculator:
             return None
 
         item_type = item.get('type')
+        if item_type == 'token':
+            return None
 
         if item_type == 'block' and item.get('timestamp') is not None:
             return epoch_seconds_to_rfc3339(item.get('timestamp'))

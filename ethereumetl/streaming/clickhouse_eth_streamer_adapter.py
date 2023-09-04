@@ -109,6 +109,57 @@ class ClickhouseEthStreamerAdapter:
                 return ()
             raise
 
+    def select_where(self, entity_type: EntityType, distinct_on: str, **kwargs):
+        """
+        Select items from ClickHouse.
+
+        As kwargs, you pass the field names and the values to filter on.
+        For example, to import all transactions for a block, you would call:
+        import_items(EntityType.TRANSACTION, 'hash', block_number=12345)
+        Or to import few blocks:
+        import_items(EntityType.BLOCK, 'number', number=[12345, 12346, 12347])
+        """
+        assert self.clickhouse, "Clickhouse client is not initialized"
+
+        def _get_where_clause(kwargs):
+            where_clause = []
+            for key, value in kwargs.items():
+                if isinstance(value, str):
+                    where_clause.append(f"{key} = '{value}'")
+                elif isinstance(value, Iterable):
+                    assert value, f"Empty iterable for key {key}"
+                    where_clause.append(f"{key} in {tuple(value)}")
+                elif value is None:
+                    where_clause.append(f"{key} is NULL")
+                elif isinstance(value, bool):
+                    where_clause.append(f"{key} = {int(value)}")
+                else:
+                    where_clause.append(f"{key} = {value}")
+
+            return ' and '.join(where_clause)
+
+        table_name = self.item_type_to_table_mapping.get(entity_type)
+        if table_name is None:
+            return ()
+
+        distinct_clause = ""
+        if distinct_on is not None:
+            distinct_clause = f"distinct on ({distinct_on})"
+
+        try:
+            where_clause = _get_where_clause(kwargs)
+        except AssertionError as e:
+            logger.warning("Cannot export %s items from clickhouse: %s", entity_type, e)
+            return ()
+        query = f"select {distinct_clause} * from `{table_name}`" f" where {where_clause}"
+        try:
+            return tuple(self.clickhouse.query(query).named_results())
+        except DatabaseError as e:
+            if 'UNKNOWN_TABLE' in str(e):  # The error code is not exposed by the driver
+                logger.warning("Cannot export %s items from clickhouse: %s", entity_type, e)
+                return ()
+            raise
+
     @staticmethod
     def get_logs_count_from_transactions(transactions: tuple) -> int:
         none_value_receipt_logs_count = any(
@@ -174,8 +225,8 @@ class ClickhouseEthStreamerAdapter:
             return blocks, transactions, from_ch
 
         def blocks_previously_exported():
-            blocks, _, _ = export_blocks_and_transactions()
-            return len(blocks) == want_block_count
+            blocks, _, from_ch = export_blocks_and_transactions()
+            return from_ch and len(blocks) == want_block_count
 
         @cache
         def export_receipts_and_logs():
@@ -276,27 +327,52 @@ class ClickhouseEthStreamerAdapter:
 
         @cache
         def extract_token_transfers():
-            logger.info("exporting TOKEN_TRANSFERS...")
-            token_transfers_ch = self.select_distinct(
-                TOKEN_TRANSFER, start_block, end_block, 'transaction_hash,log_index'
-            )
+            logger.info("extracting TOKEN_TRANSFERS...")
+            if blocks_previously_exported():
+                token_transfers_ch = self.select_distinct(
+                    TOKEN_TRANSFER, start_block, end_block, 'transaction_hash,log_index'
+                )
+            else:
+                token_transfers_ch = ()
             token_transfers = self.eth_streamer.extract_token_transfers(export_logs()[0])
             from_ch = len(token_transfers_ch) == len(token_transfers)
             return token_transfers, from_ch
 
         @cache
         def extract_contracts():
-            logger.info("exporting CONTRACTS...")
-            traces, from_ch = export_traces()
+            logger.info("extracting CONTRACTS...")
+            traces, from_ch = export_geth_traces()
             contracts = self.eth_streamer.export_contracts(traces)
             return contracts, from_ch
 
         @cache
         def extract_tokens():
-            logger.info("exporting TOKENS...")
+            logger.info("extracting TOKENS...")
             contracts, from_ch = extract_contracts()
             tokens = self.eth_streamer.extract_tokens(contracts)
             return tokens, from_ch
+
+        @cache
+        def export_tokens():
+            logger.info("exporting TOKENS...")
+            transfers = extract_token_transfers()[0]
+            token_addresses = {t['token_address'] for t in transfers}
+            tokens_ch = self.select_where(
+                entity_type=TOKEN, distinct_on='address', address=token_addresses
+            )
+            for t in tokens_ch:
+                t['type'] = TOKEN
+            if len(tokens_ch) == len(token_addresses):
+                from_ch = True
+                return tokens_ch, from_ch
+            from_ch = False
+            absent_token_addresses = token_addresses - {t['address'] for t in tokens_ch}
+            logger.info(
+                f"Tokens. Not enough data found in clickhouse: falling back to Eth node:"
+                f" entity_type=token token_addresses={absent_token_addresses}"
+            )
+            tokens = self.eth_streamer.export_tokens(absent_token_addresses)
+            return tokens + list(tokens_ch), from_ch
 
         @cache
         def export_token_balances():
@@ -323,10 +399,13 @@ class ClickhouseEthStreamerAdapter:
 
         @cache
         def extract_internal_transfers():
-            logger.info("exporting INTERNAL_TRANSFERS...")
-            internal_transfers_ch = self.select_distinct(
-                INTERNAL_TRANSFER, start_block, end_block, 'transaction_hash'
-            )
+            logger.info("extracting INTERNAL_TRANSFERS...")
+            if blocks_previously_exported():
+                internal_transfers_ch = self.select_distinct(
+                    INTERNAL_TRANSFER, start_block, end_block, 'transaction_hash'
+                )
+            else:
+                internal_transfers_ch = ()
             geth_traces, geth_traces_from_ch = export_geth_traces()
             internal_transfers = self.eth_streamer.extract_internal_transfers(geth_traces)
             from_ch = geth_traces_from_ch and len(internal_transfers_ch) == len(internal_transfers)
@@ -335,9 +414,12 @@ class ClickhouseEthStreamerAdapter:
         @cache
         def export_native_balances():
             logger.info("exporting NATIVE_BALANCES...")
-            native_balances_ch = self.select_distinct(
-                NATIVE_BALANCE, start_block, end_block, 'address,block_number'
-            )
+            if blocks_previously_exported():
+                native_balances_ch = self.select_distinct(
+                    NATIVE_BALANCE, start_block, end_block, 'address,block_number'
+                )
+            else:
+                native_balances_ch = ()
             _blocks, transactions, transactions_from_ch = export_blocks_and_transactions()
             internal_transfers, internal_transfers_from_ch = extract_internal_transfers()
 
@@ -374,7 +456,9 @@ class ClickhouseEthStreamerAdapter:
             ((CONTRACT,), extract_contracts),
             ((INTERNAL_TRANSFER,), extract_internal_transfers),
             ((NATIVE_BALANCE,), export_native_balances),
-            ((TOKEN,), extract_tokens),
+            # if contract export is enabled, export tokens based on CREATE action from traces (indexing on create)
+            # otherwise, export tokens based on token transfers (indexing on event)
+            ((TOKEN,), extract_tokens if CONTRACT in self.entity_types else export_tokens),
         ):
             for entity_type in entity_types:
                 if entity_type not in self.eth_streamer.should_export:

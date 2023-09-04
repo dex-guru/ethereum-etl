@@ -13,13 +13,13 @@ from ethereumetl.jobs.export_geth_traces_job import ExportGethTracesJob
 from ethereumetl.jobs.export_native_balances_job import ExportNativeBalancesJob
 from ethereumetl.jobs.export_receipts_job import ExportReceiptsJob
 from ethereumetl.jobs.export_token_balances_job import ExportTokenBalancesJob
+from ethereumetl.jobs.export_tokens_job import ExportTokensJob
 from ethereumetl.jobs.export_traces_job import ExportTracesJob
 from ethereumetl.jobs.extract_contracts_job import ExtractContractsJob
 from ethereumetl.jobs.extract_internal_transfers_job import ExtractInternalTransfersJob
 from ethereumetl.jobs.extract_token_transfers_job import ExtractTokenTransfersJob
 from ethereumetl.jobs.extract_tokens_job import ExtractTokensJob
 from ethereumetl.streaming.enrich import (
-    enrich_contracts,
     enrich_errors,
     enrich_geth_traces,
     enrich_internal_transfers,
@@ -27,7 +27,6 @@ from ethereumetl.streaming.enrich import (
     enrich_native_balances,
     enrich_token_balances,
     enrich_token_transfers,
-    enrich_tokens,
     enrich_traces,
     enrich_transactions,
 )
@@ -61,7 +60,7 @@ class EthStreamerAdapter:
         TRACE: ('block_number', 'trace_index'),
         GETH_TRACE: ('transaction_hash', 'block_number'),
         CONTRACT: ('block_number',),
-        TOKEN: ('block_number',),
+        TOKEN: ('address',),
         ERROR: ('block_number',),
         INTERNAL_TRANSFER: ('block_number', 'transaction_hash', 'id'),
         RECEIPT: ('block_number', 'transaction_index'),
@@ -74,8 +73,6 @@ class EthStreamerAdapter:
         TOKEN_TRANSFER: (BLOCK, enrich_token_transfers),
         TOKEN_BALANCE: (BLOCK, enrich_token_balances),
         TRACE: (BLOCK, enrich_traces),
-        CONTRACT: (BLOCK, enrich_contracts),
-        TOKEN: (BLOCK, enrich_tokens),
         ERROR: (BLOCK, enrich_errors),
         GETH_TRACE: (TRANSACTION, enrich_geth_traces),
         INTERNAL_TRANSFER: (TRANSACTION, enrich_internal_transfers),
@@ -92,8 +89,8 @@ class EthStreamerAdapter:
         TOKEN_TRANSFER: (LOG,),
         TOKEN_BALANCE: (TOKEN_TRANSFER,),
         GETH_TRACE: (TRANSACTION,),
-        CONTRACT: (TRACE,),
-        TOKEN: (CONTRACT,),
+        CONTRACT: (GETH_TRACE,),
+        TOKEN: (TOKEN_TRANSFER,),
         INTERNAL_TRANSFER: (GETH_TRACE,),
         NATIVE_BALANCE: (TRANSACTION, INTERNAL_TRANSFER),
     }
@@ -137,8 +134,14 @@ class EthStreamerAdapter:
                 (GETH_TRACE,): lambda: self.export_geth_traces(
                     [t["hash"] for t in export(TRANSACTION)]
                 ),
-                (CONTRACT,): lambda: self.export_contracts(export(TRACE)),
-                (TOKEN,): lambda: self.extract_tokens(export(CONTRACT)),
+                (CONTRACT,): lambda: self.export_contracts(export(GETH_TRACE)),
+                (TOKEN,): (
+                    lambda: self.export_tokens(
+                        {t["token_address"] for t in export(TOKEN_TRANSFER)}
+                    )
+                )
+                if CONTRACT not in self.should_export
+                else lambda: self.extract_tokens(export(CONTRACT)),
                 (INTERNAL_TRANSFER,): lambda: self.extract_internal_transfers(export(GETH_TRACE)),
                 (NATIVE_BALANCE,): lambda: self.export_native_balances(
                     transactions=export(TRANSACTION), internal_transfers=export(INTERNAL_TRANSFER)
@@ -331,10 +334,10 @@ class EthStreamerAdapter:
         traces = exporter.get_items(EntityType.GETH_TRACE)
         return traces
 
-    def export_contracts(self, traces):
+    def export_contracts(self, geth_traces):
         exporter = InMemoryItemExporter(item_types=[EntityType.CONTRACT])
         job = ExtractContractsJob(
-            traces_iterable=traces,
+            traces_iterable=geth_traces,
             batch_size=self.batch_size,
             max_workers=self.max_workers,
             item_exporter=exporter,
@@ -343,7 +346,23 @@ class EthStreamerAdapter:
         contracts = exporter.get_items(EntityType.CONTRACT)
         return contracts
 
+    def export_tokens(self, addresses):
+        if not addresses:
+            return []
+        exporter = InMemoryItemExporter(item_types=[EntityType.TOKEN])
+        job = ExportTokensJob(
+            token_addresses_iterable=addresses,
+            web3=ThreadLocalProxy(lambda: build_web3(self.batch_web3_provider)),
+            item_exporter=exporter,
+            max_workers=self.max_workers,
+        )
+        job.run()
+        tokens = exporter.get_items(EntityType.TOKEN)
+        return tokens
+
     def extract_tokens(self, contracts):
+        if not contracts:
+            return []
         exporter = InMemoryItemExporter(item_types=[EntityType.TOKEN])
         job = ExtractTokensJob(
             contracts_iterable=contracts,

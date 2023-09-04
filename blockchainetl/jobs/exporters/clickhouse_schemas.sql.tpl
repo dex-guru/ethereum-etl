@@ -476,13 +476,10 @@ CREATE TABLE IF NOT EXISTS `${token}`
     `name` String CODEC(ZSTD(1)),
     `symbol` String CODEC(ZSTD(1)),
     `decimals` UInt8,
-    `function_sighashes` Array(String) CODEC(ZSTD(1)),
     `total_supply` UInt256,
-    `block_number` UInt64,
-    `block_hash` String CODEC(ZSTD(1)),
 )
-ENGINE = ReplacingMergeTree
-ORDER BY (address, block_number);
+ENGINE = EmbeddedRocksDB
+PRIMARY KEY address;
 
 CREATE TABLE IF NOT EXISTS `${contract}`
 (
@@ -492,10 +489,9 @@ CREATE TABLE IF NOT EXISTS `${contract}`
     `is_erc20` UInt8,
     `is_erc721` UInt8,
     `block_number` UInt64,
-    `block_hash` String CODEC(ZSTD(1))
 )
-ENGINE = ReplacingMergeTree
-ORDER BY (address, block_number);
+ENGINE = EmbeddedRocksDB
+PRIMARY KEY address;
 
 CREATE TABLE IF NOT EXISTS `${error}`
 (

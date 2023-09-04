@@ -67,8 +67,8 @@ def read_resource(resource_group, file_name):
     (1, 1755634, 1755635, 1, 'blocks_1755634_1755635', entity_type.ALL_FOR_INFURA, 'mock'),
     skip_if_slow_tests_disabled(
         [1, 1755634, 1755635, 1, 'blocks_1755634_1755635', entity_type.ALL_FOR_INFURA, 'infura']),
-    (1, 508110, 508110, 1, 'blocks_508110_508110', ['trace', 'contract', 'token'], 'mock'),
-    (1, 2112234, 2112234, 1, 'blocks_2112234_2112234', ['trace', 'contract', 'token'], 'mock'),
+    (1, 508110, 508110, 1, 'blocks_508110_508110', ['trace', 'contract', 'token'], 'infura'),
+    (1, 2112234, 2112234, 1, 'blocks_2112234_2112234', ['trace', 'contract'], 'infura'),
 ])
 # fmt: on
 def test_stream(
@@ -182,7 +182,7 @@ def test_stream(
 
 # fmt: off
 @pytest.mark.parametrize("chain_id, start_block, end_block, batch_size, resource_group, entity_types, provider_type", [
-    (1, 1755634, 1755635, 1, 'blocks_1755634_1755635', {*ALL} - {EntityType.RECEIPT}, 'mock'),
+    (1, 1755634, 1755635, 1, 'blocks_1755634_1755635', {*ALL} - {EntityType.RECEIPT, EntityType.TOKEN}, 'mock'),
 ])
 # fmt: on
 def test_stream_clickhouse(

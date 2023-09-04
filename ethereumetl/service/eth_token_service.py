@@ -66,11 +66,10 @@ class EthTokenService:
 
         token = EthToken(
             address=token_address,
-            symbol=symbol,
-            name=name,
-            decimals=decimals,
-            total_supply=total_supply,
-            block_number=0,
+            symbol=symbol or '',
+            name=name or '',
+            decimals=decimals or 0,
+            total_supply=total_supply or 0,
         )
 
         return token

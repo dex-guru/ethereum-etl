@@ -33,6 +33,7 @@ ALL_FOR_STREAMING = (
     EntityType.GETH_TRACE,
     EntityType.INTERNAL_TRANSFER,
     EntityType.NATIVE_BALANCE,
+    EntityType.CONTRACT,
 )
 ALL_FOR_INFURA = (
     EntityType.BLOCK,
