@@ -69,7 +69,7 @@ class ExtractContractsJob(BaseJob):
             function_sighashes = self.contract_service.get_function_sighashes(bytecode)
             contract = EthContract(
                 address=trace.get('to'),
-                bytecode=bytecode,
+                bytecode=bytecode if bytecode is not None else '0x',
                 block_number=trace.get('block_number', 0),
                 function_sighashes=function_sighashes,
                 is_erc20=self.contract_service.is_erc20_contract(function_sighashes),
