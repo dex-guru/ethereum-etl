@@ -15,6 +15,7 @@ raw-data-streamer:
   env:
     LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse://testuser3:testplpassword@10.0.100.175:8123/dex_etl?table_name=last_synced_block'
     OUTPUT: 'clickhouse+native://testuser3:testplpassword@10.0.100.175:8123/dex_etl'
+    EXPORT_FROM_CLICKHOUSE: 'clickhouse+native://testuser3:testplpassword@10.0.100.175:8123/dex_etl'
     POLLING_PERIOD: '2'
     BATCH_SIZE: '5'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
@@ -23,7 +24,7 @@ raw-data-streamer:
     REWRITE_CLICKHOUSE: ''
   chainEnv:
     ENTITY_TYPES:
-      default: 'block,transaction,log,token_transfer,token_balance,error'
+      default: 'block,transaction,log,token_transfer,token_balance,error,token'
     PROVIDER_URL:
       default: 'http://rpc-gw-stage.dexguru.biz/full/1'
       polygon-137: 'http://rpc-gw-stage.dexguru.biz/full/137'
@@ -153,7 +154,7 @@ raw-traces-data-streamer:
     REWRITE_CLICKHOUSE: ''
   chainEnv:
     ENTITY_TYPES:
-      default: 'block,geth_trace,internal_transfer,native_balance'
+      default: 'block,geth_trace,internal_transfer,native_balance,token,contract'
     PROVIDER_URL:
       default: 'http://rpc-gw-stage.dexguru.biz/full/1'
       polygon-137: 'http://rpc-gw-stage.dexguru.biz/full/137'

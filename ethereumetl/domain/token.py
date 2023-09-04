@@ -29,4 +29,3 @@ class EthToken:
     name: str
     decimals: int
     total_supply: int
-    block_number: int

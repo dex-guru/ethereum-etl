@@ -40,15 +40,16 @@ class ExportTokensJob(BaseJob):
         self.item_exporter.open()
 
     def _export(self):
-        self.batch_work_executor.execute(self.token_addresses_iterable, self._export_tokens)
+        self.batch_work_executor.execute(
+            self.token_addresses_iterable, self._export_tokens, len(self.token_addresses_iterable)
+        )
 
     def _export_tokens(self, token_addresses):
         for token_address in token_addresses:
             self._export_token(token_address)
 
-    def _export_token(self, token_address, block_number=None):
+    def _export_token(self, token_address):
         token = self.token_service.get_token(token_address)
-        token.block_number = block_number
         token_dict = self.token_mapper.token_to_dict(token)
         self.item_exporter.export_item(token_dict)
 

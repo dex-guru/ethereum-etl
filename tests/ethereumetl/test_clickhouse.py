@@ -1,12 +1,41 @@
 import json
 from collections.abc import Sequence
 
+import pytest
 from clickhouse_connect.driver.client import Client
 
 from blockchainetl.jobs.exporters.clickhouse_exporter import ClickHouseItemExporter
+from ethereumetl.enumeration.entity_type import EntityType
 from ethereumetl.scripts.execute_clickhouse_sql import execute_clickhouse_sql
 from ethereumetl.scripts.load_abi_to_event_inventory import load_abis_to_event_inventory
+from ethereumetl.streaming.clickhouse_eth_streamer_adapter import ClickhouseEthStreamerAdapter
+from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter
 from ethereumetl.streaming.item_exporter_creator import make_item_type_to_table_mapping
+
+
+@pytest.fixture()
+def clickhouse_adapter(clickhouse_url):
+    item_type_to_table_mapping = make_item_type_to_table_mapping(1)
+    item_exporter = ClickHouseItemExporter(clickhouse_url, item_type_to_table_mapping)
+
+    eth_streamer_adapter = EthStreamerAdapter(
+        batch_web3_provider=lambda _: None,
+        batch_size=1,
+        item_exporter=item_exporter,
+        entity_types=[EntityType.BLOCK],
+    )
+
+    ch_eth_streamer_adapter = ClickhouseEthStreamerAdapter(
+        eth_streamer=eth_streamer_adapter,
+        clickhouse_url=clickhouse_url,
+        chain_id=1,
+        item_type_to_table_mapping=make_item_type_to_table_mapping(chain_id=1),
+    )
+    ch_eth_streamer_adapter.open()
+    try:
+        yield ch_eth_streamer_adapter
+    finally:
+        ch_eth_streamer_adapter.close()
 
 
 def create_entity_tables(clickhouse_url):
@@ -213,3 +242,62 @@ def test_load_abis_to_event_inventory(clickhouse_url, clickhouse, tmp_path):
             ],
         },
     ]
+
+
+def test_select_where_no_results(clickhouse_adapter):
+    """Test that `select_where()` returns an empty tuple if there are no results."""
+    assert clickhouse_adapter.select_where(EntityType.BLOCK, "number", number=-1) == ()
+
+
+def test_select_where_with_results(clickhouse_adapter, clickhouse):
+    """Test that `select_where()` returns a tuple of results."""
+    insert_records(
+        clickhouse,
+        '1_blocks',
+        [
+            {
+                'number': 12345,
+                'is_reorged': False,
+                'hash': 'hash_1',
+            },
+            {
+                'number': 12346,
+                'is_reorged': False,
+                'hash': 'hash_2',
+            },
+            {
+                'number': 12347,
+                'is_reorged': True,
+                'hash': 'hash_3',
+            },
+            {
+                'number': 12348,
+                'is_reorged': True,
+                'hash': 'hash_4',
+            },
+        ],
+    )
+    results = clickhouse_adapter.select_where(
+        EntityType.BLOCK, "number", number=[12345, 12346, 12347]
+    )
+    assert len(results) == 3
+    assert results[0]["number"] == 12345
+    assert results[1]["number"] == 12346
+    assert results[2]["number"] == 12347
+
+    results = clickhouse_adapter.select_where(
+        EntityType.BLOCK, "number", number=[12345, 12346, 12347], is_reorged=False
+    )
+    assert len(results) == 2
+    assert results[0]["number"] == 12345
+    assert results[1]["number"] == 12346
+
+    results = clickhouse_adapter.select_where(
+        EntityType.BLOCK,
+        "number",
+        number=[12345, 12346, 12347],
+        is_reorged=True,
+        hash='hash_3',
+    )
+    assert len(results) == 1
+    assert results[0]["number"] == 12347
