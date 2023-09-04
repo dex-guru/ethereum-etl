@@ -110,6 +110,9 @@ class EthStreamerAdapter:
         self.entity_types = frozenset(entity_types)
         self.item_id_calculator = EthItemIdCalculator()
         self.item_timestamp_calculator = EthItemTimestampCalculator()
+        #
+        if CONTRACT in self.entity_types:
+            self.EXPORT_DEPENDENCIES[TOKEN] = (CONTRACT,)
 
     def open(self):
         self.item_exporter.open()
