@@ -32,7 +32,7 @@ class EthItemTimestampCalculator:
             return None
 
         item_type = item.get('type')
-        if item_type == 'token':
+        if item_type in ('token', 'contract'):
             return None
 
         if item_type == 'block' and item.get('timestamp') is not None:

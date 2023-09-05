@@ -195,7 +195,7 @@ raw-verify-data-streamer:
   command: '[ "ethereumetl", "stream" ]'
   env:
     LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse://testuser3:testplpassword@10.0.100.175:8123/dex_etl?table_name=last_synced_block_verify'
-    OUTPUT: 'clickhouse://testuser3:testplpassword@10.0.100.175:8123/dex_etl?allow_experimental_lightweight_delete=true'
+    OUTPUT: 'clickhouse://testuser3:testplpassword@10.0.100.175:8123/dex_etl'
     POLLING_PERIOD: '60'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
