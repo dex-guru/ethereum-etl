@@ -203,7 +203,6 @@ raw-verify-data-streamer:
     EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@10.0.100.175:8123/dex_etl'
     REWRITE_CLICKHOUSE: 'block,transaction,log,token_transfer,token_balance'
     IS_VERIFIER: 'True'
-    START_BLOCK: 'latest'
   chainEnv:
     LAG:
       default: 100
