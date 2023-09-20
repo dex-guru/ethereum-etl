@@ -21,7 +21,7 @@ from tests.helpers import run_slow_tests
 def test_up_down(clickhouse_url):
     alembic_ini = Path(ethereumetl.__file__).parent / '../alembic.ini'
     alembic_cfg = Config(alembic_ini)
-    with (mock.patch('os.environ', {'CLICKHOUSE_URL': clickhouse_url}),):
+    with mock.patch('os.environ', {'CLICKHOUSE_URL': clickhouse_url}):
         command.upgrade(alembic_cfg, 'base')
 
         stack = []
