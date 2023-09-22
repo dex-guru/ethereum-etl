@@ -74,4 +74,81 @@ alembic upgrade --sql <from_revision>:<to_revision>  # shows migrations sql in t
 ### Hacks
 
 * Use `CLICKHOUSE_REPLICATED=1` env var to assume a replicated clickhouse instance when
-  generating the schema DDL in offline (`--sql`) mode. 
+  generating the schema DDL in offline (`--sql`) mode.
+
+## Example: changing primary key order of a MergeTree table
+
+Suppose we have a table `blocks` with the following schema:
+
+```sql
+CREATE TABLE blocks (
+    block_id UInt64,
+    block_hash String,
+)
+ENGINE = MergeTree()
+ORDER BY block_id
+```
+
+And we want to change the primary key order to `ORDER BY block_hash`. And we want to do this
+without the table users noticing any downtime.
+
+### 1. 1st Schema Migration (DDL, fast)
+
+1. **Create New Table**:  
+   Make a new table with the desired `ORDER BY` clause.
+
+    ```sql
+    CREATE TABLE blocks_new (
+        block_id UInt64,
+        block_hash String,
+    )
+    ENGINE = MergeTree()
+    ORDER BY block_hash
+    ```
+
+2. **Materialized View**:  
+   Set up a materialized view to copy new data from the old table to the new table.
+
+    ```sql
+    CREATE MATERIALIZED VIEW blocks_mv TO blocks_new AS
+    SELECT *
+    FROM blocks
+    ```
+
+### 2. Data Migration (DML, long-running)
+
+Prepare and run a script to copy old data from the old table to the new table.
+
+```sql
+INSERT INTO blocks_new
+SELECT *
+FROM blocks
+WHERE block_id NOT IN (
+    SELECT block_id
+    FROM blocks_new
+)
+```
+
+### 3. 2nd Schema Migration (DDL, fast)
+
+1. Make sure that the data migration script has finished successfully.
+2. **Table Swap**:  
+   Use `EXCHANGE TABLES` to swap the old and new tables.
+
+    ```sql
+    EXCHANGE TABLES blocks AND blocks_new
+    ```
+
+   After this step, the old table will be named `blocks_new` and the new table will be
+   named `blocks`.
+   The `blocks` table will have the desired primary key order and will contain both the data
+   before the 1st migration step and the new data which was copied by the materialized view.
+
+3. **Cleanup**:
+   Drop the materialized view and the old table (which is now
+   named `blocks_new`).
+
+    ```sql
+    DROP MATERIALIZED VIEW blocks_mv;
+    DROP TABLE blocks_new; 
+    ```
