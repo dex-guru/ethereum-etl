@@ -11,6 +11,7 @@ from clickhouse_connect.driver.exceptions import DatabaseError
 
 from blockchainetl.jobs.exporters.clickhouse_exporter import ClickHouseItemExporter
 from blockchainetl.jobs.exporters.multi_item_exporter import MultiItemExporter
+from ethereumetl.clickhouse import ITEM_TYPE_TO_TABLE_MAPPING
 from ethereumetl.enumeration.entity_type import ALL, EntityType
 from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter, sort_by
 from ethereumetl.utils import parse_clickhouse_url
@@ -47,20 +48,7 @@ class ClickhouseEthStreamerAdapter:
         self.clickhouse_url = clickhouse_url
         self.clickhouse: Client | None = None
         self.rewrite_entity_types = frozenset(rewrite_entity_types)
-        self.item_type_to_table_mapping = {
-            EntityType.BLOCK: f"{chain_id}_blocks",
-            EntityType.CONTRACT: f"{chain_id}_contracts",
-            EntityType.ERROR: f"{chain_id}_errors",
-            EntityType.GETH_TRACE: f"{chain_id}_geth_traces",
-            EntityType.INTERNAL_TRANSFER: f"{chain_id}_internal_transfers",
-            EntityType.LOG: f"{chain_id}_logs",
-            EntityType.NATIVE_BALANCE: f"{chain_id}_native_balances",
-            EntityType.TOKEN: f"{chain_id}_tokens",
-            EntityType.TOKEN_BALANCE: f"{chain_id}_token_balances",
-            EntityType.TOKEN_TRANSFER: f"{chain_id}_token_transfers",
-            EntityType.TRACE: f"{chain_id}_traces",
-            EntityType.TRANSACTION: f"{chain_id}_transactions",
-        }
+        self.item_type_to_table_mapping = ITEM_TYPE_TO_TABLE_MAPPING
         self.chain_id = chain_id
         self.entity_types = frozenset(eth_streamer.entity_types)
 
@@ -567,7 +555,6 @@ class VerifyingClickhouseEthStreamerAdapter:
         assert (
             self.ch_streamer.exporting_to_the_same_clickhouse
         ), 'VerifyingClickhouseEthStreamerAdapter can be used only when exporting to the same ClickHouse instance'
-        self.chain_id = self.ch_streamer.chain_id
 
     def open(self):
         self.ch_streamer.open()

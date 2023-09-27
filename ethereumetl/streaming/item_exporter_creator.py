@@ -129,7 +129,7 @@ def create_item_exporter(output, chain_id) -> BaseItemExporter:
     elif item_exporter_type == ItemExporterType.CLICKHOUSE:
         from blockchainetl.jobs.exporters.clickhouse_exporter import ClickHouseItemExporter
 
-        item_exporter = ClickHouseItemExporter(output, chain_id=chain_id)
+        item_exporter = ClickHouseItemExporter(output)
     elif item_exporter_type == ItemExporterType.AMQP:
         from blockchainetl.jobs.exporters.amqp_exporter import AMQPItemExporter
 

@@ -69,7 +69,6 @@ def event_abi_to_event_inventory_record(
 
 
 def load_abis_to_event_inventory(
-    chain_id: int,
     clickhouse_url: str,
     ABIs_dir_path: str,
     dry_run: bool = True,
@@ -82,7 +81,7 @@ def load_abis_to_event_inventory(
     with clickhouse_connect.create_client(**parse_clickhouse_url(clickhouse_url)) as client:
         if not dry_run:
             client.insert(
-                f'{chain_id}_event_inventory_src',
+                'event_inventory_src',
                 event_registry_records,
                 column_names=EventInventoryRecord._fields,
             )
@@ -91,12 +90,11 @@ def load_abis_to_event_inventory(
 
 
 @click.command()
-@click.option('-c', '--chain-id', required=True, type=int)
 @click.option('-u', '--clickhouse-url', required=True, type=str)
 @click.option('-a', '--abi-dir', required=True, type=str)
 @click.option('-n', '--dry-run', is_flag=True)
-def cli(chain_id, clickhouse_url, abi_dir, dry_run):
-    load_abis_to_event_inventory(chain_id, clickhouse_url, abi_dir, dry_run)
+def cli(clickhouse_url, abi_dir, dry_run):
+    load_abis_to_event_inventory(clickhouse_url, abi_dir, dry_run)
 
 
 if __name__ == '__main__':

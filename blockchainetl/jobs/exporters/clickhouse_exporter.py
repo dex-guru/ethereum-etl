@@ -9,8 +9,8 @@ from clickhouse_connect.driver.exceptions import DatabaseError
 from clickhouse_connect.driver.models import ColumnDef
 
 from blockchainetl.exporters import BaseItemExporter
+from ethereumetl.clickhouse import ITEM_TYPE_TO_TABLE_MAPPING
 from ethereumetl.config.envs import envs
-from ethereumetl.enumeration.entity_type import EntityType
 from ethereumetl.utils import parse_clickhouse_url
 
 logger = logging.getLogger(__name__)
@@ -41,7 +41,7 @@ NUMERIC_TYPE_MAX_VALUES = {
 
 
 class ClickHouseItemExporter(BaseItemExporter):
-    def __init__(self, connection_url, chain_id=1):
+    def __init__(self, connection_url):
         super().__init__()
         parsed = parse_clickhouse_url(connection_url)
         self.username = parsed['user']
@@ -53,21 +53,7 @@ class ClickHouseItemExporter(BaseItemExporter):
         self.connection: clickhouse_connect.driver.HttpClient | None = None
         self.tables = {}
         self.cached_batches = {}
-        self.chain_id = chain_id
-        self.item_type_to_table_mapping = {
-            EntityType.BLOCK: f"{chain_id}_blocks",
-            EntityType.CONTRACT: f"{chain_id}_contracts",
-            EntityType.ERROR: f"{chain_id}_errors",
-            EntityType.GETH_TRACE: f"{chain_id}_geth_traces",
-            EntityType.INTERNAL_TRANSFER: f"{chain_id}_internal_transfers",
-            EntityType.LOG: f"{chain_id}_logs",
-            EntityType.NATIVE_BALANCE: f"{chain_id}_native_balances",
-            EntityType.TOKEN: f"{chain_id}_tokens",
-            EntityType.TOKEN_BALANCE: f"{chain_id}_token_balances",
-            EntityType.TOKEN_TRANSFER: f"{chain_id}_token_transfers",
-            EntityType.TRACE: f"{chain_id}_traces",
-            EntityType.TRANSACTION: f"{chain_id}_transactions",
-        }
+        self.item_type_to_table_mapping = ITEM_TYPE_TO_TABLE_MAPPING
 
     def open(self):
         if self.connection:

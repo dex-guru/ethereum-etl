@@ -3,13 +3,11 @@ import logging
 import os
 import random
 import re
-import string
 from collections import defaultdict
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from string import ascii_uppercase
-from textwrap import dedent
 from typing import TextIO
 from unittest import mock
 
@@ -19,11 +17,27 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import Connection
 
 import ethereumetl
+from ethereumetl.enumeration.entity_type import EntityType
 
 logger = logging.getLogger(__name__)
 
-SCHEMA_FILE_PATH = Path(ethereumetl.__file__).parent.parent / 'db/migrations/schema.sql'
 
+ITEM_TYPE_TO_TABLE_MAPPING: Mapping = {
+    EntityType.BLOCK: "blocks",
+    EntityType.TRANSACTION: "transactions",
+    # EntityType.RECEIPT: receipts are stored with transactions
+    EntityType.LOG: "logs",
+    EntityType.TOKEN_TRANSFER: "token_transfers",
+    EntityType.TRACE: "traces",
+    EntityType.GETH_TRACE: "geth_traces",
+    EntityType.CONTRACT: "contracts",
+    EntityType.TOKEN: "tokens",
+    EntityType.INTERNAL_TRANSFER: "internal_transfers",
+    EntityType.TOKEN_BALANCE: "token_balances",
+    EntityType.ERROR: "errors",
+    EntityType.NATIVE_BALANCE: "native_balances",
+}
+SCHEMA_FILE_PATH = Path(ethereumetl.__file__).parent.parent / 'db/migrations/schema.sql'
 
 table_names_sort_key = re.compile(r'(\d+|_)').split
 
@@ -144,32 +158,3 @@ def dump_migration_schema(clickhouse_url, schema_file_path, temp_db_name: str | 
             write_schema_ddl(temp_db_url.render_as_string(hide_password=False), f)
         finally:
             connection.execute(f'drop database {temp_db_name} sync')
-
-
-def render_sql_template(is_replicated_clickhouse: bool, template: str, **kwargs) -> str:
-    if is_replicated_clickhouse:
-        replicated_merge_tree_prefix = "Replicated"
-        replicated_merge_tree_params = (
-            "'/clickhouse/tables/{shard}/{database}/{table}', '{replica}'"
-        )
-        replicated_merge_tree_params_with_comma = replicated_merge_tree_params + ","
-        on_cluster = "ON CLUSTER '{cluster}'"
-
-        replacing_merge_tree = "ReplicatedReplacingMergeTree"
-    else:
-        replicated_merge_tree_params = ""
-        replicated_merge_tree_params_with_comma = ""
-        replicated_merge_tree_prefix = ""
-        on_cluster = ""
-        replacing_merge_tree = "ReplacingMergeTree"
-
-    params = dict(
-        replacing_merge_tree=replacing_merge_tree,
-        replicated_merge_tree_prefix=replicated_merge_tree_prefix,
-        replicated_merge_tree_params=replicated_merge_tree_params,
-        replicated_merge_tree_params_with_comma=replicated_merge_tree_params_with_comma,
-        on_cluster=on_cluster,
-        **kwargs,
-    )
-
-    return dedent(string.Template(template).substitute(params))

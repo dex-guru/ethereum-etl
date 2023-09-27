@@ -1000,15 +1000,15 @@ def test_verify_all_with_inconsistent_data(
     ch_verifier.export_all(start_block=1, end_block=3)
 
     fake_ch_client.command.assert_any_call(
-        "INSERT INTO 1_blocks"
-        " SELECT * EXCEPT is_reorged, 1 FROM 1_blocks"
+        "INSERT INTO blocks"
+        " SELECT * EXCEPT is_reorged, 1 FROM blocks"
         " WHERE number IN (3,)"
         " AND timestamp IN (30,)"
         " AND hash IN ('invalid',)"
     )
     fake_ch_client.command.assert_any_call(
-        "INSERT INTO 1_transactions"
-        " SELECT * EXCEPT is_reorged, 1 FROM 1_transactions"
+        "INSERT INTO transactions"
+        " SELECT * EXCEPT is_reorged, 1 FROM transactions"
         " WHERE block_number IN (3,)"
         " AND block_timestamp IN (30,)"
         " AND block_hash IN ('invalid',)"
