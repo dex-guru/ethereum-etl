@@ -18,29 +18,33 @@ def read_resource(resource_group, file_name):
 def test_extract_token_transfers_priced_job(tmpdir):
     elastic = mock.MagicMock()
     elastic.search.return_value = {
-        'hits': {
-            'hits': [
-                {
-                    '_source': {
-                        'address': 'test_address',
-                        'c': 1,
-                    },
-                    "inner_hits": {
-                        "latest": {
-                            "hits": {
-                                "hits": [
+        'aggregations': {
+            'group_by_address': {
+                'buckets': [
+                    {
+                        'doc_count': 38,
+                        'key': 'test_address',
+                        'latest': {
+                            'hits': {
+                                'total': {'value': 38, 'relation': 'eq'},
+                                'max_score': None,
+                                'hits': [
                                     {
-                                        "_source": {
-                                            "address": "test_address",
-                                            "c": 1,
-                                        }
+                                        '_index': 'rounded_candle-20230929',
+                                        '_type': '_doc',
+                                        '_id': 'S-600-56-all-0xfebe8c1ed424dbf688551d4e2267e7a53698f0aa-1696008000',
+                                        '_score': None,
+                                        '_source': {'c': 1},
+                                        'sort': [1696008000000],
                                     }
-                                ]
+                                ],
                             }
-                        }
-                    },
-                }
-            ]
+                        },
+                    }
+                ],
+                'doc_count_error_upper_bound': 0,
+                'sum_other_doc_count': 0,
+            }
         }
     }
 
