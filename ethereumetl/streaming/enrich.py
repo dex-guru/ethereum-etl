@@ -19,8 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
-
+import dataclasses
 import itertools
 from collections import defaultdict
 from dataclasses import fields
@@ -28,6 +27,7 @@ from datetime import datetime
 
 from ethereumetl.domain.internal_transfer import InternalTransfer
 from ethereumetl.domain.token_balance import EthTokenBalance
+from ethereumetl.domain.token_transfer_priced import TokenTransferPriced
 from ethereumetl.mappers.error_mapper import EthErrorMapper
 from ethereumetl.mappers.native_balance_mapper import EthNativeBalanceItem
 from ethereumetl.utils import dedup_list_of_dicts
@@ -358,6 +358,20 @@ def enrich_native_balances(blocks, native_balances):
             [
                 ('timestamp', 'block_timestamp'),
                 ('hash', 'block_hash'),
+            ],
+        )
+    )
+
+
+def enrich_token_transfers_priced(blocks, token_transfers):
+    return list(
+        join(
+            token_transfers,
+            blocks,
+            ('block_number', 'number'),
+            ['type'] + [f.name for f in dataclasses.fields(TokenTransferPriced)],
+            [
+                ('timestamp', 'timestamp'),
             ],
         )
     )

@@ -25,6 +25,7 @@ import sys
 from collections.abc import Iterable
 
 import click
+from elasticsearch import Elasticsearch
 
 from blockchainetl.streaming.streamer_adapter_stub import StreamerAdapterStub
 from blockchainetl.streaming.streaming_utils import configure_logging, configure_signals
@@ -177,6 +178,13 @@ def validate_start_block(_ctx, _param, value):
     type=bool,
     help='Whether to verify the data',
 )
+@click.option(
+    '--elastic-url',
+    default=envs.ELASTIC_URL,
+    show_default=True,
+    type=str,
+    help='Elasticsearch URL',
+)
 def stream(
     chain_id,
     last_synced_block_provider_uri,
@@ -194,6 +202,7 @@ def stream(
     pid_file=None,
     export_from_clickhouse=None,
     is_verifier=False,
+    elastic_url=None,
 ):
     """Streams all data types to console or Google Pub/Sub."""
     # we need to increase recursion limit for traces
@@ -221,6 +230,8 @@ def stream(
         batch_size=batch_size,
         max_workers=max_workers,
         entity_types=entity_types,
+        chain_id=chain_id,
+        elastic_client=Elasticsearch(elastic_url) if elastic_url else None,
     )
     if export_from_clickhouse:
         if is_verifier:
@@ -266,7 +277,6 @@ def parse_entity_types(entity_types):
                     entity_type, ','.join(ALL_FOR_STREAMING)
                 ),
             )
-
     return entity_types
 
 
