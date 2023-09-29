@@ -164,7 +164,7 @@ def create_item_exporter(output, chain_id) -> BaseItemExporter:
         item_exporter = ElasticsearchItemExporter(
             connection_url=output,
             item_type_to_index_mapping={
-                EntityType.TOKEN_TRANSFER_PRICED: 'transactions_all',
+                EntityType.TOKEN_TRANSFER_PRICED: 'transactions',
             },
             chain_id=chain_id,
         )
