@@ -49,7 +49,6 @@ class EnvsConfig(BaseSettings):
     # Restart if last synced block wasn't saved for this amount of seconds
     HEALTH_CHECK_TIMEOUT: int = 600
     IS_VERIFIER: bool = False
-    ELASTIC_URL: str | None = None
 
 
 envs = EnvsConfig()

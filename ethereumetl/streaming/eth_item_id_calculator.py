@@ -41,15 +41,11 @@ class EthItemIdCalculator:
         EntityType.GETH_TRACE: ('block_number', 'transaction_hash'),
         EntityType.INTERNAL_TRANSFER: ('block_number', 'transaction_hash', 'id'),
         EntityType.NATIVE_BALANCE: ('block_number', 'address'),
-        EntityType.TOKEN_TRANSFER_PRICED: ('transaction_hash', 'log_index'),
     }
 
     def calculate(self, item):
         if item is None or not isinstance(item, dict):
             return None
-
-        if item.get('id'):
-            return item['id']
 
         item_type = item.get('type')
         fields = self.ID_FIELDS.get(EntityType(item_type))

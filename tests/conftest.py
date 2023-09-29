@@ -1,15 +1,12 @@
 import json
 import os
 from collections.abc import Generator
-from datetime import datetime
 from random import randint
 from unittest import mock
 from urllib.parse import urlunparse
 
 import clickhouse_connect
 import pytest
-from elasticsearch import Elasticsearch
-from retry import retry
 
 from ethereumetl.utils import parse_clickhouse_url
 
@@ -101,41 +98,6 @@ def clickhouse_url() -> Generator[str, None, None]:
 
         yield test_url
 
-        cleanup(admin_client)
-
-
-@pytest.fixture
-def elastic_url() -> Generator[str, None, None]:
-    url = os.getenv('TEST_ELASTICSEARCH_URL')
-    assert url, 'TEST_ELASTICSEARCH_URL env var must be set'
-
-    test_index_name = 'transactions_all'
-    candles_index_name = 'rounded_candle*'
-
-    def cleanup(client):
-        client.indices.delete(index=test_index_name, ignore=[400, 404])
-        client.indices.delete(index=candles_index_name, ignore=[400, 404])
-
-    @retry(Exception, tries=60, delay=1)
-    def wait_for_create_connection(client):
-        client.info()
-
-    with Elasticsearch(url) as admin_client:
-        wait_for_create_connection(admin_client)
-        cleanup(admin_client)
-        admin_client.indices.create(index=test_index_name)
-        today_date = datetime.now().strftime('%Y%m%d')
-        admin_client.indices.create(
-            index=f'rounded_candle-{today_date}',
-            mappings={
-                "properties": {
-                    "address": {"type": "keyword"},
-                    "c": {"type": "float"},
-                    "t_rounded": {"type": "long"},
-                }
-            },
-        )
-        yield url
         cleanup(admin_client)
 
 

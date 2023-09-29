@@ -14,7 +14,7 @@ raw-data-streamer:
   command: '[ "ethereumetl", "stream" ]'
   env:
     LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse://testuser3:testplpassword@10.0.100.175:8123/dex_etl?table_name=last_synced_block'
-    OUTPUT: 'clickhouse+native://testuser3:testplpassword@10.0.100.175:8123/dex_etl,http://10.0.100.34:9200'
+    OUTPUT: 'clickhouse+native://testuser3:testplpassword@10.0.100.175:8123/dex_etl'
     EXPORT_FROM_CLICKHOUSE: 'clickhouse+native://testuser3:testplpassword@10.0.100.175:8123/dex_etl'
     POLLING_PERIOD: '2'
     BATCH_SIZE: '5'
@@ -22,10 +22,9 @@ raw-data-streamer:
     LOG_HANDLERS: '["console","logstash"]'
     SERVICE_NAME: 'raw-data-streamer'
     REWRITE_CLICKHOUSE: ''
-    ELASTIC_URL: 'http://10.0.100.34:9200'
   chainEnv:
     ENTITY_TYPES:
-      default: 'block,transaction,log,token_transfer,token_balance,error,token,token_transfer_priced'
+      default: 'block,transaction,log,token_transfer,token_balance,error,token'
     PROVIDER_URL:
       default: 'http://rpc-gw-stage.dexguru.biz/full/1'
       polygon-137: 'http://rpc-gw-stage.dexguru.biz/full/137'

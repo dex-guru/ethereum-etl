@@ -87,12 +87,7 @@ class EthTokenService:
         # OverflowError exception happens if the return type of the function doesn't match the expected type
         result = call_contract_function(
             func=func,
-            ignore_errors=(
-                BadFunctionCallOutput,
-                ContractLogicError,
-                OverflowError,
-                ValueError,
-            ),
+            ignore_errors=(BadFunctionCallOutput, ContractLogicError, OverflowError, ValueError),
             default_value=None,
         )
 
