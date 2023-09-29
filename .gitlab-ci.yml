@@ -28,6 +28,7 @@ variables:
   IMAGE_DOCKER:       ${CI_HARBOR_REGISTRY_HOST}/dex.guru/utils/docker:23.0.6
   IMAGE_DIND:         ${CI_HARBOR_REGISTRY_HOST}/dex.guru/utils/docker:23.0.6-dind
   IMAGE_APP:          ${CI_HARBOR_REGISTRY_HOST}/dex.guru/${CI_PROJECT_TITLE}/${CI_PROJECT_TITLE}
+  IMAGE_ELASTIC:      ${CI_HARBOR_REGISTRY_HOST}/dex.guru/utils/elasticsearch:7.17.3
 
   HELM_CHART_STAGE_LAX: 'helm/charts/backend-stage-lax'
   HELM_CHART_PROD_LAX: 'helm/charts/backend-prod-lax'
@@ -88,6 +89,7 @@ build:
   stage: build
   before_script:
     - docker login -u "${CI_HARBOR_REGISTRY_USER}" -p "${CI_HARBOR_REGISTRY_PASSWORD}" "${CI_HARBOR_REGISTRY_HOST}"
+    - apk add curl
   script:
     - echo "Building docker image"
     - docker pull $IMAGE_APP:latest || true
@@ -136,12 +138,20 @@ test:
     TEST_CLICKHOUSE_URL: "http://default:@clickhouse:8123"
     ETHEREUM_ETL_RUN_SLOW_TESTS: "true"
     PROVIDER_URL: 'http://10.0.100.149:8080/archive/1'
+    TEST_ELASTICSEARCH_URL: "http://elasticsearch:9200"
   services:
     - name: ${IMAGE_CLICKHOUSE}
       alias: clickhouse
       variables:
         HEALTHCHECK_8123_TCP_ADDR: clickhouse
         HEALTHCHECK_8123_TCP_PORT: '8123'
+    - name: ${IMAGE_ELASTIC}
+      alias: elasticsearch
+      variables:
+        HEALTHCHECK_9200_TCP_ADDR: elasticsearch
+        HEALTHCHECK_9200_TCP_PORT: '9200'
+        discovery.type: single-node
+
   script:
     - >-
         pytest
