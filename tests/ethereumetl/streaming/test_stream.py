@@ -28,10 +28,13 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
+from elasticsearch import Elasticsearch
+from retry import retry
 
 import tests.resources
 from blockchainetl.jobs.exporters.clickhouse_exporter import ClickHouseItemExporter
 from blockchainetl.jobs.exporters.composite_item_exporter import CompositeItemExporter
+from blockchainetl.jobs.exporters.elasticsearch_exporter import ElasticsearchItemExporter
 from blockchainetl.jobs.exporters.in_memory_item_exporter import InMemoryItemExporter
 from blockchainetl.streaming.streamer import Streamer
 from blockchainetl.streaming.streamer_adapter_stub import StreamerAdapterStub
@@ -45,7 +48,10 @@ from ethereumetl.streaming.clickhouse_eth_streamer_adapter import (
 )
 from ethereumetl.streaming.eth_item_id_calculator import EthItemIdCalculator
 from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter
-from ethereumetl.streaming.item_exporter_creator import make_item_type_to_table_mapping
+from ethereumetl.streaming.item_exporter_creator import (
+    create_item_exporter,
+    make_item_type_to_table_mapping,
+)
 from ethereumetl.thread_local_proxy import ThreadLocalProxy
 from tests.ethereumetl.job.helpers import get_web3_provider
 from tests.helpers import (
@@ -91,6 +97,7 @@ def test_stream(
     traces_output_file = str(tmpdir.join('actual_traces.json'))
     contracts_output_file = str(tmpdir.join('actual_contracts.json'))
     tokens_output_file = str(tmpdir.join('actual_tokens.json'))
+    token_transfers_priced_output_file = str(tmpdir.join('actual_token_transfers_priced.json'))
 
     streamer_adapter = EthStreamerAdapter(
         batch_web3_provider=ThreadLocalProxy(
@@ -114,6 +121,7 @@ def test_stream(
                 'trace': traces_output_file,
                 'contract': contracts_output_file,
                 'token': tokens_output_file,
+                'token_transfer_priced': token_transfers_priced_output_file,
             }
         ),
         entity_types=entity_types,
@@ -182,7 +190,7 @@ def test_stream(
 
 # fmt: off
 @pytest.mark.parametrize("chain_id, start_block, end_block, batch_size, resource_group, entity_types, provider_type", [
-    (1, 1755634, 1755635, 1, 'blocks_1755634_1755635', {*ALL} - {EntityType.RECEIPT, EntityType.TOKEN}, 'mock'),
+    (1, 1755634, 1755635, 1, 'blocks_1755634_1755635', {*ALL} - {EntityType.RECEIPT}, 'mock'),
 ])
 # fmt: on
 def test_stream_clickhouse(
@@ -195,6 +203,7 @@ def test_stream_clickhouse(
     entity_types,
     provider_type,
     clickhouse_url,
+    elastic_url,
 ):
     ####################################################################
     # first run - get data from blockchain
@@ -222,6 +231,8 @@ def test_stream_clickhouse(
         batch_size=batch_size,
         item_exporter=item_exporter,
         entity_types=entity_types,
+        elastic_client=Elasticsearch(elastic_url, timeout=30),
+        chain_id=1,
     )
 
     ch_eth_streamer_adapter = ClickhouseEthStreamerAdapter(
@@ -288,7 +299,8 @@ def test_stream_clickhouse(
         batch_web3_provider=fake_batch_web3_provider,
         batch_size=batch_size,
         item_exporter=item_exporter,
-        entity_types=entity_types,
+        entity_types=entity_types - {EntityType.TOKEN_TRANSFER_PRICED},
+        chain_id=1,
     )
     eth_streamer_adapter.get_current_block_number = lambda *_: 12242307  # type: ignore
 
@@ -383,6 +395,7 @@ def test_stream_clickhouse(
     item_exporter = ClickHouseItemExporter(clickhouse_url, item_type_to_table_mapping)
 
     def fake_ch_export_items(items):
+        items = [item for item in items if item['type'] in item_type_to_table_mapping]
         counter = Counter(item['type'] for item in items)
         assert dict(counter) == {'trace': 7, 'token_balance': 2}
 
@@ -393,7 +406,8 @@ def test_stream_clickhouse(
         batch_web3_provider=fake_batch_web3_provider,
         batch_size=batch_size,
         item_exporter=item_exporter,
-        entity_types=entity_types,
+        entity_types=entity_types - {EntityType.TOKEN_TRANSFER_PRICED},
+        chain_id=1,
     )
     eth_streamer_adapter.get_current_block_number = lambda *_: 12242307  # type: ignore
 
@@ -533,8 +547,9 @@ def test_stream_token_balances(tmp_path: Path, streamer_adapter_cls, clickhouse_
     assert len(token_balance_items) == 429
 
 
-def test_eth_streamer_with_clickhouse_exporter(tmp_path, clickhouse_url):
-    item_type_to_table_mapping = make_item_type_to_table_mapping(chain_id=1)
+def test_eth_streamer_with_clickhouse_exporter(tmp_path, clickhouse_url, elastic_url):
+    chain_id = 1
+    item_type_to_table_mapping = make_item_type_to_table_mapping(chain_id=chain_id)
     exporter = ClickHouseItemExporter(clickhouse_url, item_type_to_table_mapping)
 
     streamer_adapter = EthStreamerAdapter(
@@ -542,9 +557,11 @@ def test_eth_streamer_with_clickhouse_exporter(tmp_path, clickhouse_url):
         batch_size=10,
         item_exporter=exporter,
         entity_types=entity_type.ALL,
+        elastic_client=Elasticsearch(elastic_url),
+        chain_id=chain_id,
     )
     streamer = Streamer(
-        chain_id=1,
+        chain_id=chain_id,
         blockchain_streamer_adapter=streamer_adapter,
         start_block=17179063,
         end_block=17179063,
@@ -1013,3 +1030,94 @@ def test_verify_all_with_inconsistent_data(
     )
 
     export_all_mock.assert_called_with(start_block=2, end_block=3)
+
+
+def test_elastic_export_items(tmp_path, elastic_url):
+    exporter: ElasticsearchItemExporter = create_item_exporter(elastic_url, chain_id=1)  # type: ignore
+    items = [
+        {
+            "token_addresses": ["tess_address"],
+            "wallets": ["wallet_1", "wallet_2"],
+            "direction": {"from_address": "wallet_1", "to_address": "wallet_2"},
+            "transaction_address": "test_hash",
+            "block_number": 123,
+            "id": "test_hash-0",
+            "transfer_type": "erc20",
+            "timestamp": 123,
+            "transaction_type": "transfer",
+            "chain_id": 1,
+            "symbols": ["TST"],
+            "prices_stable": [0],
+            "amount_stable": 0.0,
+            "amounts": [10.0],
+            "type": "token_transfer_priced",
+        },
+        {
+            "token_addresses": ["tess_address"],
+            "wallets": ["wallet_1", "wallet_2"],
+            "direction": {"from_address": "wallet_1", "to_address": "wallet_2"},
+            "transaction_address": "test_hash",
+            "block_number": 123,
+            "id": "test_hash-1",
+            "transfer_type": "erc20",
+            "timestamp": 123,
+            "transaction_type": "transfer",
+            "chain_id": 1,
+            "symbols": ["TST"],
+            "prices_stable": [0],
+            "amount_stable": 0.0,
+            "amounts": [10.0],
+            "type": "token_transfer_priced",
+        },
+    ]
+
+    expected_items = [
+        {
+            'token_addresses': ['tess_address'],
+            'wallets': ['wallet_1', 'wallet_2'],
+            'direction': {'from_address': 'wallet_1', 'to_address': 'wallet_2'},
+            'transaction_address': 'test_hash',
+            'block_number': 123,
+            'id': 'test_hash-0',
+            'timestamp': 123,
+            'transaction_type': 'transfer',
+            'chain_id': 1,
+            'symbols': ['TST'],
+            'prices_stable': [0],
+            'amount_stable': 0.0,
+            'amounts': [10.0],
+            'type': 'erc20',
+        },
+        {
+            'token_addresses': ['tess_address'],
+            'wallets': ['wallet_1', 'wallet_2'],
+            'direction': {'from_address': 'wallet_1', 'to_address': 'wallet_2'},
+            'transaction_address': 'test_hash',
+            'block_number': 123,
+            'id': 'test_hash-1',
+            'timestamp': 123,
+            'transaction_type': 'transfer',
+            'chain_id': 1,
+            'symbols': ['TST'],
+            'prices_stable': [0],
+            'amount_stable': 0.0,
+            'amounts': [10.0],
+            'type': 'erc20',
+        },
+    ]
+
+    @retry(AssertionError, tries=10, delay=0.2)
+    def check_indexed_items(elastic):
+        index = exporter.item_type_to_index_mapping[EntityType.TOKEN_TRANSFER_PRICED]
+        records = elastic.search(index=index, body={'query': {'match_all': {}}})
+        assert records['hits']['total']['value'] == 2
+        for hit in records['hits']['hits']:
+            assert hit['_source'] in expected_items
+
+    exporter.open()
+    try:
+        exporter.export_items(items)
+        with exporter.client as elastic:
+            check_indexed_items(elastic)
+    finally:
+        exporter.close()

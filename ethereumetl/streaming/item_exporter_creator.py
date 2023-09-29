@@ -23,6 +23,7 @@ from enum import Enum
 
 from blockchainetl.exporters import BaseItemExporter
 from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExporter
+from blockchainetl.jobs.exporters.elasticsearch_exporter import ElasticsearchItemExporter
 from blockchainetl.jobs.exporters.multi_item_exporter import MultiItemExporter
 from ethereumetl.enumeration.entity_type import EntityType
 
@@ -158,6 +159,15 @@ def create_item_exporter(output, chain_id) -> BaseItemExporter:
         from blockchainetl.jobs.exporters.amqp_exporter import AMQPItemExporter
 
         item_exporter = AMQPItemExporter(amqp_url=output, exchange=f'ethereumetl_{chain_id}')
+    elif item_exporter_type == ItemExporterType.ELASTIC:
+        output = output.replace('elasticsearch://', 'http://')
+        item_exporter = ElasticsearchItemExporter(
+            connection_url=output,
+            item_type_to_index_mapping={
+                EntityType.TOKEN_TRANSFER_PRICED: 'transactions_all',
+            },
+            chain_id=chain_id,
+        )
     else:
         raise ValueError('Unable to determine item exporter type for output ' + output)
 
@@ -193,6 +203,12 @@ def determine_item_exporter_type(output: str | None) -> 'ItemExporterType':
         return ItemExporterType.CLICKHOUSE
     if output.startswith(('amqp', 'rabbitmq')):
         return ItemExporterType.AMQP
+    if (
+        output.startswith('elasticsearch')
+        or output.startswith('http')
+        and output.endswith(':9200')
+    ):
+        return ItemExporterType.ELASTIC
 
     return ItemExporterType.UNKNOWN
 
@@ -207,3 +223,4 @@ class ItemExporterType(Enum):
     CLICKHOUSE = 'clickhouse'
     UNKNOWN = 'unknown'
     AMQP = 'amqp'
+    ELASTIC = 'elastic'

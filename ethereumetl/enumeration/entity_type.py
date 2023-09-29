@@ -16,6 +16,7 @@ class EntityType(str, Enum):
     TOKEN_BALANCE = 'token_balance'
     ERROR = 'error'
     NATIVE_BALANCE = 'native_balance'
+    TOKEN_TRANSFER_PRICED = 'token_transfer_priced'
 
     def __str__(self):
         return self.value
@@ -34,6 +35,7 @@ ALL_FOR_STREAMING = (
     EntityType.INTERNAL_TRANSFER,
     EntityType.NATIVE_BALANCE,
     EntityType.CONTRACT,
+    EntityType.TOKEN_TRANSFER_PRICED,
 )
 ALL_FOR_INFURA = (
     EntityType.BLOCK,
