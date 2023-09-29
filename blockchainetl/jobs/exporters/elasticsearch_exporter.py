@@ -53,6 +53,7 @@ class ElasticsearchItemExporter(BaseItemExporter):
         item.pop('item_timestamp', None)
         if item_type == 'token_transfer_priced':
             item['type'] = item['transfer_type']
+            item['doc_type'] = 'transaction'
             item.pop('transfer_type')
         return item
 
