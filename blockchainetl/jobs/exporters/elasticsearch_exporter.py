@@ -63,5 +63,6 @@ class ElasticsearchItemExporter(BaseItemExporter):
         ), 'Cannot flush bulk data, ElasticsearchItemExporter is not opened'
         if not self.bulk_data:
             return
+        logger.info('Flushing %s items to Elasticsearch', len(self.bulk_data))
         bulk(self.client, self.bulk_data)
         self.bulk_data = []

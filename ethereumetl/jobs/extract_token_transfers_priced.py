@@ -1,11 +1,19 @@
 from datetime import datetime
 
-from elasticsearch import Elasticsearch, NotFoundError
+from elasticsearch import (
+    Elasticsearch,
+    NotFoundError,
+    TransportError,
+    ConnectionError,
+    ConnectionTimeout,
+)
 
 from blockchainetl.exporters import BaseItemExporter
 from blockchainetl.jobs.base_job import BaseJob
 from ethereumetl.executors.batch_work_executor import BatchWorkExecutor
 from ethereumetl.mappers.transfer_priced_mapper import TokenTransferPricedMapper
+
+ELASTIC_RETRY_EXCEPTIONS = (TransportError, ConnectionError, ConnectionTimeout)
 
 
 class ExtractTokenTransfersPricedJob(BaseJob):
@@ -21,7 +29,12 @@ class ExtractTokenTransfersPricedJob(BaseJob):
     ):
         self.token_transfers = token_transfers
         self.tokens = {token['address']: token for token in tokens}
-        self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers)
+        self.batch_work_executor = BatchWorkExecutor(
+            batch_size,
+            max_workers,
+            retry_exceptions=ELASTIC_RETRY_EXCEPTIONS,
+        )
+        self.prices = {}
         self.item_exporter = item_exporter
         self.chain_id = chain_id
         self.transfer_priced_mapper = TokenTransferPricedMapper()
@@ -32,22 +45,21 @@ class ExtractTokenTransfersPricedJob(BaseJob):
 
     def _export(self):
         self.batch_work_executor.execute(
-            self.token_transfers,
-            self._extract_transfers_priced,
-            len(self.token_transfers),
+            tuple(self.tokens.keys()),
+            self._get_prices,
+            len(self.tokens),
         )
+        # wait for all futures to complete
+        self.batch_work_executor.executor._check_completed_futures()
+        self._extract_transfers_priced(self.token_transfers)
 
     def _extract_transfers_priced(self, token_transfers):
-        try:
-            prices = self._get_prices(self.tokens.keys())
-        except NotFoundError:
-            prices = {}
         items = []
         for transfer in token_transfers:
             token = self.tokens.get(transfer['token_address'], {})
             priced_transfer = self.transfer_priced_mapper.token_transfer_to_transfer_priced(
                 token_transfer=transfer,
-                price=prices.get(transfer['token_address'], 0),
+                price=self.prices.get(transfer['token_address'], 0),
                 decimals=token.get('decimals', 0),
                 symbol=token.get('symbol', token.get('name', 'UNKNOWN').replace(' ', '')),
                 chain_id=self.chain_id,
@@ -63,33 +75,42 @@ class ExtractTokenTransfersPricedJob(BaseJob):
     def _get_prices(self, token_addresses):
         prices = {}
         today_date = datetime.now().strftime('%Y%m%d')
-        candles = self.elastic_client.search(
-            index=f'rounded_candle-{today_date}',
-            source_includes=['address', 'c', 't_rounded'],
-            query={
+        search_body = {
+            "index": f'rounded_candle-{today_date}',
+            "size": 0,
+            "query": {
                 "bool": {
-                    "must": [
+                    "filter": [
                         {"term": {"chain_id": self.chain_id}},
                         {"terms": {"address": list(token_addresses)}},
                         {"term": {"cur": "S"}},
                         {"term": {"amm": "all"}},
-                        {"term": {"interval": 60}},
+                        {"term": {"interval": 600}},
                     ]
                 }
             },
-            collapse={
-                "field": "address",
-                "inner_hits": {
-                    "name": "latest",
-                    "size": 1,
-                    "sort": [{"t_rounded": {"order": "desc"}}],
-                    "_source": ['c'],
-                },
+            "aggs": {
+                "group_by_address": {
+                    "terms": {"field": "address", "size": 1000},
+                    "aggs": {
+                        "latest": {
+                            "top_hits": {
+                                "sort": [{"t_rounded": {"order": "desc"}}],
+                                "_source": ["c"],
+                                "size": 1,
+                            }
+                        }
+                    },
+                }
             },
-            size=10000,
-        )
-        for candle in candles['hits']['hits']:
-            prices[candle['_source']['address']] = candle['inner_hits']['latest']['hits']['hits'][
-                0
-            ]['_source']['c']
-        return prices
+        }
+        try:
+            candles = self.elastic_client.search(**search_body)
+        except NotFoundError:
+            return
+        for candle in candles['aggregations']['group_by_address']['buckets']:
+            try:
+                prices[candle['key']] = candle['latest']['hits']['hits'][0]['_source']['c']
+            except IndexError:
+                pass
+        self.prices.update(prices)

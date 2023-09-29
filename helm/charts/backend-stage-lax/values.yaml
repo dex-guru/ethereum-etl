@@ -25,7 +25,7 @@ raw-data-streamer:
     ELASTIC_URL: 'http://10.0.100.34:9200'
   chainEnv:
     ENTITY_TYPES:
-      default: 'block,transaction,log,token_transfer,token_balance,error,token'
+      default: 'block,transaction,log,token_transfer,token_balance,error,token,token_transfer_priced'
       basetestnet-84531: 'block,transaction,log,token_transfer,token_balance,error,token'
       acanto-7701: 'block,transaction,log,token_transfer,token_balance,error,token'
     PROVIDER_URL:

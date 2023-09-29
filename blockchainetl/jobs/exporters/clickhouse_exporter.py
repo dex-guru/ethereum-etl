@@ -204,9 +204,7 @@ class ClickHouseItemExporter(BaseItemExporter):
                     result.append(item.get(column))
                 results[table].append(result)
             else:
-                logger.warning(
-                    f'ClickHouse exporter ignoring {type_} items as type is not currently supported.'
-                )
+                continue
         return results
 
     def create_tables(self):

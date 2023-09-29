@@ -446,7 +446,7 @@ class ClickhouseEthStreamerAdapter:
 
         @cache
         def extract_token_transfers_priced():
-            logger.info(f"exporting {TOKEN_TRANSFER_PRICED}...")
+            logger.info(f"exporting {TOKEN_TRANSFER_PRICED.upper()}...")
             token_transfers = extract_token_transfers()[0]
             token_transfers_priced = self.eth_streamer.extract_token_transfers_priced(
                 token_transfers, export_tokens()[0]
