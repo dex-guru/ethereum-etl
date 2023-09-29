@@ -1,3 +1,4 @@
+import threading
 from datetime import datetime
 
 from elasticsearch import (
@@ -113,4 +114,5 @@ class ExtractTokenTransfersPricedJob(BaseJob):
                 prices[candle['key']] = candle['latest']['hits']['hits'][0]['_source']['c']
             except IndexError:
                 pass
+        threading.Lock()
         self.prices.update(prices)
