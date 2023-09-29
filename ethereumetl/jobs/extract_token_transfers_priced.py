@@ -1,12 +1,11 @@
-import threading
 from datetime import datetime
 
 from elasticsearch import (
+    ConnectionError,
+    ConnectionTimeout,
     Elasticsearch,
     NotFoundError,
     TransportError,
-    ConnectionError,
-    ConnectionTimeout,
 )
 
 from blockchainetl.exporters import BaseItemExporter
@@ -35,7 +34,7 @@ class ExtractTokenTransfersPricedJob(BaseJob):
             max_workers,
             retry_exceptions=ELASTIC_RETRY_EXCEPTIONS,
         )
-        self.prices = {}
+        self.prices: dict[str, float] = {}
         self.item_exporter = item_exporter
         self.chain_id = chain_id
         self.transfer_priced_mapper = TokenTransferPricedMapper()
@@ -50,19 +49,17 @@ class ExtractTokenTransfersPricedJob(BaseJob):
             self._get_prices,
             len(self.tokens),
         )
-        # wait for all futures to complete
-        self.batch_work_executor.executor._check_completed_futures()
-        self._extract_transfers_priced(self.token_transfers)
 
     def _extract_transfers_priced(self, token_transfers):
         items = []
         for transfer in token_transfers:
             token = self.tokens.get(transfer['token_address'], {})
+            symbol = token.get('symbol') or token.get('name') or 'UNKNOWN'
             priced_transfer = self.transfer_priced_mapper.token_transfer_to_transfer_priced(
                 token_transfer=transfer,
                 price=self.prices.get(transfer['token_address'], 0),
                 decimals=token.get('decimals', 0),
-                symbol=token.get('symbol', token.get('name', 'UNKNOWN').replace(' ', '')),
+                symbol=symbol.replace(' ', ''),
                 chain_id=self.chain_id,
             )
             items.append(self.transfer_priced_mapper.transfer_priced_to_dict(priced_transfer))
@@ -71,6 +68,7 @@ class ExtractTokenTransfersPricedJob(BaseJob):
 
     def _end(self):
         self.batch_work_executor.shutdown()
+        self._extract_transfers_priced(self.token_transfers)
         self.item_exporter.close()
 
     def _get_prices(self, token_addresses):
@@ -106,7 +104,7 @@ class ExtractTokenTransfersPricedJob(BaseJob):
             },
         }
         try:
-            candles = self.elastic_client.search(**search_body)
+            candles = self.elastic_client.search(**search_body)  # type: ignore
         except NotFoundError:
             return
         for candle in candles['aggregations']['group_by_address']['buckets']:
@@ -114,5 +112,4 @@ class ExtractTokenTransfersPricedJob(BaseJob):
                 prices[candle['key']] = candle['latest']['hits']['hits'][0]['_source']['c']
             except IndexError:
                 pass
-        threading.Lock()
         self.prices.update(prices)

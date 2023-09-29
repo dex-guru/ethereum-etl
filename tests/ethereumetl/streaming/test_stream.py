@@ -1087,6 +1087,7 @@ def test_elastic_export_items(tmp_path, elastic_url):
             'amount_stable': 0.0,
             'amounts': [10.0],
             'type': 'erc20',
+            'doc_type': 'transaction',
         },
         {
             'token_addresses': ['tess_address'],
@@ -1103,6 +1104,7 @@ def test_elastic_export_items(tmp_path, elastic_url):
             'amount_stable': 0.0,
             'amounts': [10.0],
             'type': 'erc20',
+            'doc_type': 'transaction',
         },
     ]
 
