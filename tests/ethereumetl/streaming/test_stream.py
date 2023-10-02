@@ -48,6 +48,7 @@ from ethereumetl.streaming.clickhouse_eth_streamer_adapter import (
 )
 from ethereumetl.streaming.eth_item_id_calculator import EthItemIdCalculator
 from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter
+from ethereumetl.streaming.item_exporter_creator import create_item_exporter
 from ethereumetl.thread_local_proxy import ThreadLocalProxy
 from tests.ethereumetl.job.helpers import get_web3_provider
 from tests.helpers import (
@@ -387,7 +388,9 @@ def test_stream_clickhouse(
     item_exporter = ClickHouseItemExporter(clickhouse_migrated_url)
 
     def fake_ch_export_items(items):
-        items = [item for item in items if item['type'] in item_type_to_table_mapping]
+        items = [
+            item for item in items if item['type'] in item_exporter.item_type_to_table_mapping
+        ]
         counter = Counter(item['type'] for item in items)
         assert dict(counter) == {'trace': 7, 'token_balance': 2}
 
@@ -546,6 +549,7 @@ def test_eth_streamer_with_clickhouse_exporter(tmp_path, clickhouse_migrated_url
         item_exporter=exporter,
         entity_types=entity_type.ALL,
         elastic_client=Elasticsearch(elastic_url),
+        chain_id=1,
     )
     streamer = Streamer(
         chain_id=1,
@@ -1104,6 +1108,7 @@ def test_elastic_export_items(tmp_path, elastic_url):
     exporter.open()
     try:
         exporter.export_items(items)
+        assert exporter.client
         with exporter.client as elastic:
             check_indexed_items(elastic)
     finally:

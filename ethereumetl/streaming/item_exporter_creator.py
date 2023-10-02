@@ -137,7 +137,7 @@ def create_item_exporter(output, chain_id) -> BaseItemExporter:
     elif item_exporter_type == ItemExporterType.ELASTIC:
         output = output.replace('elasticsearch://', 'http://')
         item_exporter = ElasticsearchItemExporter(
-            connection_url=output,
+            elasticsearch_url=output,
             item_type_to_index_mapping={
                 EntityType.TOKEN_TRANSFER_PRICED: 'transactions',
             },
