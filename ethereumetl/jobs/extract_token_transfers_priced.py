@@ -14,6 +14,7 @@ from ethereumetl.executors.batch_work_executor import BatchWorkExecutor
 from ethereumetl.mappers.transfer_priced_mapper import TokenTransferPricedMapper
 
 ELASTIC_RETRY_EXCEPTIONS = (TransportError, ConnectionError, ConnectionTimeout)
+ELASTIC_MAX_FLOAT = 3.402823466e38
 
 
 class ExtractTokenTransfersPricedJob(BaseJob):
@@ -62,6 +63,8 @@ class ExtractTokenTransfersPricedJob(BaseJob):
                 symbol=symbol.replace(' ', ''),
                 chain_id=self.chain_id,
             )
+            if priced_transfer.amounts[0] >= ELASTIC_MAX_FLOAT:
+                continue
             items.append(self.transfer_priced_mapper.transfer_priced_to_dict(priced_transfer))
 
         self.item_exporter.export_items(items)
