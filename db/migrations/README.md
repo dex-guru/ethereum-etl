@@ -62,14 +62,21 @@
 
 ## Troubleshooting
 
-If you get an error during the migration, you'll have to manually fix the database state.
-Use Alembic's option `--sql` (aka offline mode) to generate the SQL script that would be executed
-by Alembic.
+* If you get an error during the migration, you'll have to manually fix the database state.
+  Use Alembic's option `--sql` (aka offline mode) to generate the SQL script that would be executed
+  by Alembic.
+  
+  ```bash
+  alembic upgrade --sql head  # show all migrations sql from the beginning
+  alembic upgrade --sql <from_revision>:<to_revision>  # shows migrations sql in the given revision range
+  ```
 
-```bash
-alembic upgrade --sql head  # show all migrations sql from the beginning
-alembic upgrade --sql <from_revision>:<to_revision>  # shows migrations sql in the given revision range
-```
+* Dump schema of any Clickhouse database to stdout (useful for comparing schemas with the schema file `db/migrations/schema.sql`):
+
+  ```sql
+  python ethereumetl/scripts/dump_schema_ddl.py -u clickhouse://user:password@host:9000/db
+  ```
+
 
 ### Hacks
 
