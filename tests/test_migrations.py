@@ -1,5 +1,6 @@
 import io
 import re
+import shutil
 from pathlib import Path
 from unittest import mock
 
@@ -59,3 +60,22 @@ def test_schema_file(clickhouse_migrated_url):
     assert (
         repo_schema_text == generated_schema_text
     ), 'schema.sql is not up to date: please dump schema'
+
+
+def test_new_revision_template(clickhouse_migrated_url, tmp_path):
+    shutil.copytree(Path(ethereumetl.__file__).parent / '../db', tmp_path / 'db')
+    shutil.copy(Path(ethereumetl.__file__).parent / '../alembic.ini', tmp_path / 'alembic.ini')
+    alembic_ini = tmp_path / 'alembic.ini'
+    migrations_path = tmp_path / 'db/migrations'
+    alembic_cfg = Config(alembic_ini)
+    alembic_cfg.set_main_option('script_location', str(migrations_path))
+
+    with mock.patch('os.environ', {'CLICKHOUSE_URL': clickhouse_migrated_url}):
+        revision_description = 'bymacgu4'
+        command.revision(alembic_cfg, revision_description)
+
+        revision_file_path = next(migrations_path.rglob(f'*{revision_description}*.py'))
+        revision = revision_file_path.name.split('_')[1]
+
+        command.upgrade(alembic_cfg, revision)
+        command.downgrade(alembic_cfg, f'{revision}-1')

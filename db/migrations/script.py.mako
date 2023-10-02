@@ -6,13 +6,11 @@ Revises: ${down_revision | comma,n}
 Create Date: ${create_date}
 """
 import os
+import string
 from functools import cache
 
 from alembic import op
-
-from ethereumetl.clickhouse import render_sql_template
 ${imports if imports else ""}
-
 # revision identifiers, used by Alembic.
 revision = ${repr(up_revision)}
 down_revision = ${repr(down_revision)}
@@ -33,29 +31,47 @@ def is_clickhouse_replicated():
 
 
 def upgrade() -> None:
-    sql = render_sql_template(
-        is_clickhouse_replicated(),
-        """
-        CREATE TABLE ${"${chain_id}"}_example
-        (
-            `a` UInt64,
-            `b` String,
-            `version` UInt32,
-        )
-        ENGINE = ${"${replicated_merge_tree_prefix}"}ReplacingMergeTree(${"${replicated_merge_tree_params_with_comma}"} version)
-        ORDER BY a
-        """,
-        chain_id=1,
+    schema_template = """
+    CREATE TABLE example $on_cluster
+    (
+        `a` UInt64,
+        `b` String,
+        `version` UInt32,
     )
+    ENGINE = ${"${replicated}"}ReplacingMergeTree(version)
+    ORDER BY a
+    """
 
-    op.execute(sql)
+    if is_clickhouse_replicated():
+        on_cluster = "ON CLUSTER '${"{cluster}"}'"
+        replicated = "Replicated"
+    else:
+        on_cluster = ""
+        replicated = ""
+
+    sql = string.Template(schema_template).substitute(
+        on_cluster=on_cluster,
+        replicated=replicated,
+    )
+    statements = filter(None, map(str.strip, sql.split(";\n")))
+    for statement in statements:
+        op.execute(statement)
 
 
 def downgrade() -> None:
-    op.execute(
-        render_sql_template(
-            is_clickhouse_replicated(),
-            "DROP TABLE ${"${chain_id}"}_example SYNC",
-            chain_id=1,
-        )
+    schema_template = "DROP TABLE example $on_cluster SYNC"
+
+    if is_clickhouse_replicated():
+        on_cluster = "ON CLUSTER '${"{cluster}"}'"
+        replicated = "Replicated"
+    else:
+        on_cluster = ""
+        replicated = ""
+
+    _ = replicated
+
+    sql = string.Template(schema_template).substitute(
+        on_cluster=on_cluster,
     )
+
+    op.execute(sql)
