@@ -13,9 +13,6 @@ raw-data-streamer:
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "stream" ]'
   env:
-    LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse://testuser3:testplpassword@10.0.100.175:8123/dex_etl?table_name=last_synced_block'
-    OUTPUT: 'clickhouse+native://testuser3:testplpassword@10.0.100.175:8123/dex_etl,http://10.0.100.34:9200'
-    EXPORT_FROM_CLICKHOUSE: 'clickhouse+native://testuser3:testplpassword@10.0.100.175:8123/dex_etl'
     POLLING_PERIOD: '2'
     BATCH_SIZE: '5'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
@@ -42,6 +39,40 @@ raw-data-streamer:
       nova-42170: 'http://rpc-gw-stage.dexguru.biz/full/42170'
       basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
       base-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
+    LAST_SYNCED_BLOCK_PROVIDER:
+      ethereum-1:      'clickhouse://testuser3:testplpassword@10.0.100.170/ethereum?table_name=last_synced_block'
+      canto-7700:      'clickhouse://testuser3:testplpassword@10.0.100.171/canto?table_name=last_synced_block'
+      optimism-10:     'clickhouse://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism?table_name=last_synced_block'
+      bsc-56:          'clickhouse://testuser3:testplpassword@stage-ch-bsc-01.dexguru.biz/bsc?table_name=last_synced_block'
+      polygon-137:     'clickhouse://testuser3:testplpassword@stage-ch-polygon-01.dexguru.biz/polygon?table_name=last_synced_block'
+      fantom-250:      'clickhouse://testuser3:testplpassword@stage-ch-fantom-01.dexguru.biz/fantom?table_name=last_synced_block'
+      base-8453:       'clickhouse://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/base?table_name=last_synced_block'
+      avalanche-43114: 'clickhouse://testuser3:testplpassword@stage-ch-avalanche-01.dexguru.biz/avalanche?table_name=last_synced_block'
+      arbitrum-42161:  'clickhouse://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum?table_name=last_synced_block'
+      nova-42170:      'clickhouse://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova?table_name=last_synced_block'
+    OUTPUT:
+      ethereum-1:      'clickhouse+native://testuser3:testplpassword@10.0.100.170/ethereum'
+      canto-7700:      'clickhouse+native://testuser3:testplpassword@10.0.100.171/canto'
+      optimism-10:     'clickhouse+native://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism'
+      bsc-56:          'clickhouse+native://testuser3:testplpassword@stage-ch-bsc-01.dexguru.biz/bsc'
+      polygon-137:     'clickhouse+native://testuser3:testplpassword@stage-ch-polygon-01.dexguru.biz/polygon'
+      fantom-250:      'clickhouse+native://testuser3:testplpassword@stage-ch-fantom-01.dexguru.biz/fantom'
+      base-8453:       'clickhouse+native://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/base'
+      avalanche-43114: 'clickhouse+native://testuser3:testplpassword@stage-ch-avalanche-01.dexguru.biz/avalanche'
+      arbitrum-42161:  'clickhouse+native://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum'
+      nova-42170:      'clickhouse+native://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
+    EXPORT_FROM_CLICKHOUSE:
+      ethereum-1:      'clickhouse+native://testuser3:testplpassword@10.0.100.170/ethereum'
+      canto-7700:      'clickhouse+native://testuser3:testplpassword@10.0.100.171/canto'
+      optimism-10:     'clickhouse+native://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism'
+      bsc-56:          'clickhouse+native://testuser3:testplpassword@stage-ch-bsc-01.dexguru.biz/bsc'
+      polygon-137:     'clickhouse+native://testuser3:testplpassword@stage-ch-polygon-01.dexguru.biz/polygon'
+      fantom-250:      'clickhouse+native://testuser3:testplpassword@stage-ch-fantom-01.dexguru.biz/fantom'
+      base-8453:       'clickhouse+native://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/base'
+      avalanche-43114: 'clickhouse+native://testuser3:testplpassword@stage-ch-avalanche-01.dexguru.biz/avalanche'
+      arbitrum-42161:  'clickhouse+native://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum'
+      nova-42170:      'clickhouse+native://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
+
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
@@ -67,15 +98,12 @@ raw-data-streamer-resync:
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "stream" ]'
   env:
-    LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse://testuser3:testplpassword@10.0.100.175:8123/dex_etl?table_name=resync_blocks'
     LAG: '0'
-    OUTPUT: 'clickhouse://testuser3:testplpassword@10.0.100.175:8123/dex_etl'
     POLLING_PERIOD: '2'
     BATCH_SIZE: '10'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
     SERVICE_NAME: 'raw-resync-data-streamer'
-    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@ch-stage-indexation-01.dexguru.biz/dex_etl'
   chainEnv:
     ENTITY_TYPES:
       default: 'block,transaction,log,token_transfer,internal_transfer,geth_trace'
@@ -116,6 +144,40 @@ raw-data-streamer-resync:
       basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/archive/84531'
       base-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
 
+    LAST_SYNCED_BLOCK_PROVIDER:
+      ethereum-1: 'clickhouse://testuser3:testplpassword@10.0.100.170/ethereum?table_name=resync_blocks'
+      canto-7700: 'clickhouse://testuser3:testplpassword@10.0.100.171/canto?table_name=resync_blocks'
+      optimism-10: 'clickhouse://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism?table_name=resync_blocks'
+      bsc-56: 'clickhouse://testuser3:testplpassword@stage-ch-bsc-01.dexguru.biz/bsc?table_name=resync_blocks'
+      polygon-137: 'clickhouse://testuser3:testplpassword@stage-ch-polygon-01.dexguru.biz/polygon?table_name=resync_blocks'
+      fantom-250: 'clickhouse://testuser3:testplpassword@stage-ch-fantom-01.dexguru.biz/fantom?table_name=resync_blocks'
+      base-8453: 'clickhouse://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/base?table_name=resync_blocks'
+      avalanche-43114: 'clickhouse://testuser3:testplpassword@stage-ch-avalanche-01.dexguru.biz/avalanche?table_name=resync_blocks'
+      arbitrum-42161: 'clickhouse://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum?table_name=resync_blocks'
+      nova-42170: 'clickhouse://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova?table_name=resync_blocks'
+    OUTPUT:
+      ethereum-1: 'clickhouse+native://testuser3:testplpassword@10.0.100.170/ethereum'
+      canto-7700: 'clickhouse+native://testuser3:testplpassword@10.0.100.171/canto'
+      optimism-10: 'clickhouse+native://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism'
+      bsc-56: 'clickhouse+native://testuser3:testplpassword@stage-ch-bsc-01.dexguru.biz/bsc'
+      polygon-137: 'clickhouse+native://testuser3:testplpassword@stage-ch-polygon-01.dexguru.biz/polygon'
+      fantom-250: 'clickhouse+native://testuser3:testplpassword@stage-ch-fantom-01.dexguru.biz/fantom'
+      base-8453: 'clickhouse+native://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/base'
+      avalanche-43114: 'clickhouse+native://testuser3:testplpassword@stage-ch-avalanche-01.dexguru.biz/avalanche'
+      arbitrum-42161: 'clickhouse+native://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum'
+      nova-42170: 'clickhouse+native://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
+    EXPORT_FROM_CLICKHOUSE:
+      ethereum-1: 'clickhouse+native://testuser3:testplpassword@10.0.100.170/ethereum'
+      canto-7700: 'clickhouse+native://testuser3:testplpassword@10.0.100.171/canto'
+      optimism-10: 'clickhouse+native://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism'
+      bsc-56: 'clickhouse+native://testuser3:testplpassword@stage-ch-bsc-01.dexguru.biz/bsc'
+      polygon-137: 'clickhouse+native://testuser3:testplpassword@stage-ch-polygon-01.dexguru.biz/polygon'
+      fantom-250: 'clickhouse+native://testuser3:testplpassword@stage-ch-fantom-01.dexguru.biz/fantom'
+      base-8453: 'clickhouse+native://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/base'
+      avalanche-43114: 'clickhouse+native://testuser3:testplpassword@stage-ch-avalanche-01.dexguru.biz/avalanche'
+      arbitrum-42161: 'clickhouse+native://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum'
+      nova-42170: 'clickhouse+native://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
+
     BLOCK_BATCH_SIZE:
       default: '1000'
     MAX_WORKERS:
@@ -147,13 +209,10 @@ raw-traces-data-streamer:
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "stream" ]'
   env:
-    LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse://testuser3:testplpassword@10.0.100.175:8123/dex_etl?table_name=last_synced_block_traces'
-    OUTPUT: 'clickhouse://testuser3:testplpassword@10.0.100.175:8123/dex_etl'
     POLLING_PERIOD: '2'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
     SERVICE_NAME: 'raw-traces-data-streamer'
-    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@10.0.100.175:8123/dex_etl'
     REWRITE_CLICKHOUSE: ''
   chainEnv:
     ENTITY_TYPES:
@@ -172,6 +231,40 @@ raw-traces-data-streamer:
       nova-42170: 'http://rpc-gw-stage.dexguru.biz/full/42170'
       basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
       base-8453: 'http://rpc-gw-stage.dexguru.biz/archive/8453'
+    LAST_SYNCED_BLOCK_PROVIDER:
+      ethereum-1: 'clickhouse://testuser3:testplpassword@10.0.100.170/ethereum?table_name=last_synced_block_traces'
+      canto-7700: 'clickhouse://testuser3:testplpassword@10.0.100.171/canto?table_name=last_synced_block_traces'
+      optimism-10: 'clickhouse://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism?table_name=last_synced_block_traces'
+      bsc-56: 'clickhouse://testuser3:testplpassword@stage-ch-bsc-01.dexguru.biz/bsc?table_name=last_synced_block_traces'
+      polygon-137: 'clickhouse://testuser3:testplpassword@stage-ch-polygon-01.dexguru.biz/polygon?table_name=last_synced_block_traces'
+      fantom-250: 'clickhouse://testuser3:testplpassword@stage-ch-fantom-01.dexguru.biz/fantom?table_name=last_synced_block_traces'
+      base-8453: 'clickhouse://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/base?table_name=last_synced_block_traces'
+      avalanche-43114: 'clickhouse://testuser3:testplpassword@stage-ch-avalanche-01.dexguru.biz/avalanche?table_name=last_synced_block_traces'
+      arbitrum-42161: 'clickhouse://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum?table_name=last_synced_block_traces'
+      nova-42170: 'clickhouse://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova?table_name=last_synced_block_traces'
+    OUTPUT:
+      ethereum-1: 'clickhouse+native://testuser3:testplpassword@10.0.100.170/ethereum'
+      canto-7700: 'clickhouse+native://testuser3:testplpassword@10.0.100.171/canto'
+      optimism-10: 'clickhouse+native://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism'
+      bsc-56: 'clickhouse+native://testuser3:testplpassword@stage-ch-bsc-01.dexguru.biz/bsc'
+      polygon-137: 'clickhouse+native://testuser3:testplpassword@stage-ch-polygon-01.dexguru.biz/polygon'
+      fantom-250: 'clickhouse+native://testuser3:testplpassword@stage-ch-fantom-01.dexguru.biz/fantom'
+      base-8453: 'clickhouse+native://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/base'
+      avalanche-43114: 'clickhouse+native://testuser3:testplpassword@stage-ch-avalanche-01.dexguru.biz/avalanche'
+      arbitrum-42161: 'clickhouse+native://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum'
+      nova-42170: 'clickhouse+native://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
+    EXPORT_FROM_CLICKHOUSE:
+      ethereum-1: 'clickhouse+native://testuser3:testplpassword@10.0.100.170/ethereum'
+      canto-7700: 'clickhouse+native://testuser3:testplpassword@10.0.100.171/canto'
+      optimism-10: 'clickhouse+native://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism'
+      bsc-56: 'clickhouse+native://testuser3:testplpassword@stage-ch-bsc-01.dexguru.biz/bsc'
+      polygon-137: 'clickhouse+native://testuser3:testplpassword@stage-ch-polygon-01.dexguru.biz/polygon'
+      fantom-250: 'clickhouse+native://testuser3:testplpassword@stage-ch-fantom-01.dexguru.biz/fantom'
+      base-8453: 'clickhouse+native://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/base'
+      avalanche-43114: 'clickhouse+native://testuser3:testplpassword@stage-ch-avalanche-01.dexguru.biz/avalanche'
+      arbitrum-42161: 'clickhouse+native://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum'
+      nova-42170: 'clickhouse+native://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
+
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
@@ -197,13 +290,10 @@ raw-verify-data-streamer:
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "stream" ]'
   env:
-    LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse://testuser3:testplpassword@10.0.100.175:8123/dex_etl?table_name=last_synced_block_verify'
-    OUTPUT: 'clickhouse://testuser3:testplpassword@10.0.100.175:8123/dex_etl'
     POLLING_PERIOD: '60'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
     SERVICE_NAME: 'raw-verify-data-streamer'
-    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@10.0.100.175:8123/dex_etl'
     REWRITE_CLICKHOUSE: 'block,transaction,log,token_transfer,token_balance'
     IS_VERIFIER: 'True'
   chainEnv:
@@ -233,6 +323,39 @@ raw-verify-data-streamer:
       nova-42170: 'http://rpc-gw-stage.dexguru.biz/full/42170'
       basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
       base-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
+    LAST_SYNCED_BLOCK_PROVIDER:
+      ethereum-1: 'clickhouse://testuser3:testplpassword@10.0.100.170/ethereum?table_name=last_synced_block_verify'
+      canto-7700: 'clickhouse://testuser3:testplpassword@10.0.100.171/canto?table_name=last_synced_block_verify'
+      optimism-10: 'clickhouse://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism?table_name=last_synced_block_verify'
+      bsc-56: 'clickhouse://testuser3:testplpassword@stage-ch-bsc-01.dexguru.biz/bsc?table_name=last_synced_block_verify'
+      polygon-137: 'clickhouse://testuser3:testplpassword@stage-ch-polygon-01.dexguru.biz/polygon?table_name=last_synced_block_verify'
+      fantom-250: 'clickhouse://testuser3:testplpassword@stage-ch-fantom-01.dexguru.biz/fantom?table_name=last_synced_block_verify'
+      base-8453: 'clickhouse://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/base?table_name=last_synced_block_verify'
+      avalanche-43114: 'clickhouse://testuser3:testplpassword@stage-ch-avalanche-01.dexguru.biz/avalanche?table_name=last_synced_block_verify'
+      arbitrum-42161: 'clickhouse://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum?table_name=last_synced_block_verify'
+      nova-42170: 'clickhouse://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova?table_name=last_synced_block_verify'
+    OUTPUT:
+      ethereum-1: 'clickhouse+native://testuser3:testplpassword@10.0.100.170/ethereum'
+      canto-7700: 'clickhouse+native://testuser3:testplpassword@10.0.100.171/canto'
+      optimism-10: 'clickhouse+native://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism'
+      bsc-56: 'clickhouse+native://testuser3:testplpassword@stage-ch-bsc-01.dexguru.biz/bsc'
+      polygon-137: 'clickhouse+native://testuser3:testplpassword@stage-ch-polygon-01.dexguru.biz/polygon'
+      fantom-250: 'clickhouse+native://testuser3:testplpassword@stage-ch-fantom-01.dexguru.biz/fantom'
+      base-8453: 'clickhouse+native://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/base'
+      avalanche-43114: 'clickhouse+native://testuser3:testplpassword@stage-ch-avalanche-01.dexguru.biz/avalanche'
+      arbitrum-42161: 'clickhouse+native://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum'
+      nova-42170: 'clickhouse+native://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
+    EXPORT_FROM_CLICKHOUSE:
+      ethereum-1: 'clickhouse+native://testuser3:testplpassword@10.0.100.170/ethereum'
+      canto-7700: 'clickhouse+native://testuser3:testplpassword@10.0.100.171/canto'
+      optimism-10: 'clickhouse+native://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism'
+      bsc-56: 'clickhouse+native://testuser3:testplpassword@stage-ch-bsc-01.dexguru.biz/bsc'
+      polygon-137: 'clickhouse+native://testuser3:testplpassword@stage-ch-polygon-01.dexguru.biz/polygon'
+      fantom-250: 'clickhouse+native://testuser3:testplpassword@stage-ch-fantom-01.dexguru.biz/fantom'
+      base-8453: 'clickhouse+native://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/base'
+      avalanche-43114: 'clickhouse+native://testuser3:testplpassword@stage-ch-avalanche-01.dexguru.biz/avalanche'
+      arbitrum-42161: 'clickhouse+native://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum'
+      nova-42170: 'clickhouse+native://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
     BLOCK_BATCH_SIZE:
       default: '10'
     MAX_WORKERS:
