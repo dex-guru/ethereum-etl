@@ -13,11 +13,11 @@ raw-data-streamer:
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "stream" ]'
   env:
-    LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl?table_name=last_synced_block'
+    LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@10.0.200.205:8123/dex_etl?table_name=last_synced_block'
     LAG: '0'
-    OUTPUT: 'clickhouse://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
+    OUTPUT: 'clickhouse://testuser3:testplpassword@10.0.200.205:8123/dex_etl'
     ENTITY_TYPES: 'block,transaction,log,token_transfer,token_balance,error,token'
-    EXPORT_FROM_CLICKHOUSE: 'clickhouse://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
+    EXPORT_FROM_CLICKHOUSE: 'clickhouse://testuser3:testplpassword@10.0.200.205:8123/dex_etl'
     POLLING_PERIOD: '2'
     BATCH_SIZE: '5'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
@@ -86,9 +86,9 @@ raw-data-streamer-resync:
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "stream" ]'
   env:
-    LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl?table_name=resync_blocks'
+    LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@10.0.200.205:8123/dex_etl?table_name=resync_blocks'
     LAG: '0'
-    OUTPUT: 'clickhouse://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
+    OUTPUT: 'clickhouse://testuser3:testplpassword@10.0.200.205:8123/dex_etl'
     POLLING_PERIOD: '2'
     BATCH_SIZE: '10'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
@@ -169,13 +169,13 @@ raw-traces-data-streamer:
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "stream" ]'
   env:
-    LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl?table_name=last_synced_block_traces'
-    OUTPUT: 'clickhouse+native://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
+    LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@10.0.200.205:8123/dex_etl?table_name=last_synced_block_traces'
+    OUTPUT: 'clickhouse+native://testuser3:testplpassword@10.0.200.205:8123/dex_etl'
     POLLING_PERIOD: '2'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
     SERVICE_NAME: 'raw-traces-data-streamer'
-    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
+    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@10.0.200.205:8123/dex_etl'
     REWRITE_CLICKHOUSE: ''
   chainEnv:
     ENTITY_TYPES:
@@ -222,13 +222,13 @@ raw-verify-data-streamer:
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "stream" ]'
   env:
-    LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl?table_name=last_synced_block_verify'
-    OUTPUT: 'clickhouse://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
+    LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@10.0.200.205:8123/dex_etl?table_name=last_synced_block_verify'
+    OUTPUT: 'clickhouse://testuser3:testplpassword@10.0.200.205:8123/dex_etl'
     POLLING_PERIOD: '30'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
     SERVICE_NAME: 'raw-verify-data-streamer'
-    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
+    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@10.0.200.205:8123/dex_etl'
     REWRITE_CLICKHOUSE: 'block,transaction,log,token_transfer,token_balance,geth_trace,internal_transfer'
     IS_VERIFIER: 'True'
   chainEnv:
