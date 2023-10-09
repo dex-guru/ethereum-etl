@@ -148,16 +148,17 @@ raw-traces-data-streamer:
   command: '[ "ethereumetl", "stream" ]'
   env:
     LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse://testuser3:testplpassword@10.0.100.175:8123/dex_etl?table_name=last_synced_block_traces'
-    OUTPUT: 'clickhouse://testuser3:testplpassword@10.0.100.175:8123/dex_etl'
+    OUTPUT: 'clickhouse://testuser3:testplpassword@10.0.100.175:8123/dex_etl,http://10.0.100.34:9200'
     POLLING_PERIOD: '2'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
     SERVICE_NAME: 'raw-traces-data-streamer'
     EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@10.0.100.175:8123/dex_etl'
     REWRITE_CLICKHOUSE: ''
+    ELASTIC_URL: 'http://10.0.100.34:9200'
   chainEnv:
     ENTITY_TYPES:
-      default: 'block,geth_trace,internal_transfer,native_balance,token,contract'
+      default: 'block,geth_trace,internal_transfer,native_balance,token,contract,native_transfers_priced'
     PROVIDER_URL:
       default: 'http://rpc-gw-stage.dexguru.biz/full/1'
       polygon-137: 'http://rpc-gw-stage.dexguru.biz/full/137'

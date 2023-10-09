@@ -42,6 +42,7 @@ class EthItemIdCalculator:
         EntityType.INTERNAL_TRANSFER: ('block_number', 'transaction_hash', 'id'),
         EntityType.NATIVE_BALANCE: ('block_number', 'address'),
         EntityType.TOKEN_TRANSFER_PRICED: ('transaction_hash', 'log_index'),
+        EntityType.INTERNAL_TRANSFER_PRICED: ('id',),
     }
 
     def calculate(self, item):

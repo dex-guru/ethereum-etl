@@ -2,7 +2,7 @@ import logging
 
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import TransportError
-from elasticsearch.helpers import bulk, BulkIndexError
+from elasticsearch.helpers import BulkIndexError, bulk
 from retry import retry  # type: ignore
 
 from blockchainetl.exporters import BaseItemExporter
@@ -51,7 +51,7 @@ class ElasticsearchItemExporter(BaseItemExporter):
         item_type = item.pop('type')
         item.pop('item_id', None)
         item.pop('item_timestamp', None)
-        if item_type == 'token_transfer_priced':
+        if item_type in ('token_transfer_priced', 'internal_transfer_priced'):
             item['type'] = item['transfer_type']
             item['doc_type'] = 'transaction'
             item.pop('transfer_type')

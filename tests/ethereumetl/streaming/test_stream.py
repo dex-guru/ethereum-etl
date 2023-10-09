@@ -299,7 +299,8 @@ def test_stream_clickhouse(
         batch_web3_provider=fake_batch_web3_provider,
         batch_size=batch_size,
         item_exporter=item_exporter,
-        entity_types=entity_types - {EntityType.TOKEN_TRANSFER_PRICED},
+        entity_types=entity_types
+        - {EntityType.TOKEN_TRANSFER_PRICED, EntityType.INTERNAL_TRANSFER_PRICED},
         chain_id=1,
     )
     eth_streamer_adapter.get_current_block_number = lambda *_: 12242307  # type: ignore
@@ -406,7 +407,8 @@ def test_stream_clickhouse(
         batch_web3_provider=fake_batch_web3_provider,
         batch_size=batch_size,
         item_exporter=item_exporter,
-        entity_types=entity_types - {EntityType.TOKEN_TRANSFER_PRICED},
+        entity_types=entity_types
+        - {EntityType.TOKEN_TRANSFER_PRICED, EntityType.INTERNAL_TRANSFER_PRICED},
         chain_id=1,
     )
     eth_streamer_adapter.get_current_block_number = lambda *_: 12242307  # type: ignore
@@ -1111,7 +1113,9 @@ def test_elastic_export_items(tmp_path, elastic_url):
     @retry(AssertionError, tries=10, delay=0.2)
     def check_indexed_items(elastic):
         index = exporter.item_type_to_index_mapping[EntityType.TOKEN_TRANSFER_PRICED]
-        records = elastic.search(index=index, body={'query': {'match_all': {}}})
+        records = elastic.search(
+            index=index, body={'query': {'bool': {'filter': {'term': {'block_number': 123}}}}}
+        )
         assert records['hits']['total']['value'] == 2
         for hit in records['hits']['hits']:
             assert hit['_source'] in expected_items

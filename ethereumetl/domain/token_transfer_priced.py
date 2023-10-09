@@ -18,7 +18,7 @@ class TokenTransferPriced:
     transaction_address: str
     block_number: int
     id: str
-    transfer_type: Literal['erc20', 'erc721', 'erc1155']
+    transfer_type: Literal['erc20', 'erc721', 'erc1155', 'native']
     chain_id: int
     timestamp: int | None = None
     transaction_type: Literal['transfer'] = 'transfer'
