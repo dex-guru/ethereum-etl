@@ -156,6 +156,7 @@ raw-traces-data-streamer:
     EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@10.0.100.175:8123/dex_etl'
     REWRITE_CLICKHOUSE: ''
     ELASTIC_URL: 'http://10.0.100.34:9200'
+    START_BLOCK: 'latest'
   chainEnv:
     ENTITY_TYPES:
       default: 'block,geth_trace,internal_transfer,native_balance,token,contract,internal_transfer_priced'
