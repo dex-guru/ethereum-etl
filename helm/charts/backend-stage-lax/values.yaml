@@ -158,7 +158,7 @@ raw-traces-data-streamer:
     ELASTIC_URL: 'http://10.0.100.34:9200'
   chainEnv:
     ENTITY_TYPES:
-      default: 'block,geth_trace,internal_transfer,native_balance,token,contract,native_transfers_priced'
+      default: 'block,geth_trace,internal_transfer,native_balance,token,contract,internal_transfer_priced'
     PROVIDER_URL:
       default: 'http://rpc-gw-stage.dexguru.biz/full/1'
       polygon-137: 'http://rpc-gw-stage.dexguru.biz/full/137'
