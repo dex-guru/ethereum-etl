@@ -165,6 +165,7 @@ def create_item_exporter(output, chain_id) -> BaseItemExporter:
             connection_url=output,
             item_type_to_index_mapping={
                 EntityType.TOKEN_TRANSFER_PRICED: 'transactions',
+                EntityType.INTERNAL_TRANSFER_PRICED: 'transactions',
             },
             chain_id=chain_id,
         )

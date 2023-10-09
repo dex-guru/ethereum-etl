@@ -32,6 +32,7 @@ TOKEN_BALANCE = EntityType.TOKEN_BALANCE
 ERROR = EntityType.ERROR
 NATIVE_BALANCE = EntityType.NATIVE_BALANCE
 TOKEN_TRANSFER_PRICED = EntityType.TOKEN_TRANSFER_PRICED
+INTERNAL_TRANSFER_PRICED = EntityType.INTERNAL_TRANSFER_PRICED
 
 
 # noinspection PyProtectedMember
@@ -453,6 +454,16 @@ class ClickhouseEthStreamerAdapter:
             )
             return token_transfers_priced, False
 
+        @cache
+        def extract_internal_transfers_priced():
+            logger.info(f"exporting {INTERNAL_TRANSFER_PRICED.upper()}...")
+            internal_transfers = extract_internal_transfers()[0]
+            internal_transfers_priced = self.eth_streamer.extract_internal_transfers_priced(
+                internal_transfers=internal_transfers,
+                transactions=export_blocks_and_transactions()[1],
+            )
+            return internal_transfers_priced, False
+
         exported: dict[EntityType, list] = {ERROR: []}
         from_ch: dict[EntityType, bool] = {}
 
@@ -471,6 +482,7 @@ class ClickhouseEthStreamerAdapter:
             # otherwise, export tokens based on token transfers (indexing on event)
             ((TOKEN,), extract_tokens if CONTRACT in self.entity_types else export_tokens),
             ((TOKEN_TRANSFER_PRICED,), extract_token_transfers_priced),
+            ((INTERNAL_TRANSFER_PRICED,), extract_internal_transfers_priced),
         ):
             for entity_type in entity_types:
                 if entity_type not in self.eth_streamer.should_export:
