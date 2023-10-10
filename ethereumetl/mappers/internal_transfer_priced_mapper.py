@@ -31,7 +31,7 @@ class InternalTransferPricedMapper:
             transaction_address=token_transfer['transaction_hash'],
             block_number=token_transfer['block_number'],
             timestamp=timestamp,
-            id=f'{token_transfer["transaction_hash"]}-{token_transfer["id"]}',
+            id=f'{token_transfer["transaction_hash"]}-{hash(token_transfer["id"])}',
             transfer_type='native',
             transaction_type='transfer',
             prices_stable=[price],
