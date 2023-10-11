@@ -42,6 +42,7 @@ raw-data-streamer:
       nova-42170: 'http://rpc-gw-stage.dexguru.biz/full/42170'
       basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
       base-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
+      avalanche-43114: 'http://rpc-gw-stage.dexguru.biz/full/43114'
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
@@ -115,6 +116,7 @@ raw-data-streamer-resync:
       nova-42170: 'http://rpc-gw-stage.dexguru.biz/archive/42170'
       basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/archive/84531'
       base-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
+      avalanche-43114: 'http://rpc-gw-stage.dexguru.biz/full/43114'
 
     BLOCK_BATCH_SIZE:
       default: '1000'
@@ -174,6 +176,7 @@ raw-traces-data-streamer:
       nova-42170: 'http://rpc-gw-stage.dexguru.biz/full/42170'
       basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
       base-8453: 'http://rpc-gw-stage.dexguru.biz/archive/8453'
+      avalanche-43114: 'http://rpc-gw-stage.dexguru.biz/full/43114'
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
@@ -235,6 +238,7 @@ raw-verify-data-streamer:
       nova-42170: 'http://rpc-gw-stage.dexguru.biz/full/42170'
       basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
       base-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
+      avalanche-43114: 'http://rpc-gw-stage.dexguru.biz/full/43114'
     BLOCK_BATCH_SIZE:
       default: '10'
     MAX_WORKERS:
