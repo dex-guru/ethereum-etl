@@ -36,6 +36,7 @@ raw-data-streamer:
       canto-7700: '4566159'
       eth-1: '17431241'
       acanto-7701: '1860704'
+      avalanche-43114: '34619186'
       basetestnet-84531: '5490413'
     PROVIDER_URL:
       default: 'http://rpc-gw-stage.dexguru.biz/full/1'
@@ -51,6 +52,7 @@ raw-data-streamer:
       nova-42170: 'http://rpc-gw-stage.dexguru.biz/full/42170'
       basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
       base-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
+      avalanche-43114: 'http://10.0.100.136:9650/ext/bc/C/rpc'
     BLOCK_BATCH_SIZE:
       default: '1000'
       polygon-137: '1000'
@@ -139,6 +141,7 @@ raw-data-streamer-resync:
       nova-42170: 'http://rpc-gw-prod.dexguru.biz/archive/42170'
       basetestnet-84531: 'http://rpc-gw-prod.dexguru.biz/archive/84531'
       base-8453: 'http://rpc-gw-stage.dexguru.biz/archive/8453'
+      avalanche-43114: 'http://10.0.100.136:9650/ext/bc/C/rpc'
     BLOCK_BATCH_SIZE:
       default: '1000'
     MAX_WORKERS:
@@ -195,6 +198,7 @@ raw-traces-data-streamer:
       nova-42170: 'http://rpc-gw-stage.dexguru.biz/full/42170'
       basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
       base-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
+      avalanche-43114: 'http://10.0.100.136:9650/ext/bc/C/rpc'
     BLOCK_BATCH_SIZE:
       default: '1000'
       fantom-250: '10'
@@ -259,6 +263,7 @@ raw-verify-data-streamer:
       nova-42170: 'http://rpc-gw-stage.dexguru.biz/full/42170'
       basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
       base-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
+      avalanche-43114: 'http://10.0.100.136:9650/ext/bc/C/rpc'
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
