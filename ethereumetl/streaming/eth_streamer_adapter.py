@@ -19,6 +19,7 @@ from ethereumetl.jobs.export_tokens_job import ExportTokensJob
 from ethereumetl.jobs.export_traces_job import ExportTracesJob
 from ethereumetl.jobs.extract_contracts_job import ExtractContractsJob
 from ethereumetl.jobs.extract_internal_transfers_job import ExtractInternalTransfersJob
+from ethereumetl.jobs.extract_internal_transfers_priced import ExtractInternalTransfersPricedJob
 from ethereumetl.jobs.extract_token_transfers_job import ExtractTokenTransfersJob
 from ethereumetl.jobs.extract_token_transfers_priced import ExtractTokenTransfersPricedJob
 from ethereumetl.jobs.extract_tokens_job import ExtractTokensJob
@@ -53,6 +54,7 @@ TOKEN_BALANCE = EntityType.TOKEN_BALANCE
 ERROR = EntityType.ERROR
 NATIVE_BALANCE = EntityType.NATIVE_BALANCE
 TOKEN_TRANSFER_PRICED = EntityType.TOKEN_TRANSFER_PRICED
+INTERNAL_TRANSFER_PRICED = EntityType.INTERNAL_TRANSFER_PRICED
 
 
 class EthStreamerAdapter:
@@ -71,6 +73,7 @@ class EthStreamerAdapter:
         RECEIPT: ('block_number', 'transaction_index'),
         NATIVE_BALANCE: ('address', 'block_number'),
         TOKEN_TRANSFER_PRICED: ('block_number', 'log_index'),
+        INTERNAL_TRANSFER_PRICED: ('block_number',),
     }
 
     ENRICH = {
@@ -162,6 +165,9 @@ class EthStreamerAdapter:
                 ),
                 (TOKEN_TRANSFER_PRICED,): lambda: self.extract_token_transfers_priced(
                     export(TOKEN_TRANSFER), export(TOKEN)
+                ),
+                (INTERNAL_TRANSFER_PRICED,): lambda: self.extract_internal_transfers_priced(
+                    export(INTERNAL_TRANSFER), export(TRANSACTION)
                 ),
             }.items()
             for entity_type in export_types
@@ -331,6 +337,27 @@ class EthStreamerAdapter:
         job.run()
         token_transfers_priced = exporter.get_items(EntityType.TOKEN_TRANSFER_PRICED)
         return token_transfers_priced
+
+    def extract_internal_transfers_priced(self, internal_transfers, transactions):
+        assert (
+            self.chain_id is not None
+        ), 'Cannot extract token transfers priced. Chain id is required'
+        assert (
+            self.elastic_client is not None
+        ), 'Cannot extract token transfers priced. Elastic client is required'
+        enriched_internal_transfers = enrich_internal_transfers(transactions, internal_transfers)
+        exporter = InMemoryItemExporter(item_types=[EntityType.INTERNAL_TRANSFER_PRICED])
+        job = ExtractInternalTransfersPricedJob(
+            internal_transfers=enriched_internal_transfers,
+            batch_size=self.batch_size,
+            max_workers=self.max_workers,
+            item_exporter=exporter,
+            chain_id=self.chain_id,
+            elastic_client=self.elastic_client,
+        )
+        job.run()
+        internal_transfers_priced = exporter.get_items(EntityType.INTERNAL_TRANSFER_PRICED)
+        return internal_transfers_priced
 
     def export_token_balances(self, token_transfers):
         exporter = InMemoryItemExporter(item_types=[EntityType.TOKEN_BALANCE, EntityType.ERROR])

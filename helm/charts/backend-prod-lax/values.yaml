@@ -13,18 +13,18 @@ raw-data-streamer:
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "stream" ]'
   env:
-    LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl?table_name=last_synced_block'
+    LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse://testuser3:testplpassword@10.0.200.205:8123/dex_etl?table_name=last_synced_block'
     LAG: '0'
-    OUTPUT: 'clickhouse://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
-    ENTITY_TYPES: 'block,transaction,log,token_transfer,token_balance,error,token'
-    EXPORT_FROM_CLICKHOUSE: 'clickhouse://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
+    OUTPUT: 'clickhouse://testuser3:testplpassword@10.0.200.205:8123/dex_etl,http://10.0.200.184:9200'
+    ENTITY_TYPES: 'block,transaction,log,token_transfer,token_balance,error,token,token_transfer_priced'
+    EXPORT_FROM_CLICKHOUSE: 'clickhouse://testuser3:testplpassword@10.0.100.175:8123/dex_etl'
     POLLING_PERIOD: '2'
     BATCH_SIZE: '5'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
     SERVICE_NAME: 'raw-data-streamer'
     MAX_WORKERS: '10'
-
+    ELASTIC_URL: 'http://10.0.200.184:9200'
   chainEnv:
     START_BLOCK:
       default: '1'
@@ -36,6 +36,7 @@ raw-data-streamer:
       canto-7700: '4566159'
       eth-1: '17431241'
       acanto-7701: '1860704'
+      avalanche-43114: '34619186'
       basetestnet-84531: '5490413'
     PROVIDER_URL:
       default: 'http://rpc-gw-stage.dexguru.biz/full/1'
@@ -51,6 +52,7 @@ raw-data-streamer:
       nova-42170: 'http://rpc-gw-stage.dexguru.biz/full/42170'
       basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
       base-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
+      avalanche-43114: 'http://10.0.100.136:9650/ext/bc/C/rpc'
     BLOCK_BATCH_SIZE:
       default: '1000'
       polygon-137: '1000'
@@ -86,9 +88,9 @@ raw-data-streamer-resync:
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "stream" ]'
   env:
-    LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl?table_name=resync_blocks'
+    LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse://testuser3:testplpassword@10.0.200.205:8123/dex_etl?table_name=resync_blocks'
     LAG: '0'
-    OUTPUT: 'clickhouse://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
+    OUTPUT: 'clickhouse://testuser3:testplpassword@10.0.200.205:8123/dex_etl'
     POLLING_PERIOD: '2'
     BATCH_SIZE: '10'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
@@ -139,6 +141,7 @@ raw-data-streamer-resync:
       nova-42170: 'http://rpc-gw-prod.dexguru.biz/archive/42170'
       basetestnet-84531: 'http://rpc-gw-prod.dexguru.biz/archive/84531'
       base-8453: 'http://rpc-gw-stage.dexguru.biz/archive/8453'
+      avalanche-43114: 'http://10.0.100.136:9650/ext/bc/C/rpc'
     BLOCK_BATCH_SIZE:
       default: '1000'
     MAX_WORKERS:
@@ -169,17 +172,18 @@ raw-traces-data-streamer:
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "stream" ]'
   env:
-    LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl?table_name=last_synced_block_traces'
-    OUTPUT: 'clickhouse+native://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
+    LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse://testuser3:testplpassword@10.0.200.205:8123/dex_etl?table_name=last_synced_block_traces'
+    OUTPUT: 'clickhouse://testuser3:testplpassword@10.0.200.205:8123/dex_etl,http://10.0.200.184:9200'
     POLLING_PERIOD: '2'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
     SERVICE_NAME: 'raw-traces-data-streamer'
-    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
+    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@10.0.100.175:8123/dex_etl'
     REWRITE_CLICKHOUSE: ''
+    ELASTIC_URL: 'http://10.0.200.184:9200'
   chainEnv:
     ENTITY_TYPES:
-      default: 'block,geth_trace,internal_transfer,native_balance,token,contract'
+      default: 'block,geth_trace,internal_transfer,native_balance,token,contract,internal_transfer_priced'
     PROVIDER_URL:
       default: 'http://rpc-gw-stage.dexguru.biz/full/1'
       polygon-137: 'http://rpc-gw-stage.dexguru.biz/full/137'
@@ -194,6 +198,7 @@ raw-traces-data-streamer:
       nova-42170: 'http://rpc-gw-stage.dexguru.biz/full/42170'
       basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
       base-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
+      avalanche-43114: 'http://10.0.100.136:9650/ext/bc/C/rpc'
     BLOCK_BATCH_SIZE:
       default: '1000'
       fantom-250: '10'
@@ -222,13 +227,13 @@ raw-verify-data-streamer:
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "stream" ]'
   env:
-    LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse+native://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl?table_name=last_synced_block_verify'
-    OUTPUT: 'clickhouse://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
+    LAST_SYNCED_BLOCK_PROVIDER: 'clickhouse://testuser3:testplpassword@10.0.200.205:8123/dex_etl?table_name=last_synced_block_verify'
+    OUTPUT: 'clickhouse://testuser3:testplpassword@10.0.200.205:8123/dex_etl'
     POLLING_PERIOD: '30'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
     SERVICE_NAME: 'raw-verify-data-streamer'
-    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@ch-prod-indexation-01.dexguru.biz/dex_etl'
+    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@10.0.200.205:8123/dex_etl'
     REWRITE_CLICKHOUSE: 'block,transaction,log,token_transfer,token_balance,geth_trace,internal_transfer'
     IS_VERIFIER: 'True'
   chainEnv:
@@ -258,6 +263,7 @@ raw-verify-data-streamer:
       nova-42170: 'http://rpc-gw-stage.dexguru.biz/full/42170'
       basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
       base-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
+      avalanche-43114: 'http://10.0.100.136:9650/ext/bc/C/rpc'
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:

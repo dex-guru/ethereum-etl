@@ -48,6 +48,7 @@ variables:
     stage-indexation-basetestnet-84531
     stage-indexation-nova-42170
     stage-indexation-base-8453
+    stage-indexation-avalanche-43114
   KUBE_NAMESPACE_STAGE_TRACE: >-
     stage-indexation-eth-1
     stage-indexation-bsc-56
@@ -59,6 +60,7 @@ variables:
     stage-indexation-optimism-10
     stage-indexation-fantom-250
     stage-indexation-base-8453
+    stage-indexation-avalanche-43114
   KUBE_NAMESPACE_PROD_TRACE: >-
     prod-indexation-eth-1
     prod-indexation-bsc-56
@@ -70,6 +72,7 @@ variables:
     prod-indexation-optimism-10
     prod-indexation-fantom-250
     prod-indexation-base-8453
+    prod-indexation-avalanche-43114
   KUBE_NAMESPACE_PROD: >-
     prod-indexation-eth-1
     prod-indexation-gnosis-100
@@ -83,6 +86,7 @@ variables:
     prod-indexation-bsc-56
     prod-indexation-polygon-137
     prod-indexation-base-8453
+    prod-indexation-avalanche-43114
 
 build:
   stage: build

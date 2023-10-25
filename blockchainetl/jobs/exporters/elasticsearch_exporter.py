@@ -2,7 +2,7 @@ import logging
 
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import TransportError
-from elasticsearch.helpers import bulk
+from elasticsearch.helpers import BulkIndexError, bulk
 from retry import retry
 
 from blockchainetl.exporters import BaseItemExporter
@@ -51,7 +51,7 @@ class ElasticsearchItemExporter(BaseItemExporter):
         item_type = item.pop('type')
         item.pop('item_id', None)
         item.pop('item_timestamp', None)
-        if item_type == 'token_transfer_priced':
+        if item_type in ('token_transfer_priced', 'internal_transfer_priced'):
             item['type'] = item['transfer_type']
             item['doc_type'] = 'transaction'
             item.pop('transfer_type')
@@ -65,5 +65,12 @@ class ElasticsearchItemExporter(BaseItemExporter):
         if not self.bulk_data:
             return
         logger.info('Flushing %s items to Elasticsearch', len(self.bulk_data))
-        bulk(self.client, self.bulk_data)
+        try:
+            bulk(self.client, self.bulk_data, chunk_size=10000)
+        except BulkIndexError as e:
+            logger.exception('Error while flushing bulk data to Elasticsearch: %s', e)
+            failed_ids = [error['index']['_id'] for error in e.errors]
+            self.bulk_data = [item for item in self.bulk_data if item['_id'] not in failed_ids]
+            bulk(self.client, self.bulk_data)
+
         self.bulk_data = []
