@@ -44,8 +44,6 @@ variables:
     stage-indexation-arbitrum-42161
     stage-indexation-optimism-10
     stage-indexation-canto-7700
-    stage-indexation-acanto-7701
-    stage-indexation-basetestnet-84531
     stage-indexation-nova-42170
     stage-indexation-base-8453
     stage-indexation-avalanche-43114
@@ -55,7 +53,6 @@ variables:
     stage-indexation-polygon-137
     stage-indexation-arbitrum-42161
     stage-indexation-canto-7700
-    stage-indexation-basetestnet-84531
     stage-indexation-nova-42170
     stage-indexation-optimism-10
     stage-indexation-fantom-250
