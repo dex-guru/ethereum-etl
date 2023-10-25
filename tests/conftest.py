@@ -11,6 +11,7 @@ import pytest
 from elasticsearch import Elasticsearch
 from retry import retry
 
+from ethereumetl.clickhouse import migrate_up
 from ethereumetl.utils import parse_clickhouse_url
 
 pytest.register_assert_rewrite("tests.helpers")
@@ -87,7 +88,7 @@ def clickhouse_url() -> Generator[str, None, None]:
 
         test_url = urlunparse(
             (
-                'http',
+                'clickhouse+http' if test_params['port'] == 8123 else 'clickhouse+native',
                 (
                     f'{test_params["user"]}:{test_params["password"]}'
                     f'@{test_params["host"]}:{test_params["port"]}'
@@ -144,3 +145,14 @@ def clickhouse(clickhouse_url) -> Generator[clickhouse_connect.driver.Client, No
     params = parse_clickhouse_url(clickhouse_url)
     with clickhouse_connect.create_client(**params) as client:
         yield client
+
+
+@pytest.fixture
+def clickhouse_migrated_url(clickhouse_url) -> str:
+    migrate_up(clickhouse_url, 'head')
+    return clickhouse_url
+
+
+@pytest.fixture
+def clickhouse_migrated(clickhouse_migrated_url, clickhouse) -> clickhouse_connect.driver.Client:
+    return clickhouse

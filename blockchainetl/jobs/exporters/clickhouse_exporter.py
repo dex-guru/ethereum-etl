@@ -2,9 +2,6 @@ import collections
 import json
 import logging
 from dataclasses import dataclass
-from pathlib import Path
-from string import Template
-from textwrap import indent
 
 import clickhouse_connect
 import clickhouse_connect.datatypes.numeric as types
@@ -12,8 +9,8 @@ from clickhouse_connect.driver.exceptions import DatabaseError
 from clickhouse_connect.driver.models import ColumnDef
 
 from blockchainetl.exporters import BaseItemExporter
+from ethereumetl.clickhouse import ITEM_TYPE_TO_TABLE_MAPPING
 from ethereumetl.config.envs import envs
-from ethereumetl.enumeration.entity_type import EntityType
 from ethereumetl.utils import parse_clickhouse_url
 
 logger = logging.getLogger(__name__)
@@ -44,7 +41,7 @@ NUMERIC_TYPE_MAX_VALUES = {
 
 
 class ClickHouseItemExporter(BaseItemExporter):
-    def __init__(self, connection_url, item_type_to_table_mapping, chain_id=1):
+    def __init__(self, connection_url):
         super().__init__()
         parsed = parse_clickhouse_url(connection_url)
         self.username = parsed['user']
@@ -56,17 +53,12 @@ class ClickHouseItemExporter(BaseItemExporter):
         self.connection: clickhouse_connect.driver.HttpClient | None = None
         self.tables = {}
         self.cached_batches = {}
-        self.chain_id = chain_id
-        self.item_type_to_table_mapping = dict(
-            # Blocks last so that blocks would be inserted after the other items.
-            sorted(item_type_to_table_mapping.items(), key=lambda x: x[0] == EntityType.BLOCK)
-        )
+        self.item_type_to_table_mapping = ITEM_TYPE_TO_TABLE_MAPPING
 
     def open(self):
         if self.connection:
             raise RuntimeError('Connection already opened.')
         self.connection = self.create_connection()
-        self.create_tables()
 
         ## for each time grab the schema to save a prefetch of the columns on each insert
         for table in self.item_type_to_table_mapping.values():
@@ -206,15 +198,3 @@ class ClickHouseItemExporter(BaseItemExporter):
             else:
                 continue
         return results
-
-    def create_tables(self):
-        if not self.connection:
-            raise RuntimeError('Connection not opened.')
-        sql_template = (Path(__file__).parent / 'clickhouse_schemas.sql.tpl').read_text()
-        sql_mappings = {**self.item_type_to_table_mapping, 'chain_id': self.chain_id}
-        sql = Template(sql_template).substitute(sql_mappings)
-        for statement in sql.split(';'):
-            statement = statement.strip()
-            if statement:
-                logger.debug('executing sql statement:\n    %s', indent(statement, '    '))
-                self.connection.query(statement)

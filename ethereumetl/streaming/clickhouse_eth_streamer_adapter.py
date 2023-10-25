@@ -11,6 +11,7 @@ from clickhouse_connect.driver.exceptions import DatabaseError
 
 from blockchainetl.jobs.exporters.clickhouse_exporter import ClickHouseItemExporter
 from blockchainetl.jobs.exporters.multi_item_exporter import MultiItemExporter
+from ethereumetl.clickhouse import ITEM_TYPE_TO_TABLE_MAPPING
 from ethereumetl.enumeration.entity_type import ALL, EntityType
 from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter, sort_by
 from ethereumetl.utils import parse_clickhouse_url
@@ -42,32 +43,13 @@ class ClickhouseEthStreamerAdapter:
         eth_streamer: EthStreamerAdapter,
         clickhouse_url: str,
         chain_id: int,
-        item_type_to_table_mapping: dict[EntityType, str] | None = None,
         rewrite_entity_types: Iterable[EntityType] = ALL,
     ):
         self.eth_streamer = eth_streamer
         self.clickhouse_url = clickhouse_url
         self.clickhouse: Client | None = None
         self.rewrite_entity_types = frozenset(rewrite_entity_types)
-
-        if item_type_to_table_mapping is None:
-            self.item_type_to_table_mapping = {
-                BLOCK: 'blocks',
-                TRANSACTION: 'transactions',
-                RECEIPT: 'receipts',
-                LOG: 'logs',
-                TOKEN_TRANSFER: 'token_transfers',
-                TRACE: 'traces',
-                CONTRACT: 'contracts',
-                TOKEN: 'tokens',
-                ERROR: 'errors',
-                GETH_TRACE: 'geth_traces',
-                INTERNAL_TRANSFER: 'internal_transfers',
-                NATIVE_BALANCE: 'native_balances',
-            }
-        else:
-            self.item_type_to_table_mapping = item_type_to_table_mapping
-
+        self.item_type_to_table_mapping = ITEM_TYPE_TO_TABLE_MAPPING
         self.chain_id = chain_id
         self.entity_types = frozenset(eth_streamer.entity_types)
 
@@ -585,7 +567,6 @@ class VerifyingClickhouseEthStreamerAdapter:
         assert (
             self.ch_streamer.exporting_to_the_same_clickhouse
         ), 'VerifyingClickhouseEthStreamerAdapter can be used only when exporting to the same ClickHouse instance'
-        self.chain_id = self.ch_streamer.chain_id
 
     def open(self):
         self.ch_streamer.open()

@@ -3,7 +3,7 @@ import logging
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import TransportError
 from elasticsearch.helpers import BulkIndexError, bulk
-from retry import retry  # type: ignore
+from retry import retry
 
 from blockchainetl.exporters import BaseItemExporter
 
@@ -11,12 +11,12 @@ logger = logging.getLogger(__name__)
 
 
 class ElasticsearchItemExporter(BaseItemExporter):
-    def __init__(self, connection_url, item_type_to_index_mapping, chain_id=1):
+    def __init__(self, elasticsearch_url, item_type_to_index_mapping, chain_id=1):
         super().__init__()
         self.item_type_to_index_mapping = item_type_to_index_mapping
         self.chain_id = chain_id
-        self.connection_url = connection_url
-        self.client = None
+        self.connection_url = elasticsearch_url
+        self.client: None | Elasticsearch = None
         self.bulk_data = []
 
     def close(self):

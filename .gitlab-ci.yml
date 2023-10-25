@@ -88,7 +88,6 @@ variables:
     prod-indexation-base-8453
     prod-indexation-avalanche-43114
 
-# Build test:
 build:
   stage: build
   before_script:
@@ -122,12 +121,15 @@ build-lint:
     - docker login -u "${CI_HARBOR_REGISTRY_USER}" -p "${CI_HARBOR_REGISTRY_PASSWORD}" "${CI_HARBOR_REGISTRY_HOST}"
   script:
     - echo "Building docker image for linting"
-    - docker pull $IMAGE || true
-    - docker build --build-arg BUILDKIT_INLINE_CACHE=1 --tag $IMAGE_BASE --target base - < lint.Dockerfile
-    - docker build --build-arg BUILDKIT_INLINE_CACHE=1 --tag $IMAGE_BASE_PYRIGHT --target base-pyright - < lint.Dockerfile
-    - docker build --build-arg BUILDKIT_INLINE_CACHE=1 --tag $IMAGE_BASE_LINTERS --target base-linters - < lint.Dockerfile
-    - docker build --build-arg BUILDKIT_INLINE_CACHE=1 --tag $IMAGE -f lint.Dockerfile .
 
+    - docker build --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from $IMAGE_BASE --tag $IMAGE_BASE --target base - < lint.Dockerfile
+    - docker build --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from $IMAGE_BASE_PYRIGHT --tag $IMAGE_BASE_PYRIGHT --target base-pyright - < lint.Dockerfile
+    - docker build --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from $IMAGE_BASE_LINTERS --tag $IMAGE_BASE_LINTERS --target base-linters - < lint.Dockerfile
+    - docker build --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from $IMAGE --tag $IMAGE -f lint.Dockerfile .
+
+    - docker push $IMAGE_BASE
+    - docker push $IMAGE_BASE_PYRIGHT
+    - docker push $IMAGE_BASE_LINTERS
     - docker push $IMAGE
   only:
     - merge_requests
@@ -139,7 +141,7 @@ test:
     - build
   image: "${IMAGE_APP}:${CI_COMMIT_SHORT_SHA}"
   variables:
-    TEST_CLICKHOUSE_URL: "http://default:@clickhouse:8123"
+    TEST_CLICKHOUSE_URL: "clickhouse+http://default:@clickhouse:8123"
     ETHEREUM_ETL_RUN_SLOW_TESTS: "true"
     PROVIDER_URL: 'http://10.0.100.149:8080/archive/1'
     TEST_ELASTICSEARCH_URL: "http://elasticsearch:9200"
@@ -175,6 +177,65 @@ test:
   only:
     - merge_requests
 
+test-migration-backward-compatibility:
+  stage: test
+  needs:
+    - build
+  services:
+    - name: ${IMAGE_DIND}
+      alias: docker
+      variables:
+        DOCKER_TLS_CERTDIR: ""
+        HEALTHCHECK_2375_TCP_ADDR: docker
+        HEALTHCHECK_2375_TCP_PORT: '2375'
+    - name: ${IMAGE_CLICKHOUSE}
+      alias: clickhouse
+      variables:
+        HEALTHCHECK_8123_TCP_ADDR: clickhouse
+        HEALTHCHECK_8123_TCP_PORT: '8123'
+    - name: ${IMAGE_ELASTIC}
+      alias: elasticsearch
+      variables:
+        HEALTHCHECK_9200_TCP_ADDR: elasticsearch
+        HEALTHCHECK_9200_TCP_PORT: '9200'
+        discovery.type: single-node
+  before_script:
+    - set -eo pipefail
+    - docker login -u "${CI_HARBOR_REGISTRY_USER}" -p "${CI_HARBOR_REGISTRY_PASSWORD}" "${CI_HARBOR_REGISTRY_HOST}"
+    - >-
+        alias docker_run='docker run
+        --rm
+        -i
+        --network host
+        -v "$PWD:/workdir"
+        -w /workdir
+        -e CLICKHOUSE_URL="clickhouse://default:@clickhouse:8123"
+        -e TEST_CLICKHOUSE_URL="clickhouse://default:@clickhouse:8123"
+        -e PROVIDER_URL="http://10.0.100.149:8080/archive/1"
+        -e ETHEREUM_ETL_RUN_SLOW_TESTS="true"
+        -e TEST_ELASTICSEARCH_URL="http://elasticsearch:9200"
+        '
+    - export MR_SRC_IMAGE="$IMAGE_APP:$CI_COMMIT_SHORT_SHA"
+  script:
+    - set -eo pipefail
+    - docker_run $MR_SRC_IMAGE alembic upgrade head
+    - docker_run -u root $MR_SRC_IMAGE git checkout "origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
+    - export MR_DST_COMMIT_SHORT_SHA="$(docker_run -u root $MR_SRC_IMAGE git rev-parse HEAD | cut -c1-8)"
+    - export MR_DST_IMAGE="$IMAGE_APP:$MR_DST_COMMIT_SHORT_SHA"
+    - |
+      out="$(docker pull "$MR_DST_IMAGE" 2>&1 || :)"
+      echo "$out"
+      if [[ "$out" == *"unknown"* ]]; then
+        echo "Image $MR_DST_IMAGE does not exist." >&2
+        echo "Please check if build succeeded for commit $MR_DST_COMMIT_SHORT_SHA." >&2
+        echo "Skipping migration backward compatibility test." >&2
+        exit 0
+      fi
+    - echo "Testing migration backward compatibility"
+    - docker_run $MR_DST_IMAGE pytest -k "not migration" -v --color yes
+  only:
+    - merge_requests
+
 lint-python-pyright:
   stage: lint
   needs:
@@ -197,12 +258,12 @@ lint-python-pyright:
 
 lint-python-mypy:
   stage: lint
+  services: []
   needs:
     - build-lint
   image: "${IMAGE_APP}:lint-ci"
   variables:
     PYTHONHASHSEED: 0
-  services: []
   script:
     - mypy . | tee mypy.log
   after_script:

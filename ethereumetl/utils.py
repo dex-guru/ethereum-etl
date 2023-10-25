@@ -205,7 +205,7 @@ def parse_clickhouse_url(url) -> dict[str, Any]:
     settings = parse_qs(parsed.query)
     connect_kwargs = {
         'host': parsed.hostname or 'localhost',
-        'port': parsed.port or 8123,
+        'port': parsed.port or (8123 if "http" in parsed.scheme else 9000),
         'user': parsed.username or 'default',
         'password': parsed.password or '',
         'settings': settings,

@@ -6,17 +6,14 @@ from clickhouse_connect.driver.client import Client
 
 from blockchainetl.jobs.exporters.clickhouse_exporter import ClickHouseItemExporter
 from ethereumetl.enumeration.entity_type import EntityType
-from ethereumetl.scripts.execute_clickhouse_sql import execute_clickhouse_sql
 from ethereumetl.scripts.load_abi_to_event_inventory import load_abis_to_event_inventory
 from ethereumetl.streaming.clickhouse_eth_streamer_adapter import ClickhouseEthStreamerAdapter
 from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter
-from ethereumetl.streaming.item_exporter_creator import make_item_type_to_table_mapping
 
 
 @pytest.fixture()
 def clickhouse_adapter(clickhouse_url):
-    item_type_to_table_mapping = make_item_type_to_table_mapping(1)
-    item_exporter = ClickHouseItemExporter(clickhouse_url, item_type_to_table_mapping)
+    item_exporter = ClickHouseItemExporter(clickhouse_url)
 
     eth_streamer_adapter = EthStreamerAdapter(
         batch_web3_provider=lambda _: None,
@@ -29,7 +26,6 @@ def clickhouse_adapter(clickhouse_url):
         eth_streamer=eth_streamer_adapter,
         clickhouse_url=clickhouse_url,
         chain_id=1,
-        item_type_to_table_mapping=make_item_type_to_table_mapping(chain_id=1),
     )
     ch_eth_streamer_adapter.open()
     try:
@@ -38,36 +34,13 @@ def clickhouse_adapter(clickhouse_url):
         ch_eth_streamer_adapter.close()
 
 
-def create_entity_tables(clickhouse_url):
-    ch_exporter = ClickHouseItemExporter(
-        connection_url=clickhouse_url,
-        item_type_to_table_mapping=make_item_type_to_table_mapping(chain_id=1),
-        chain_id=1,
-    )
-    ch_exporter.open()
-    try:
-        ch_exporter.create_tables()
-    finally:
-        ch_exporter.close()
-
-
 def insert_records(clickhouse: Client, table: str, records: Sequence[dict]):
     columns = records[0].keys()
     data = [[r[col] for col in columns] for r in records]
     clickhouse.insert(table, data, columns)
 
 
-def test_events_mat_view(clickhouse_url, clickhouse):
-    create_entity_tables(clickhouse_url)
-
-    execute_clickhouse_sql(
-        chain_id=1,
-        clickhouse_url=clickhouse_url,
-        on_cluster='',
-        replacing_merge_tree='ReplacingMergeTree',
-        dry_run=False,
-    )
-
+def test_events_mat_view(clickhouse_url, clickhouse_migrated):
     event_infos = [
         {
             'event_signature_hash': '0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62',
@@ -117,10 +90,12 @@ def test_events_mat_view(clickhouse_url, clickhouse):
     ]
 
     # Add some event infos to be captured my the MaterializedView
-    insert_records(clickhouse, '1_event_inventory_src', event_infos)
+    insert_records(clickhouse_migrated, 'event_inventory_src', event_infos)
 
-    # 1_event_inventory_src
-    assert list(clickhouse.query('SELECT * FROM 1_event_inventory_src').named_results()) == [
+    # event_inventory_src
+    assert list(
+        clickhouse_migrated.query('SELECT * FROM event_inventory_src').named_results()
+    ) == [
         {
             'event_abi_json': event_infos[0]['event_abi_json'],
             'event_name': event_infos[0]['event_name'],
@@ -131,8 +106,8 @@ def test_events_mat_view(clickhouse_url, clickhouse):
         },
     ]
 
-    # 1_event_inventory
-    assert list(clickhouse.query('SELECT * FROM 1_event_inventory').named_results()) == [
+    # event_inventory
+    assert list(clickhouse_migrated.query('SELECT * FROM event_inventory').named_results()) == [
         {
             'event_abi_json': event_infos[0]['event_abi_json'],
             'event_name': event_infos[0]['event_name'],
@@ -145,12 +120,12 @@ def test_events_mat_view(clickhouse_url, clickhouse):
         },
     ]
 
-    # Insert logs. This should join with event_infos and insert into 1_events
-    insert_records(clickhouse, '1_logs', logs)
+    # Insert logs. This should join with event_infos and insert into events
+    insert_records(clickhouse_migrated, 'logs', logs)
 
     events_records = list(
-        clickhouse.query(
-            'SELECT * FROM 1_events LIMIT 10 SETTINGS asterisk_include_alias_columns=1'
+        clickhouse_migrated.query(
+            'SELECT * FROM events LIMIT 10 SETTINGS asterisk_include_alias_columns=1'
         ).named_results()
     )
 
@@ -181,16 +156,7 @@ def test_events_mat_view(clickhouse_url, clickhouse):
     ]
 
 
-def test_load_abis_to_event_inventory(clickhouse_url, clickhouse, tmp_path):
-    create_entity_tables(clickhouse_url)
-    execute_clickhouse_sql(
-        chain_id=1,
-        clickhouse_url=clickhouse_url,
-        on_cluster='',
-        replacing_merge_tree='ReplacingMergeTree',
-        dry_run=False,
-    )
-
+def test_load_abis_to_event_inventory(clickhouse_migrated_url, clickhouse, tmp_path):
     abi = [
         {
             'anonymous': False,
@@ -217,11 +183,11 @@ def test_load_abis_to_event_inventory(clickhouse_url, clickhouse, tmp_path):
     (subdir_path / file_name1).write_text(json.dumps(abi))
     (subdir_path / file_name2).write_text(json.dumps(abi))
 
-    load_abis_to_event_inventory(1, clickhouse_url, str(tmp_path), dry_run=False)
+    load_abis_to_event_inventory(clickhouse_migrated_url, str(tmp_path), dry_run=False)
 
     event_inventory_records = list(
         clickhouse.query(
-            'SELECT * FROM 1_event_inventory LIMIT 10 SETTINGS asterisk_include_alias_columns=1'
+            'SELECT * FROM event_inventory LIMIT 10 SETTINGS asterisk_include_alias_columns=1'
         ).named_results()
     )
 
@@ -249,11 +215,11 @@ def test_select_where_no_results(clickhouse_adapter):
     assert clickhouse_adapter.select_where(EntityType.BLOCK, "number", number=-1) == ()
 
 
-def test_select_where_with_results(clickhouse_adapter, clickhouse):
+def test_select_where_with_results(clickhouse_adapter, clickhouse_migrated):
     """Test that `select_where()` returns a tuple of results."""
     insert_records(
-        clickhouse,
-        '1_blocks',
+        clickhouse_migrated,
+        'blocks',
         [
             {
                 'number': 12345,

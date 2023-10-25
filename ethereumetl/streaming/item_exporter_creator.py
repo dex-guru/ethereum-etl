@@ -35,28 +35,6 @@ def create_item_exporters(outputs, chain_id) -> BaseItemExporter:
     return MultiItemExporter(item_exporters)
 
 
-def make_item_type_to_table_mapping(chain_id: int | None = None) -> dict[EntityType, str]:
-    item_type_to_table_mapping = {
-        EntityType.BLOCK: 'blocks',
-        EntityType.TRANSACTION: 'transactions',
-        EntityType.LOG: 'logs',
-        EntityType.TOKEN_TRANSFER: 'token_transfers',
-        EntityType.TOKEN_BALANCE: 'token_balances',
-        EntityType.TRACE: 'traces',
-        EntityType.CONTRACT: 'contracts',
-        EntityType.TOKEN: 'tokens',
-        EntityType.ERROR: 'errors',
-        EntityType.GETH_TRACE: 'geth_traces',
-        EntityType.INTERNAL_TRANSFER: 'internal_transfers',
-        EntityType.NATIVE_BALANCE: 'native_balances',
-    }
-    if chain_id:
-        item_type_to_table_mapping = {
-            k: f"{chain_id}_{v}" for k, v in item_type_to_table_mapping.items()
-        }
-    return item_type_to_table_mapping
-
-
 def create_item_exporter(output, chain_id) -> BaseItemExporter:
     item_exporter_type = determine_item_exporter_type(output)
     if item_exporter_type == ItemExporterType.PUBSUB:
@@ -151,10 +129,7 @@ def create_item_exporter(output, chain_id) -> BaseItemExporter:
     elif item_exporter_type == ItemExporterType.CLICKHOUSE:
         from blockchainetl.jobs.exporters.clickhouse_exporter import ClickHouseItemExporter
 
-        item_type_to_table_mapping = make_item_type_to_table_mapping(chain_id)
-        item_exporter = ClickHouseItemExporter(
-            output, item_type_to_table_mapping=item_type_to_table_mapping, chain_id=chain_id
-        )
+        item_exporter = ClickHouseItemExporter(output)
     elif item_exporter_type == ItemExporterType.AMQP:
         from blockchainetl.jobs.exporters.amqp_exporter import AMQPItemExporter
 
@@ -162,7 +137,7 @@ def create_item_exporter(output, chain_id) -> BaseItemExporter:
     elif item_exporter_type == ItemExporterType.ELASTIC:
         output = output.replace('elasticsearch://', 'http://')
         item_exporter = ElasticsearchItemExporter(
-            connection_url=output,
+            elasticsearch_url=output,
             item_type_to_index_mapping={
                 EntityType.TOKEN_TRANSFER_PRICED: 'transactions',
                 EntityType.INTERNAL_TRANSFER_PRICED: 'transactions',
