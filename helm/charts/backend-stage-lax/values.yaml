@@ -27,7 +27,7 @@ raw-data-streamer:
       # acanto-7701: 'block,transaction,log,token_transfer,token_balance,error,token'
     PROVIDER_URL:
       default:           'http://rpc-gw-stage.dexguru.biz/full/-999'
-      ethereum-1:        'http://rpc-gw-stage.dexguru.biz/full/1'
+      eth-1:             'http://rpc-gw-stage.dexguru.biz/full/1'
       polygon-137:       'http://rpc-gw-stage.dexguru.biz/full/137'
       bsc-56:            'http://rpc-gw-stage.dexguru.biz/full/56'
       canto-7700:        'http://rpc-gw-stage.dexguru.biz/full/7700'
@@ -41,7 +41,7 @@ raw-data-streamer:
       base-8453:         'http://rpc-gw-stage.dexguru.biz/full/8453'
       avalanche-43114:   'http://rpc-gw-stage.dexguru.biz/full/43114'
     LAST_SYNCED_BLOCK_PROVIDER:
-      ethereum-1:        'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum?table_name=last_synced_block'
+      eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum?table_name=last_synced_block'
       canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto?table_name=last_synced_block'
       # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto?table_name=last_synced_block'
       optimism-10:       'clickhouse+http://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism?table_name=last_synced_block'
@@ -55,7 +55,7 @@ raw-data-streamer:
       nova-42170:        'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova?table_name=last_synced_block'
       gnosis-100:        'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis?table_name=last_synced_block'
     OUTPUT:
-      ethereum-1:        'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
+      eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
       # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto'
       optimism-10:       'clickhouse+http://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism'
@@ -69,7 +69,7 @@ raw-data-streamer:
       nova-42170:        'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
       gnosis-100:        'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
     EXPORT_FROM_CLICKHOUSE:
-      ethereum-1:        'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
+      eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
       # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto'
       optimism-10:       'clickhouse+http://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism'
@@ -129,7 +129,7 @@ raw-data-streamer-resync:
     END_BLOCK:
       default: '0'
       bsc-56: '7182894'
-      ethereum-1: '17198869'
+      eth-1:      '17198869'
       canto-7700: '4258699'
       fantom-250: '62288825'
       optimism-10: '98555892'
@@ -140,7 +140,7 @@ raw-data-streamer-resync:
 
     PROVIDER_URL:
       default: 'http://rpc-gw-stage.dexguru.biz/archive/-999'
-      ethereum-1: 'http://rpc-gw-stage.dexguru.biz/archive/1'
+      eth-1:      'http://rpc-gw-stage.dexguru.biz/archive/1'
       polygon-137: 'http://rpc-gw-stage.dexguru.biz/archive/137'
       bsc-56: 'http://rpc-gw-stage.dexguru.biz/archive/56'
       canto-7700: 'http://rpc-gw-stage.dexguru.biz/archive/7700'
@@ -155,7 +155,7 @@ raw-data-streamer-resync:
       avalanche-43114: 'http://rpc-gw-stage.dexguru.biz/full/43114'
 
     LAST_SYNCED_BLOCK_PROVIDER:
-      ethereum-1:        'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum?table_name=resync_blocks'
+      eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum?table_name=resync_blocks'
       canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto?table_name=resync_blocks'
       # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto?table_name=resync_blocks'
       optimism-10:       'clickhouse+http://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism?table_name=resync_blocks'
@@ -170,7 +170,7 @@ raw-data-streamer-resync:
       gnosis-100:        'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis?table_name=resync_blocks'
 
     OUTPUT:
-      ethereum-1:        'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
+      eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
       # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto'
       optimism-10:       'clickhouse+http://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism'
@@ -184,7 +184,7 @@ raw-data-streamer-resync:
       nova-42170:        'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
       gnosis-100:        'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
     EXPORT_FROM_CLICKHOUSE:
-      ethereum-1:        'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
+      eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
       # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto'
       optimism-10:       'clickhouse+http://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism'
@@ -203,7 +203,7 @@ raw-data-streamer-resync:
     MAX_WORKERS:
       default: '5'
       polygon-137: '10'
-      ethereum-1: '5'
+      eth-1:      '5'
       bsc-56: '12'
       canto-7700: '5'
       fantom-250: '5'
@@ -241,7 +241,7 @@ raw-traces-data-streamer:
       default: 'block,geth_trace,internal_transfer,native_balance,token,contract,internal_transfer_priced'
     PROVIDER_URL:
       default:           'http://rpc-gw-stage.dexguru.biz/full/-999'
-      ethereum-1:        'http://rpc-gw-stage.dexguru.biz/full/1'
+      eth-1:             'http://rpc-gw-stage.dexguru.biz/full/1'
       polygon-137:       'http://rpc-gw-stage.dexguru.biz/full/137'
       bsc-56:            'http://rpc-gw-stage.dexguru.biz/full/56'
       canto-7700:        'http://rpc-gw-stage.dexguru.biz/full/7700'
@@ -255,7 +255,7 @@ raw-traces-data-streamer:
       base-8453:         'http://rpc-gw-stage.dexguru.biz/archive/8453'
       avalanche-43114:   'http://rpc-gw-stage.dexguru.biz/full/43114'
     LAST_SYNCED_BLOCK_PROVIDER:
-      ethereum-1:        'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum?table_name=last_synced_block_traces'
+      eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum?table_name=last_synced_block_traces'
       canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto?table_name=last_synced_block_traces'
       # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto?table_name=last_synced_block_traces'
       optimism-10:       'clickhouse+http://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism?table_name=last_synced_block_traces'
@@ -269,7 +269,7 @@ raw-traces-data-streamer:
       nova-42170:        'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova?table_name=last_synced_block_traces'
       gnosis-100:        'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis?table_name=last_synced_block_traces'
     OUTPUT:
-      ethereum-1:        'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
+      eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
       # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto'
       optimism-10:       'clickhouse+http://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism'
@@ -283,7 +283,7 @@ raw-traces-data-streamer:
       nova-42170:        'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
       gnosis-100:        'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
     EXPORT_FROM_CLICKHOUSE:
-      ethereum-1:        'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
+      eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
       # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto'
       optimism-10:       'clickhouse+http://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism'
@@ -331,7 +331,7 @@ raw-verify-data-streamer:
   chainEnv:
     LAG:
       default: 100
-      ethereum-1: 64
+      eth-1:      64
       bsc-56: 64
       polygon-137: 200
       arbitrum-42161: 200
@@ -343,7 +343,7 @@ raw-verify-data-streamer:
       # acanto-7701: 'block,transaction,log,token_transfer,token_balance,error'
     PROVIDER_URL:
       default:           'http://rpc-gw-stage.dexguru.biz/full/-999'
-      ethereum-1:        'http://rpc-gw-stage.dexguru.biz/full/1'
+      eth-1:             'http://rpc-gw-stage.dexguru.biz/full/1'
       polygon-137:       'http://rpc-gw-stage.dexguru.biz/full/137'
       bsc-56:            'http://rpc-gw-stage.dexguru.biz/full/56'
       canto-7700:        'http://rpc-gw-stage.dexguru.biz/full/7700'
@@ -357,7 +357,7 @@ raw-verify-data-streamer:
       base-8453:         'http://rpc-gw-stage.dexguru.biz/full/8453'
       avalanche-43114:   'http://rpc-gw-stage.dexguru.biz/full/43114'
     LAST_SYNCED_BLOCK_PROVIDER:
-      ethereum-1:        'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum?table_name=last_synced_block_verify'
+      eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum?table_name=last_synced_block_verify'
       canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto?table_name=last_synced_block_verify'
       # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto?table_name=last_synced_block_verify'
       optimism-10:       'clickhouse+http://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism?table_name=last_synced_block_verify'
@@ -371,7 +371,7 @@ raw-verify-data-streamer:
       nova-42170:        'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova?table_name=last_synced_block_verify'
       gnosis-100:        'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis?table_name=last_synced_block_verify'
     OUTPUT:
-      ethereum-1:        'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
+      eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
       # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto'
       optimism-10:       'clickhouse+http://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism'
@@ -385,7 +385,7 @@ raw-verify-data-streamer:
       nova-42170:        'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
       gnosis-100:        'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
     EXPORT_FROM_CLICKHOUSE:
-      ethereum-1:        'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
+      eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
       # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto'
       optimism-10:       'clickhouse+http://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism'
