@@ -224,7 +224,7 @@ lint-python-ruff:
   services: []
   script:
     - ruff check . || true
-    - ruff check --format gitlab . > report.json
+    - ruff check --output-format gitlab . > report.json
   artifacts:
     paths:
       - report.json
