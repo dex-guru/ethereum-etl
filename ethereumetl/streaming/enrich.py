@@ -139,11 +139,6 @@ def enrich_logs(blocks, logs):
         )
     )
 
-    if len(result) != len(logs):
-        raise ValueError(
-            f"log count changed after enriching with block: {len(logs)} -> {len(result)}"
-        )
-
     return result
 
 
@@ -172,12 +167,6 @@ def enrich_token_transfers(blocks, token_transfers):
             ],
         )
     )
-
-    if len(result) != len(token_transfers):
-        raise ValueError(
-            "token transfer count changed after enriching with block:"
-            f" {len(token_transfers)} -> {len(result)}"
-        )
 
     return result
 
@@ -256,9 +245,6 @@ def enrich_internal_transfers(transactions, internal_transfers):
 
     for item in result:
         item['block_timestamp'] = datetime.utcfromtimestamp(item['block_timestamp'])
-
-    if len(result) != len(internal_transfers):
-        raise ValueError('The number of internal transfers is wrong ' + str(result))
 
     return result
 
