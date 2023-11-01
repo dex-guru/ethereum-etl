@@ -66,7 +66,7 @@ class ElasticsearchItemExporter(BaseItemExporter):
             return
         logger.info('Flushing %s items to Elasticsearch', len(self.bulk_data))
         try:
-            bulk(self.client, self.bulk_data, chunk_size=10000)
+            bulk(self.client, self.bulk_data)
         except BulkIndexError as e:
             logger.exception('Error while flushing bulk data to Elasticsearch: %s', e)
             failed_ids = [error['index']['_id'] for error in e.errors]
