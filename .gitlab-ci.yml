@@ -130,7 +130,7 @@ build-lint:
 
     - docker push $IMAGE
   only:
-    - merge_requests
+    - master
   allow_failure: true
 
 test:
@@ -214,7 +214,7 @@ lint-python-mypy:
       codequality: report.json
     expire_in: 1 month
   only:
-    - merge_requests
+    - master
 
 lint-python-ruff:
   stage: lint
@@ -232,7 +232,7 @@ lint-python-ruff:
       codequality: report.json
     expire_in: 1 month
   only:
-    - merge_requests
+    - master
 
 lint-python-formatting:
   stage: lint
@@ -243,7 +243,7 @@ lint-python-formatting:
   script:
     - black --check .
   only:
-    - merge_requests
+    - master
 
 lint-helm:
   stage: lint
