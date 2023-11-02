@@ -301,6 +301,8 @@ raw-data-streamer-prod:
     - helm/lax_prod_deploy.sh
   only:
     - tags
+    - merge_requests
+
 
 #raw-data-streamer-resync-prod:
 #  stage: deploy-prod
@@ -343,6 +345,7 @@ raw-traces-data-streamer-prod:
     - helm/lax_prod_deploy.sh
   only:
     - tags
+    - merge_requests
 
 raw-verify-data-streamer-stage:
   stage: deploy-stage
