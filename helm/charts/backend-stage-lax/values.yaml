@@ -20,9 +20,10 @@ raw-data-streamer:
     SERVICE_NAME: 'raw-data-streamer'
     REWRITE_CLICKHOUSE: ''
     ELASTIC_URL: 'http://10.0.100.34:9200'
+    START_BLOCK: 'latest'
   chainEnv:
     ENTITY_TYPES:
-      default: 'block,transaction,log,token_transfer,token_balance,error,token,token_transfer_priced'
+      default: 'block,transaction,log,token_transfer,token_balance,error,token'
       # basetestnet-84531: 'block,transaction,log,token_transfer,token_balance,error,token'
       # acanto-7701: 'block,transaction,log,token_transfer,token_balance,error,token'
     PROVIDER_URL:
@@ -238,7 +239,7 @@ raw-traces-data-streamer:
     START_BLOCK: 'latest'
   chainEnv:
     ENTITY_TYPES:
-      default: 'block,geth_trace,internal_transfer,native_balance,token,contract,internal_transfer_priced'
+      default: 'block,geth_trace,internal_transfer,native_balance,token,contract'
     PROVIDER_URL:
       default:           'http://rpc-gw-stage.dexguru.biz/full/-999'
       eth-1:             'http://rpc-gw-stage.dexguru.biz/full/1'

@@ -87,7 +87,7 @@ class ExtractTokenTransfersPricedJob(BaseJob):
                         {"terms": {"address": list(token_addresses)}},
                         {"term": {"cur": "S"}},
                         {"term": {"amm": "all"}},
-                        {"term": {"interval": 600}},
+                        {"term": {"interval": 1800}},
                     ]
                 }
             },
