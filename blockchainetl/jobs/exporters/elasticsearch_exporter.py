@@ -2,7 +2,7 @@ import logging
 
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import TransportError
-from elasticsearch.helpers import BulkIndexError, bulk
+from elasticsearch.helpers import BulkIndexError, parallel_bulk
 from retry import retry  # type: ignore
 
 from blockchainetl.exporters import BaseItemExporter
@@ -66,11 +66,11 @@ class ElasticsearchItemExporter(BaseItemExporter):
             return
         logger.info('Flushing %s items to Elasticsearch', len(self.bulk_data))
         try:
-            bulk(self.client, self.bulk_data, request_timeout=20)
+            parallel_bulk(self.client, self.bulk_data, request_timeout=20)
         except BulkIndexError as e:
             logger.exception('Error while flushing bulk data to Elasticsearch: %s', e)
             failed_ids = [error['index']['_id'] for error in e.errors]
             self.bulk_data = [item for item in self.bulk_data if item['_id'] not in failed_ids]
-            bulk(self.client, self.bulk_data)
+            parallel_bulk(self.client, self.bulk_data)
 
         self.bulk_data = []
