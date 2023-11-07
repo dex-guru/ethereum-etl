@@ -66,11 +66,12 @@ class ElasticsearchItemExporter(BaseItemExporter):
             return
         logger.info('Flushing %s items to Elasticsearch', len(self.bulk_data))
         try:
-            parallel_bulk(self.client, self.bulk_data, request_timeout=20)
+            for success, info in parallel_bulk(
+                client=self.client, actions=self.bulk_data, thread_count=8
+            ):
+                if not success:
+                    logger.error('Failed to flush bulk data to Elasticsearch: %s', info)
         except BulkIndexError as e:
             logger.exception('Error while flushing bulk data to Elasticsearch: %s', e)
-            failed_ids = [error['index']['_id'] for error in e.errors]
-            self.bulk_data = [item for item in self.bulk_data if item['_id'] not in failed_ids]
-            parallel_bulk(self.client, self.bulk_data)
-
-        self.bulk_data = []
+        finally:
+            self.bulk_data = []
