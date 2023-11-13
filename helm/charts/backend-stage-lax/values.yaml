@@ -23,7 +23,7 @@ raw-data-streamer:
     START_BLOCK: 'latest'
   chainEnv:
     ENTITY_TYPES:
-      default: 'block,transaction,log,token_transfer,token_balance,error,token,pre_event'
+      default: 'block,transaction,log,token_transfer,token_balance,error,token,pre_event,token_transfer_priced'
       # basetestnet-84531: 'block,transaction,log,token_transfer,token_balance,error,token'
       # acanto-7701: 'block,transaction,log,token_transfer,token_balance,error,token'
     PROVIDER_URL:
