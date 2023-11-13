@@ -133,7 +133,14 @@ def create_item_exporter(output, chain_id) -> BaseItemExporter:
     elif item_exporter_type == ItemExporterType.AMQP:
         from blockchainetl.jobs.exporters.amqp_exporter import AMQPItemExporter
 
-        item_exporter = AMQPItemExporter(amqp_url=output, exchange=f'ethereumetl_{chain_id}')
+        item_type_to_routing_key_mapping = {
+            EntityType.PRE_EVENT.value: 'events',
+        }
+        item_exporter = AMQPItemExporter(
+            amqp_url=output,
+            exchange=f'ethereumetl_{chain_id}',
+            item_type_to_routing_key_mapping=item_type_to_routing_key_mapping,
+        )
     elif item_exporter_type == ItemExporterType.ELASTIC:
         output = output.replace('elasticsearch://', 'http://')
         item_exporter = ElasticsearchItemExporter(

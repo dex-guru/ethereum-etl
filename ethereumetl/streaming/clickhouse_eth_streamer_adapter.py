@@ -34,6 +34,7 @@ ERROR = EntityType.ERROR
 NATIVE_BALANCE = EntityType.NATIVE_BALANCE
 TOKEN_TRANSFER_PRICED = EntityType.TOKEN_TRANSFER_PRICED
 INTERNAL_TRANSFER_PRICED = EntityType.INTERNAL_TRANSFER_PRICED
+PRE_EVENT = EntityType.PRE_EVENT
 
 
 # noinspection PyProtectedMember
@@ -446,6 +447,19 @@ class ClickhouseEthStreamerAdapter:
             )
             return internal_transfers_priced, False
 
+        @cache
+        def prepare_events():
+            logger.info("preparing EVENTS...")
+            blocks, transactions, _ = export_blocks_and_transactions()
+            events = self.eth_streamer.prepare_events(
+                blocks=export_blocks_and_transactions()[0],
+                logs=export_logs()[0],
+                token_transfers=extract_token_transfers()[0],
+                transactions=transactions,
+                receipts=export_receipts()[0],
+            )
+            return events, False
+
         exported: dict[EntityType, list] = {ERROR: []}
         from_ch: dict[EntityType, bool] = {}
 
@@ -465,6 +479,7 @@ class ClickhouseEthStreamerAdapter:
             ((TOKEN,), extract_tokens if CONTRACT in self.entity_types else export_tokens),
             ((TOKEN_TRANSFER_PRICED,), extract_token_transfers_priced),
             ((INTERNAL_TRANSFER_PRICED,), extract_internal_transfers_priced),
+            ((PRE_EVENT,), prepare_events),
         ):
             for entity_type in entity_types:
                 if entity_type not in self.eth_streamer.should_export:

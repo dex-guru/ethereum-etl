@@ -187,7 +187,7 @@ def test_stream(
 
 # fmt: off
 @pytest.mark.parametrize("chain_id, start_block, end_block, batch_size, resource_group, entity_types, provider_type", [
-    (1, 1755634, 1755635, 1, 'blocks_1755634_1755635', {*ALL} - {EntityType.RECEIPT}, 'mock'),
+    (1, 1755634, 1755635, 1, 'blocks_1755634_1755635', {*ALL} - {EntityType.RECEIPT, EntityType.PRE_EVENT}, 'mock'),
 ])
 # fmt: on
 def test_stream_clickhouse(
