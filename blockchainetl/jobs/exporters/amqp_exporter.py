@@ -4,7 +4,6 @@ from typing import Any
 import kombu
 
 from blockchainetl.exporters import BaseItemExporter
-from ethereumetl.enumeration.entity_type import EntityType
 
 
 class AMQPItemExporter(BaseItemExporter):
@@ -69,12 +68,10 @@ class AMQPItemExporter(BaseItemExporter):
             raise RuntimeError('not opened')
 
         item_type = item['type']
-        routing_key = (
-            self._item_type_to_topic_mapping.get(item_type) or EntityType(item_type).value
-        )
+        routing_key = self._item_type_to_topic_mapping.get(item_type)
 
         if routing_key is None:
-            logging.warning('Routing key for item type "%s" is not configured.', item_type)
+            logging.debug('Routing key for item type "%s" is not configured.', item_type)
             return
 
         try:

@@ -18,6 +18,7 @@ from ethereumetl.jobs.export_token_balances_job import ExportTokenBalancesJob
 from ethereumetl.jobs.export_tokens_job import ExportTokensJob
 from ethereumetl.jobs.export_traces_job import ExportTracesJob
 from ethereumetl.jobs.extract_contracts_job import ExtractContractsJob
+from ethereumetl.jobs.extract_events_job import PrepareForEventsJob
 from ethereumetl.jobs.extract_internal_transfers_job import ExtractInternalTransfersJob
 from ethereumetl.jobs.extract_internal_transfers_priced import ExtractInternalTransfersPricedJob
 from ethereumetl.jobs.extract_token_transfers_job import ExtractTokenTransfersJob
@@ -55,6 +56,7 @@ ERROR = EntityType.ERROR
 NATIVE_BALANCE = EntityType.NATIVE_BALANCE
 TOKEN_TRANSFER_PRICED = EntityType.TOKEN_TRANSFER_PRICED
 INTERNAL_TRANSFER_PRICED = EntityType.INTERNAL_TRANSFER_PRICED
+PRE_EVENT = EntityType.PRE_EVENT
 
 
 class EthStreamerAdapter:
@@ -74,6 +76,7 @@ class EthStreamerAdapter:
         NATIVE_BALANCE: ('address', 'block_number'),
         TOKEN_TRANSFER_PRICED: ('block_number', 'log_index'),
         INTERNAL_TRANSFER_PRICED: ('block_number',),
+        PRE_EVENT: ('block_number', 'log_index'),
     }
 
     ENRICH = {
@@ -104,6 +107,7 @@ class EthStreamerAdapter:
         INTERNAL_TRANSFER: (GETH_TRACE,),
         NATIVE_BALANCE: (TRANSACTION, INTERNAL_TRANSFER),
         TOKEN_TRANSFER_PRICED: (TOKEN_TRANSFER,),
+        PRE_EVENT: (BLOCK, LOG, TRANSACTION, TOKEN_TRANSFER, RECEIPT),
     }
 
     def __init__(
@@ -168,6 +172,13 @@ class EthStreamerAdapter:
                 ),
                 (INTERNAL_TRANSFER_PRICED,): lambda: self.extract_internal_transfers_priced(
                     export(INTERNAL_TRANSFER), export(TRANSACTION)
+                ),
+                (PRE_EVENT,): lambda: self.prepare_events(
+                    export(BLOCK),
+                    export(LOG),
+                    export(TOKEN_TRANSFER),
+                    export(TRANSACTION),
+                    export(RECEIPT),
                 ),
             }.items()
             for entity_type in export_types
@@ -469,6 +480,23 @@ class EthStreamerAdapter:
         job.run()
         native_balances = exporter.get_items(EntityType.NATIVE_BALANCE)
         return native_balances
+
+    def prepare_events(self, blocks, logs, token_transfers, transactions, receipts):
+        exporter = InMemoryItemExporter(item_types=[EntityType.PRE_EVENT])
+        enriched_transfers = enrich_token_transfers(blocks, token_transfers)
+        enriched_transactions = enrich_transactions(transactions, receipts)
+        job = PrepareForEventsJob(
+            logs=logs,
+            token_transfers=enriched_transfers,
+            transactions=enriched_transactions,
+            batch_size=self.batch_size,
+            batch_web3_provider=self.batch_web3_provider,
+            max_workers=self.max_workers,
+            item_exporter=exporter,
+        )
+        job.run()
+        events = exporter.get_items(EntityType.PRE_EVENT)
+        return events
 
     def calculate_item_ids(self, items):
         for item in items:
