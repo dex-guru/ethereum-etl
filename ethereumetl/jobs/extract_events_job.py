@@ -17,7 +17,7 @@ class PrepareForEventsJob(BaseJob):
     ):
         self.logs = logs
         self.token_transfers = token_transfers
-        self.transactions = transactions
+        self.transactions = sorted(transactions, key=lambda x: x['block_number'])
         self.item_exporter = item_exporter
 
     def _start(self):
