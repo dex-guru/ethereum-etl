@@ -51,8 +51,8 @@ class PrepareForEventsJob(BaseJob):
                 txns_for_block.append(transaction)
             else:
                 item = self._make_item(txns_for_block)
-                txns_for_block = []
                 self.item_exporter.export_item(item)
+                txns_for_block = [transaction]
         if len(txns_for_block) > 0:
             item = self._make_item(txns_for_block)
             self.item_exporter.export_item(item)
