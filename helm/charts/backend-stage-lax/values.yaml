@@ -20,7 +20,6 @@ raw-data-streamer:
     SERVICE_NAME: 'raw-data-streamer'
     REWRITE_CLICKHOUSE: ''
     ELASTIC_URL: 'http://10.0.100.34:9200'
-    START_BLOCK: 'latest'
   chainEnv:
     ENTITY_TYPES:
       default: 'block,transaction,log,token_transfer,token_balance,error,token,pre_event,token_transfer_priced'
@@ -236,7 +235,6 @@ raw-traces-data-streamer:
     SERVICE_NAME: 'raw-traces-data-streamer'
     REWRITE_CLICKHOUSE: ''
     ELASTIC_URL: 'http://10.0.100.34:9200'
-    START_BLOCK: 'latest'
   chainEnv:
     ENTITY_TYPES:
       default: 'block,geth_trace,internal_transfer,native_balance,token,contract'

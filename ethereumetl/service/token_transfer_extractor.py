@@ -184,7 +184,7 @@ class EthTokenTransferExtractor:
     def extract_transfers_from_log(self, receipt_log) -> Iterator[EthTokenTransfer]:
         topics = receipt_log.topics
 
-        if topics is None or len(topics) < 1:
+        if topics is None or len(topics) < 3:
             # This is normal, topics can be empty for anonymous events
             return
 
