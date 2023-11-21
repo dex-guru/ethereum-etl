@@ -66,6 +66,7 @@ class AMQPItemExporter(BaseItemExporter):
         """
         if self._producer is None:
             raise RuntimeError('not opened')
+        self._connection.ensure_connection()
 
         item_type = item['type']
         routing_key = self._item_type_to_topic_mapping.get(item_type)
