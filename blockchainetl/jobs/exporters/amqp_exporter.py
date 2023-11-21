@@ -66,7 +66,7 @@ class AMQPItemExporter(BaseItemExporter):
         """
         if self._producer is None:
             raise RuntimeError('not opened')
-        self._connection.ensure_connection()
+        self._connection.ensure_connection(errback=self._reopen)
 
         item_type = item['type']
         routing_key = self._item_type_to_topic_mapping.get(item_type)
@@ -81,3 +81,7 @@ class AMQPItemExporter(BaseItemExporter):
             msg = f'Failed to publish item to AMQP broker: {e}'
             logging.error(msg)
             raise ConnectionError(msg) from e
+
+    def _reopen(self):
+        self.close()
+        self.open()
