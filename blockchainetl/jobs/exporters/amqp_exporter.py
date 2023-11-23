@@ -2,6 +2,7 @@ import logging
 from typing import Any
 
 import kombu
+from retry import retry
 
 from blockchainetl.exporters import BaseItemExporter
 
@@ -59,6 +60,7 @@ class AMQPItemExporter(BaseItemExporter):
             self._connection = None
             self._producer = None
 
+    @retry(ConnectionError, tries=3)
     def export_item(self, item: dict[str, Any]):
         """
         ,
@@ -80,6 +82,7 @@ class AMQPItemExporter(BaseItemExporter):
         except OSError as e:
             msg = f'Failed to publish item to AMQP broker: {e}'
             logging.error(msg)
+            self._reopen()
             raise ConnectionError(msg) from e
 
     def _reopen(self):
