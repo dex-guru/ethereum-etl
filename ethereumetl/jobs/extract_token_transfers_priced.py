@@ -31,7 +31,7 @@ class ExtractTokenTransfersPricedJob(BaseJob):
         self.token_transfers = token_transfers
         self.tokens = {token['address']: token for token in tokens}
         self.batch_work_executor = BatchWorkExecutor(
-            batch_size,
+            20,
             max_workers,
             retry_exceptions=ELASTIC_RETRY_EXCEPTIONS,
         )

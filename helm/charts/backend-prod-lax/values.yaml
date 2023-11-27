@@ -17,7 +17,7 @@ raw-data-streamer:
     LAG: '0'
     OUTPUT: 'clickhouse://testuser3:testplpassword@10.0.200.205:8123/dex_etl,http://10.0.200.184:9200'
     ENTITY_TYPES: 'block,transaction,log,token_transfer,token_balance,error,token,token_transfer_priced'
-    EXPORT_FROM_CLICKHOUSE: 'clickhouse://testuser3:testplpassword@10.0.100.175:8123/dex_etl'
+    EXPORT_FROM_CLICKHOUSE: 'clickhouse://testuser3:testplpassword@10.0.200.205:8123/dex_etl'
     POLLING_PERIOD: '2'
     BATCH_SIZE: '5'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
@@ -178,7 +178,7 @@ raw-traces-data-streamer:
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
     SERVICE_NAME: 'raw-traces-data-streamer'
-    EXPORT_FROM_CLICKHOUSE: 'http://testuser3:testplpassword@10.0.100.175:8123/dex_etl'
+    EXPORT_FROM_CLICKHOUSE: 'clickhouse://testuser3:testplpassword@10.0.200.205:8123/dex_etl'
     REWRITE_CLICKHOUSE: ''
     ELASTIC_URL: 'http://10.0.200.184:9200'
   chainEnv:
