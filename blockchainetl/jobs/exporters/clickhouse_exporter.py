@@ -154,9 +154,9 @@ class ClickHouseItemExporter(BaseItemExporter):
                             f" table={table} column={column_name}"
                         ) from e
             raise
-        except TimeoutError as e:
+        except clickhouse_connect.driver.exceptions.OperationalError as e:
             logger.warning(
-                f'Insert timeout error: table={table} column_names={column_names} column_types={column_types}'
+                f'Insert timeout error: table={table} row_count={len(table_data)} error={e}'
             )
             # insert items by batches
             batch_size = len(table_data) // 2
