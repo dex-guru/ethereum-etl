@@ -154,6 +154,17 @@ class ClickHouseItemExporter(BaseItemExporter):
                             f" table={table} column={column_name}"
                         ) from e
             raise
+        except TimeoutError as e:
+            logger.warning(
+                f'Insert timeout error: table={table} column_names={column_names} column_types={column_types}'
+            )
+            # insert items by batches
+            batch_size = len(table_data) // 2
+            if batch_size < MIN_INSERT_BATCH_SIZE:
+                batch_size = MIN_INSERT_BATCH_SIZE
+            for i in range(0, len(table_data), batch_size):
+                batch = table_data[i : i + batch_size]
+                self._insert(column_names, column_types, table, batch)
 
     def create_connection(self):
         return clickhouse_connect.create_client(
