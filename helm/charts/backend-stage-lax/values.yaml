@@ -40,6 +40,7 @@ raw-data-streamer:
       # basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
       base-8453:         'http://rpc-gw-stage.dexguru.biz/full/8453'
       avalanche-43114:   'http://rpc-gw-stage.dexguru.biz/full/43114'
+      celo-42220:        'http://rpc-gw-stage.dexguru.biz/full/42220'
     LAST_SYNCED_BLOCK_PROVIDER:
       eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum?table_name=last_synced_block'
       canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto?table_name=last_synced_block'
@@ -54,6 +55,7 @@ raw-data-streamer:
       arbitrum-42161:    'clickhouse+http://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum?table_name=last_synced_block'
       nova-42170:        'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova?table_name=last_synced_block'
       gnosis-100:        'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis?table_name=last_synced_block'
+      celo-42220:        'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo?table_name=last_synced_block'
     OUTPUT:
       eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum,http://10.0.100.34:9200,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto,http://10.0.100.34:9200,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
@@ -68,6 +70,7 @@ raw-data-streamer:
       arbitrum-42161:    'clickhouse+http://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum,http://10.0.100.34:9200,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       nova-42170:        'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova,http://10.0.100.34:9200,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       gnosis-100:        'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis,http://10.0.100.34:9200,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
+      celo-42220:        'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo,http://10.0.100.34:9200,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
     EXPORT_FROM_CLICKHOUSE:
       eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -82,6 +85,7 @@ raw-data-streamer:
       arbitrum-42161:    'clickhouse+http://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum'
       nova-42170:        'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
       gnosis-100:        'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
+      celo-42220:        'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
 
     BLOCK_BATCH_SIZE:
       default: '100'
@@ -153,6 +157,7 @@ raw-data-streamer-resync:
       # basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/archive/84531'
       base-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
       avalanche-43114: 'http://rpc-gw-stage.dexguru.biz/full/43114'
+      celo-42220: 'http://rpc-gw-stage.dexguru.biz/full/42220'
 
     LAST_SYNCED_BLOCK_PROVIDER:
       eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum?table_name=resync_blocks'
@@ -168,6 +173,7 @@ raw-data-streamer-resync:
       arbitrum-42161:    'clickhouse+http://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum?table_name=resync_blocks'
       nova-42170:        'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova?table_name=resync_blocks'
       gnosis-100:        'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis?table_name=resync_blocks'
+      celo-42220:        'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo?table_name=resync_blocks'
 
     OUTPUT:
       eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
@@ -183,6 +189,8 @@ raw-data-streamer-resync:
       arbitrum-42161:    'clickhouse+http://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum'
       nova-42170:        'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
       gnosis-100:        'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
+      celo-42220:        'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
+
     EXPORT_FROM_CLICKHOUSE:
       eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -197,6 +205,7 @@ raw-data-streamer-resync:
       arbitrum-42161:    'clickhouse+http://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum'
       nova-42170:        'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
       gnosis-100:        'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
+      celo-42220:        'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
 
     BLOCK_BATCH_SIZE:
       default: '1000'
@@ -253,6 +262,7 @@ raw-traces-data-streamer:
       # basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
       base-8453:         'http://rpc-gw-stage.dexguru.biz/archive/8453'
       avalanche-43114:   'http://rpc-gw-stage.dexguru.biz/full/43114'
+      celo-42220:        'http://rpc-gw-stage.dexguru.biz/full/42220'
     LAST_SYNCED_BLOCK_PROVIDER:
       eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum?table_name=last_synced_block_traces'
       canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto?table_name=last_synced_block_traces'
@@ -267,6 +277,7 @@ raw-traces-data-streamer:
       arbitrum-42161:    'clickhouse+http://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum?table_name=last_synced_block_traces'
       nova-42170:        'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova?table_name=last_synced_block_traces'
       gnosis-100:        'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis?table_name=last_synced_block_traces'
+      celo-42220:        'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo?table_name=last_synced_block_traces'
     OUTPUT:
       eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -281,6 +292,7 @@ raw-traces-data-streamer:
       arbitrum-42161:    'clickhouse+http://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum'
       nova-42170:        'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
       gnosis-100:        'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
+      celo-42220:        'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
     EXPORT_FROM_CLICKHOUSE:
       eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -295,6 +307,7 @@ raw-traces-data-streamer:
       arbitrum-42161:    'clickhouse+http://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum'
       nova-42170:        'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
       gnosis-100:        'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
+      celo-42220:        'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
 
     BLOCK_BATCH_SIZE:
       default: '100'
@@ -355,6 +368,7 @@ raw-verify-data-streamer:
       # basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
       base-8453:         'http://rpc-gw-stage.dexguru.biz/full/8453'
       avalanche-43114:   'http://rpc-gw-stage.dexguru.biz/full/43114'
+      celo-42220:        'http://rpc-gw-stage.dexguru.biz/full/42220'
     LAST_SYNCED_BLOCK_PROVIDER:
       eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum?table_name=last_synced_block_verify'
       canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto?table_name=last_synced_block_verify'
@@ -369,6 +383,8 @@ raw-verify-data-streamer:
       arbitrum-42161:    'clickhouse+http://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum?table_name=last_synced_block_verify'
       nova-42170:        'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova?table_name=last_synced_block_verify'
       gnosis-100:        'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis?table_name=last_synced_block_verify'
+      celo-42220:        'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo?table_name=last_synced_block_verify'
+
     OUTPUT:
       eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -383,6 +399,8 @@ raw-verify-data-streamer:
       arbitrum-42161:    'clickhouse+http://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum'
       nova-42170:        'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
       gnosis-100:        'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
+      celo-42220:        'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
+
     EXPORT_FROM_CLICKHOUSE:
       eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -397,6 +415,8 @@ raw-verify-data-streamer:
       arbitrum-42161:    'clickhouse+http://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum'
       nova-42170:        'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
       gnosis-100:        'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
+      celo-42220:        'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
+
     BLOCK_BATCH_SIZE:
       default: '10'
     MAX_WORKERS:
