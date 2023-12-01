@@ -106,11 +106,8 @@ class ExportReceiptsJob(BaseJob):
                     responses.append(response)
 
         results = rpc_response_batch_to_results(responses)
-        receipts = []
         for result in results:
-            receipts.append(self.receipt_mapper.json_dict_to_receipt(result))
-        for receipt in receipts:
-            self._export_receipt(receipt)
+            self._export_receipt(self.receipt_mapper.json_dict_to_receipt(result))
 
         error_items = [self.error_mapper.error_to_dict(error) for error in errors]
         self.item_exporter.export_items(error_items)

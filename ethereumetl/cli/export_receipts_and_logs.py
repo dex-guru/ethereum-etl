@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 import csv
+import json
 
 import click
 
@@ -104,8 +105,12 @@ def export_receipts_and_logs(
     """Exports receipts and logs."""
     provider_uri = check_classic_provider_uri(chain, provider_uri)
     with smart_open(transactions_file, 'r') as f:
+        if transactions_file.endswith('.csv'):
+            txns = csv.DictReader(f)
+        elif transactions_file.endswith('.json'):
+            txns = (json.loads(line) for line in f)
         job = ExportReceiptsJob(
-            transactions=csv.DictReader(f),
+            transactions=txns,
             batch_size=batch_size,
             batch_web3_provider=ThreadLocalProxy(
                 lambda: get_provider_from_uri(provider_uri, batch=True)

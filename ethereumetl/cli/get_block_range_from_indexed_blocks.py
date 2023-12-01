@@ -58,6 +58,7 @@ def get_block_range_to_index(provider_uri, output, chain_id, last_synced_block_p
         output_file.write(f'{start_block},{end_block}\n')
 
 
+#
 # get_block_range_to_index.callback(
 #     provider_uri='http://rpc-gw-stage.dexguru.biz/full/1',
 #     output='-',
