@@ -24,8 +24,8 @@ class AMQPItemExporter(BaseItemExporter):
         self._exchange = exchange
         self._amqp_url = amqp_url
 
-        self._connection: kombu.Connection | None = None
-        self._producer: kombu.Producer | None = None
+        self._connection: kombu.Connection = None
+        self._producer: kombu.Producer = None
 
     def open(self):
         """

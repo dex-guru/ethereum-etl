@@ -3,7 +3,7 @@ import logging
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import TransportError
 from elasticsearch.helpers import BulkIndexError, parallel_bulk
-from retry import retry # type: ignore
+from retry import retry
 
 from blockchainetl.exporters import BaseItemExporter
 
