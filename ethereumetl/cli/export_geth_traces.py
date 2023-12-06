@@ -77,9 +77,9 @@ def export_geth_traces(transaction_hashes, batch_size, output, max_workers, prov
     """Exports traces from geth node."""
     with smart_open(transaction_hashes, 'r') as transaction_hashes_file:
         job = ExportGethTracesJob(
-            transaction_hashes=[
+            transaction_hashes=(
                 transaction_hash.strip() for transaction_hash in transaction_hashes_file
-            ],
+            ),
             batch_size=batch_size,
             batch_web3_provider=ThreadLocalProxy(
                 lambda: get_provider_from_uri(provider_uri, batch=True)

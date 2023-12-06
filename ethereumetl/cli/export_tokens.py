@@ -22,7 +22,6 @@
 
 
 import click
-import clickhouse_connect
 
 from blockchainetl.file_utils import smart_open
 from blockchainetl.logging_utils import logging_basic_config
@@ -30,7 +29,7 @@ from ethereumetl.jobs.export_tokens_job import ExportTokensJob
 from ethereumetl.jobs.exporters.tokens_item_exporter import tokens_item_exporter
 from ethereumetl.providers.auto import get_provider_from_uri
 from ethereumetl.thread_local_proxy import ThreadLocalProxy
-from ethereumetl.utils import check_classic_provider_uri, parse_clickhouse_url
+from ethereumetl.utils import check_classic_provider_uri
 from ethereumetl.web3_utils import build_web3
 
 logging_basic_config()
@@ -77,40 +76,17 @@ logging_basic_config()
     type=str,
     help='The chain network to connect to.',
 )
-@click.option(
-    '-u',
-    '--clickhouse-url',
-    default='clickhouse://localhost:9000',
-    show_default=True,
-    type=str,
-    help='The ClickHouse url to connect to.',
-)
-def export_tokens_from_transfers(
-    token_transfers, output, max_workers, provider_uri, clickhouse_url
-):
+def export_tokens(token_addresses, output, max_workers, provider_uri, chain='ethereum'):
     """Exports ERC20/ERC721 tokens."""
-    connect_kwargs = parse_clickhouse_url(clickhouse_url)
-    clickhouse = clickhouse_connect.create_client(
-        **connect_kwargs, compress=False, query_limit=0, send_receive_timeout=600
-    )
+    provider_uri = check_classic_provider_uri(chain, provider_uri)
+    with smart_open(token_addresses, 'r') as token_addresses_file:
+        job = ExportTokensJob(
+            token_addresses_iterable=(
+                token_address.strip() for token_address in token_addresses_file
+            ),
+            web3=ThreadLocalProxy(lambda: build_web3(get_provider_from_uri(provider_uri))),
+            item_exporter=tokens_item_exporter(output),
+            max_workers=max_workers,
+        )
 
-    with smart_open(token_transfers, 'r') as token_transfers_file:
-        tokens_to_export = [token_transfer.strip() for token_transfer in token_transfers_file]
-
-    existing_tokens = clickhouse.query(
-        f"""
-        SELECT token_address
-        FROM tokens
-        WHERE token_address IN {tokens_to_export} 
-    """
-    ).named_results()
-    existing_tokens = [row[0] for row in existing_tokens]
-
-    job = ExportTokensJob(
-        token_addresses_iterable=set(tokens_to_export) - set(existing_tokens),
-        web3=ThreadLocalProxy(lambda: build_web3(get_provider_from_uri(provider_uri))),
-        item_exporter=tokens_item_exporter(output),
-        max_workers=max_workers,
-    )
-
-    job.run()
+        job.run()

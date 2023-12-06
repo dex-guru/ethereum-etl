@@ -69,6 +69,7 @@ class ExportGethTracesJob(BaseJob):
                 transaction_hash
                 and (
                     response_item.get('error') is None
+                    or response_item.get('error', {}).get('message') == 'missing block number'
                     or response_item.get('error', {}).get('message') == 'transaction not found'
                     # tx reverted.
                     # example: https://ftmscan.com/tx/0x5189a78e8feef1e74aa8ef251a877b9f0326082cdb073e0d0e195dfdfe4a70d6
@@ -79,9 +80,7 @@ class ExportGethTracesJob(BaseJob):
                 )
                 and response_item.get('result') is None
             ):
-                logger.warning(
-                    f'Not traceable tx. Transaction hash: {transaction_hash} error: {response_item.get("error")}'
-                )
+                logger.warning(f'Not traceable tx. Transaction hash: {transaction_hash}')
                 continue
             tx_traces = rpc_response_to_result(response_item)
 

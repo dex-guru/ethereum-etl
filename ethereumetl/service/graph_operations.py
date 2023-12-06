@@ -37,9 +37,7 @@ class GraphOperations:
         """
         initial_bounds = find_best_bounds(y, self._cached_points)
         if initial_bounds is None:
-            last_point = self._get_last_point()
-            block_number_100_before = last_point.x - 100
-            initial_bounds = self._get_point(block_number_100_before), last_point
+            initial_bounds = self._get_first_point(), self._get_last_point()
 
         result = self._get_bounds_for_y_coordinate_recursive(y, *initial_bounds)
         return result

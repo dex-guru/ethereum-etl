@@ -31,7 +31,7 @@ from ethereumetl.cli.export_geth_traces import export_geth_traces
 from ethereumetl.cli.export_origin import export_origin
 from ethereumetl.cli.export_receipts_and_logs import export_receipts_and_logs
 from ethereumetl.cli.export_token_transfers import export_token_transfers
-from ethereumetl.cli.export_tokens import export_tokens_from_transfers
+from ethereumetl.cli.export_tokens import export_tokens
 from ethereumetl.cli.export_traces import export_traces
 from ethereumetl.cli.extract_contracts import extract_contracts
 from ethereumetl.cli.extract_csv_column import extract_csv_column
@@ -45,8 +45,6 @@ from ethereumetl.cli.get_block_range_for_timestamps import get_block_range_for_t
 from ethereumetl.cli.get_keccak_hash import get_keccak_hash
 from ethereumetl.cli.optimize_tables import optimize_tables
 from ethereumetl.cli.stream import stream
-from ethereumetl.cli.get_block_range_from_indexed_blocks import get_block_range_to_index
-from ethereumetl.cli.extract_token_transfers_priced import extract_token_transfers_priced
 
 logging_basic_config()
 
@@ -66,13 +64,12 @@ cli.add_command(export_receipts_and_logs, "export_receipts_and_logs")
 cli.add_command(export_token_transfers, "export_token_transfers")
 cli.add_command(extract_token_transfers, "extract_token_transfers")
 cli.add_command(export_contracts, "export_contracts")
-cli.add_command(export_tokens_from_transfers, "export_tokens_from_transfers")
+cli.add_command(export_tokens, "export_tokens")
 cli.add_command(export_traces, "export_traces")
 cli.add_command(export_geth_traces, "export_geth_traces")
 cli.add_command(extract_geth_traces, "extract_geth_traces")
 cli.add_command(extract_contracts, "extract_contracts")
 cli.add_command(extract_tokens, "extract_tokens")
-cli.add_command(extract_token_transfers_priced, "extract_token_transfers_priced")
 
 # streaming
 cli.add_command(stream, "stream")
@@ -86,4 +83,3 @@ cli.add_command(filter_items, "filter_items")
 cli.add_command(extract_field, "extract_field")
 cli.add_command(optimize_tables, "optimize_tables")
 cli.add_command(check_data_consistency, "check_data_consistency")
-cli.add_command(get_block_range_to_index, "get_block_range_to_index")
