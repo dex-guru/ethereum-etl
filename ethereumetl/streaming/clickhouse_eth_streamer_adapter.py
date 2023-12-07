@@ -452,7 +452,7 @@ class ClickhouseEthStreamerAdapter:
             logger.info("preparing EVENTS...")
             blocks, transactions, _ = export_blocks_and_transactions()
             events = self.eth_streamer.prepare_events(
-                blocks=export_blocks_and_transactions()[0],
+                blocks=blocks,
                 logs=export_logs()[0],
                 token_transfers=extract_token_transfers()[0],
                 transactions=transactions,
