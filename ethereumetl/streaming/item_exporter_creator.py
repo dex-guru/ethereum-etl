@@ -134,7 +134,7 @@ def create_item_exporter(output, chain_id) -> BaseItemExporter:
         from blockchainetl.jobs.exporters.amqp_exporter import AMQPItemExporter
 
         item_type_to_routing_key_mapping = {
-            EntityType.PRE_EVENT.value: 'events',
+            EntityType.PRE_EVENT.value: 'pre_event',
             EntityType.BLOCK.value: 'block',
             EntityType.TOKEN_TRANSFER.value: 'token_transfer',
             EntityType.INTERNAL_TRANSFER.value: 'internal_transfer',
