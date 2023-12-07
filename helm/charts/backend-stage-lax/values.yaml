@@ -21,6 +21,20 @@ raw-data-streamer:
     REWRITE_CLICKHOUSE: ''
     ELASTIC_URL: 'http://10.0.100.34:9200'
   chainEnv:
+    START_BLOCK:
+      eth-1: 'latest'
+      polygon-137: 'latest'
+      bsc-56: 'latest'
+      canto-7700: 'latest'
+      fantom-250: 'latest'
+      optimism-10: 'latest'
+      gnosis-100: 'latest'
+      arbitrum-42161: 'latest'
+      nova-42170: 'latest'
+      base-8453: 'latest'
+      avalanche-43114: 'latest'
+      celo-42220: 'latest'
+
     ENTITY_TYPES:
       default: 'block,transaction,log,token_transfer,token_balance,error,token,pre_event,token_transfer_priced'
       # basetestnet-84531: 'block,transaction,log,token_transfer,token_balance,error,token'
@@ -245,6 +259,20 @@ raw-traces-data-streamer:
     REWRITE_CLICKHOUSE: ''
     ELASTIC_URL: 'http://10.0.100.34:9200'
   chainEnv:
+    START_BLOCK:
+      eth-1: 'latest'
+      polygon-137: 'latest'
+      bsc-56: 'latest'
+      canto-7700: 'latest'
+      fantom-250: 'latest'
+      optimism-10: 'latest'
+      gnosis-100: 'latest'
+      arbitrum-42161: 'latest'
+      nova-42170: 'latest'
+      base-8453: 'latest'
+      avalanche-43114: 'latest'
+      celo-42220: 'latest'
+
     ENTITY_TYPES:
       default: 'block,geth_trace,internal_transfer,native_balance,token,contract'
     PROVIDER_URL:
