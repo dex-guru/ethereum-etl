@@ -97,6 +97,16 @@ class AMQPItemExporter(BaseItemExporter):
         items_grouped_by_routing_key = self._group_items_by_routing_key(items)
 
         for routing_key, grouped_items in items_grouped_by_routing_key.items():
+            if routing_key == 'pre_event':
+                # pre_events are published one by one
+                for item in grouped_items:
+                    try:
+                        self._producer.publish(item, routing_key=routing_key, serializer='json')
+                    except OSError as e:
+                        msg = f'Failed to publish item to AMQP broker: {e}'
+                        logging.error(msg)
+                        self._reopen()
+                        raise ConnectionError(msg) from e
             try:
                 self._producer.publish(grouped_items, routing_key=routing_key, serializer='json')
             except OSError as e:
