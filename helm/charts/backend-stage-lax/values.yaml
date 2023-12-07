@@ -437,7 +437,7 @@ raw-data-streamer-transfers-preevents:
   requestsCpu: 100m
   requestsMemory: 1000Mi
   strategyType: 'Recreate'
-  command: '[ "ethereumetl", "stream" ]'
+  command: '[ "ethereumetl", "amqp_stream" ]'
   env:
     POLLING_PERIOD: '2'
     BATCH_SIZE: '5'
@@ -514,7 +514,7 @@ raw-data-streamer-transfers-preevents:
 #      arbitrum-42161: 50
 #      fantom-250: 30
 
-raw-data-streamer-gethtrace-internaltransfer-internaltransferpriced:
+raw-data-streamer-gethtrace:
   replicas:
     default: 1
   limitsCpu: 4
@@ -522,7 +522,7 @@ raw-data-streamer-gethtrace-internaltransfer-internaltransferpriced:
   requestsCpu: 100m
   requestsMemory: 1000Mi
   strategyType: 'Recreate'
-  command: '[ "ethereumetl", "stream" ]'
+  command: '[ "ethereumetl", "amqp_stream" ]'
   env:
     POLLING_PERIOD: '2'
     BATCH_SIZE: '5'
@@ -607,7 +607,7 @@ raw-data-streamer-balance:
   requestsCpu: 100m
   requestsMemory: 1000Mi
   strategyType: 'Recreate'
-  command: '[ "ethereumetl", "stream" ]'
+  command: '[ "ethereumetl", "amqp_stream" ]'
   env:
     POLLING_PERIOD: '2'
     BATCH_SIZE: '5'
@@ -692,7 +692,7 @@ raw-data-streamer-token-tokentransferpriced:
   requestsCpu: 100m
   requestsMemory: 1000Mi
   strategyType: 'Recreate'
-  command: '[ "ethereumetl", "stream" ]'
+  command: '[ "ethereumetl", "amqp_stream" ]'
   env:
     POLLING_PERIOD: '2'
     BATCH_SIZE: '5'
@@ -777,7 +777,7 @@ raw-data-streamer-nativebalance:
   requestsCpu: 100m
   requestsMemory: 1000Mi
   strategyType: 'Recreate'
-  command: '[ "ethereumetl", "stream" ]'
+  command: '[ "ethereumetl", "amqp_stream" ]'
   env:
     POLLING_PERIOD: '2'
     BATCH_SIZE: '5'
@@ -862,7 +862,7 @@ raw-data-streamer-contract-token:
   requestsCpu: 100m
   requestsMemory: 1000Mi
   strategyType: 'Recreate'
-  command: '[ "ethereumetl", "stream" ]'
+  command: '[ "ethereumetl", "amqp_stream" ]'
   env:
     POLLING_PERIOD: '2'
     BATCH_SIZE: '5'

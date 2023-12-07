@@ -440,9 +440,9 @@ raw-data-streamer-transfers-preevents-stage:
   stage: deploy-stage
   image:
     name: ${IMAGE_HELM_KUBECTL}
-    entrypoint: [ "" ]
+    entrypoint: [""]
   variables:
-    SERVICE_NAME: "raw-verify-data-streamer-transfers-preevents"
+    SERVICE_NAME: "raw-data-streamer-transfers-preevents"
     KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
     HELM_CHART: ${HELM_CHART_STAGE_LAX}
   script:
@@ -450,25 +450,25 @@ raw-data-streamer-transfers-preevents-stage:
   only:
     - master
 
-raw-data-streamer-gethtrace-internaltransfer-internaltransferpriced-stage:
-    stage: deploy-stage
-    image:
-        name: ${IMAGE_HELM_KUBECTL}
-        entrypoint: [ "" ]
-    variables:
-        SERVICE_NAME: "raw-data-streamer-gethtrace-internaltransfer-internaltransferpriced"
-        KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
-        HELM_CHART: ${HELM_CHART_STAGE_LAX}
-    script:
-        - helm/lax_stage_deploy.sh
-    only:
-        - master
+raw-data-streamer-gethtrace-stage:
+  stage: deploy-stage
+  image:
+    name: ${IMAGE_HELM_KUBECTL}
+    entrypoint: [""]
+  variables:
+    SERVICE_NAME: "raw-data-streamer-gethtrace"
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+    HELM_CHART: ${HELM_CHART_STAGE_LAX}
+  script:
+    - helm/lax_stage_deploy.sh
+  only:
+    - master
 
 raw-data-streamer-balance-stage:
   stage: deploy-stage
   image:
     name: ${IMAGE_HELM_KUBECTL}
-    entrypoint: [ "" ]
+    entrypoint: [""]
   variables:
     SERVICE_NAME: "raw-data-streamer-balance"
     KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
@@ -482,7 +482,7 @@ raw-data-streamer-token-tokentransferpriced-stage:
   stage: deploy-stage
   image:
     name: ${IMAGE_HELM_KUBECTL}
-    entrypoint: [ "" ]
+    entrypoint: [""]
   variables:
     SERVICE_NAME: "raw-data-streamer-token-tokentransferpriced"
     KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
@@ -496,7 +496,7 @@ raw-data-streamer-nativebalance-stage:
   stage: deploy-stage
   image:
     name: ${IMAGE_HELM_KUBECTL}
-    entrypoint: [ "" ]
+    entrypoint: [""]
   variables:
     SERVICE_NAME: "raw-data-streamer-nativebalance"
     KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
@@ -510,7 +510,7 @@ raw-data-streamer-contract-token-stage:
   stage: deploy-stage
   image:
     name: ${IMAGE_HELM_KUBECTL}
-    entrypoint: [ "" ]
+    entrypoint: [""]
   variables:
     SERVICE_NAME: "raw-data-streamer-contract-token"
     KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
