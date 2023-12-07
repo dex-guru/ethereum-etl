@@ -25,7 +25,7 @@ raw-data-streamer:
     ELASTIC_URL: 'http://10.0.200.184:9200'
   chainEnv:
     PROVIDER_URL:
-      default: 'http://rpc-gw-stage.dexguru.biz/full/1'
+      default: 'http://rpc-gw-stage.dexguru.biz/full/-999'
       polygon-137: 'http://rpc-gw-stage.dexguru.biz/full/137'
       bsc-56: 'http://rpc-gw-stage.dexguru.biz/full/56'
       eth-1: 'http://rpc-gw-stage.dexguru.biz/full/1'
@@ -39,6 +39,7 @@ raw-data-streamer:
       basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
       base-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
       avalanche-43114: 'http://10.0.100.136:9650/ext/bc/C/rpc'
+      celo-42220: 'http://rpc-gw-stage.dexguru.biz/full/42220'
     LAST_SYNCED_BLOCK_PROVIDER:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum?table_name=last_synced_block'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto?table_name=last_synced_block'
@@ -157,7 +158,7 @@ raw-data-streamer-resync:
       acanto-7701: '1860704'
       basetestnet-84531: '5490413'
     PROVIDER_URL:
-      default: 'http://rpc-gw-prod.dexguru.biz/archive/1'
+      default: 'http://rpc-gw-stage.dexguru.biz/full/-999'
       polygon-137: 'http://rpc-gw-prod.dexguru.biz/archive/137'
       bsc-56: 'http://rpc-gw-prod.dexguru.biz/archive/56'
       eth-1: 'http://rpc-gw-prod.dexguru.biz/archive/1'
@@ -171,6 +172,7 @@ raw-data-streamer-resync:
       basetestnet-84531: 'http://rpc-gw-prod.dexguru.biz/archive/84531'
       base-8453: 'http://rpc-gw-stage.dexguru.biz/archive/8453'
       avalanche-43114: 'http://10.0.100.136:9650/ext/bc/C/rpc'
+      celo-42220: 'http://rpc-gw-stage.dexguru.biz/archive/42220'
 
     LAST_SYNCED_BLOCK_PROVIDER:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum?table_name=resync_blocks'
@@ -260,7 +262,7 @@ raw-traces-data-streamer:
     ENTITY_TYPES:
       default: 'block,geth_trace,internal_transfer,native_balance,token,contract,internal_transfer_priced'
     PROVIDER_URL:
-      default: 'http://rpc-gw-stage.dexguru.biz/full/1'
+      default: 'http://rpc-gw-stage.dexguru.biz/full/-999'
       polygon-137: 'http://rpc-gw-stage.dexguru.biz/full/137'
       bsc-56: 'http://rpc-gw-stage.dexguru.biz/full/56'
       eth-1: 'http://rpc-gw-stage.dexguru.biz/full/1'
@@ -274,6 +276,8 @@ raw-traces-data-streamer:
       basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
       base-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
       avalanche-43114: 'http://10.0.100.136:9650/ext/bc/C/rpc'
+      celo-42220: 'http://rpc-gw-stage.dexguru.biz/full/42220'
+
     LAST_SYNCED_BLOCK_PROVIDER:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum?table_name=last_synced_block_traces'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto?table_name=last_synced_block_traces'
@@ -368,7 +372,7 @@ raw-verify-data-streamer:
       acanto-7701: 'block,transaction,log,token_transfer'
       gnosis-100: 'block,transaction,log,token_transfer'
     PROVIDER_URL:
-      default: 'http://rpc-gw-stage.dexguru.biz/full/1'
+      default: 'http://rpc-gw-stage.dexguru.biz/full/-999'
       polygon-137: 'http://rpc-gw-stage.dexguru.biz/full/137'
       bsc-56: 'http://rpc-gw-stage.dexguru.biz/full/56'
       eth-1: 'http://rpc-gw-stage.dexguru.biz/full/1'
@@ -382,6 +386,8 @@ raw-verify-data-streamer:
       basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
       base-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
       avalanche-43114: 'http://10.0.100.136:9650/ext/bc/C/rpc'
+      celo-42220: 'http://rpc-gw-stage.dexguru.biz/full/42220'
+
     LAST_SYNCED_BLOCK_PROVIDER:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum?table_name=last_synced_block_verify'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto?table_name=last_synced_block_verify'
