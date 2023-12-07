@@ -322,19 +322,19 @@ lint-helm:
     - merge_requests
 
 
-#raw-data-streamer-stage:
-#  stage: deploy-stage
-#  image:
-#    name: ${IMAGE_HELM_KUBECTL}
-#    entrypoint: [""]
-#  variables:
-#    SERVICE_NAME: "raw-data-streamer"
-#    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
-#    HELM_CHART: ${HELM_CHART_STAGE_LAX}
-#  script:
-#    - helm/lax_stage_deploy.sh
-#  only:
-#    - master
+raw-data-streamer-stage:
+  stage: deploy-stage
+  image:
+    name: ${IMAGE_HELM_KUBECTL}
+    entrypoint: [""]
+  variables:
+    SERVICE_NAME: "raw-data-streamer"
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+    HELM_CHART: ${HELM_CHART_STAGE_LAX}
+  script:
+    - helm/lax_stage_deploy.sh
+  only:
+    - master
 
 #raw-data-streamer-resync-stage:
 #  stage: deploy-stage
@@ -378,19 +378,19 @@ raw-data-streamer-prod:
 #  only:
 #    - tags
 
-#raw-traces-data-streamer-stage:
-#  stage: deploy-stage
-#  image:
-#    name: ${IMAGE_HELM_KUBECTL}
-#    entrypoint: [""]
-#  variables:
-#    SERVICE_NAME: "raw-traces-data-streamer"
-#    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE_TRACE}
-#    HELM_CHART: ${HELM_CHART_STAGE_LAX}
-#  script:
-#    - helm/lax_stage_deploy.sh
-#  only:
-#    - master
+raw-traces-data-streamer-stage:
+  stage: deploy-stage
+  image:
+    name: ${IMAGE_HELM_KUBECTL}
+    entrypoint: [""]
+  variables:
+    SERVICE_NAME: "raw-traces-data-streamer"
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE_TRACE}
+    HELM_CHART: ${HELM_CHART_STAGE_LAX}
+  script:
+    - helm/lax_stage_deploy.sh
+  only:
+    - master
 
 raw-traces-data-streamer-prod:
   stage: deploy-prod
@@ -406,19 +406,19 @@ raw-traces-data-streamer-prod:
   only:
     - tags
 
-#raw-verify-data-streamer-stage:
-#  stage: deploy-stage
-#  image:
-#    name: ${IMAGE_HELM_KUBECTL}
-#    entrypoint: [""]
-#  variables:
-#    SERVICE_NAME: "raw-verify-data-streamer"
-#    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
-#    HELM_CHART: ${HELM_CHART_STAGE_LAX}
-#  script:
-#    - helm/lax_stage_deploy.sh
-#  only:
-#    - master
+raw-verify-data-streamer-stage:
+  stage: deploy-stage
+  image:
+    name: ${IMAGE_HELM_KUBECTL}
+    entrypoint: [""]
+  variables:
+    SERVICE_NAME: "raw-verify-data-streamer"
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+    HELM_CHART: ${HELM_CHART_STAGE_LAX}
+  script:
+    - helm/lax_stage_deploy.sh
+  only:
+    - master
 
 ##
 #raw-verify-data-streamer-prod:
