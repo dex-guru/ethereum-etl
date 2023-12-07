@@ -144,7 +144,7 @@ test:
   variables:
     TEST_CLICKHOUSE_URL: "clickhouse+http://default:@clickhouse:8123"
     ETHEREUM_ETL_RUN_SLOW_TESTS: "true"
-    PROVIDER_URL: 'http://10.0.100.149:8080/archive/1'
+    PROVIDER_URL: 'http://rpc-gw-stage.dexguru.biz/archive/1'
     TEST_ELASTICSEARCH_URL: "http://elasticsearch:9200"
   services:
     - name: ${IMAGE_CLICKHOUSE}
@@ -212,7 +212,7 @@ test-migration-backward-compatibility:
         -w /workdir
         -e CLICKHOUSE_URL="clickhouse://default:@clickhouse:8123"
         -e TEST_CLICKHOUSE_URL="clickhouse://default:@clickhouse:8123"
-        -e PROVIDER_URL="http://10.0.100.149:8080/archive/1"
+        -e PROVIDER_URL="http://rpc-gw-stage.dexguru.biz/archive/1"
         -e ETHEREUM_ETL_RUN_SLOW_TESTS="true"
         -e TEST_ELASTICSEARCH_URL="http://elasticsearch:9200"
         '
