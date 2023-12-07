@@ -87,17 +87,7 @@ raw-data-streamer:
       celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
 
     BLOCK_BATCH_SIZE:
-      default: '1000'
-      polygon-137: '1000'
-      bsc-56: '1000'
-      eth-1: '1000'
-      canto-7700: '100'
-      fantom-250: '100'
-      optimism-10: '100'
-      gnosis-100: '100'
-      arbitrum-42161: '100'
-      nova-42170: '100'
-      acanto-7701: '100'
+      default: '100'
     SKIP_NONE_RECEIPTS:
       default: 'False'
       polygon-137: 'True'
@@ -223,7 +213,7 @@ raw-data-streamer-resync:
       celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
 
     BLOCK_BATCH_SIZE:
-      default: '1000'
+      default: '100'
     MAX_WORKERS:
       default: '5'
       polygon-137: '10'
@@ -325,7 +315,7 @@ raw-traces-data-streamer:
       celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
 
     BLOCK_BATCH_SIZE:
-      default: '1000'
+      default: '100'
       fantom-250: '10'
     MAX_WORKERS:
       default: '10'
