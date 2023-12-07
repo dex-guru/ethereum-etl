@@ -457,7 +457,7 @@ raw-data-streamer-gethtrace-stage:
     entrypoint: [""]
   variables:
     SERVICE_NAME: "raw-data-streamer-gethtrace"
-    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE_TRACE}
     HELM_CHART: ${HELM_CHART_STAGE_LAX}
   script:
     - helm/lax_stage_deploy.sh
@@ -499,7 +499,7 @@ raw-data-streamer-nativebalance-stage:
     entrypoint: [""]
   variables:
     SERVICE_NAME: "raw-data-streamer-nativebalance"
-    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE_TRACE}
     HELM_CHART: ${HELM_CHART_STAGE_LAX}
   script:
     - helm/lax_stage_deploy.sh
@@ -513,7 +513,7 @@ raw-data-streamer-contract-token-stage:
     entrypoint: [""]
   variables:
     SERVICE_NAME: "raw-data-streamer-contract-token"
-    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE_TRACE}
     HELM_CHART: ${HELM_CHART_STAGE_LAX}
   script:
     - helm/lax_stage_deploy.sh
