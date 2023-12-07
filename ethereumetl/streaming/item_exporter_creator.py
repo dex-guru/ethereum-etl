@@ -135,10 +135,13 @@ def create_item_exporter(output, chain_id) -> BaseItemExporter:
 
         item_type_to_routing_key_mapping = {
             EntityType.PRE_EVENT.value: 'events',
+            EntityType.BLOCK.value: 'block',
+            EntityType.TOKEN_TRANSFER.value: 'token_transfer',
+            EntityType.INTERNAL_TRANSFER.value: 'internal_transfer',
         }
         item_exporter = AMQPItemExporter(
             amqp_url=output,
-            exchange=f'ethereumetl_{chain_id}',
+            exchange=f'{chain_id}_indexation_etl',
             item_type_to_routing_key_mapping=item_type_to_routing_key_mapping,
         )
     elif item_exporter_type == ItemExporterType.ELASTIC:

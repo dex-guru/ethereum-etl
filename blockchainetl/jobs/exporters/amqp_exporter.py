@@ -85,6 +85,37 @@ class AMQPItemExporter(BaseItemExporter):
             self._reopen()
             raise ConnectionError(msg) from e
 
+    @retry(ConnectionError, tries=3)
+    def export_items(self, items):
+        """
+        raises: ConnectionError.
+        """
+        if self._producer is None:
+            raise RuntimeError('not opened')
+        self._connection.ensure_connection(errback=self._reopen)
+
+        items_grouped_by_routing_key = self._group_items_by_routing_key(items)
+
+        for routing_key, grouped_items in items_grouped_by_routing_key.items():
+            try:
+                self._producer.publish(grouped_items, routing_key=routing_key, serializer='json')
+            except OSError as e:
+                msg = f'Failed to publish items to AMQP broker: {e}'
+                logging.error(msg)
+                self._reopen()
+                raise ConnectionError(msg) from e
+
+    def _group_items_by_routing_key(self, items):
+        items_grouped_by_routing_key: dict[str, list] = {}
+        for item in items:
+            item_type = item['type']
+            routing_key = self._item_type_to_topic_mapping.get(item_type)
+            if routing_key is None:
+                logging.debug('Routing key for item type "%s" is not configured.', item_type)
+                continue
+            items_grouped_by_routing_key.setdefault(routing_key, []).append(item)
+        return items_grouped_by_routing_key
+
     def _reopen(self):
         self.close()
         self.open()

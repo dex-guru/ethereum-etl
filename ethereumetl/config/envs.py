@@ -50,6 +50,8 @@ class EnvsConfig(BaseSettings):
     HEALTH_CHECK_TIMEOUT: int = 600
     IS_VERIFIER: bool = False
     ELASTIC_URL: str | None = None
+    AMQP_URL: str | None = 'amqp://guest:guest@localhost:5672/dex'
+    ROUTING_KEY: str | None = ''
 
 
 envs = EnvsConfig()
