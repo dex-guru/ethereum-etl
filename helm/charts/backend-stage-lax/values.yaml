@@ -208,7 +208,7 @@ raw-data-streamer-resync:
       celo-42220:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/celo'
 
     BLOCK_BATCH_SIZE:
-      default: '1000'
+      default: '100'
     MAX_WORKERS:
       default: '5'
       polygon-137: '10'

@@ -204,7 +204,10 @@ class ClickHouseItemExporter(BaseItemExporter):
                 result = []
                 # only insert the columns which we have in the database
                 for column in self.tables[table].column_names:
-                    result.append(item.get(column))
+                    if column == 'is_reorged':
+                        result.append(item.get(column, False))
+                    else:
+                        result.append(item.get(column))
                 results[table].append(result)
             else:
                 continue
