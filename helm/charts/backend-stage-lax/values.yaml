@@ -340,6 +340,7 @@ raw-verify-data-trigger:
     SERVICE_NAME: 'raw-verify-data-trigger'
     IS_VERIFIER: 'True'
     EXCHANGE_NAME: 'verifier_etl'
+    START_BLOCK: 'latest'
   chainEnv:
     LAG:
       default: 100
