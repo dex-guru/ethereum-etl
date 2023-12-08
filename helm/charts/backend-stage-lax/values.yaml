@@ -340,7 +340,6 @@ raw-verify-data-trigger:
     SERVICE_NAME: 'raw-verify-data-trigger'
     IS_VERIFIER: 'True'
     EXCHANGE_NAME: 'verifier_etl'
-    START_BLOCK: 'latest'
   chainEnv:
     LAG:
       default: 100
@@ -940,6 +939,8 @@ raw-data-streamer-contract-token:
 raw-verify-data-streamer:
   replicas:
     default: 1
+    bsc-56: 5
+    polygon-137: 5
   limitsCpu: 4
   limitsMemory: 9000Mi
   requestsCpu: 100m
@@ -967,7 +968,9 @@ raw-verify-data-streamer:
       optimism-10: 200
     ENTITY_TYPES:
       default: 'block,transaction,log,token_transfer,token_balance,error,geth_trace,internal_transfer,native_balance,contract,token'
-      gnosis-100: 'block,transaction,log,token_transfer,token_balance,error'
+      gnosis-100: 'block,transaction,log,token_transfer,token_balance,error,token'
+      bsc-56: 'block,transaction,log,token_transfer,token_balance,error,token'
+      polygon-137: 'block,transaction,log,token_transfer,token_balance,error,token'
       # acanto-7701: 'block,transaction,log,token_transfer,token_balance,error'
     PROVIDER_URL:
       default:           'http://rpc-gw-stage.dexguru.biz/full/-999'
