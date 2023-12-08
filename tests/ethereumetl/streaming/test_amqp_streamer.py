@@ -10,9 +10,9 @@ def amqp_streamer_adapter():
     return AmqpStreamerAdapter(
         amqp_url='amqp://guest:guest@localhost:5672/dex',
         eth_streamer=MagicMock(),
-        chain_id=1,
         routing_key='routing_key',
         queue_name='queue_name',
+        exchange_name='exchange_name',
     )
 
 

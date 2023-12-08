@@ -22,7 +22,6 @@
 import logging
 import random
 import sys
-from collections.abc import Iterable
 
 import click
 from elasticsearch import Elasticsearch
@@ -231,10 +230,7 @@ def stream(
         elastic_client=Elasticsearch(elastic_url) if elastic_url else None,
     )
     if export_from_clickhouse:
-        if is_verifier:
-            rewrite_entity_types: Iterable[EntityType] = ALL_FOR_STREAMING
-        else:
-            rewrite_entity_types = [EntityType(x) for x in envs.REWRITE_CLICKHOUSE.split(',') if x]
+        rewrite_entity_types = [EntityType(x) for x in envs.REWRITE_CLICKHOUSE.split(',') if x]
 
         streamer_adapter = ClickhouseEthStreamerAdapter(
             eth_streamer=streamer_adapter,
@@ -257,6 +253,7 @@ def stream(
         period_seconds=period_seconds,
         block_batch_size=block_batch_size,
         pid_file=pid_file,
+        verifier_enabled=is_verifier,
     )
     streamer.stream()
 

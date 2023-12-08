@@ -23,6 +23,7 @@
 import click
 
 from blockchainetl.logging_utils import logging_basic_config
+from ethereumetl.cli.amqp_stream import amqp_stream
 from ethereumetl.cli.check_data_consistency import check_data_consistency
 from ethereumetl.cli.export_all import export_all
 from ethereumetl.cli.export_blocks_and_transactions import export_blocks_and_transactions
@@ -45,7 +46,6 @@ from ethereumetl.cli.get_block_range_for_timestamps import get_block_range_for_t
 from ethereumetl.cli.get_keccak_hash import get_keccak_hash
 from ethereumetl.cli.optimize_tables import optimize_tables
 from ethereumetl.cli.stream import stream
-from ethereumetl.cli.amqp_stream import amqp_stream
 
 logging_basic_config()
 

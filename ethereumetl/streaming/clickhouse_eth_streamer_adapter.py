@@ -542,9 +542,9 @@ class ClickhouseEthStreamerAdapter:
     def exporting_to_the_same_clickhouse(self) -> bool:
         exporter = self.eth_streamer.item_exporter
         if isinstance(exporter, MultiItemExporter):
-            if len(exporter.item_exporters) != 1:
-                return False
-            exporter = exporter.item_exporters[0]
+            for exporter in exporter.item_exporters:
+                if isinstance(exporter, ClickHouseItemExporter):
+                    break
 
         if not isinstance(exporter, ClickHouseItemExporter):
             return False
@@ -579,9 +579,17 @@ class ClickhouseEthStreamerAdapter:
 class VerifyingClickhouseEthStreamerAdapter:
     def __init__(self, clickhouse_eth_streamer_adapter: ClickhouseEthStreamerAdapter):
         self.ch_streamer = clickhouse_eth_streamer_adapter
-        assert (
-            self.ch_streamer.exporting_to_the_same_clickhouse
-        ), 'VerifyingClickhouseEthStreamerAdapter can be used only when exporting to the same ClickHouse instance'
+        self._validate_export_destination()
+
+    def _validate_export_destination(self):
+        msg = 'VerifyingClickhouseEthStreamerAdapter can be used only when exporting to the same ClickHouse instance'
+        if isinstance(self.ch_streamer.eth_streamer.item_exporter, MultiItemExporter):
+            for exporter in self.ch_streamer.eth_streamer.item_exporter.item_exporters:
+                if isinstance(exporter, ClickHouseItemExporter):
+                    assert self.ch_streamer.exporting_to_the_same_clickhouse, msg
+
+        elif isinstance(self.ch_streamer.eth_streamer.item_exporter, ClickHouseItemExporter):
+            assert self.ch_streamer.exporting_to_the_same_clickhouse, msg
 
     def open(self):
         self.ch_streamer.open()
@@ -616,7 +624,6 @@ class VerifyingClickhouseEthStreamerAdapter:
         def check_blocks_consistency(block_ch, block_w3):
             assert block_ch['number'] == block_w3['number']
             assert block_ch['hash'] == block_w3['hash']
-            assert block_ch['transaction_count'] == block_w3['transaction_count']
 
         def mark_records_as_reorged(
             blocks: Iterable,

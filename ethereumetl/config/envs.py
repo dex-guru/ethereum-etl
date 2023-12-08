@@ -52,6 +52,8 @@ class EnvsConfig(BaseSettings):
     ELASTIC_URL: str | None = None
     AMQP_URL: str | None = 'amqp://guest:guest@localhost:5672/dex'
     ROUTING_KEY: str | None = ''
+    QUEUE_NAME: str | None = ''
+    EXCHANGE_NAME: str | None = ''
 
 
 envs = EnvsConfig()

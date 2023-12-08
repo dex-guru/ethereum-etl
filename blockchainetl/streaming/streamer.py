@@ -48,6 +48,7 @@ class Streamer:
         block_batch_size=10,
         retry_errors=True,
         pid_file=None,
+        verifier_enabled=False,
     ):
         self.chain_id = chain_id
         self.blockchain_streamer_adapter = blockchain_streamer_adapter
@@ -61,6 +62,7 @@ class Streamer:
         self.block_batch_size = block_batch_size
         self.retry_errors = retry_errors
         self.pid_file = pid_file
+        self.verifier_enabled = verifier_enabled
 
         if self.start_block == 'latest':
             self.start_block = self.blockchain_streamer_adapter.get_current_block_number()
@@ -118,6 +120,8 @@ class Streamer:
                 'blocks_to_sync': blocks_to_sync,
             },
         )
+        if self._need_to_skip_cycle(current_block):
+            return 1
 
         if blocks_to_sync != 0:
             self.blockchain_streamer_adapter.export_all(self.last_synced_block + 1, target_block)
@@ -126,6 +130,17 @@ class Streamer:
             self.last_synced_block = target_block
 
         return blocks_to_sync
+
+    def _need_to_skip_cycle(self, current_block: int) -> bool:
+        diff_blocks = current_block - self.last_synced_block
+        if not self.verifier_enabled and diff_blocks > self.block_batch_size * 1.5:
+            logging.warning(
+                f'The difference between current block and last synced block is too big: {diff_blocks}. Skipping sync.'
+            )
+            self.last_synced_block_provider.set_last_synced_block(current_block)
+            self.last_synced_block = current_block
+            return True
+        return False
 
     def _calculate_target_block(self, current_block, last_synced_block):
         target_block = current_block - self.lag
