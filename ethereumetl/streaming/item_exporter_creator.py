@@ -25,6 +25,7 @@ from blockchainetl.exporters import BaseItemExporter
 from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExporter
 from blockchainetl.jobs.exporters.elasticsearch_exporter import ElasticsearchItemExporter
 from blockchainetl.jobs.exporters.multi_item_exporter import MultiItemExporter
+from ethereumetl.config.envs import envs
 from ethereumetl.enumeration.entity_type import EntityType
 
 
@@ -141,7 +142,9 @@ def create_item_exporter(output, chain_id) -> BaseItemExporter:
         }
         item_exporter = AMQPItemExporter(
             amqp_url=output,
-            exchange=f'{chain_id}_indexation_etl',
+            exchange=f'{chain_id}_{envs.EXCHANGE_NAME}'
+            if envs.EXCHANGE_NAME
+            else f'{chain_id}_indexation_etl',
             item_type_to_routing_key_mapping=item_type_to_routing_key_mapping,
         )
     elif item_exporter_type == ItemExporterType.ELASTIC:

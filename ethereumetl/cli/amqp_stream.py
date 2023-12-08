@@ -10,7 +10,7 @@ from kombu import Connection, Consumer, Exchange, Queue
 from blockchainetl.streaming.streamer_adapter_stub import StreamerAdapterStub
 from blockchainetl.streaming.streaming_utils import configure_logging, configure_signals
 from ethereumetl.config.envs import envs
-from ethereumetl.enumeration.entity_type import EntityType
+from ethereumetl.enumeration.entity_type import ALL_FOR_STREAMING
 from ethereumetl.providers.auto import get_provider_from_uri
 from ethereumetl.streaming.clickhouse_eth_streamer_adapter import ClickhouseEthStreamerAdapter
 from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter
@@ -27,12 +27,12 @@ class AmqpStreamerAdapter:
         self,
         amqp_url: str,
         eth_streamer: StreamerAdapterStub,
-        chain_id: int,
         routing_key: str,
         queue_name: str,
+        exchange_name: str,
     ):
         self._eth_streamer = eth_streamer
-        self._exchange_name = f'{chain_id}_indexation_etl'
+        self._exchange_name = exchange_name
         self._dlx_name = f'{self._exchange_name}_dlx'
         self._queue_name = queue_name
         self._amqp_url = amqp_url
@@ -121,6 +121,7 @@ class AmqpStreamerAdapter:
         message.ack()
 
     def _process_item(self, start_block: int, end_block: int, body: list[dict[str, Any]]) -> None:
+        logging.info('Processing items from block %s to %s', start_block, end_block)
         try:
             self._eth_streamer.export_all(start_block, end_block)
         except Exception as e:
@@ -233,6 +234,19 @@ class AmqpStreamerAdapter:
     show_default=True,
     type=str,
 )
+@click.option(
+    '-q',
+    '--queue-name',
+    default=envs.QUEUE_NAME,
+    show_default=True,
+    type=str,
+)
+@click.option(
+    '--exchange-name',
+    default=envs.EXCHANGE_NAME,
+    show_default=True,
+    type=str,
+)
 def amqp_stream(
     chain_id,
     provider_uri,
@@ -244,12 +258,19 @@ def amqp_stream(
     max_workers,
     elastic_url,
     routing_key,
+    queue_name=None,
+    exchange_name=None,
 ):
     """Streams data to AMQP broker."""
     sys.setrecursionlimit(3000)
     configure_signals()
     configure_logging(None)
-    queue_name = f'{chain_id}_{entity_types}_indexation_etl'
+    queue_name = (
+        f'{chain_id}_{queue_name}' if queue_name else f'{chain_id}_{entity_types}_indexation_etl'
+    )
+    exchange_name = (
+        f'{chain_id}_{exchange_name}' if exchange_name else f'{chain_id}_indexation_etl'
+    )
     entity_types = entity_types.split(',')
     if not entity_types:
         raise RuntimeError('Entity types are not specified')
@@ -266,7 +287,7 @@ def amqp_stream(
         elastic_client=Elasticsearch(elastic_url) if elastic_url else None,
     )
     if export_from_clickhouse:
-        rewrite_entity_types = [EntityType(x) for x in envs.REWRITE_CLICKHOUSE.split(',') if x]
+        rewrite_entity_types = ALL_FOR_STREAMING
 
         streamer_adapter = ClickhouseEthStreamerAdapter(
             eth_streamer=streamer_adapter,
@@ -277,9 +298,9 @@ def amqp_stream(
     amqp_streamer_adapter = AmqpStreamerAdapter(
         amqp_url=amqp_url,
         eth_streamer=streamer_adapter,
-        chain_id=chain_id,
         routing_key=routing_key,
         queue_name=queue_name,
+        exchange_name=exchange_name,
     )
 
     try:
@@ -289,14 +310,16 @@ def amqp_stream(
 
 
 # amqp_stream.callback(
-#     chain_id=56,
-#     provider_uri='http://rpc-gw-stage.dexguru.biz/full/56',
+#     chain_id=137,
+#     provider_uri='http://rpc-gw-stage.dexguru.biz/full/137',
 #     amqp_url='amqp://guest:guest@localhost:5672/dex',
-#     entity_types='pre_event',
-#     export_from_clickhouse='clickhouse+http://username:password@localhost:8123/bsc',
-#     output='clickhouse+http://username:password@localhost:8123/bsc,amqp://guest:guest@localhost:5672/dex',
+#     entity_types='block,transaction,log',
+#     export_from_clickhouse='clickhouse+http://username:password@localhost:8123/polygon',
+#     output='clickhouse+http://username:password@localhost:8123/polygon,amqp://guest:guest@localhost:5672/dex',
 #     batch_size=5,
 #     max_workers=10,
 #     elastic_url='http://10.0.100.34:9200',
 #     routing_key='block',
+#     queue_name='verify_all',
+#     exchange_name='verifier_etl',
 # )

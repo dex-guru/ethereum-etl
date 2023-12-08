@@ -65,6 +65,16 @@ def read_resource(resource_group, file_name):
     return tests.resources.read_resource([RESOURCE_GROUP, resource_group], file_name)
 
 
+@pytest.fixture()
+def patch_streamer_to_avoid_skip_cycle():
+    # patch the streamer adapter to avoid skip cycles
+
+    f = Streamer._need_to_skip_cycle
+    Streamer._need_to_skip_cycle = lambda *_: False  # type: ignore
+    yield
+    Streamer._need_to_skip_cycle = f  # type: ignore
+
+
 # fmt: off
 @pytest.mark.parametrize("chain_id, start_block, end_block, batch_size, resource_group, entity_types, provider_type", [
     (1, 1755634, 1755635, 1, 'blocks_1755634_1755635', entity_type.ALL_FOR_INFURA, 'mock'),
@@ -83,6 +93,7 @@ def test_stream(
     resource_group,
     entity_types,
     provider_type,
+    patch_streamer_to_avoid_skip_cycle,
 ):
     with contextlib.suppress(OSError):
         os.remove('last_synced_block.txt')
@@ -201,6 +212,7 @@ def test_stream_clickhouse(
     provider_type,
     clickhouse_migrated_url,
     elastic_url,
+    patch_streamer_to_avoid_skip_cycle,
 ):
     ####################################################################
     # first run - get data from blockchain
@@ -433,7 +445,9 @@ def test_stream_clickhouse(
 @pytest.mark.parametrize(
     'streamer_adapter_cls', [EthStreamerAdapter, ClickhouseEthStreamerAdapter]
 )
-def test_stream_token_balances(tmp_path: Path, streamer_adapter_cls, clickhouse_url):
+def test_stream_token_balances(
+    tmp_path: Path, streamer_adapter_cls, clickhouse_url, patch_streamer_to_avoid_skip_cycle
+):
     exporter = InMemoryItemExporter(item_types=[EntityType.TOKEN_BALANCE])
 
     eth_streamer_adapter = EthStreamerAdapter(
@@ -543,7 +557,9 @@ def test_stream_token_balances(tmp_path: Path, streamer_adapter_cls, clickhouse_
     assert len(token_balance_items) == 429
 
 
-def test_eth_streamer_with_clickhouse_exporter(tmp_path, clickhouse_migrated_url, elastic_url):
+def test_eth_streamer_with_clickhouse_exporter(
+    tmp_path, clickhouse_migrated_url, elastic_url, patch_streamer_to_avoid_skip_cycle
+):
     exporter = ClickHouseItemExporter(clickhouse_migrated_url)
 
     streamer_adapter = EthStreamerAdapter(
@@ -1024,7 +1040,10 @@ def test_verify_all_with_inconsistent_data(
     export_all_mock.assert_called_with(start_block=2, end_block=3)
 
 
-def test_elastic_export_items(tmp_path, elastic_url):
+def test_elastic_export_items(
+    tmp_path,
+    elastic_url,
+):
     exporter: ElasticsearchItemExporter = create_item_exporter(elastic_url, chain_id=1)  # type: ignore
     items = [
         {
