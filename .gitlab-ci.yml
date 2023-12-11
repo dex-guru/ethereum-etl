@@ -470,7 +470,7 @@ raw-data-streamer-transfers-preevents-prod:
     name: ${IMAGE_HELM_KUBECTL}
     entrypoint: [""]
   variables:
-    SERVICE_NAME: "raw-data-streamer"
+    SERVICE_NAME: "raw-data-streamer-transfers-preevents"
     KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD}
     HELM_CHART: ${HELM_CHART_PROD_LAX}
   script:
