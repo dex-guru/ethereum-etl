@@ -391,20 +391,20 @@ raw-data-streamer-prod:
 #    - helm/lax_stage_deploy.sh
 #  only:
 #    - master
-
-raw-traces-data-streamer-prod:
-  stage: deploy-prod
-  image:
-    name: ${IMAGE_HELM_KUBECTL}
-    entrypoint: [""]
-  variables:
-    SERVICE_NAME: "raw-traces-data-streamer"
-    KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD_TRACE}
-    HELM_CHART: ${HELM_CHART_PROD_LAX}
-  script:
-    - helm/lax_prod_deploy.sh
-  only:
-    - tags
+#
+#raw-traces-data-streamer-prod:
+#  stage: deploy-prod
+#  image:
+#    name: ${IMAGE_HELM_KUBECTL}
+#    entrypoint: [""]
+#  variables:
+#    SERVICE_NAME: "raw-traces-data-streamer"
+#    KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD_TRACE}
+#    HELM_CHART: ${HELM_CHART_PROD_LAX}
+#  script:
+#    - helm/lax_prod_deploy.sh
+#  only:
+#    - tags
 
 raw-verify-data-streamer-stage:
   stage: deploy-stage
