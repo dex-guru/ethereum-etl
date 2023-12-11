@@ -266,7 +266,9 @@ def amqp_stream(
     configure_signals()
     configure_logging(None)
     queue_name = (
-        f'{chain_id}_indexation_etl_{queue_name}' if queue_name else f'{chain_id}_indexation_etl_{entity_types}'
+        f'{chain_id}_indexation_etl_{queue_name}'
+        if queue_name
+        else f'{chain_id}_indexation_etl_{entity_types}'
     )
     exchange_name = (
         f'{chain_id}_{exchange_name}' if exchange_name else f'{chain_id}_indexation_etl'
