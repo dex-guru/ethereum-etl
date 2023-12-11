@@ -107,13 +107,16 @@ class AMQPItemExporter(BaseItemExporter):
                         logging.error(msg)
                         self._reopen()
                         raise ConnectionError(msg) from e
-            try:
-                self._producer.publish(grouped_items, routing_key=routing_key, serializer='json')
-            except OSError as e:
-                msg = f'Failed to publish items to AMQP broker: {e}'
-                logging.error(msg)
-                self._reopen()
-                raise ConnectionError(msg) from e
+            else:
+                try:
+                    self._producer.publish(
+                        grouped_items, routing_key=routing_key, serializer='json'
+                    )
+                except OSError as e:
+                    msg = f'Failed to publish items to AMQP broker: {e}'
+                    logging.error(msg)
+                    self._reopen()
+                    raise ConnectionError(msg) from e
 
     def _group_items_by_routing_key(self, items):
         items_grouped_by_routing_key: dict[str, list] = {}
