@@ -67,7 +67,7 @@ class AMQPItemExporter(BaseItemExporter):
         raises: ConnectionError.
         """
         if self._producer is None:
-            raise RuntimeError('not opened')
+            self.open()
         self._connection.ensure_connection(errback=self._reopen)
 
         item_type = item['type']
@@ -91,7 +91,7 @@ class AMQPItemExporter(BaseItemExporter):
         raises: ConnectionError.
         """
         if self._producer is None:
-            raise RuntimeError('not opened')
+            self.open()
         self._connection.ensure_connection(errback=self._reopen)
 
         items_grouped_by_routing_key = self._group_items_by_routing_key(items)
