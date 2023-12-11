@@ -132,7 +132,7 @@ class Streamer:
         return blocks_to_sync
 
     def _need_to_skip_cycle(self, current_block: int) -> bool:
-        diff_blocks = current_block - self.last_synced_block
+        diff_blocks = current_block - self.last_synced_block - self.lag
         if not self.verifier_enabled and diff_blocks > self.block_batch_size * 1.5:
             logging.warning(
                 f'The difference between current block and last synced block is too big: {diff_blocks}. Skipping sync.'

@@ -89,6 +89,7 @@ raw-data-streamer:
 
     BLOCK_BATCH_SIZE:
       default: '30'
+      arbitrum-42161: '50'
     MAX_WORKERS:
       default: '10'
     SKIP_NONE_RECEIPTS:
@@ -97,9 +98,8 @@ raw-data-streamer:
     MIN_INSERT_BATCH_SIZE:
       default: '1'
     LAG:
-      default: 20
-      arbitrum-42161: 50
-      fantom-250: 30
+      default: 10
+      arbitrum-42161: 30
       eth: 5
 
 raw-data-streamer-resync:

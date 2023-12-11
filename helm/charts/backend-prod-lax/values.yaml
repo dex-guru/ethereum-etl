@@ -87,7 +87,7 @@ raw-data-streamer:
       celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
 
     BLOCK_BATCH_SIZE:
-      default: '100'
+      default: '30'
     SKIP_NONE_RECEIPTS:
       default: 'False'
       polygon-137: 'True'
