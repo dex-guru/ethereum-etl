@@ -464,6 +464,21 @@ raw-data-streamer-transfers-preevents-stage:
   only:
     - master
 
+raw-data-streamer-transfers-preevents-prod:
+  stage: deploy-prod
+  image:
+    name: ${IMAGE_HELM_KUBECTL}
+    entrypoint: [""]
+  variables:
+    SERVICE_NAME: "raw-data-streamer"
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD}
+    HELM_CHART: ${HELM_CHART_PROD_LAX}
+  script:
+    - helm/lax_prod_deploy.sh
+  only:
+    - tags
+
+
 raw-data-streamer-gethtrace-stage:
   stage: deploy-stage
   image:
@@ -477,6 +492,21 @@ raw-data-streamer-gethtrace-stage:
     - helm/lax_stage_deploy.sh
   only:
     - master
+
+
+raw-data-streamer-gethtrace-prod:
+  stage: deploy-prod
+  image:
+    name: ${IMAGE_HELM_KUBECTL}
+    entrypoint: [""]
+  variables:
+    SERVICE_NAME: "raw-data-streamer-gethtrace"
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD_TRACE}
+    HELM_CHART: ${HELM_CHART_PROD_LAX}
+  script:
+    - helm/lax_prod_deploy.sh
+  only:
+    - tags
 
 raw-data-streamer-balance-stage:
   stage: deploy-stage
@@ -492,6 +522,20 @@ raw-data-streamer-balance-stage:
   only:
     - master
 
+raw-data-streamer-balance-prod:
+  stage: deploy-prod
+  image:
+    name: ${IMAGE_HELM_KUBECTL}
+    entrypoint: [""]
+  variables:
+    SERVICE_NAME: "raw-data-streamer-balance"
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD}
+    HELM_CHART: ${HELM_CHART_PROD_LAX}
+  script:
+    - helm/lax_prod_deploy.sh
+  only:
+    - tags
+
 raw-data-streamer-token-tokentransferpriced-stage:
   stage: deploy-stage
   image:
@@ -505,6 +549,20 @@ raw-data-streamer-token-tokentransferpriced-stage:
     - helm/lax_stage_deploy.sh
   only:
     - master
+
+raw-data-streamer-token-tokentransferpriced-prod:
+  stage: deploy-prod
+  image:
+    name: ${IMAGE_HELM_KUBECTL}
+    entrypoint: [""]
+  variables:
+    SERVICE_NAME: "raw-data-streamer-token-tokentransferpriced"
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD}
+    HELM_CHART: ${HELM_CHART_PROD_LAX}
+  script:
+    - helm/lax_prod_deploy.sh
+  only:
+    - tags
 
 raw-data-streamer-nativebalance-stage:
   stage: deploy-stage
@@ -520,6 +578,20 @@ raw-data-streamer-nativebalance-stage:
   only:
     - master
 
+raw-data-streamer-nativebalance-prod:
+  stage: deploy-prod
+  image:
+    name: ${IMAGE_HELM_KUBECTL}
+    entrypoint: [""]
+  variables:
+    SERVICE_NAME: "raw-data-streamer-nativebalance"
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD_TRACE}
+    HELM_CHART: ${HELM_CHART_PROD_LAX}
+  script:
+    - helm/lax_prod_deploy.sh
+  only:
+    - tags
+
 raw-data-streamer-contract-token-stage:
   stage: deploy-stage
   image:
@@ -533,3 +605,17 @@ raw-data-streamer-contract-token-stage:
     - helm/lax_stage_deploy.sh
   only:
     - master
+
+raw-data-streamer-contract-token-prod:
+    stage: deploy-prod
+    image:
+        name: ${IMAGE_HELM_KUBECTL}
+        entrypoint: [""]
+    variables:
+        SERVICE_NAME: "raw-data-streamer-contract-token"
+        KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD_TRACE}
+        HELM_CHART: ${HELM_CHART_PROD_LAX}
+    script:
+        - helm/lax_prod_deploy.sh
+    only:
+        - tags
