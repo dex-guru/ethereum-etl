@@ -21,7 +21,7 @@ raw-data-streamer:
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
     SERVICE_NAME: 'raw-data-streamer'
-    MAX_WORKERS: '10'
+    MAX_WORKERS: '20'
     ELASTIC_URL: 'http://10.0.200.184:9200'
   chainEnv:
     PROVIDER_URL:
@@ -215,17 +215,7 @@ raw-data-streamer-resync:
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
-      default: '5'
-      polygon-137: '10'
-      eth-1: '5'
-      bsc-56: '12'
-      canto-7700: '5'
-      fantom-250: '5'
-      optimism-10: '5'
-      gnosis-100: '5'
-      arbitrum-42161: '5'
-      nova-42170: '5'
-      acanto-7701: '5'
+      default: '20'
     SKIP_NONE_RECEIPTS:
       default: 'False'
       polygon-137: 'True'
@@ -318,7 +308,7 @@ raw-traces-data-streamer:
       default: '100'
       fantom-250: '10'
     MAX_WORKERS:
-      default: '10'
+      default: '20'
       fantom-250: '5'
     BATCH_SIZE:
       default: '5'
@@ -426,7 +416,7 @@ raw-verify-data-trigger:
     BLOCK_BATCH_SIZE:
       default: '10'
     MAX_WORKERS:
-      default: '10'
+      default: '20'
     BATCH_SIZE:
       default: '5'
     SKIP_NONE_RECEIPTS:
@@ -509,7 +499,7 @@ raw-data-streamer-transfers-preevents:
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
-      default: '10'
+      default: '20'
     SKIP_NONE_RECEIPTS:
       default: 'False'
       polygon-137: 'True'
@@ -598,7 +588,7 @@ raw-data-streamer-gethtrace:
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
-      default: '10'
+      default: '20'
     SKIP_NONE_RECEIPTS:
       default: 'False'
       polygon-137: 'True'
@@ -683,7 +673,7 @@ raw-data-streamer-balance:
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
-      default: '10'
+      default: '20'
     SKIP_NONE_RECEIPTS:
       default: 'False'
       polygon-137: 'True'
@@ -768,7 +758,7 @@ raw-data-streamer-token-tokentransferpriced:
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
-      default: '10'
+      default: '20'
     SKIP_NONE_RECEIPTS:
       default: 'False'
       polygon-137: 'True'
@@ -853,7 +843,7 @@ raw-data-streamer-nativebalance:
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
-      default: '10'
+      default: '20'
     SKIP_NONE_RECEIPTS:
       default: 'False'
       polygon-137: 'True'
@@ -938,7 +928,7 @@ raw-data-streamer-contract-token:
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
-      default: '10'
+      default: '20'
     SKIP_NONE_RECEIPTS:
       default: 'False'
       polygon-137: 'True'
@@ -1051,7 +1041,7 @@ raw-verify-data-streamer:
     BLOCK_BATCH_SIZE:
       default: '10'
     MAX_WORKERS:
-      default: '10'
+      default: '20'
     BATCH_SIZE:
       default: '5'
     SKIP_NONE_RECEIPTS:
