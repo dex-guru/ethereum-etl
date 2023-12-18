@@ -602,6 +602,8 @@ raw-data-streamer-gethtrace:
 raw-data-streamer-balance:
   replicas:
     default: 1
+    polygon-137: 2
+    bsc-56: 2
   limitsCpu: 4
   limitsMemory: 9000Mi
   requestsCpu: 100m
