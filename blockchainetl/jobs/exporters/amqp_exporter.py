@@ -57,8 +57,8 @@ class AMQPItemExporter(BaseItemExporter):
     def close(self):
         if self._connection is not Ellipsis:
             self._connection.close()
-            self._connection = None
-            self._producer = None
+            self._connection = ...
+            self._producer = ...
 
     @retry(ConnectionError, tries=3)
     def export_item(self, item: dict[str, Any]):
