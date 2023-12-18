@@ -439,7 +439,7 @@ raw-data-streamer-transfers-preevents:
     BATCH_SIZE: '5'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
-    SERVICE_NAME: 'raw-data-streamer'
+    SERVICE_NAME: 'raw-data-streamer-transfers-preevents'
     REWRITE_CLICKHOUSE: ''
     ELASTIC_URL: 'http://10.0.200.184:9200'
     AMQP_URL: 'amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
@@ -528,7 +528,7 @@ raw-data-streamer-gethtrace:
     BATCH_SIZE: '5'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
-    SERVICE_NAME: 'raw-data-streamer'
+    SERVICE_NAME: 'raw-data-streamer-gethtrace'
     REWRITE_CLICKHOUSE: ''
     ELASTIC_URL: 'http://10.0.200.184:9200'
     AMQP_URL: 'amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
@@ -613,7 +613,7 @@ raw-data-streamer-balance:
     BATCH_SIZE: '5'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
-    SERVICE_NAME: 'raw-data-streamer'
+    SERVICE_NAME: 'raw-data-streamer-balance'
     REWRITE_CLICKHOUSE: ''
     ELASTIC_URL: 'http://10.0.200.184:9200'
     AMQP_URL: 'amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
@@ -698,7 +698,7 @@ raw-data-streamer-token-tokentransferpriced:
     BATCH_SIZE: '5'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
-    SERVICE_NAME: 'raw-data-streamer'
+    SERVICE_NAME: 'raw-data-streamer-token-tokentransferpriced'
     REWRITE_CLICKHOUSE: ''
     ELASTIC_URL: 'http://10.0.200.184:9200'
     AMQP_URL: 'amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
@@ -783,7 +783,7 @@ raw-data-streamer-nativebalance:
     BATCH_SIZE: '5'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
-    SERVICE_NAME: 'raw-data-streamer'
+    SERVICE_NAME: 'raw-data-streamer-nativebalance'
     REWRITE_CLICKHOUSE: ''
     ELASTIC_URL: 'http://10.0.200.184:9200'
     AMQP_URL: 'amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
@@ -868,7 +868,7 @@ raw-data-streamer-contract-token:
     BATCH_SIZE: '5'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
-    SERVICE_NAME: 'raw-data-streamer'
+    SERVICE_NAME: 'raw-data-streamer-contract-token'
     REWRITE_CLICKHOUSE: ''
     ELASTIC_URL: 'http://10.0.200.184:9200'
     AMQP_URL: 'amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
