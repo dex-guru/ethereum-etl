@@ -24,14 +24,14 @@ class AMQPItemExporter(BaseItemExporter):
         self._exchange = exchange
         self._amqp_url = amqp_url
 
-        self._connection: kombu.Connection = None
-        self._producer: kombu.Producer = None
+        self._connection: kombu.Connection = ...
+        self._producer: kombu.Producer = ...
 
     def open(self):
         """
         raises: IOError.
         """
-        if self._connection is not None:
+        if self._connection is not Ellipsis:
             raise RuntimeError('already opened')
 
         try:
@@ -55,7 +55,7 @@ class AMQPItemExporter(BaseItemExporter):
             raise
 
     def close(self):
-        if self._connection is not None:
+        if self._connection is not Ellipsis:
             self._connection.close()
             self._connection = None
             self._producer = None
@@ -66,7 +66,7 @@ class AMQPItemExporter(BaseItemExporter):
         ,
         raises: ConnectionError.
         """
-        if self._producer is None:
+        if self._producer is Ellipsis:
             self.open()
         self._connection.ensure_connection(errback=self._reopen)
 
@@ -90,7 +90,7 @@ class AMQPItemExporter(BaseItemExporter):
         """
         raises: ConnectionError.
         """
-        if self._producer is None:
+        if self._producer is Ellipsis:
             self.open()
         self._connection.ensure_connection(errback=self._reopen)
 

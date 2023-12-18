@@ -88,8 +88,12 @@ class AmqpStreamerAdapter:
             exchange=self._dlx,
             routing_key='dlq',
         )
+        assert self._consumer is not ...
+        assert self._connection is not ...
+        assert self._dlx is not ...
+        assert self._dlx_producer is not ...
+
         self.closed = False
-        self._consume()
 
     def close(self):
         self.closed = True
@@ -134,7 +138,9 @@ class AmqpStreamerAdapter:
             body,
         )
 
-    def _consume(self):
+    def consume(self):
+        if self.closed:
+            raise RuntimeError('streamer is closed')
         with self._consumer:
             # Consume messages indefinitely
             self._consumer.consume()
@@ -304,24 +310,31 @@ def amqp_stream(
         queue_name=queue_name,
         exchange_name=exchange_name,
     )
-
     try:
         amqp_streamer_adapter.open()
+    except (OSError, AssertionError) as e:
+        logging.error('Failed to open: %s', e)
+        exit(1)
+
+    try:
+        amqp_streamer_adapter.consume()
+    except RuntimeError as e:
+        logging.error('Failed to consume: %s', e)
     finally:
         amqp_streamer_adapter.close()
 
 
-# amqp_stream.callback(
-#     chain_id=137,
-#     provider_uri='http://rpc-gw-stage.dexguru.biz/full/137',
-#     amqp_url='amqp://guest:guest@localhost:5672/dex',
-#     entity_types='block,transaction,log',
-#     export_from_clickhouse='clickhouse+http://username:password@localhost:8123/polygon',
-#     output='clickhouse+http://username:password@localhost:8123/polygon,amqp://guest:guest@localhost:5672/dex',
-#     batch_size=5,
-#     max_workers=10,
-#     elastic_url='http://10.0.100.34:9200',
-#     routing_key='block',
-#     queue_name='verify_all',
-#     exchange_name='verifier_etl',
-# )
+amqp_stream.callback(
+    chain_id=137,
+    provider_uri='http://rpc-gw-stage.dexguru.biz/full/137',
+    amqp_url='amqp://guest:guest@localhost:5672/dex',
+    entity_types='block,transaction,log',
+    export_from_clickhouse='clickhouse+http://testuser3:testplpassword@stage-ch-polygon-01.dexguru.biz/polygon',
+    output='amqp://guest:guest@localhost:5672/dex',
+    batch_size=5,
+    max_workers=10,
+    elastic_url='http://10.0.100.34:9200',
+    routing_key='block',
+    queue_name='verify_all',
+    exchange_name='verifier_etl',
+)
