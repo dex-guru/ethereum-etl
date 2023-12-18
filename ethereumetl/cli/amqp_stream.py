@@ -324,17 +324,17 @@ def amqp_stream(
         amqp_streamer_adapter.close()
 
 
-amqp_stream.callback(
-    chain_id=137,
-    provider_uri='http://rpc-gw-stage.dexguru.biz/full/137',
-    amqp_url='amqp://guest:guest@localhost:5672/dex',
-    entity_types='block,transaction,log',
-    export_from_clickhouse='clickhouse+http://testuser3:testplpassword@stage-ch-polygon-01.dexguru.biz/polygon',
-    output='amqp://guest:guest@localhost:5672/dex',
-    batch_size=5,
-    max_workers=10,
-    elastic_url='http://10.0.100.34:9200',
-    routing_key='block',
-    queue_name='verify_all',
-    exchange_name='verifier_etl',
-)
+# amqp_stream.callback(
+#     chain_id=137,
+#     provider_uri='http://rpc-gw-stage.dexguru.biz/full/137',
+#     amqp_url='amqp://guest:guest@localhost:5672/dex',
+#     entity_types='block,transaction,log',
+#     export_from_clickhouse='clickhouse+http://testuser3:testplpassword@stage-ch-polygon-01.dexguru.biz/polygon',
+#     output='amqp://guest:guest@localhost:5672/dex',
+#     batch_size=5,
+#     max_workers=10,
+#     elastic_url='http://10.0.100.34:9200',
+#     routing_key='block',
+#     queue_name='verify_all',
+#     exchange_name='verifier_etl',
+# )
