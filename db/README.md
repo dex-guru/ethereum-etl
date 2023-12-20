@@ -7,6 +7,12 @@
     alembic revision -m "Some meaningful description of the migration"
     ```
 
+    to create in warehouse:
+
+    ```bash
+    alembic -c ./alembic_warehouse.ini revision -m "Add inscription materialized view"
+    ```
+   
    This will create a new migration script in the `db/migrations/versions` directory.
    The script will contain DDL statement examples that you can use as a reference.
 3. Write the migration script. See the recommendations below
