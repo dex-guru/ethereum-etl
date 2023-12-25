@@ -13,6 +13,7 @@ from blockchainetl.jobs.exporters.clickhouse_exporter import ClickHouseItemExpor
 from blockchainetl.jobs.exporters.multi_item_exporter import MultiItemExporter
 from ethereumetl.clickhouse import ITEM_TYPE_TO_TABLE_MAPPING
 from ethereumetl.enumeration.entity_type import ALL, EntityType
+from ethereumetl.misc.info import PARSABLE_SWAPS_BURNS_MINTS_EVENTS
 from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter, sort_by
 from ethereumetl.utils import parse_clickhouse_url
 
@@ -35,6 +36,7 @@ NATIVE_BALANCE = EntityType.NATIVE_BALANCE
 TOKEN_TRANSFER_PRICED = EntityType.TOKEN_TRANSFER_PRICED
 INTERNAL_TRANSFER_PRICED = EntityType.INTERNAL_TRANSFER_PRICED
 PRE_EVENT = EntityType.PRE_EVENT
+DEX_POOL = EntityType.DEX_POOL
 
 
 # noinspection PyProtectedMember
@@ -460,6 +462,54 @@ class ClickhouseEthStreamerAdapter:
             )
             return events, False
 
+        @cache
+        def export_dex_pools():
+            assert self.clickhouse, "Clickhouse client is not initialized"
+            _from_ch = False
+            logger.info("exporting DEX_POOLS_INVENTORY...")
+            logs = export_logs()[0]
+            if not logs:
+                return (), _from_ch
+            existing_dex_pools = self.select_where(
+                entity_type=DEX_POOL, distinct_on='address', address={l['address'] for l in logs}
+            )
+            existing_dex_pools = {p['address'] for p in existing_dex_pools}
+
+            query_get_events_inventory = f"""
+                SELECT event_signature_hash_and_log_topic_count,
+                       namespace
+                FROM event_inventory
+                WHERE event_name IN {PARSABLE_SWAPS_BURNS_MINTS_EVENTS}
+            """
+            events_inventory = tuple(
+                self.clickhouse.query(query_get_events_inventory).named_results()
+            )
+            potential_dex_types = {
+                event_inventory['event_signature_hash_and_log_topic_count']: event_inventory[
+                    'namespace'
+                ]
+                for event_inventory in events_inventory
+            }
+
+            parsable_logs = [
+                log
+                for log in logs
+                if log['topics'] and (log['topics'][0], len(log['topics'])) in potential_dex_types
+            ]
+
+            logs_to_export = [
+                log for log in parsable_logs if log['address'] not in existing_dex_pools
+            ]
+            if not logs_to_export:
+                _from_ch = True
+                return (), _from_ch
+
+            dex_pools_inventory = self.eth_streamer.export_dex_pools(
+                logs_to_export, sighash_to_namespace=potential_dex_types
+            )
+
+            return dex_pools_inventory, _from_ch
+
         exported: dict[EntityType, list] = {ERROR: []}
         from_ch: dict[EntityType, bool] = {}
 
@@ -480,6 +530,7 @@ class ClickhouseEthStreamerAdapter:
             ((TOKEN_TRANSFER_PRICED,), extract_token_transfers_priced),
             ((INTERNAL_TRANSFER_PRICED,), extract_internal_transfers_priced),
             ((PRE_EVENT,), prepare_events),
+            ((DEX_POOL,), export_dex_pools),
         ):
             for entity_type in entity_types:
                 if entity_type not in self.eth_streamer.should_export:

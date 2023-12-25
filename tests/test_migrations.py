@@ -15,10 +15,9 @@ from ethereumetl.clickhouse import (
     get_schema_ddls,
     write_schema_ddl,
 )
-from tests.helpers import run_slow_tests
 
 
-@pytest.mark.skipif(not run_slow_tests, reason='Skipping slow running tests')
+# @pytest.mark.skipif(not run_slow_tests, reason='Skipping slow running tests')
 def test_up_down(clickhouse_url):
     alembic_ini = Path(ethereumetl.__file__).parent / '../alembic.ini'
     alembic_cfg = Config(alembic_ini)

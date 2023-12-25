@@ -1,0 +1,10 @@
+[
+  {
+    "name": "LeetSwap",
+    "type": "canto_dex",
+    "enabled": true,
+    "contracts": {
+      "BaseV1Factory": "0xcE87E0960f4e2702f4bFFE277655E993Ae720e84"
+    }
+  }
+]

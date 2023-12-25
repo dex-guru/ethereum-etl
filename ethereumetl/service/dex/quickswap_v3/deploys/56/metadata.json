@@ -1,0 +1,10 @@
+[
+  {
+    "name": "thenafusion",
+    "type": "quickswap_v3",
+    "enabled": true,
+    "contracts": {
+      "Factory": "0x306F06C147f064A010530292A1EB6737c3e378e4"
+    }
+  }
+]

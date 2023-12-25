@@ -49,6 +49,7 @@ class Streamer:
         retry_errors=True,
         pid_file=None,
         verifier_enabled=False,
+        skip_cycle=True,
     ):
         self.chain_id = chain_id
         self.blockchain_streamer_adapter = blockchain_streamer_adapter
@@ -63,6 +64,7 @@ class Streamer:
         self.retry_errors = retry_errors
         self.pid_file = pid_file
         self.verifier_enabled = verifier_enabled
+        self.skip_cycle = skip_cycle
 
         if self.start_block == 'latest':
             self.start_block = self.blockchain_streamer_adapter.get_current_block_number()
@@ -120,7 +122,7 @@ class Streamer:
                 'blocks_to_sync': blocks_to_sync,
             },
         )
-        if self._need_to_skip_cycle(current_block):
+        if self.skip_cycle and self._need_to_skip_cycle(current_block):
             return 1
 
         if blocks_to_sync != 0:

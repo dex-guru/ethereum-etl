@@ -19,6 +19,7 @@ class EntityType(str, Enum):
     TOKEN_TRANSFER_PRICED = 'token_transfer_priced'
     INTERNAL_TRANSFER_PRICED = 'internal_transfer_priced'
     PRE_EVENT = 'pre_event'
+    DEX_POOL = 'dex_pool'
 
     def __str__(self):
         return self.value
@@ -40,6 +41,7 @@ ALL_FOR_STREAMING = (
     EntityType.TOKEN_TRANSFER_PRICED,
     EntityType.INTERNAL_TRANSFER_PRICED,
     EntityType.PRE_EVENT,
+    EntityType.DEX_POOL,
 )
 ALL_FOR_INFURA = (
     EntityType.BLOCK,

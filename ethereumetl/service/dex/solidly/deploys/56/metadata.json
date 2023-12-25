@@ -1,0 +1,10 @@
+[
+  {
+    "name": "impossible_finance_v3",
+    "type": "solidly",
+    "enabled": true,
+    "contracts": {
+      "UniswapV2Factory": "0x4233ad9b8b7c1ccf0818907908a7f0796a3df85f"
+    }
+  }
+]

@@ -25,3 +25,39 @@ NULL_ADDRESSES = {
     '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
     '0xffffffffffffffffffffffffffffffffffffffff',
 }
+
+PARSABLE_SWAPS_BURNS_MINTS_EVENTS = [
+    "Swap",
+    "Burn",
+    "Mint",
+    "Sync",  # uniswap v2, v3, kyber
+    "RemoveLiquidityImbalance",
+    "Deposit",
+    "Withdraw",
+    "BuyBaseToken",
+    "SellBaseToken",  # DODO v1
+    "DODOSwap",  # DODO v2
+    "Deposited",
+    "Withdrawn",
+    "Swapped",  # 1inch mooniswap v1,
+    "Conversion",
+    "LiquidityAdded",
+    "LiquidityRemoved",
+    "TokenRateUpdate",  # Bancor v2
+    "ExchangeNeg",
+    "ExchangePos",  # Meshswap
+    "TokenSwap",
+    "TokenSwapUnderlying",  # Saddle
+    "PoolBalanceChanged",  # Balancer
+    "Collect",  # QuickSwap v3
+    "DepositedToBins",
+    "WithdrawnFromBins",  # TraderJoe v2.1
+    "TokenSwap",
+    "TokenSwapUnderlying",
+    "TokenExchange",
+    "TokenExchangeUnderlying",
+    "AddLiquidity",
+    "RemoveLiquidity",
+    "RemoveLiquidityOne",
+    "RemoveLiquidityImbalance",
+]

@@ -1,0 +1,10 @@
+[
+  {
+    "name": "wombat",
+    "type": "wombat",
+    "enabled": true,
+    "contracts": {
+      "MasterWombat": "0x489833311676B566f888119c29bd997Dc6C95830"
+    }
+  }
+]

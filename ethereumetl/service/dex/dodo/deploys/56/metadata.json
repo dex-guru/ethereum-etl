@@ -1,0 +1,21 @@
+[
+  {
+    "name": "dodo",
+    "type": "dodo",
+    "enabled": true,
+    "contracts": {
+      "DODO": "0xF6A8E47daEEdDcCe297e7541523e27DF2f167BF3",
+      "DODORouteProxy": "0x6B3D817814eABc984d51896b1015C0b89E9737Ca",
+      "GnosisSafeProxy": "0xcaa42F09AF66A8BAE3A7445a7f63DAD97c11638b"
+    }
+  },
+  {
+    "name": "dodo_v2",
+    "type": "dodo_v2",
+    "enabled": true,
+    "contracts": {
+      "DVM": "0xfb8c399f1187bdb5adf2007b32d5d76651b77ff4",
+      "GnosisSafeProxy": "0xcaa42F09AF66A8BAE3A7445a7f63DAD97c11638b"
+    }
+  }
+]

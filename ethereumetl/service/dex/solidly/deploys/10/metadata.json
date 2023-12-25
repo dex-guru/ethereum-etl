@@ -1,0 +1,11 @@
+[
+  {
+    "name": "velodrome",
+    "type": "solidly",
+    "enabled": true,
+    "contracts": {
+      "UniswapV2Router": "0xa132DAB612dB5cB9fC9Ac426A0Cc215A3423F9c9",
+      "UniswapV2Factory": "0x25CbdDb98b35ab1FF77413456B31EC81A6B6B746"
+    }
+  }
+]

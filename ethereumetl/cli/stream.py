@@ -175,6 +175,13 @@ def validate_start_block(_ctx, _param, value):
     help='Whether to verify the data',
 )
 @click.option(
+    '--is_skip_cycle',
+    default=envs.IS_VERIFIER,
+    show_default=True,
+    type=bool,
+    help='Whether to verify the data',
+)
+@click.option(
     '--elastic-url',
     default=envs.ELASTIC_URL,
     show_default=True,
@@ -198,6 +205,7 @@ def stream(
     pid_file=None,
     export_from_clickhouse=None,
     is_verifier=False,
+    is_skip_cycle=False,
     elastic_url=None,
 ):
     """Streams all data types to console or Google Pub/Sub."""
@@ -254,6 +262,7 @@ def stream(
         block_batch_size=block_batch_size,
         pid_file=pid_file,
         verifier_enabled=is_verifier,
+        skip_cycle=is_skip_cycle,
     )
     streamer.stream()
 

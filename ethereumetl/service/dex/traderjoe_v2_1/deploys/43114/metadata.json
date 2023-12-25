@@ -1,0 +1,10 @@
+[
+  {
+    "name": "traderjoe_v2_1",
+    "type": "traderjoe_v2_1",
+    "enabled": true,
+    "contracts": {
+      "LBFactory": "0x8e42f2F4101563bF679975178e880FD87d3eFd4e"
+    }
+  }
+]

@@ -11,6 +11,7 @@ from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExport
 from blockchainetl.jobs.exporters.in_memory_item_exporter import InMemoryItemExporter
 from ethereumetl.enumeration.entity_type import ALL_FOR_STREAMING, EntityType
 from ethereumetl.jobs.export_blocks_job import ExportBlocksJob
+from ethereumetl.jobs.export_dex_pools_job import ExportPoolsJob
 from ethereumetl.jobs.export_geth_traces_job import ExportGethTracesJob
 from ethereumetl.jobs.export_native_balances_job import ExportNativeBalancesJob
 from ethereumetl.jobs.export_receipts_job import ExportReceiptsJob
@@ -57,6 +58,7 @@ NATIVE_BALANCE = EntityType.NATIVE_BALANCE
 TOKEN_TRANSFER_PRICED = EntityType.TOKEN_TRANSFER_PRICED
 INTERNAL_TRANSFER_PRICED = EntityType.INTERNAL_TRANSFER_PRICED
 PRE_EVENT = EntityType.PRE_EVENT
+DEX_POOL = EntityType.DEX_POOL
 
 
 class EthStreamerAdapter:
@@ -77,6 +79,7 @@ class EthStreamerAdapter:
         TOKEN_TRANSFER_PRICED: ('block_number', 'log_index'),
         INTERNAL_TRANSFER_PRICED: ('block_number',),
         PRE_EVENT: ('block_number', 'log_index'),
+        DEX_POOL: ('address',),
     }
 
     ENRICH = {
@@ -108,6 +111,8 @@ class EthStreamerAdapter:
         NATIVE_BALANCE: (TRANSACTION, INTERNAL_TRANSFER),
         TOKEN_TRANSFER_PRICED: (TOKEN_TRANSFER, TOKEN),
         PRE_EVENT: (BLOCK, LOG, TRANSACTION, TOKEN_TRANSFER, RECEIPT),
+        DEX_POOL: (LOG,),
+        # DEX_TRADE: (DEX_POOL, TOKEN, LOG, TOKEN_TRANSFER),
     }
 
     def __init__(
@@ -180,6 +185,7 @@ class EthStreamerAdapter:
                     export(TRANSACTION),
                     export(RECEIPT),
                 ),
+                (DEX_POOL,): lambda: self.export_dex_pools(export(LOG)),
             }.items()
             for entity_type in export_types
         }
@@ -497,6 +503,40 @@ class EthStreamerAdapter:
         job.run()
         events = exporter.get_items(EntityType.PRE_EVENT)
         return events
+
+    def export_dex_pools(self, logs, sighash_to_namespace=None):
+        exporter = InMemoryItemExporter(item_types=[DEX_POOL])
+        job = ExportPoolsJob(
+            logs_iterable=logs,
+            sighash_to_namespace=sighash_to_namespace,
+            batch_web3_provider=ThreadLocalProxy(lambda: build_web3(self.batch_web3_provider)),
+            item_exporter=exporter,
+            max_workers=self.max_workers,
+            batch_size=self.batch_size,
+            chain_id=self.chain_id,
+        )
+        job.run()
+        pools = exporter.get_items(DEX_POOL)
+        return pools
+
+    # def export_dex_trades(
+    #     self,
+    #     pool_address,
+    #     start_block,
+    #     end_block,
+    # ):
+    #     exporter = InMemoryItemExporter(item_types=[DEX_TRADE])
+    #     job = ExportTradesJob(
+    #         pool_address=pool_address,
+    #         start_block=start_block,
+    #         end_block=end_block,
+    #         web3=ThreadLocalProxy(lambda: build_web3(self.batch_web3_provider)),
+    #         item_exporter=exporter,
+    #         max_workers=self.max_workers,
+    #     )
+    #     job.run()
+    #     trades = exporter.get_items(DEX_TRADE)
+    #     return trades
 
     def calculate_item_ids(self, items):
         for item in items:

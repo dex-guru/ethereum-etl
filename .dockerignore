@@ -7,3 +7,4 @@
 helm
 output
 pid.txt
+.env
