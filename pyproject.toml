@@ -55,4 +55,4 @@ warn_return_any = false
 warn_unreachable = true
 warn_unused_ignores = true
 namespace_packages = true
-exclude = ['venv', '.venv', 'tests']
+exclude = ['venv', '.venv', 'tests', 'db']

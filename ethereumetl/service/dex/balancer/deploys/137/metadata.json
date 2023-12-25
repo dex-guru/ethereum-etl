@@ -1,0 +1,29 @@
+[
+  {
+    "name": "balancer",
+    "type": "balancer",
+    "enabled": true,
+    "contracts": {
+      "Vault": "0xBA12222222228d8Ba445958a75a0704d566BF2C8",
+      "Gyro2PoolFactory": "0x5d8545a7330245150bE0Ce88F8afB0EDc41dFc34",
+      "Gyro3PoolFactory": "0x90f08B3705208E41DbEEB37A42Fb628dD483AdDa",
+      "GyroEPoolFactory": "0xD4204551BC5397455f8897745d50Ac4F6beE0EF6",
+      "StablePoolFactory": "0xcA96C4f198d343E251b1a01F3EBA061ef3DA73C1",
+      "StablePoolV2Factory": "0xcA96C4f198d343E251b1a01F3EBA061ef3DA73C1",
+      "WeightedPoolFactory": "0x8E9aa87E45e92bad84D5F8DD1bff34Fb92637dE9",
+      "AaveLinearPoolFactory": "0xf302f9F50958c5593770FDf4d4812309fF77414f",
+      "InvestmentPoolFactory": "0x0f7bb7ce7b6ed9366F9b6B910AdeFE72dC538193",
+      "MetaStablePoolFactory": "0xdAE7e32ADc5d490a43cCba1f0c736033F2b4eFca",
+      "WeightedPoolV2Factory": "0x0e39C3D9b2ec765eFd9c5c70BB290B1fCD8536E3",
+      "AaveLinearPoolV2Factory": "0x8df6EfEc5547e31B0eb7d1291B511FF8a2bf987c",
+      "ERC4626LinearPoolFactory": "0xC6bD2497332d24094eC16a7261eec5C412B5a2C1",
+      "StablePhantomPoolFactory": "0xC128a9954e6c874eA3d62ce62B468bA073093F25",
+      "WeightedPool2TokensFactory": "0xA5bf2ddF098bb0Ef6d120C98217dD6B141c74EE0",
+      "ComposableStablePoolFactory": "0x136FD06Fa01eCF624C7F2B3CB15742c1339dC2c4",
+      "ERC4626LinearPoolFactoryBeta": "0xC6bD2497332d24094eC16a7261eec5C412B5a2C1",
+      "LiquidityBootstrappingPoolFactory": "0x751A0bC0e3f75b38e01Cf25bFCE7fF36DE1C87DE",
+      "TempLiquidityBootstrappingPoolFactory": "0x41B953164995c11C81DA73D212ED8Af25741b7Ac",
+      "NoProtocolFeeLiquidityBootstrappingPoolFactory": "0x41B953164995c11C81DA73D212ED8Af25741b7Ac"
+    }
+  }
+]

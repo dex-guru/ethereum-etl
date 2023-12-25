@@ -1,0 +1,1 @@
+[{"name": "velocimeter", "type": "canto_dex", "enabled": true, "contracts": {"BaseV1Factory": "0xe21Aac7F113Bd5DC2389e4d8a8db854a87fD6951"}}, {"name": "leetswap", "type": "canto_dex", "enabled": true, "contracts": {"BaseV1Factory": "0x169C06b4cfB09bFD73A81e6f2Bb1eB514D75bB19"}}]

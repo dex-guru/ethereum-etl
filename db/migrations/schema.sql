@@ -119,6 +119,17 @@ CREATE MATERIALIZED VIEW count_uniq_contracts_mv TO chain_counts
 SELECT uniqState(toNullable(address)) AS uniq_contracts
 FROM logs;
 
+CREATE TABLE dex_pools
+(
+    `address` String CODEC(ZSTD(1)),
+    `factory_address` LowCardinality(String),
+    `token_addresses` Array(String) CODEC(ZSTD(1)),
+    `lp_token_addresses` Array(String) CODEC(ZSTD(1)),
+    `fee` UInt16
+)
+ENGINE = EmbeddedRocksDB
+PRIMARY KEY address;
+
 CREATE TABLE errors
 (
     `item_id` String CODEC(ZSTD(1)),
@@ -257,13 +268,16 @@ CREATE TABLE event_inventory
     `event_signature_hash_and_log_topic_count` Tuple(LowCardinality(String), UInt8),
     `event_signature_hash` String ALIAS event_signature_hash_and_log_topic_count.1,
     `event_topic_count` UInt8 ALIAS event_signature_hash_and_log_topic_count.2,
-    `abi_types` Array(LowCardinality(String)),
+    `namespace` Array(LowCardinality(String)),
+    `contract_name` Array(LowCardinality(String)),
     `event_signature` LowCardinality(String),
     `event_name` LowCardinality(String),
     `event_abi_json` String CODEC(ZSTD(1))
 )
-ENGINE = EmbeddedRocksDB
-PRIMARY KEY event_signature_hash_and_log_topic_count;
+ENGINE = ReplacingMergeTree
+PRIMARY KEY event_signature_hash_and_log_topic_count
+ORDER BY event_signature_hash_and_log_topic_count
+SETTINGS index_granularity = 8192;
 
 CREATE TABLE event_inventory_src
 (
@@ -271,17 +285,19 @@ CREATE TABLE event_inventory_src
     `event_signature` LowCardinality(String),
     `event_topic_count` UInt8,
     `event_name` LowCardinality(String),
-    `abi_type` String,
+    `namespace` LowCardinality(String),
+    `contract_name` LowCardinality(String),
     `event_abi_json` String CODEC(ZSTD(1))
 )
 ENGINE = ReplacingMergeTree
-ORDER BY (event_signature, event_topic_count, abi_type)
+ORDER BY (event_signature, event_topic_count, namespace)
 SETTINGS index_granularity = 8192;
 
 CREATE MATERIALIZED VIEW event_inventory_mv TO event_inventory
 (
     `event_signature_hash_and_log_topic_count` Tuple(LowCardinality(String), UInt8),
-    `abi_types` Array(String),
+    `namespace` LowCardinality(String),
+    `contract_name` LowCardinality(String),
     `event_signature` LowCardinality(String),
     `event_name` LowCardinality(String),
     `event_abi_json` String
@@ -290,7 +306,8 @@ WITH src AS
     (
         SELECT
             (event_signature_hash, event_topic_count) AS event_signature_hash_and_log_topic_count,
-            groupArray(abi_type) AS abi_types,
+            groupArray(namespace) AS namespace,
+            groupArray(contract_name) AS contract_name,
             event_signature,
             event_name,
             event_abi_json
@@ -299,32 +316,13 @@ WITH src AS
     )
 SELECT
     src.event_signature_hash_and_log_topic_count,
-    arraySort(arrayDistinct(arrayConcat(dst.abi_types, src.abi_types))) AS abi_types,
+    arraySort(arrayDistinct(arrayConcat(dst.namespace, src.namespace))) AS namespace,
+    arraySort(arrayDistinct(arrayConcat(dst.contract_name, src.contract_name))) AS contract_name,
     src.event_signature,
     src.event_name,
     src.event_abi_json
 FROM src
-LEFT JOIN event_inventory AS dst USING (event_signature_hash_and_log_topic_count)
-SETTINGS join_algorithm = 'direct';
-
-CREATE TABLE events
-(
-    `log_index` UInt32,
-    `transaction_hash` String CODEC(ZSTD(1)),
-    `transaction_index` UInt32,
-    `block_hash` String CODEC(ZSTD(1)),
-    `block_number` UInt64,
-    `contract_address` String CODEC(ZSTD(1)),
-    `data` String CODEC(ZSTD(1)),
-    `topics` Array(String) CODEC(ZSTD(1)),
-    `event_name` String CODEC(ZSTD(1)),
-    `event_signature_hash` String ALIAS topics[1],
-    `topic_count` UInt8 ALIAS toUInt8(length(topics))
-)
-ENGINE = ReplacingMergeTree
-PARTITION BY intDivOrZero(block_number, 100000)
-ORDER BY (contract_address, topics[1], transaction_hash, log_index)
-SETTINGS index_granularity = 8192;
+LEFT JOIN event_inventory AS dst USING (event_signature_hash_and_log_topic_count);
 
 CREATE MATERIALIZED VIEW geth_traces_by_transaction_hash TO geth_traces_transaction_hash
 (
@@ -540,32 +538,6 @@ SELECT
     topics,
     is_reorged
 FROM logs;
-
-CREATE MATERIALIZED VIEW logs_to_events_mv TO events
-(
-    `log_index` UInt32,
-    `transaction_hash` String,
-    `transaction_index` UInt32,
-    `block_hash` String,
-    `block_number` UInt64,
-    `data` String,
-    `topics` Array(String),
-    `contract_address` String,
-    `event_name` LowCardinality(String)
-) AS
-SELECT
-    logs.log_index,
-    logs.transaction_hash,
-    logs.transaction_index,
-    logs.block_hash,
-    logs.block_number,
-    logs.data,
-    logs.topics,
-    logs.address AS contract_address,
-    info.event_name
-FROM logs AS logs
-INNER JOIN event_inventory AS info ON (logs.topics[1], toUInt8(length(logs.topics))) = info.event_signature_hash_and_log_topic_count
-SETTINGS join_algorithm = 'direct';
 
 CREATE TABLE logs_transaction_hash
 (

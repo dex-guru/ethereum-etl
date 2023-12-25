@@ -44,6 +44,7 @@ class EthItemIdCalculator:
         EntityType.TOKEN_TRANSFER_PRICED: ('transaction_hash', 'log_index'),
         EntityType.INTERNAL_TRANSFER_PRICED: ('id',),
         EntityType.PRE_EVENT: ('id',),
+        EntityType.DEX_POOL: ('address',),
     }
 
     def calculate(self, item):

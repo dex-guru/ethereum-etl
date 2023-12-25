@@ -1,4 +1,5 @@
 import json
+import os
 from collections.abc import Iterable, Mapping, Sequence
 from pathlib import Path
 from typing import Any, NamedTuple, cast
@@ -22,7 +23,8 @@ class EventInventoryRecord(NamedTuple):
     event_signature: str
     event_topic_count: int
     event_name: str
-    abi_type: str
+    namespace: str
+    contract_name: str
     event_abi_json: str
 
 
@@ -56,14 +58,17 @@ def get_event_abis_with_file_paths(
 
 
 def event_abi_to_event_inventory_record(
-    file_path: FilePath, event_abi: EventABI
+    file_path: str, event_abi: EventABI
 ) -> EventInventoryRecord:
+    parent_path, file_name = Path(file_path).parent, Path(file_path).name
+
     return EventInventoryRecord(
         event_signature_hash=to_hex(event_abi_to_log_topic(event_abi)).casefold(),
         event_signature=_abi_to_signature(event_abi),
         event_topic_count=sum(1 for i in event_abi['inputs'] if i['indexed']) + 1,
         event_name=event_abi['name'],
-        abi_type=str(file_path),
+        namespace=str(parent_path),
+        contract_name=file_name[:-5],
         event_abi_json=json.dumps(event_abi, separators=(',', ':')),
     )
 
@@ -85,17 +90,31 @@ def load_abis_to_event_inventory(
                 event_registry_records,
                 column_names=EventInventoryRecord._fields,
             )
-    for e in event_registry_records:
-        print(f"{e.abi_type}: {e.event_signature}")
+    # for e in event_registry_records:
+    #     print(f"{e.namespace}:{e.contract_name} : {e.event_signature}")
 
 
 @click.command()
-@click.option('-u', '--clickhouse-url', required=True, type=str)
-@click.option('-a', '--abi-dir', required=True, type=str)
+@click.option(
+    '-u', '--clickhouse-url', required=True, type=str, default=os.getenv('CLICKHOUSE_URL')
+)
+@click.option(
+    '-a',
+    '--abi-dir',
+    required=True,
+    type=str,
+    default=Path(__file__).parent.parent / 'service' / 'dex',
+)
 @click.option('-n', '--dry-run', is_flag=True)
 def cli(clickhouse_url, abi_dir, dry_run):
     load_abis_to_event_inventory(clickhouse_url, abi_dir, dry_run)
 
 
+# cli.callback(
+#     clickhouse_url='http://username:password@localhost:8123/eth',
+#     abi_dir=Path(__file__).parent.parent / 'service' / 'dex',
+#     dry_run=False,
+# )
+#
 if __name__ == '__main__':
     cli()

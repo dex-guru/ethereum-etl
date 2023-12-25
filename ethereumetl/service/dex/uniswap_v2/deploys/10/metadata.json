@@ -1,0 +1,37 @@
+[
+  {
+    "name": "elk_finance",
+    "type": "uniswap_v2",
+    "enabled": true,
+    "contracts": {
+      "UniswapV2Factory": "0xedfad3a0F42A8920B011bb0332aDe632e552d846"
+    }
+  },
+  {
+    "name": "zipswap",
+    "type": "uniswap_v2",
+    "enabled": true,
+    "contracts": {
+      "UniswapV2Router": "0xE6Df0BB08e5A97b40B21950a0A51b94c4DbA0Ff6",
+      "UniswapV2Factory": "0x8BCeDD62DD46F1A76F8A1633d4f5B76e0CDa521E"
+    }
+  },
+  {
+    "name": "radioshack",
+    "type": "uniswap_v2",
+    "enabled": true,
+    "contracts": {
+      "UniswapV2Router": "0x68797130D8E63745761C524C33121fdD7290cB72",
+      "UniswapV2Factory": "0x5eF0153590D4a762F129dCf3c59186D91365e4e1"
+    }
+  },
+  {
+    "name": "fraxswap",
+    "type": "uniswap_v2",
+    "enabled": true,
+    "contracts": {
+      "UniswapV2Router": "0xB9A55F455e46e8D717eEA5E47D2c449416A0437F",
+      "UniswapV2Factory": "0x67a1412d2D6CbF211bb71F8e851b4393b491B10f"
+    }
+  }
+]

@@ -1,0 +1,1 @@
+[{"name": "ezkalibur", "type": "uniswap_v2", "enabled": true, "contracts": {"UniswapV2Factory": "0x15C664A62086c06D43E75BB3fddED93008B8cE63"}}, {"name": "spacefi", "type": "uniswap_v2", "enabled": true, "contracts": {"UniswapV2Factory": "0x0700Fb51560CfC8F896B2c812499D17c5B0bF6A7"}}]

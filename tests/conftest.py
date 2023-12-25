@@ -70,7 +70,6 @@ def cache_web3_post_requests():
 def clickhouse_url() -> Generator[str, None, None]:
     url = os.getenv('TEST_CLICKHOUSE_URL')
     assert url, 'TEST_CLICKHOUSE_URL env var must be set'
-
     test_db_name = (
         os.getenv('TEST_CLICKHOUSE_DB_NAME') or f'_ethereum_etl_test_{randint(0, 999_999)}'
     )
