@@ -20,6 +20,7 @@ setup(
     url="https://github.com/blockchain-etl/ethereum-etl",
     packages=find_packages(exclude=["schemas", "tests*", "db", "helm"]),
     package_data={"blockchainetl.jobs.exporters": ["clickhouse_schemas.sql.tpl"]},
+    include_package_data=True,
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
