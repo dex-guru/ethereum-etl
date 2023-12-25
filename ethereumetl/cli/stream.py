@@ -176,7 +176,7 @@ def validate_start_block(_ctx, _param, value):
 )
 @click.option(
     '--is_skip_cycle',
-    default=envs.IS_VERIFIER,
+    default=envs.IS_SKIP_CYCLE,
     show_default=True,
     type=bool,
     help='Whether to verify the data',
