@@ -4,6 +4,7 @@ imageTag: ''
 registrySecretName: registry-harbor
 
 raw-data-streamer:
+# Streams the data raw block,transaction,log data
   replicas:
     default: 1
   limitsCpu: 4
@@ -266,47 +267,49 @@ raw-verify-data-trigger:
       polygon-137:       'http://rpc-gw-stage.dexguru.biz/full/137'
       bsc-56:            'http://rpc-gw-stage.dexguru.biz/full/56'
       canto-7700:        'http://rpc-gw-stage.dexguru.biz/full/7700'
-      # acanto-7701:       'http://canto-testnet.plexnode.wtf'
+      acanto-7701:       'http://canto-testnet.plexnode.wtf'
       fantom-250:        'http://rpc-gw-stage.dexguru.biz/debug/250'
       optimism-10:       'http://rpc-gw-stage.dexguru.biz/full/10'
       gnosis-100:        'http://rpc-gw-stage.dexguru.biz/full/100'
       arbitrum-42161:    'http://rpc-gw-stage.dexguru.biz/full/42161'
       nova-42170:        'http://rpc-gw-stage.dexguru.biz/full/42170'
-      # basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
+      basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
       base-8453:         'http://rpc-gw-stage.dexguru.biz/full/8453'
       avalanche-43114:   'http://rpc-gw-stage.dexguru.biz/full/43114'
       celo-42220:        'http://rpc-gw-stage.dexguru.biz/full/42220'
+      zetatestnet-7001: 'https://zetachain-athens-evm.blockpi.network/v1/rpc/public'
     LAST_SYNCED_BLOCK_PROVIDER:
       eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum?table_name=last_synced_block_verify'
       canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/canto?table_name=last_synced_block_verify'
-      # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/acanto?table_name=last_synced_block_verify'
+      acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/acanto?table_name=last_synced_block_verify'
       optimism-10:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/optimism?table_name=last_synced_block_verify'
       bsc-56:            'clickhouse+http://testuser3:testplpassword@10.0.100.175/bsc?table_name=last_synced_block_verify'
       polygon-137:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/polygon?table_name=last_synced_block_verify'
       fantom-250:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/fantom?table_name=last_synced_block_verify'
       base-8453:         'clickhouse+http://testuser3:testplpassword@10.0.100.175/base?table_name=last_synced_block_verify'
-      # basetestnet-84531: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/basetestnet?table_name=last_synced_block_verify'
+      basetestnet-84531: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/basetestnet?table_name=last_synced_block_verify'
       avalanche-43114:   'clickhouse+http://testuser3:testplpassword@10.0.100.175/avalanche?table_name=last_synced_block_verify'
       arbitrum-42161:    'clickhouse+http://testuser3:testplpassword@10.0.100.175/arbitrum?table_name=last_synced_block_verify'
       nova-42170:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/nova?table_name=last_synced_block_verify'
       gnosis-100:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/gnosis?table_name=last_synced_block_verify'
       celo-42220:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/celo?table_name=last_synced_block_verify'
-
+      zetatestnet-7001:         'clickhouse+http://testuser3:testplpassword@10.0.100.175/zetatestnet?table_name=last_synced_block'
     OUTPUT:
       eth-1:             'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       canto-7700:        'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
-      # acanto-7701:       'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
+      acanto-7701:       'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       optimism-10:       'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       bsc-56:            'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       polygon-137:       'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       fantom-250:        'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       base-8453:         'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
-      # basetestnet-84531: 'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
+      basetestnet-84531: 'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       avalanche-43114:   'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       arbitrum-42161:    'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       nova-42170:        'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       gnosis-100:        'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       celo-42220:        'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
+      zetatestnet-7001:  'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
 
     EXPORT_FROM_CLICKHOUSE:
       eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum'
