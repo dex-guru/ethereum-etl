@@ -42,7 +42,7 @@ raw-data-streamer:
       base-8453:         'http://rpc-gw-stage.dexguru.biz/full/8453'
       avalanche-43114:   'http://rpc-gw-stage.dexguru.biz/full/43114'
       celo-42220:        'http://rpc-gw-stage.dexguru.biz/full/42220'
-      zetatestnet-7001:  'https://zetachain-athens-evm.blockpi.network/v1/rpc/public'
+      zetatestnet-7001:  'http://rpc-gw-stage.dexguru.biz/test/7001'
     LAST_SYNCED_BLOCK_PROVIDER:
       eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum?table_name=last_synced_block'
       canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/canto?table_name=last_synced_block'
@@ -277,7 +277,7 @@ raw-verify-data-trigger:
       base-8453:         'http://rpc-gw-stage.dexguru.biz/full/8453'
       avalanche-43114:   'http://rpc-gw-stage.dexguru.biz/full/43114'
       celo-42220:        'http://rpc-gw-stage.dexguru.biz/full/42220'
-      zetatestnet-7001: 'https://zetachain-athens-evm.blockpi.network/v1/rpc/public'
+      zetatestnet-7001: 'http://rpc-gw-stage.dexguru.biz/test/7001'
     LAST_SYNCED_BLOCK_PROVIDER:
       eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum?table_name=last_synced_block_verify'
       canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/canto?table_name=last_synced_block_verify'
@@ -379,6 +379,7 @@ raw-data-streamer-transfers-preevents:
       base-8453:         'http://rpc-gw-stage.dexguru.biz/full/8453'
       avalanche-43114:   'http://rpc-gw-stage.dexguru.biz/full/43114'
       celo-42220:        'http://rpc-gw-stage.dexguru.biz/full/42220'
+      zetatestnet-7001: 'http://rpc-gw-stage.dexguru.biz/test/7001'
     OUTPUT:
       eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/canto,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
@@ -394,6 +395,7 @@ raw-data-streamer-transfers-preevents:
       nova-42170:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/nova,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       gnosis-100:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/gnosis,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       celo-42220:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/celo,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
+      zetatestnet-7001:   'clickhouse+http://testuser3:testplpassword@10.0.100.175/zetatestnet,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
     EXPORT_FROM_CLICKHOUSE:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -464,6 +466,7 @@ raw-data-streamer-gethtrace:
       base-8453:         'http://rpc-gw-stage.dexguru.biz/full/8453'
       avalanche-43114:   'http://rpc-gw-stage.dexguru.biz/full/43114'
       celo-42220:        'http://rpc-gw-stage.dexguru.biz/full/42220'
+      zetatestnet-7001: 'http://rpc-gw-stage.dexguru.biz/test/7001'
     OUTPUT:
       eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum,http://10.0.100.34:9200,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/canto,http://10.0.100.34:9200,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
@@ -479,6 +482,7 @@ raw-data-streamer-gethtrace:
       nova-42170:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/nova,http://10.0.100.34:9200,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       gnosis-100:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/gnosis,http://10.0.100.34:9200,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       celo-42220:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/celo,http://10.0.100.34:9200,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
+      zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/zetatestnet,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
     EXPORT_FROM_CLICKHOUSE:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
