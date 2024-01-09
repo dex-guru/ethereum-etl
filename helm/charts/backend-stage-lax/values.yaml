@@ -62,7 +62,7 @@ raw-data-streamer:
     OUTPUT:
       eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/canto,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
-      acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
+      acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/acanto,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       optimism-10:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/optimism,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       bsc-56:            'clickhouse+http://testuser3:testplpassword@10.0.100.175/bsc,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       polygon-137:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/polygon,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
