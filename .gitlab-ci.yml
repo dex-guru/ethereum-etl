@@ -44,8 +44,11 @@ variables:
     stage-indexation-arbitrum-42161
     stage-indexation-optimism-10
     stage-indexation-canto-7700
+    stage-indexation-acanto-7701
     stage-indexation-nova-42170
     stage-indexation-base-8453
+    stage-indexation-basetestnet-84531
+    stage-indexation-zetatestnet-7001
     stage-indexation-avalanche-43114
     stage-indexation-celo-42220
   KUBE_NAMESPACE_STAGE_TRACE: >-
