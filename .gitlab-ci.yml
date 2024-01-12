@@ -16,6 +16,8 @@ stages:
   - build
   - lint
   - test
+  - db-migrations-stage
+  - db-migrations-prod
   - deploy-stage
   - deploy-prod
 
@@ -324,6 +326,55 @@ lint-helm:
     - master
     - merge_requests
 
+apply-db-migrations-stage:
+  stage: db-migrations-stage
+  image:
+    name: ${IMAGE_HELM_KUBECTL}
+    entrypoint: [ "" ]
+  variables:
+    CLICKHOUSE_REPLICATED: 0
+  before_script:
+    - set -eo pipefail
+    - docker login -u "${CI_HARBOR_REGISTRY_USER}" -p "${CI_HARBOR_REGISTRY_PASSWORD}" "${CI_HARBOR_REGISTRY_HOST}"
+    - >-
+      alias docker_run='docker run
+      --rm
+      -i
+      --network host
+      -v "$PWD:/workdir"
+      -w /workdir
+      '
+    - export MR_SRC_IMAGE="$IMAGE_APP:$CI_COMMIT_SHORT_SHA"
+  script:
+    - set -eo pipefail
+    - docker_run $MR_SRC_IMAGE python ./db/apply_migrations.py helm/charts/backend-stage-lax/values.yaml
+  only:
+    - master
+
+apply-db-migrations-prod:
+  stage: db-migrations-prod
+  image:
+    name: ${IMAGE_HELM_KUBECTL}
+    entrypoint: [ "" ]
+  variables:
+    CLICKHOUSE_REPLICATED: 1
+  before_script:
+    - set -eo pipefail
+    - docker login -u "${CI_HARBOR_REGISTRY_USER}" -p "${CI_HARBOR_REGISTRY_PASSWORD}" "${CI_HARBOR_REGISTRY_HOST}"
+    - >-
+      alias docker_run='docker run
+      --rm
+      -i
+      --network host
+      -v "$PWD:/workdir"
+      -w /workdir
+      '
+    - export MR_SRC_IMAGE="$IMAGE_APP:$CI_COMMIT_SHORT_SHA"
+  script:
+    - set -eo pipefail
+    - docker_run $MR_SRC_IMAGE python ./db/apply_migrations.py helm/charts/backend-prod-lax/values.yaml
+  only:
+    - tags
 
 raw-data-streamer-stage:
   stage: deploy-stage
