@@ -54,12 +54,26 @@ spec:
             - name: {{ $key }}
               value: {{ $value | quote }}
           {{- end }}
+
           {{- if .Values.chainName }}
             - name: NETWORK
               value: '{{ (split "-" .Values.chainName)._0 }}'
             - name: CHAIN_ID
               value: '{{ (split "-" .Values.chainName)._1 }}'
-            {{- $chainname := .Values.chainName -}}
+            {{- $chainname := .Values.chainName }}
+            {{- range $outerKey, $outerValue := .Values.chainEnv }}
+              {{- $value := index $outerValue $chainname }}
+              {{- if $value }}
+            - name: {{ $outerKey }}
+              value: {{ $value | quote }}
+              {{- else }}
+                {{- $defaultValue := index $outerValue "default" }}
+                {{- if $defaultValue }}
+            - name: {{ $outerKey }}
+              value: {{ $defaultValue | quote }}
+                {{- end }}
+              {{- end }}
+            {{- end }}
             {{- range $key, $value := (index .Values .Values.appName "chainEnv") }}
             - name: {{ $key }}
               value: {{ (index $value $chainname |quote) | default ($value.default | quote) }}

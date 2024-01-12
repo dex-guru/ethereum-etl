@@ -2,6 +2,73 @@
 image: docker-registry.dexguru.biz/dex.guru/indexation-etl/indexation-etl
 imageTag: ''
 registrySecretName: registry-harbor
+chainEnv:
+  PROVIDER_URL:
+    default:           'http://rpc-gw-stage.dexguru.biz/full/-999'
+    eth-1:             'http://rpc-gw-stage.dexguru.biz/full/1'
+    polygon-137:       'http://rpc-gw-stage.dexguru.biz/full/137'
+    bsc-56:            'http://rpc-gw-stage.dexguru.biz/full/56'
+    canto-7700:        'http://rpc-gw-stage.dexguru.biz/full/7700'
+    acanto-7701:       'http://canto-testnet.plexnode.wtf'
+    fantom-250:        'http://rpc-gw-stage.dexguru.biz/full/250'
+    optimism-10:       'http://rpc-gw-stage.dexguru.biz/full/10'
+    gnosis-100:        'http://rpc-gw-stage.dexguru.biz/full/100'
+    arbitrum-42161:    'http://rpc-gw-stage.dexguru.biz/full/42161'
+    nova-42170:        'http://rpc-gw-stage.dexguru.biz/full/42170'
+    basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
+    base-8453:         'http://rpc-gw-stage.dexguru.biz/full/8453'
+    avalanche-43114:   'http://rpc-gw-stage.dexguru.biz/full/43114'
+    celo-42220:        'http://rpc-gw-stage.dexguru.biz/full/42220'
+    zetatestnet-7001:  'http://rpc-gw-stage.dexguru.biz/test/7001'
+  LAST_SYNCED_BLOCK_PROVIDER:
+    eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum?table_name=last_synced_block'
+    canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/canto?table_name=last_synced_block'
+    acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/acanto?table_name=last_synced_block'
+    optimism-10:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/optimism?table_name=last_synced_block'
+    bsc-56:            'clickhouse+http://testuser3:testplpassword@10.0.100.175/bsc?table_name=last_synced_block'
+    polygon-137:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/polygon?table_name=last_synced_block'
+    fantom-250:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/fantom?table_name=last_synced_block'
+    base-8453:         'clickhouse+http://testuser3:testplpassword@10.0.100.175/base?table_name=last_synced_block'
+    basetestnet-84531: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/basetestnet?table_name=last_synced_block'
+    avalanche-43114:   'clickhouse+http://testuser3:testplpassword@10.0.100.175/avalanche?table_name=last_synced_block'
+    arbitrum-42161:    'clickhouse+http://testuser3:testplpassword@10.0.100.175/arbitrum?table_name=last_synced_block'
+    nova-42170:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/nova?table_name=last_synced_block'
+    gnosis-100:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/gnosis?table_name=last_synced_block'
+    celo-42220:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/celo?table_name=last_synced_block'
+    zetatestnet-7001:         'clickhouse+http://testuser3:testplpassword@10.0.100.175/zetatestnet?table_name=last_synced_block'
+  OUTPUT:
+    eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum'
+    canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/canto'
+    acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/acanto'
+    optimism-10:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/optimism'
+    bsc-56:            'clickhouse+http://testuser3:testplpassword@10.0.100.175/bsc'
+    polygon-137:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/polygon'
+    fantom-250:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/fantom'
+    base-8453:         'clickhouse+http://testuser3:testplpassword@10.0.100.175/base'
+    basetestnet-84531: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/basetestnet'
+    avalanche-43114:   'clickhouse+http://testuser3:testplpassword@10.0.100.175/avalanche'
+    arbitrum-42161:    'clickhouse+http://testuser3:testplpassword@10.0.100.175/arbitrum'
+    nova-42170:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/nova'
+    gnosis-100:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/gnosis'
+    celo-42220:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/celo'
+    zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/zetatestnet'
+  EXPORT_FROM_CLICKHOUSE:
+    default: ''
+    eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
+    canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
+    acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto'
+    optimism-10: 'clickhouse+http://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism'
+    bsc-56: 'clickhouse+http://testuser3:testplpassword@stage-ch-bsc-01.dexguru.biz/bsc'
+    polygon-137: 'clickhouse+http://testuser3:testplpassword@stage-ch-polygon-01.dexguru.biz/polygon'
+    fantom-250: 'clickhouse+http://testuser3:testplpassword@stage-ch-fantom-01.dexguru.biz/fantom'
+    base-8453: 'clickhouse+http://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/base'
+    basetestnet-84531: 'clickhouse+http://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/basetestnet'
+    avalanche-43114: 'clickhouse+http://testuser3:testplpassword@stage-ch-avalanche-01.dexguru.biz/avalanche'
+    arbitrum-42161: 'clickhouse+http://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum'
+    nova-42170: 'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
+    gnosis-100: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
+    celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
+    zetatestnet-7001:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/zetatestnet'
 
 raw-data-streamer:
 # Streams the data raw block,transaction,log data
@@ -14,6 +81,7 @@ raw-data-streamer:
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "stream" ]'
   env:
+    ENTITY_TYPES: 'block,transaction,log'
     POLLING_PERIOD: '2'
     BATCH_SIZE: '5'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
@@ -22,43 +90,6 @@ raw-data-streamer:
     REWRITE_CLICKHOUSE: ''
     ELASTIC_URL: 'http://10.0.100.34:9200'
   chainEnv:
-    ENTITY_TYPES:
-      default: 'block,transaction,log'
-      # basetestnet-84531: 'block,transaction,log,token_transfer,token_balance,error,token'
-      # acanto-7701: 'block,transaction,log,token_transfer,token_balance,error,token'
-    PROVIDER_URL:
-      default:           'http://rpc-gw-stage.dexguru.biz/full/-999'
-      eth-1:             'http://rpc-gw-stage.dexguru.biz/full/1'
-      polygon-137:       'http://rpc-gw-stage.dexguru.biz/full/137'
-      bsc-56:            'http://rpc-gw-stage.dexguru.biz/full/56'
-      canto-7700:        'http://rpc-gw-stage.dexguru.biz/full/7700'
-      acanto-7701:       'http://canto-testnet.plexnode.wtf'
-      fantom-250:        'http://rpc-gw-stage.dexguru.biz/full/250'
-      optimism-10:       'http://rpc-gw-stage.dexguru.biz/full/10'
-      gnosis-100:        'http://rpc-gw-stage.dexguru.biz/full/100'
-      arbitrum-42161:    'http://rpc-gw-stage.dexguru.biz/full/42161'
-      nova-42170:        'http://rpc-gw-stage.dexguru.biz/full/42170'
-      basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
-      base-8453:         'http://rpc-gw-stage.dexguru.biz/full/8453'
-      avalanche-43114:   'http://rpc-gw-stage.dexguru.biz/full/43114'
-      celo-42220:        'http://rpc-gw-stage.dexguru.biz/full/42220'
-      zetatestnet-7001:  'http://rpc-gw-stage.dexguru.biz/test/7001'
-    LAST_SYNCED_BLOCK_PROVIDER:
-      eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum?table_name=last_synced_block'
-      canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/canto?table_name=last_synced_block'
-      acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/acanto?table_name=last_synced_block'
-      optimism-10:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/optimism?table_name=last_synced_block'
-      bsc-56:            'clickhouse+http://testuser3:testplpassword@10.0.100.175/bsc?table_name=last_synced_block'
-      polygon-137:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/polygon?table_name=last_synced_block'
-      fantom-250:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/fantom?table_name=last_synced_block'
-      base-8453:         'clickhouse+http://testuser3:testplpassword@10.0.100.175/base?table_name=last_synced_block'
-      basetestnet-84531: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/basetestnet?table_name=last_synced_block'
-      avalanche-43114:   'clickhouse+http://testuser3:testplpassword@10.0.100.175/avalanche?table_name=last_synced_block'
-      arbitrum-42161:    'clickhouse+http://testuser3:testplpassword@10.0.100.175/arbitrum?table_name=last_synced_block'
-      nova-42170:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/nova?table_name=last_synced_block'
-      gnosis-100:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/gnosis?table_name=last_synced_block'
-      celo-42220:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/celo?table_name=last_synced_block'
-      zetatestnet-7001:         'clickhouse+http://testuser3:testplpassword@10.0.100.175/zetatestnet?table_name=last_synced_block'
     OUTPUT:
       eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/canto,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
@@ -75,23 +106,6 @@ raw-data-streamer:
       gnosis-100:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/gnosis,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       celo-42220:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/celo,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/zetatestnet,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
-    EXPORT_FROM_CLICKHOUSE:
-      default: ''
-      eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
-      canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
-      # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto'
-      optimism-10: 'clickhouse+http://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism'
-      bsc-56: 'clickhouse+http://testuser3:testplpassword@stage-ch-bsc-01.dexguru.biz/bsc'
-      polygon-137: 'clickhouse+http://testuser3:testplpassword@stage-ch-polygon-01.dexguru.biz/polygon'
-      fantom-250: 'clickhouse+http://testuser3:testplpassword@stage-ch-fantom-01.dexguru.biz/fantom'
-      base-8453: 'clickhouse+http://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/base'
-      # basetestnet-84531: 'clickhouse+http://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/basetestnet'
-      avalanche-43114: 'clickhouse+http://testuser3:testplpassword@stage-ch-avalanche-01.dexguru.biz/avalanche'
-      arbitrum-42161: 'clickhouse+http://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum'
-      nova-42170: 'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
-      gnosis-100: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
-      celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
-
     BLOCK_BATCH_SIZE:
       default: '30'
       arbitrum-42161: '50'
@@ -106,133 +120,6 @@ raw-data-streamer:
       default: 10
       arbitrum-42161: 30
       eth: 5
-
-raw-data-streamer-resync:
-  replicas:
-    default: 1
-  limitsCpu: 4
-  limitsMemory: 9000Mi
-  requestsCpu: 100m
-  requestsMemory: 1000Mi
-  strategyType: 'Recreate'
-  command: '[ "ethereumetl", "stream" ]'
-  env:
-    LAG: '0'
-    POLLING_PERIOD: '2'
-    BATCH_SIZE: '10'
-    LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
-    LOG_HANDLERS: '["console","logstash"]'
-    SERVICE_NAME: 'raw-resync-data-streamer'
-  chainEnv:
-    ENTITY_TYPES:
-      default: 'block,transaction,log,token_transfer,internal_transfer,geth_trace'
-      fantom-250: 'block,transaction,log,token_transfer'
-      # acanto-7701: 'block,transaction,log,token_transfer'
-      gnosis-100: 'block,transaction,log,token_transfer'
-      optimism-10: 'block,transaction,log,token_transfer'
-
-    START_BLOCK:
-      default: '1'
-      # acanto-7701: '1299370'
-      canto-7700: '1'
-      # basetestnet-84531: '1'
-    END_BLOCK:
-      default: '0'
-      bsc-56: '7182894'
-      eth-1:      '17198869'
-      canto-7700: '4258699'
-      fantom-250: '62288825'
-      optimism-10: '98555892'
-      gnosis-100: '27961654'
-      arbitrum-42161: '91065804'
-      nova-42170: '8897049'
-      # basetestnet-84531: '4922000'
-
-    PROVIDER_URL:
-      default: 'http://rpc-gw-stage.dexguru.biz/archive/-999'
-      eth-1:      'http://rpc-gw-stage.dexguru.biz/archive/1'
-      polygon-137: 'http://rpc-gw-stage.dexguru.biz/archive/137'
-      bsc-56: 'http://rpc-gw-stage.dexguru.biz/archive/56'
-      canto-7700: 'http://rpc-gw-stage.dexguru.biz/archive/7700'
-      # acanto-7701: 'http://canto-testnet.plexnode.wtf'
-      fantom-250: 'http://rpc-gw-stage.dexguru.biz/archive/250'
-      optimism-10: 'http://rpc-gw-stage.dexguru.biz/archive/10'
-      gnosis-100: 'http://rpc-gw-stage.dexguru.biz/archive/100'
-      arbitrum-42161: 'http://rpc-gw-stage.dexguru.biz/archive/42161'
-      nova-42170: 'http://rpc-gw-stage.dexguru.biz/archive/42170'
-      # basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/archive/84531'
-      base-8453: 'http://rpc-gw-stage.dexguru.biz/full/8453'
-      avalanche-43114: 'http://rpc-gw-stage.dexguru.biz/full/43114'
-      celo-42220: 'http://rpc-gw-stage.dexguru.biz/full/42220'
-
-    LAST_SYNCED_BLOCK_PROVIDER:
-      eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum'
-      canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/canto'
-      # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/acanto'
-      optimism-10:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/optimism'
-      bsc-56:            'clickhouse+http://testuser3:testplpassword@10.0.100.175/bsc'
-      polygon-137:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/polygon'
-      fantom-250:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/fantom'
-      base-8453:         'clickhouse+http://testuser3:testplpassword@10.0.100.175/base'
-      # basetestnet-84531: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/basetestnet'
-      avalanche-43114:   'clickhouse+http://testuser3:testplpassword@10.0.100.175/avalanche'
-      arbitrum-42161:    'clickhouse+http://testuser3:testplpassword@10.0.100.175/arbitrum'
-      nova-42170:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/nova'
-      gnosis-100:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/gnosis'
-      celo-42220:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/celo'
-
-    OUTPUT:
-      eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
-      canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
-      # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto'
-      optimism-10:       'clickhouse+http://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism'
-      bsc-56:            'clickhouse+http://testuser3:testplpassword@stage-ch-bsc-01.dexguru.biz/bsc'
-      polygon-137:       'clickhouse+http://testuser3:testplpassword@stage-ch-polygon-01.dexguru.biz/polygon'
-      fantom-250:        'clickhouse+http://testuser3:testplpassword@stage-ch-fantom-01.dexguru.biz/fantom'
-      base-8453:         'clickhouse+http://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/base'
-      # basetestnet-84531: 'clickhouse+http://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/basetestnet'
-      avalanche-43114:   'clickhouse+http://testuser3:testplpassword@stage-ch-avalanche-01.dexguru.biz/avalanche'
-      arbitrum-42161:    'clickhouse+http://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum'
-      nova-42170:        'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
-      gnosis-100:        'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
-      celo-42220:        'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
-
-    EXPORT_FROM_CLICKHOUSE:
-      eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum'
-      canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/canto'
-      # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/acanto'
-      optimism-10:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/optimism'
-      bsc-56:            'clickhouse+http://testuser3:testplpassword@10.0.100.175/bsc'
-      polygon-137:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/polygon'
-      fantom-250:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/fantom'
-      base-8453:         'clickhouse+http://testuser3:testplpassword@10.0.100.175/base'
-      # basetestnet-84531: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/basetestnet'
-      avalanche-43114:   'clickhouse+http://testuser3:testplpassword@10.0.100.175/avalanche'
-      arbitrum-42161:    'clickhouse+http://testuser3:testplpassword@10.0.100.175/arbitrum'
-      nova-42170:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/nova'
-      gnosis-100:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/gnosis'
-      celo-42220:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/celo'
-
-    BLOCK_BATCH_SIZE:
-      default: '100'
-    MAX_WORKERS:
-      default: '5'
-      polygon-137: '10'
-      eth-1:      '5'
-      bsc-56: '12'
-      canto-7700: '5'
-      fantom-250: '5'
-      optimism-10: '5'
-      gnosis-100: '5'
-      arbitrum-42161: '5'
-      nova-42170: '5'
-      # acanto-7701: '5'
-    SKIP_NONE_RECEIPTS:
-      default: 'False'
-      polygon-137: 'True'
-    MIN_INSERT_BATCH_SIZE:
-      default: '1000'
-
 
 raw-verify-data-trigger:
   replicas:
@@ -261,23 +148,6 @@ raw-verify-data-trigger:
       optimism-10: 200
     ENTITY_TYPES:
       default: 'block'
-    PROVIDER_URL:
-      default:           'http://rpc-gw-stage.dexguru.biz/full/-999'
-      eth-1:             'http://rpc-gw-stage.dexguru.biz/full/1'
-      polygon-137:       'http://rpc-gw-stage.dexguru.biz/full/137'
-      bsc-56:            'http://rpc-gw-stage.dexguru.biz/full/56'
-      canto-7700:        'http://rpc-gw-stage.dexguru.biz/full/7700'
-      acanto-7701:       'http://canto-testnet.plexnode.wtf'
-      fantom-250:        'http://rpc-gw-stage.dexguru.biz/debug/250'
-      optimism-10:       'http://rpc-gw-stage.dexguru.biz/full/10'
-      gnosis-100:        'http://rpc-gw-stage.dexguru.biz/full/100'
-      arbitrum-42161:    'http://rpc-gw-stage.dexguru.biz/full/42161'
-      nova-42170:        'http://rpc-gw-stage.dexguru.biz/full/42170'
-      basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
-      base-8453:         'http://rpc-gw-stage.dexguru.biz/full/8453'
-      avalanche-43114:   'http://rpc-gw-stage.dexguru.biz/full/43114'
-      celo-42220:        'http://rpc-gw-stage.dexguru.biz/full/42220'
-      zetatestnet-7001: 'http://rpc-gw-stage.dexguru.biz/test/7001'
     LAST_SYNCED_BLOCK_PROVIDER:
       eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum?table_name=last_synced_block_verify'
       canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/canto?table_name=last_synced_block_verify'
@@ -293,7 +163,7 @@ raw-verify-data-trigger:
       nova-42170:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/nova?table_name=last_synced_block_verify'
       gnosis-100:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/gnosis?table_name=last_synced_block_verify'
       celo-42220:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/celo?table_name=last_synced_block_verify'
-      zetatestnet-7001:         'clickhouse+http://testuser3:testplpassword@10.0.100.175/zetatestnet?table_name=last_synced_block'
+      zetatestnet-7001:         'clickhouse+http://testuser3:testplpassword@10.0.100.175/zetatestnet?table_name=last_synced_block_verify'
     OUTPUT:
       eth-1:             'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       canto-7700:        'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
@@ -310,23 +180,6 @@ raw-verify-data-trigger:
       gnosis-100:        'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       celo-42220:        'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       zetatestnet-7001:  'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
-
-    EXPORT_FROM_CLICKHOUSE:
-      eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum'
-      canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/canto'
-      # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/acanto'
-      optimism-10:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/optimism'
-      bsc-56:            'clickhouse+http://testuser3:testplpassword@10.0.100.175/bsc'
-      polygon-137:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/polygon'
-      fantom-250:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/fantom'
-      base-8453:         'clickhouse+http://testuser3:testplpassword@10.0.100.175/base'
-      # basetestnet-84531: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/basetestnet'
-      avalanche-43114:   'clickhouse+http://testuser3:testplpassword@10.0.100.175/avalanche'
-      arbitrum-42161:    'clickhouse+http://testuser3:testplpassword@10.0.100.175/arbitrum'
-      nova-42170:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/nova'
-      gnosis-100:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/gnosis'
-      celo-42220:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/celo'
-
     BLOCK_BATCH_SIZE:
       default: '10'
     MAX_WORKERS:
@@ -338,6 +191,80 @@ raw-verify-data-trigger:
       polygon-137: 'True'
     MIN_INSERT_BATCH_SIZE:
       default: '1'
+
+raw-data-streamer-resync:
+  replicas:
+    default: 1
+  limitsCpu: 4
+  limitsMemory: 9000Mi
+  requestsCpu: 100m
+  requestsMemory: 1000Mi
+  strategyType: 'Recreate'
+  command: '[ "ethereumetl", "stream" ]'
+  env:
+    LAG: '0'
+    POLLING_PERIOD: '2'
+    BATCH_SIZE: '10'
+    LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
+    LOG_HANDLERS: '["console","logstash"]'
+    SERVICE_NAME: 'raw-resync-data-streamer'
+  chainEnv:
+    ENTITY_TYPES:
+      default: 'block,transaction,log,token_transfer,internal_transfer,geth_trace'
+      fantom-250: 'block,transaction,log,token_transfer'
+      # acanto-7701: 'block,transaction,log,token_transfer'
+      gnosis-100: 'block,transaction,log,token_transfer'
+      optimism-10: 'block,transaction,log,token_transfer'
+    LAST_SYNCED_BLOCK_PROVIDER:
+      eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum'
+      canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/canto'
+      # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/acanto'
+      optimism-10: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/optimism'
+      bsc-56: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/bsc'
+      polygon-137: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/polygon'
+      fantom-250: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/fantom'
+      base-8453: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/base'
+      # basetestnet-84531: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/basetestnet'
+      avalanche-43114: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/avalanche'
+      arbitrum-42161: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/arbitrum'
+      nova-42170: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/nova'
+      gnosis-100: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/gnosis'
+      celo-42220: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/celo'
+    START_BLOCK:
+      default: '1'
+      # acanto-7701: '1299370'
+      canto-7700: '1'
+      # basetestnet-84531: '1'
+    END_BLOCK:
+      default: '0'
+      bsc-56: '7182894'
+      eth-1:      '17198869'
+      canto-7700: '4258699'
+      fantom-250: '62288825'
+      optimism-10: '98555892'
+      gnosis-100: '27961654'
+      arbitrum-42161: '91065804'
+      nova-42170: '8897049'
+      # basetestnet-84531: '4922000'
+    BLOCK_BATCH_SIZE:
+      default: '100'
+    MAX_WORKERS:
+      default: '5'
+      polygon-137: '10'
+      eth-1:      '5'
+      bsc-56: '12'
+      canto-7700: '5'
+      fantom-250: '5'
+      optimism-10: '5'
+      gnosis-100: '5'
+      arbitrum-42161: '5'
+      nova-42170: '5'
+      # acanto-7701: '5'
+    SKIP_NONE_RECEIPTS:
+      default: 'False'
+      polygon-137: 'True'
+    MIN_INSERT_BATCH_SIZE:
+      default: '1000'
 
 raw-data-streamer-transfers-preevents:
   replicas:
@@ -358,60 +285,24 @@ raw-data-streamer-transfers-preevents:
     ELASTIC_URL: 'http://10.0.100.34:9200'
     AMQP_URL: 'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
     ROUTING_KEY: 'block'
+    ENTITY_TYPES: 'token_transfer,pre_event'
   chainEnv:
-    ENTITY_TYPES:
-      default: 'token_transfer,pre_event'
-      # basetestnet-84531: 'block,transaction,log,token_transfer,token_balance,error,token'
-      # acanto-7701: 'block,transaction,log,token_transfer,token_balance,error,token'
-    PROVIDER_URL:
-      default:           'http://rpc-gw-stage.dexguru.biz/full/-999'
-      eth-1:             'http://rpc-gw-stage.dexguru.biz/full/1'
-      polygon-137:       'http://rpc-gw-stage.dexguru.biz/full/137'
-      bsc-56:            'http://rpc-gw-stage.dexguru.biz/full/56'
-      canto-7700:        'http://rpc-gw-stage.dexguru.biz/full/7700'
-      # acanto-7701:       'http://canto-testnet.plexnode.wtf'
-      fantom-250:        'http://rpc-gw-stage.dexguru.biz/full/250'
-      optimism-10:       'http://rpc-gw-stage.dexguru.biz/full/10'
-      gnosis-100:        'http://rpc-gw-stage.dexguru.biz/full/100'
-      arbitrum-42161:    'http://rpc-gw-stage.dexguru.biz/full/42161'
-      nova-42170:        'http://rpc-gw-stage.dexguru.biz/full/42170'
-      # basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
-      base-8453:         'http://rpc-gw-stage.dexguru.biz/full/8453'
-      avalanche-43114:   'http://rpc-gw-stage.dexguru.biz/full/43114'
-      celo-42220:        'http://rpc-gw-stage.dexguru.biz/full/42220'
-      zetatestnet-7001: 'http://rpc-gw-stage.dexguru.biz/test/7001'
     OUTPUT:
       eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/canto,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
-      # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto'
+      acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       optimism-10:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/optimism,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       bsc-56:            'clickhouse+http://testuser3:testplpassword@10.0.100.175/bsc,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       polygon-137:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/polygon,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       fantom-250:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/fantom,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       base-8453:         'clickhouse+http://testuser3:testplpassword@10.0.100.175/base,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
-      # basetestnet-84531: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/basetestnet'
+      basetestnet-84531: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/basetestnet,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       avalanche-43114:   'clickhouse+http://testuser3:testplpassword@10.0.100.175/avalanche,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       arbitrum-42161:    'clickhouse+http://testuser3:testplpassword@10.0.100.175/arbitrum,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       nova-42170:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/nova,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       gnosis-100:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/gnosis,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       celo-42220:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/celo,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       zetatestnet-7001:   'clickhouse+http://testuser3:testplpassword@10.0.100.175/zetatestnet,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
-    EXPORT_FROM_CLICKHOUSE:
-      eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
-      canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
-      # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto'
-      optimism-10: 'clickhouse+http://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism'
-      bsc-56: 'clickhouse+http://testuser3:testplpassword@stage-ch-bsc-01.dexguru.biz/bsc'
-      polygon-137: 'clickhouse+http://testuser3:testplpassword@stage-ch-polygon-01.dexguru.biz/polygon'
-      fantom-250: 'clickhouse+http://testuser3:testplpassword@stage-ch-fantom-01.dexguru.biz/fantom'
-      base-8453: 'clickhouse+http://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/base'
-      # basetestnet-84531: 'clickhouse+http://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/basetestnet'
-      avalanche-43114: 'clickhouse+http://testuser3:testplpassword@stage-ch-avalanche-01.dexguru.biz/avalanche'
-      arbitrum-42161: 'clickhouse+http://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum'
-      nova-42170: 'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
-      gnosis-100: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
-      celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
-      
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
@@ -423,8 +314,6 @@ raw-data-streamer-transfers-preevents:
       default: '1'
     LAG:
       default: 0
-#      arbitrum-42161: 50
-#      fantom-250: 30
 
 raw-data-streamer-gethtrace:
   replicas:
@@ -445,11 +334,8 @@ raw-data-streamer-gethtrace:
     ELASTIC_URL: 'http://10.0.100.34:9200'
     AMQP_URL: 'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
     ROUTING_KEY: 'block'
+    ENTITY_TYPES: 'geth_trace,internal_transfer,internal_transfer_priced'
   chainEnv:
-    ENTITY_TYPES:
-      default: 'geth_trace,internal_transfer,internal_transfer_priced'
-      # basetestnet-84531: 'block,transaction,log,token_transfer,token_balance,error,token'
-      # acanto-7701: 'block,transaction,log,token_transfer,token_balance,error,token'
     PROVIDER_URL:
       default:           'http://rpc-gw-stage.dexguru.biz/full/-999'
       eth-1:             'http://rpc-gw-stage.dexguru.biz/full/1'
@@ -483,22 +369,6 @@ raw-data-streamer-gethtrace:
       gnosis-100:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/gnosis,http://10.0.100.34:9200,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       celo-42220:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/celo,http://10.0.100.34:9200,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/zetatestnet,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
-    EXPORT_FROM_CLICKHOUSE:
-      eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
-      canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
-      # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto'
-      optimism-10: 'clickhouse+http://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism'
-      bsc-56: 'clickhouse+http://testuser3:testplpassword@stage-ch-bsc-01.dexguru.biz/bsc'
-      polygon-137: 'clickhouse+http://testuser3:testplpassword@stage-ch-polygon-01.dexguru.biz/polygon'
-      fantom-250: 'clickhouse+http://testuser3:testplpassword@stage-ch-fantom-01.dexguru.biz/fantom'
-      base-8453: 'clickhouse+http://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/base'
-      # basetestnet-84531: 'clickhouse+http://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/basetestnet'
-      avalanche-43114: 'clickhouse+http://testuser3:testplpassword@stage-ch-avalanche-01.dexguru.biz/avalanche'
-      arbitrum-42161: 'clickhouse+http://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum'
-      nova-42170: 'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
-      gnosis-100: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
-      celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
-
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
@@ -510,8 +380,6 @@ raw-data-streamer-gethtrace:
       default: '1'
     LAG:
       default: 0
-#      arbitrum-42161: 50
-#      fantom-250: 30
 
 raw-data-streamer-balance:
   replicas:
@@ -532,58 +400,8 @@ raw-data-streamer-balance:
     ELASTIC_URL: 'http://10.0.100.34:9200'
     AMQP_URL: 'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
     ROUTING_KEY: 'token_transfer'
+    ENTITY_TYPES: 'token_balance'
   chainEnv:
-    ENTITY_TYPES:
-      default: 'token_balance'
-      # basetestnet-84531: 'block,transaction,log,token_transfer,token_balance,error,token'
-      # acanto-7701: 'block,transaction,log,token_transfer,token_balance,error,token'
-    PROVIDER_URL:
-      default:           'http://rpc-gw-stage.dexguru.biz/full/-999'
-      eth-1:             'http://rpc-gw-stage.dexguru.biz/full/1'
-      polygon-137:       'http://rpc-gw-stage.dexguru.biz/full/137'
-      bsc-56:            'http://rpc-gw-stage.dexguru.biz/full/56'
-      canto-7700:        'http://rpc-gw-stage.dexguru.biz/full/7700'
-      # acanto-7701:       'http://canto-testnet.plexnode.wtf'
-      fantom-250:        'http://rpc-gw-stage.dexguru.biz/full/250'
-      optimism-10:       'http://rpc-gw-stage.dexguru.biz/full/10'
-      gnosis-100:        'http://rpc-gw-stage.dexguru.biz/full/100'
-      arbitrum-42161:    'http://rpc-gw-stage.dexguru.biz/full/42161'
-      nova-42170:        'http://rpc-gw-stage.dexguru.biz/full/42170'
-      # basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
-      base-8453:         'http://rpc-gw-stage.dexguru.biz/full/8453'
-      avalanche-43114:   'http://rpc-gw-stage.dexguru.biz/full/43114'
-      celo-42220:        'http://rpc-gw-stage.dexguru.biz/full/42220'
-    OUTPUT:
-      eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum'
-      canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/canto'
-      # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto'
-      optimism-10:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/optimism'
-      bsc-56:            'clickhouse+http://testuser3:testplpassword@10.0.100.175/bsc'
-      polygon-137:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/polygon'
-      fantom-250:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/fantom'
-      base-8453:         'clickhouse+http://testuser3:testplpassword@10.0.100.175/base'
-      # basetestnet-84531: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/basetestnet'
-      avalanche-43114:   'clickhouse+http://testuser3:testplpassword@10.0.100.175/avalanche'
-      arbitrum-42161:    'clickhouse+http://testuser3:testplpassword@10.0.100.175/arbitrum'
-      nova-42170:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/nova'
-      gnosis-100:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/gnosis'
-      celo-42220:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/celo'
-    EXPORT_FROM_CLICKHOUSE:
-      eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
-      canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
-      # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto'
-      optimism-10: 'clickhouse+http://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism'
-      bsc-56: 'clickhouse+http://testuser3:testplpassword@stage-ch-bsc-01.dexguru.biz/bsc'
-      polygon-137: 'clickhouse+http://testuser3:testplpassword@stage-ch-polygon-01.dexguru.biz/polygon'
-      fantom-250: 'clickhouse+http://testuser3:testplpassword@stage-ch-fantom-01.dexguru.biz/fantom'
-      base-8453: 'clickhouse+http://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/base'
-      # basetestnet-84531: 'clickhouse+http://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/basetestnet'
-      avalanche-43114: 'clickhouse+http://testuser3:testplpassword@stage-ch-avalanche-01.dexguru.biz/avalanche'
-      arbitrum-42161: 'clickhouse+http://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum'
-      nova-42170: 'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
-      gnosis-100: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
-      celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
-
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
@@ -617,58 +435,24 @@ raw-data-streamer-token-tokentransferpriced:
     ELASTIC_URL: 'http://10.0.100.34:9200'
     AMQP_URL: 'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
     ROUTING_KEY: 'token_transfer'
+    ENTITY_TYPES: 'token,token_transfer_priced'
   chainEnv:
-    ENTITY_TYPES:
-      default: 'token,token_transfer_priced'
-      # basetestnet-84531: 'block,transaction,log,token_transfer,token_balance,error,token'
-      # acanto-7701: 'block,transaction,log,token_transfer,token_balance,error,token'
-    PROVIDER_URL:
-      default:           'http://rpc-gw-stage.dexguru.biz/full/-999'
-      eth-1:             'http://rpc-gw-stage.dexguru.biz/full/1'
-      polygon-137:       'http://rpc-gw-stage.dexguru.biz/full/137'
-      bsc-56:            'http://rpc-gw-stage.dexguru.biz/full/56'
-      canto-7700:        'http://rpc-gw-stage.dexguru.biz/full/7700'
-      # acanto-7701:       'http://canto-testnet.plexnode.wtf'
-      fantom-250:        'http://rpc-gw-stage.dexguru.biz/full/250'
-      optimism-10:       'http://rpc-gw-stage.dexguru.biz/full/10'
-      gnosis-100:        'http://rpc-gw-stage.dexguru.biz/full/100'
-      arbitrum-42161:    'http://rpc-gw-stage.dexguru.biz/full/42161'
-      nova-42170:        'http://rpc-gw-stage.dexguru.biz/full/42170'
-      # basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
-      base-8453:         'http://rpc-gw-stage.dexguru.biz/full/8453'
-      avalanche-43114:   'http://rpc-gw-stage.dexguru.biz/full/43114'
-      celo-42220:        'http://rpc-gw-stage.dexguru.biz/full/42220'
     OUTPUT:
       eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum,http://10.0.100.34:9200'
       canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/canto,http://10.0.100.34:9200'
-      # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto'
+      # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto,http://10.0.100.34:9200'
       optimism-10:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/optimism,http://10.0.100.34:9200'
       bsc-56:            'clickhouse+http://testuser3:testplpassword@10.0.100.175/bsc,http://10.0.100.34:9200'
       polygon-137:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/polygon,http://10.0.100.34:9200'
       fantom-250:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/fantom,http://10.0.100.34:9200'
       base-8453:         'clickhouse+http://testuser3:testplpassword@10.0.100.175/base,http://10.0.100.34:9200'
-      # basetestnet-84531: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/basetestnet'
+      # basetestnet-84531: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/basetestnet,http://10.0.100.34:9200'
       avalanche-43114:   'clickhouse+http://testuser3:testplpassword@10.0.100.175/avalanche,http://10.0.100.34:9200'
       arbitrum-42161:    'clickhouse+http://testuser3:testplpassword@10.0.100.175/arbitrum,http://10.0.100.34:9200'
       nova-42170:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/nova,http://10.0.100.34:9200'
       gnosis-100:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/gnosis,http://10.0.100.34:9200'
       celo-42220:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/celo,http://10.0.100.34:9200'
-    EXPORT_FROM_CLICKHOUSE:
-      eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
-      canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
-      # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto'
-      optimism-10: 'clickhouse+http://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism'
-      bsc-56: 'clickhouse+http://testuser3:testplpassword@stage-ch-bsc-01.dexguru.biz/bsc'
-      polygon-137: 'clickhouse+http://testuser3:testplpassword@stage-ch-polygon-01.dexguru.biz/polygon'
-      fantom-250: 'clickhouse+http://testuser3:testplpassword@stage-ch-fantom-01.dexguru.biz/fantom'
-      base-8453: 'clickhouse+http://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/base'
-      # basetestnet-84531: 'clickhouse+http://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/basetestnet'
-      avalanche-43114: 'clickhouse+http://testuser3:testplpassword@stage-ch-avalanche-01.dexguru.biz/avalanche'
-      arbitrum-42161: 'clickhouse+http://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum'
-      nova-42170: 'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
-      gnosis-100: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
-      celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
-
+      zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/zetatestnet,http://10.0.100.34:9200'
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
@@ -702,58 +486,8 @@ raw-data-streamer-nativebalance:
     ELASTIC_URL: 'http://10.0.100.34:9200'
     AMQP_URL: 'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
     ROUTING_KEY: 'internal_transfer'
+    ENTITY_TYPES: 'native_balance'
   chainEnv:
-    ENTITY_TYPES:
-      default: 'native_balance'
-      # basetestnet-84531: 'block,transaction,log,token_transfer,token_balance,error,token'
-      # acanto-7701: 'block,transaction,log,token_transfer,token_balance,error,token'
-    PROVIDER_URL:
-      default:           'http://rpc-gw-stage.dexguru.biz/full/-999'
-      eth-1:             'http://rpc-gw-stage.dexguru.biz/full/1'
-      polygon-137:       'http://rpc-gw-stage.dexguru.biz/full/137'
-      bsc-56:            'http://rpc-gw-stage.dexguru.biz/full/56'
-      canto-7700:        'http://rpc-gw-stage.dexguru.biz/full/7700'
-      # acanto-7701:       'http://canto-testnet.plexnode.wtf'
-      fantom-250:        'http://rpc-gw-stage.dexguru.biz/full/250'
-      optimism-10:       'http://rpc-gw-stage.dexguru.biz/full/10'
-      gnosis-100:        'http://rpc-gw-stage.dexguru.biz/full/100'
-      arbitrum-42161:    'http://rpc-gw-stage.dexguru.biz/full/42161'
-      nova-42170:        'http://rpc-gw-stage.dexguru.biz/full/42170'
-      # basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
-      base-8453:         'http://rpc-gw-stage.dexguru.biz/full/8453'
-      avalanche-43114:   'http://rpc-gw-stage.dexguru.biz/full/43114'
-      celo-42220:        'http://rpc-gw-stage.dexguru.biz/full/42220'
-    OUTPUT:
-      eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum'
-      canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/canto'
-      # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto'
-      optimism-10:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/optimism'
-      bsc-56:            'clickhouse+http://testuser3:testplpassword@10.0.100.175/bsc'
-      polygon-137:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/polygon'
-      fantom-250:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/fantom'
-      base-8453:         'clickhouse+http://testuser3:testplpassword@10.0.100.175/base'
-      # basetestnet-84531: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/basetestnet'
-      avalanche-43114:   'clickhouse+http://testuser3:testplpassword@10.0.100.175/avalanche'
-      arbitrum-42161:    'clickhouse+http://testuser3:testplpassword@10.0.100.175/arbitrum'
-      nova-42170:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/nova'
-      gnosis-100:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/gnosis'
-      celo-42220:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/celo'
-    EXPORT_FROM_CLICKHOUSE:
-      eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
-      canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
-      # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto'
-      optimism-10: 'clickhouse+http://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism'
-      bsc-56: 'clickhouse+http://testuser3:testplpassword@stage-ch-bsc-01.dexguru.biz/bsc'
-      polygon-137: 'clickhouse+http://testuser3:testplpassword@stage-ch-polygon-01.dexguru.biz/polygon'
-      fantom-250: 'clickhouse+http://testuser3:testplpassword@stage-ch-fantom-01.dexguru.biz/fantom'
-      base-8453: 'clickhouse+http://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/base'
-      # basetestnet-84531: 'clickhouse+http://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/basetestnet'
-      avalanche-43114: 'clickhouse+http://testuser3:testplpassword@stage-ch-avalanche-01.dexguru.biz/avalanche'
-      arbitrum-42161: 'clickhouse+http://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum'
-      nova-42170: 'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
-      gnosis-100: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
-      celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
-
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
@@ -787,58 +521,8 @@ raw-data-streamer-contract-token:
     ELASTIC_URL: 'http://10.0.100.34:9200'
     AMQP_URL: 'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
     ROUTING_KEY: 'internal_transfer'
+    ENTITY_TYPES: 'contract,token'
   chainEnv:
-    ENTITY_TYPES:
-      default: 'contract,token'
-      # basetestnet-84531: 'block,transaction,log,token_transfer,token_balance,error,token'
-      # acanto-7701: 'block,transaction,log,token_transfer,token_balance,error,token'
-    PROVIDER_URL:
-      default:           'http://rpc-gw-stage.dexguru.biz/full/-999'
-      eth-1:             'http://rpc-gw-stage.dexguru.biz/full/1'
-      polygon-137:       'http://rpc-gw-stage.dexguru.biz/full/137'
-      bsc-56:            'http://rpc-gw-stage.dexguru.biz/full/56'
-      canto-7700:        'http://rpc-gw-stage.dexguru.biz/full/7700'
-      # acanto-7701:       'http://canto-testnet.plexnode.wtf'
-      fantom-250:        'http://rpc-gw-stage.dexguru.biz/full/250'
-      optimism-10:       'http://rpc-gw-stage.dexguru.biz/full/10'
-      gnosis-100:        'http://rpc-gw-stage.dexguru.biz/full/100'
-      arbitrum-42161:    'http://rpc-gw-stage.dexguru.biz/full/42161'
-      nova-42170:        'http://rpc-gw-stage.dexguru.biz/full/42170'
-      # basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
-      base-8453:         'http://rpc-gw-stage.dexguru.biz/full/8453'
-      avalanche-43114:   'http://rpc-gw-stage.dexguru.biz/full/43114'
-      celo-42220:        'http://rpc-gw-stage.dexguru.biz/full/42220'
-    OUTPUT:
-      eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum'
-      canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/canto'
-      # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto'
-      optimism-10:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/optimism'
-      bsc-56:            'clickhouse+http://testuser3:testplpassword@10.0.100.175/bsc'
-      polygon-137:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/polygon'
-      fantom-250:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/fantom'
-      base-8453:         'clickhouse+http://testuser3:testplpassword@10.0.100.175/base'
-      # basetestnet-84531: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/basetestnet'
-      avalanche-43114:   'clickhouse+http://testuser3:testplpassword@10.0.100.175/avalanche'
-      arbitrum-42161:    'clickhouse+http://testuser3:testplpassword@10.0.100.175/arbitrum'
-      nova-42170:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/nova'
-      gnosis-100:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/gnosis'
-      celo-42220:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/celo'
-    EXPORT_FROM_CLICKHOUSE:
-      eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
-      canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
-      # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto'
-      optimism-10: 'clickhouse+http://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism'
-      bsc-56: 'clickhouse+http://testuser3:testplpassword@stage-ch-bsc-01.dexguru.biz/bsc'
-      polygon-137: 'clickhouse+http://testuser3:testplpassword@stage-ch-polygon-01.dexguru.biz/polygon'
-      fantom-250: 'clickhouse+http://testuser3:testplpassword@stage-ch-fantom-01.dexguru.biz/fantom'
-      base-8453: 'clickhouse+http://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/base'
-      # basetestnet-84531: 'clickhouse+http://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/basetestnet'
-      avalanche-43114: 'clickhouse+http://testuser3:testplpassword@stage-ch-avalanche-01.dexguru.biz/avalanche'
-      arbitrum-42161: 'clickhouse+http://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum'
-      nova-42170: 'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
-      gnosis-100: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
-      celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
-
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
@@ -850,7 +534,6 @@ raw-data-streamer-contract-token:
       default: '1'
     LAG:
       default: 0
-
 
 raw-verify-data-streamer:
   replicas:
@@ -887,71 +570,9 @@ raw-verify-data-streamer:
       gnosis-100: 'block,transaction,log,token_transfer,token_balance,error,token'
       bsc-56: 'block,transaction,log,token_transfer,token_balance,error,token'
       polygon-137: 'block,transaction,log,token_transfer,token_balance,error,token'
-      # acanto-7701: 'block,transaction,log,token_transfer,token_balance,error'
-    PROVIDER_URL:
-      default:           'http://rpc-gw-stage.dexguru.biz/full/-999'
-      eth-1:             'http://rpc-gw-stage.dexguru.biz/full/1'
-      polygon-137:       'http://rpc-gw-stage.dexguru.biz/full/137'
-      bsc-56:            'http://rpc-gw-stage.dexguru.biz/full/56'
-      canto-7700:        'http://rpc-gw-stage.dexguru.biz/full/7700'
-      # acanto-7701:       'http://canto-testnet.plexnode.wtf'
-      fantom-250:        'http://rpc-gw-stage.dexguru.biz/debug/250'
-      optimism-10:       'http://rpc-gw-stage.dexguru.biz/full/10'
-      gnosis-100:        'http://rpc-gw-stage.dexguru.biz/full/100'
-      arbitrum-42161:    'http://rpc-gw-stage.dexguru.biz/full/42161'
-      nova-42170:        'http://rpc-gw-stage.dexguru.biz/full/42170'
-      # basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
-      base-8453:         'http://rpc-gw-stage.dexguru.biz/full/8453'
-      avalanche-43114:   'http://rpc-gw-stage.dexguru.biz/full/43114'
-      celo-42220:        'http://rpc-gw-stage.dexguru.biz/full/42220'
-    LAST_SYNCED_BLOCK_PROVIDER:
-      eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum'
-      canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/canto'
-      # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/acanto'
-      optimism-10:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/optimism'
-      bsc-56:            'clickhouse+http://testuser3:testplpassword@10.0.100.175/bsc'
-      polygon-137:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/polygon'
-      fantom-250:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/fantom'
-      base-8453:         'clickhouse+http://testuser3:testplpassword@10.0.100.175/base'
-      # basetestnet-84531: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/basetestnet'
-      avalanche-43114:   'clickhouse+http://testuser3:testplpassword@10.0.100.175/avalanche'
-      arbitrum-42161:    'clickhouse+http://testuser3:testplpassword@10.0.100.175/arbitrum'
-      nova-42170:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/nova'
-      gnosis-100:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/gnosis'
-      celo-42220:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/celo'
-
-    OUTPUT:
-      eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum'
-      canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/canto'
-      # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto'
-      optimism-10:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/optimism'
-      bsc-56:            'clickhouse+http://testuser3:testplpassword@10.0.100.175/bsc'
-      polygon-137:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/polygon'
-      fantom-250:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/fantom'
-      base-8453:         'clickhouse+http://testuser3:testplpassword@10.0.100.175/base'
-      # basetestnet-84531: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/basetestnet'
-      avalanche-43114:   'clickhouse+http://testuser3:testplpassword@10.0.100.175/avalanche'
-      arbitrum-42161:    'clickhouse+http://testuser3:testplpassword@10.0.100.175/arbitrum'
-      nova-42170:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/nova'
-      gnosis-100:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/gnosis'
-      celo-42220:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/celo'
-
-    EXPORT_FROM_CLICKHOUSE:
-      eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum'
-      canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/canto'
-      # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/acanto'
-      optimism-10:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/optimism'
-      bsc-56:            'clickhouse+http://testuser3:testplpassword@10.0.100.175/bsc'
-      polygon-137:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/polygon'
-      fantom-250:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/fantom'
-      base-8453:         'clickhouse+http://testuser3:testplpassword@10.0.100.175/base'
-      # basetestnet-84531: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/basetestnet'
-      avalanche-43114:   'clickhouse+http://testuser3:testplpassword@10.0.100.175/avalanche'
-      arbitrum-42161:    'clickhouse+http://testuser3:testplpassword@10.0.100.175/arbitrum'
-      nova-42170:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/nova'
-      gnosis-100:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/gnosis'
-      celo-42220:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/celo'
-
+      acanto-7701: 'block,transaction,log,token_transfer,token_balance,error'
+      basetestnet-84531: 'block,transaction,log,token_transfer,token_balance,error'
+      zetatestnet-7001: 'block,transaction,log,token_transfer,token_balance,error'
     BLOCK_BATCH_SIZE:
       default: '10'
     MAX_WORKERS:
@@ -963,7 +584,6 @@ raw-verify-data-streamer:
       polygon-137: 'True'
     MIN_INSERT_BATCH_SIZE:
       default: '1'
-
 
 raw-data-streamer-dexpool:
   replicas:
@@ -984,58 +604,8 @@ raw-data-streamer-dexpool:
     ELASTIC_URL: 'http://10.0.100.34:9200'
     AMQP_URL: 'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
     ROUTING_KEY: 'block'
+    ENTITY_TYPES: 'dex_pool'
   chainEnv:
-    ENTITY_TYPES:
-      default: 'dex_pool'
-      # basetestnet-84531: 'block,transaction,log,token_transfer,token_balance,error,token'
-      # acanto-7701: 'block,transaction,log,token_transfer,token_balance,error,token'
-    PROVIDER_URL:
-      default:           'http://rpc-gw-stage.dexguru.biz/full/-999'
-      eth-1:             'http://rpc-gw-stage.dexguru.biz/full/1'
-      polygon-137:       'http://rpc-gw-stage.dexguru.biz/full/137'
-      bsc-56:            'http://rpc-gw-stage.dexguru.biz/full/56'
-      canto-7700:        'http://rpc-gw-stage.dexguru.biz/full/7700'
-      # acanto-7701:       'http://canto-testnet.plexnode.wtf'
-      fantom-250:        'http://rpc-gw-stage.dexguru.biz/full/250'
-      optimism-10:       'http://rpc-gw-stage.dexguru.biz/full/10'
-      gnosis-100:        'http://rpc-gw-stage.dexguru.biz/full/100'
-      arbitrum-42161:    'http://rpc-gw-stage.dexguru.biz/full/42161'
-      nova-42170:        'http://rpc-gw-stage.dexguru.biz/full/42170'
-      # basetestnet-84531: 'http://rpc-gw-stage.dexguru.biz/full/84531'
-      base-8453:         'http://rpc-gw-stage.dexguru.biz/full/8453'
-      avalanche-43114:   'http://rpc-gw-stage.dexguru.biz/full/43114'
-      celo-42220:        'http://rpc-gw-stage.dexguru.biz/full/42220'
-    OUTPUT:
-      eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum'
-      canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/canto'
-      # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto'
-      optimism-10:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/optimism'
-      bsc-56:            'clickhouse+http://testuser3:testplpassword@10.0.100.175/bsc'
-      polygon-137:       'clickhouse+http://testuser3:testplpassword@10.0.100.175/polygon'
-      fantom-250:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/fantom'
-      base-8453:         'clickhouse+http://testuser3:testplpassword@10.0.100.175/base'
-      # basetestnet-84531: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/basetestnet'
-      avalanche-43114:   'clickhouse+http://testuser3:testplpassword@10.0.100.175/avalanche'
-      arbitrum-42161:    'clickhouse+http://testuser3:testplpassword@10.0.100.175/arbitrum'
-      nova-42170:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/nova'
-      gnosis-100:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/gnosis'
-      celo-42220:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/celo'
-    EXPORT_FROM_CLICKHOUSE:
-      eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum'
-      canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/canto'
-      # acanto-7701:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto'
-      optimism-10: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/optimism'
-      bsc-56: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/bsc'
-      polygon-137: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/polygon'
-      fantom-250: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/fantom'
-      base-8453: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/base'
-      # basetestnet-84531: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/basetestnet'
-      avalanche-43114: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/avalanche'
-      arbitrum-42161: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/arbitrum'
-      nova-42170: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/nova'
-      gnosis-100: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/gnosis'
-      celo-42220: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/celo'
-
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
