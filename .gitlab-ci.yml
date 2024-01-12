@@ -93,6 +93,7 @@ variables:
     prod-indexation-base-8453
     prod-indexation-avalanche-43114
     prod-indexation-celo-42220
+    prod-indexation-zetatestnet-7001
 
 build:
   stage: build
