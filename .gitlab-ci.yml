@@ -329,7 +329,7 @@ lint-helm:
 apply-db-migrations-stage:
   stage: db-migrations-stage
   image:
-    name: ${IMAGE_HELM_KUBECTL}
+    name: ${IMAGE_DIND}
     entrypoint: [ "" ]
   variables:
     CLICKHOUSE_REPLICATED: 0
@@ -354,7 +354,7 @@ apply-db-migrations-stage:
 apply-db-migrations-prod:
   stage: db-migrations-prod
   image:
-    name: ${IMAGE_HELM_KUBECTL}
+    name: ${IMAGE_DIND}
     entrypoint: [ "" ]
   variables:
     CLICKHOUSE_REPLICATED: 1
