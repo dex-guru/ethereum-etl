@@ -333,6 +333,9 @@ apply-db-migrations-stage:
     entrypoint: [ "" ]
   variables:
     CLICKHOUSE_REPLICATED: 0
+    DOCKER_TLS_CERTDIR: ""
+    HEALTHCHECK_2375_TCP_ADDR: docker
+    HEALTHCHECK_2375_TCP_PORT: '2375'
   before_script:
     - set -eo pipefail
     - docker login -u "${CI_HARBOR_REGISTRY_USER}" -p "${CI_HARBOR_REGISTRY_PASSWORD}" "${CI_HARBOR_REGISTRY_HOST}"
@@ -358,6 +361,9 @@ apply-db-migrations-prod:
     entrypoint: [ "" ]
   variables:
     CLICKHOUSE_REPLICATED: 1
+    DOCKER_TLS_CERTDIR: ""
+    HEALTHCHECK_2375_TCP_ADDR: docker
+    HEALTHCHECK_2375_TCP_PORT: '2375'
   before_script:
     - set -eo pipefail
     - docker login -u "${CI_HARBOR_REGISTRY_USER}" -p "${CI_HARBOR_REGISTRY_PASSWORD}" "${CI_HARBOR_REGISTRY_HOST}"
