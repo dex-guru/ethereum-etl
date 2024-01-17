@@ -41,7 +41,7 @@ CREATE TABLE `blocks` $on_cluster
     `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp timestamp TYPE minmax GRANULARITY 1
 )
-ENGINE = ${replicated}ReplacingMergeTree
+ENGINE = ${replicated}ReplacingMergeTree${replication_path}
 ORDER BY (number, hash)
 SETTINGS index_granularity = 8192;
 
@@ -50,7 +50,7 @@ CREATE TABLE `chain_counts` $on_cluster
     `active_addresses` AggregateFunction(uniq, Nullable(String)),
     `uniq_contracts` AggregateFunction(uniq, Nullable(String))
 )
-ENGINE = ${replicated}AggregatingMergeTree
+ENGINE = AggregatingMergeTree
 ORDER BY tuple()
 SETTINGS index_granularity = 8192;
 
@@ -93,7 +93,7 @@ CREATE TABLE `transactions` $on_cluster
     `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
-ENGINE = ${replicated}ReplacingMergeTree
+ENGINE = ${replicated}ReplacingMergeTree${replication_path}
 ORDER BY (block_number, hash, block_hash)
 SETTINGS index_granularity = 8192;
 
@@ -117,7 +117,7 @@ CREATE TABLE `logs` $on_cluster
     `topics` Array(String) CODEC(ZSTD(1)),
     `is_reorged` Bool DEFAULT 0
 )
-ENGINE = ${replicated}ReplacingMergeTree
+ENGINE = ${replicated}ReplacingMergeTree${replication_path}
 ORDER BY (block_number, transaction_hash, log_index, block_hash)
 SETTINGS index_granularity = 8192;
 
@@ -166,7 +166,7 @@ CREATE TABLE `event_inventory_src` $on_cluster
     `abi_type` String,
     `event_abi_json` String CODEC(ZSTD(1))
 )
-ENGINE = ${replicated}ReplacingMergeTree
+ENGINE = ${replicated}ReplacingMergeTree${replication_path}
 ORDER BY (event_signature, event_topic_count, abi_type)
 SETTINGS index_granularity = 8192;
 
@@ -213,7 +213,7 @@ CREATE TABLE `events` $on_cluster
     `event_signature_hash` String ALIAS topics[1],
     `topic_count` UInt8 ALIAS toUInt8(length(topics))
 )
-ENGINE = ${replicated}ReplacingMergeTree
+ENGINE = ${replicated}ReplacingMergeTree${replication_path}
 PARTITION BY intDivOrZero(block_number, 100000)
 ORDER BY (contract_address, topics[1], transaction_hash, log_index)
 SETTINGS index_granularity = 8192;
@@ -228,7 +228,7 @@ CREATE TABLE `geth_traces` $on_cluster
     `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
-ENGINE = ${replicated}ReplacingMergeTree
+ENGINE = ${replicated}ReplacingMergeTree${replication_path}
 ORDER BY (block_number, transaction_hash, block_hash)
 SETTINGS index_granularity = 8192;
 
@@ -259,7 +259,7 @@ CREATE TABLE `geth_traces_transaction_hash` $on_cluster
     `block_hash` String CODEC(ZSTD(1)),
     `is_reorged` Bool DEFAULT 0
 )
-ENGINE = ${replicated}ReplacingMergeTree
+ENGINE = ${replicated}ReplacingMergeTree${replication_path}
 ORDER BY (transaction_hash, block_hash)
 SETTINGS index_granularity = 8192;
 
@@ -277,7 +277,7 @@ CREATE TABLE `internal_transfers` $on_cluster
     `is_reorged` Bool DEFAULT 0,
     INDEX block_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
-ENGINE = ${replicated}ReplacingMergeTree
+ENGINE = ${replicated}ReplacingMergeTree${replication_path}
 ORDER BY (block_number, transaction_hash, id, block_hash)
 SETTINGS index_granularity = 8192;
 
@@ -296,7 +296,7 @@ CREATE TABLE `internal_transfers_address` $on_cluster
     `is_reorged` Bool DEFAULT 0,
     INDEX block_number block_number TYPE minmax GRANULARITY 1
 )
-ENGINE = ${replicated}ReplacingMergeTree
+ENGINE = ${replicated}ReplacingMergeTree${replication_path}
 ORDER BY (address, from_address, to_address, transaction_hash, id, block_hash)
 SETTINGS allow_nullable_key = 1, index_granularity = 8192;
 
@@ -371,7 +371,7 @@ CREATE TABLE `internal_transfers_transaction_hash` $on_cluster
     `block_hash` String CODEC(ZSTD(1)),
     `is_reorged` Bool DEFAULT 0
 )
-ENGINE = ${replicated}ReplacingMergeTree
+ENGINE = ${replicated}ReplacingMergeTree${replication_path}
 ORDER BY (transaction_hash, block_number, id, block_hash)
 SETTINGS index_granularity = 8192;
 
@@ -413,7 +413,7 @@ CREATE TABLE `logs_address` $on_cluster
     `topics` Array(String) CODEC(ZSTD(1)),
     `is_reorged` Bool DEFAULT 0
 )
-ENGINE = ${replicated}ReplacingMergeTree
+ENGINE = ${replicated}ReplacingMergeTree${replication_path}
 ORDER BY (address, transaction_hash, log_index, block_hash)
 SETTINGS index_granularity = 8192;
 
@@ -503,7 +503,7 @@ CREATE TABLE `logs_transaction_hash` $on_cluster
     `topics` Array(String) CODEC(ZSTD(1)),
     `is_reorged` Bool DEFAULT 0
 )
-ENGINE = ${replicated}ReplacingMergeTree
+ENGINE = ${replicated}ReplacingMergeTree${replication_path}
 ORDER BY (transaction_hash, log_index, block_hash)
 SETTINGS index_granularity = 8192;
 
@@ -517,7 +517,7 @@ CREATE TABLE `native_balances` $on_cluster
     `is_reorged` Bool DEFAULT 0,
     INDEX block_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
-ENGINE = ${replicated}ReplacingMergeTree
+ENGINE = ${replicated}ReplacingMergeTree${replication_path}
 ORDER BY (block_number, address, block_hash)
 SETTINGS allow_nullable_key = 1, index_granularity = 8192;
 
@@ -534,7 +534,7 @@ CREATE TABLE `token_balances` $on_cluster
     `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
-ENGINE = ${replicated}ReplacingMergeTree
+ENGINE = ${replicated}ReplacingMergeTree${replication_path}
 ORDER BY (block_number, token_address, holder_address, token_id, block_hash)
 SETTINGS allow_nullable_key = 1, index_granularity = 8192;
 
@@ -556,7 +556,7 @@ CREATE TABLE `token_transfers` $on_cluster
     `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
-ENGINE = ${replicated}ReplacingMergeTree
+ENGINE = ${replicated}ReplacingMergeTree${replication_path}
 ORDER BY (block_number, transaction_hash, log_index, token_id, block_hash)
 SETTINGS allow_nullable_key = 1, index_granularity = 8192;
 
@@ -578,7 +578,7 @@ CREATE TABLE `token_transfers_address` $on_cluster
     `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
     `is_reorged` Bool DEFAULT 0
 )
-ENGINE = ${replicated}ReplacingMergeTree
+ENGINE = ${replicated}ReplacingMergeTree${replication_path}
 ORDER BY (address, token_standard, token_id, transaction_hash, log_index, block_hash)
 SETTINGS allow_nullable_key = 1, index_granularity = 8192;
 
@@ -701,7 +701,7 @@ CREATE TABLE `token_transfers_transaction_hash` $on_cluster
     `is_nft` Bool MATERIALIZED token_id IS NOT NULL,
     `is_reorged` Bool DEFAULT 0
 )
-ENGINE = ${replicated}ReplacingMergeTree
+ENGINE = ${replicated}ReplacingMergeTree${replication_path}
 ORDER BY (transaction_hash, log_index, token_id, block_hash)
 SETTINGS allow_nullable_key = 1, index_granularity = 8192;
 
@@ -772,7 +772,7 @@ CREATE TABLE `traces` $on_cluster
     `trace_id` String CODEC(ZSTD(1)),
     `is_reorged` Bool DEFAULT 0
 )
-ENGINE = ${replicated}ReplacingMergeTree
+ENGINE = ${replicated}ReplacingMergeTree${replication_path}
 PARTITION BY toYYYYMMDD(FROM_UNIXTIME(block_timestamp))
 ORDER BY trace_id
 SETTINGS index_granularity = 8192;
@@ -804,7 +804,7 @@ CREATE TABLE `transactions_address` $on_cluster
     `receipt_logs_count` Nullable(UInt32),
     `is_reorged` Bool DEFAULT 0
 )
-ENGINE = ${replicated}ReplacingMergeTree
+ENGINE = ${replicated}ReplacingMergeTree${replication_path}
 ORDER BY (address, from_address, to_address, hash, block_hash)
 SETTINGS allow_nullable_key = 1, index_granularity = 8192;
 
@@ -996,7 +996,7 @@ CREATE TABLE `transactions_hash` $on_cluster
     `receipt_logs_count` Nullable(UInt32),
     `is_reorged` Bool DEFAULT 0
 )
-ENGINE = ${replicated}ReplacingMergeTree
+ENGINE = ${replicated}ReplacingMergeTree${replication_path}
 ORDER BY (hash, block_number, block_hash)
 SETTINGS index_granularity = 8192;
 
@@ -1098,11 +1098,13 @@ def upgrade() -> None:
         sql = string.Template(SCHEMA_TEMPLATE).substitute(
             on_cluster="ON CLUSTER '{cluster}'",
             replicated="Replicated",
+            replication_path="('/clickhouse/tables/{database}/{shard}/{table}', '{replica}')",
         )
     else:
         sql = string.Template(SCHEMA_TEMPLATE).substitute(
             on_cluster="",
             replicated="",
+            replication_path="('/clickhouse/tables/{database}/{shard}/{table}', '{replica}')"
         )
 
     statements = filter(None, map(str.strip, sql.split(";\n")))
