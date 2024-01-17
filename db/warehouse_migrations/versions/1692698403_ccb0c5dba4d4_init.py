@@ -17,7 +17,7 @@ branch_labels = None
 depends_on = None
 
 SCHEMA_TEMPLATE = """
-CREATE TABLE `blocks` $on_cluster
+CREATE TABLE IF NOT EXISTS `blocks` $on_cluster
 (
     `number` UInt64 CODEC(Delta(8), LZ4),
     `hash` String CODEC(ZSTD(1)),
@@ -41,17 +41,8 @@ CREATE TABLE `blocks` $on_cluster
     `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp timestamp TYPE minmax GRANULARITY 1
 )
-ENGINE = ${replicated}ReplacingMergeTree
+ENGINE = ${replicated}ReplacingMergeTree${replication_path}
 ORDER BY (number, hash)
-SETTINGS index_granularity = 8192;
-
-CREATE TABLE `chain_counts` $on_cluster
-(
-    `active_addresses` AggregateFunction(uniq, Nullable(String)),
-    `uniq_contracts` AggregateFunction(uniq, Nullable(String))
-)
-ENGINE = ${replicated}AggregatingMergeTree
-ORDER BY tuple()
 SETTINGS index_granularity = 8192;
 
 CREATE TABLE `transactions` $on_cluster
@@ -81,17 +72,9 @@ CREATE TABLE `transactions` $on_cluster
     `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
-ENGINE = ${replicated}ReplacingMergeTree
+ENGINE = ${replicated}ReplacingMergeTree${replication_path}
 ORDER BY (block_number, hash, block_hash)
 SETTINGS index_granularity = 8192;
-
-CREATE MATERIALIZED VIEW `count_active_addresses_mv` $on_cluster TO `chain_counts`
-(
-    `active_addresses` AggregateFunction(uniq, Nullable(String)),
-    `uniq_contracts` AggregateFunction(uniq, Nullable(String))
-) AS
-SELECT uniqState(toNullable(from_address)) AS active_addresses
-FROM `transactions`;
 
 CREATE TABLE `logs` $on_cluster
 (
@@ -105,9 +88,26 @@ CREATE TABLE `logs` $on_cluster
     `topics` Array(String) CODEC(ZSTD(1)),
     `is_reorged` Bool DEFAULT 0
 )
-ENGINE = ${replicated}ReplacingMergeTree
+ENGINE = ${replicated}ReplacingMergeTree${replication_path}
 ORDER BY (block_number, transaction_hash, log_index, block_hash)
 SETTINGS index_granularity = 8192;
+
+CREATE TABLE `chain_counts` $on_cluster
+(
+    `active_addresses` AggregateFunction(uniq, Nullable(String)),
+    `uniq_contracts` AggregateFunction(uniq, Nullable(String))
+)
+ENGINE = AggregatingMergeTree
+ORDER BY tuple()
+SETTINGS index_granularity = 8192;
+
+CREATE MATERIALIZED VIEW `count_active_addresses_mv` $on_cluster TO `chain_counts`
+(
+    `active_addresses` AggregateFunction(uniq, Nullable(String)),
+    `uniq_contracts` AggregateFunction(uniq, Nullable(String))
+) AS
+SELECT uniqState(toNullable(from_address)) AS active_addresses
+FROM `transactions`;
 
 CREATE MATERIALIZED VIEW `count_uniq_contracts_mv` $on_cluster TO `chain_counts`
 (
@@ -131,7 +131,7 @@ CREATE TABLE `internal_transfers` $on_cluster
     `is_reorged` Bool DEFAULT 0,
     INDEX block_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
-ENGINE = ${replicated}ReplacingMergeTree
+ENGINE = ${replicated}ReplacingMergeTree${replication_path}
 ORDER BY (block_number, transaction_hash, id, block_hash)
 SETTINGS index_granularity = 8192;
 
@@ -145,7 +145,7 @@ CREATE TABLE `native_balances` $on_cluster
     `is_reorged` Bool DEFAULT 0,
     INDEX block_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
-ENGINE = ${replicated}ReplacingMergeTree
+ENGINE = ${replicated}ReplacingMergeTree${replication_path}
 ORDER BY (block_number, address, block_hash)
 SETTINGS allow_nullable_key = 1, index_granularity = 8192;
 
@@ -162,7 +162,7 @@ CREATE TABLE `token_balances` $on_cluster
     `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
-ENGINE = ${replicated}ReplacingMergeTree
+ENGINE = ${replicated}ReplacingMergeTree${replication_path}
 ORDER BY (block_number, token_address, holder_address, token_id, block_hash)
 SETTINGS allow_nullable_key = 1, index_granularity = 8192;
 
@@ -184,7 +184,7 @@ CREATE TABLE `token_transfers` $on_cluster
     `is_reorged` Bool DEFAULT 0,
     INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
 )
-ENGINE = ${replicated}ReplacingMergeTree
+ENGINE = ${replicated}ReplacingMergeTree${replication_path}
 ORDER BY (block_number, transaction_hash, log_index, token_id, block_hash)
 SETTINGS allow_nullable_key = 1, index_granularity = 8192;
 
@@ -199,18 +199,21 @@ def upgrade() -> None:
 
     if clickhouse_replicated:
         sql = string.Template(SCHEMA_TEMPLATE).substitute(
-            on_cluster="ON CLUSTER '{cluster}'",
+            on_cluster="ON CLUSTER 'testnets'",
             replicated="Replicated",
+            replication_path="('/clickhouse/tables/{database}/{shard}/{table}', '{replica}')"
         )
     else:
         sql = string.Template(SCHEMA_TEMPLATE).substitute(
             on_cluster="",
             replicated="",
+            replication_path=""
         )
 
     statements = filter(None, map(str.strip, sql.split(";\n")))
     for statement in statements:
-        op.execute(statement)
+        print(statement)
+        # op.execute(statement)
 
 
 def downgrade() -> None:

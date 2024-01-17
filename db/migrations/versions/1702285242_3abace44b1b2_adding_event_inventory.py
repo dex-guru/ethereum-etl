@@ -49,7 +49,7 @@ def upgrade() -> None:
             `event_name` LowCardinality(String),
             `event_abi_json` String CODEC(ZSTD(1))
         )
-        ENGINE = ${replicated}ReplacingMergeTree
+        ENGINE = ${replicated}ReplacingMergeTree${replication_path}
         PRIMARY KEY event_signature_hash_and_log_topic_count;
         
         CREATE TABLE `event_inventory_src` $on_cluster
@@ -62,7 +62,7 @@ def upgrade() -> None:
             `contract_name` LowCardinality(String),
             `event_abi_json` String CODEC(ZSTD(1))
         )
-        ENGINE = ${replicated}ReplacingMergeTree
+        ENGINE = ${replicated}ReplacingMergeTree${replication_path}
         ORDER BY (event_signature, event_topic_count, namespace);
         
         CREATE MATERIALIZED VIEW `event_inventory_mv` $on_cluster TO `event_inventory`
@@ -112,13 +112,16 @@ def upgrade() -> None:
     if is_clickhouse_replicated():
         on_cluster = "ON CLUSTER '{cluster}'"
         replicated = "Replicated"
+        replication_path = "('/clickhouse/tables/{database}/{shard}/${table}', '{replica}')"
     else:
         on_cluster = ""
         replicated = ""
+        replication_path = ""
 
     sql = string.Template(schema_template).substitute(
         on_cluster=on_cluster,
         replicated=replicated,
+        replication_path="('/clickhouse/tables/{database}/{shard}/${table}', '{replica}')"
     )
     statements = filter(None, map(str.strip, sql.split(";\n")))
     for statement in statements:
@@ -154,7 +157,7 @@ def downgrade() -> None:
             `abi_type` String,
             `event_abi_json` String CODEC(ZSTD(1))
         )
-        ENGINE = ${replicated}ReplacingMergeTree
+        ENGINE = ${replicated}ReplacingMergeTree${replication_path}
         ORDER BY (event_signature, event_topic_count, abi_type)
         SETTINGS index_granularity = 8192;
         
@@ -237,13 +240,15 @@ def downgrade() -> None:
     if is_clickhouse_replicated():
         on_cluster = "ON CLUSTER '{cluster}'"
         replicated = "Replicated"
+        replication_path = "('/clickhouse/tables/{database}/{shard}/{table}', '{replica}')"
     else:
         on_cluster = ""
         replicated = ""
-
+        replication_path = "('/clickhouse/tables/{database}/{shard}/{table}', '{replica}')"
     _ = replicated
 
-    sql = string.Template(schema_template).substitute(on_cluster=on_cluster, replicated=replicated)
+    sql = string.Template(schema_template).substitute(on_cluster=on_cluster, replicated=replicated,
+                                                      replication_path=replication_path)
     statements = filter(None, map(str.strip, sql.split(";\n")))
     for statement in statements:
         op.execute(statement)

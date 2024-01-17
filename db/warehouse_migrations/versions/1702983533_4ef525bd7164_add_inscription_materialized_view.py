@@ -32,7 +32,7 @@ def is_clickhouse_replicated():
 
 def upgrade() -> None:
     schema_template = """
-        CREATE TABLE `inscriptions` $on_cluster
+        CREATE TABLE IF NOT EXISTS`inscriptions` $on_cluster
         (
             `block_number` UInt64,
             `block_timestamp` UInt32,
@@ -46,10 +46,10 @@ def upgrade() -> None:
             `operation` LowCardinality(String),
             `ticker` String CODEC(ZSTD(1)),
             `amount` String CODEC(ZSTD(1)),
-            `inscription` JSON CODEC(ZSTD(1)),
+            `inscription` String CODEC(ZSTD(1)),
             INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
         )
-        ENGINE = ${replicated}ReplacingMergeTree
+        ENGINE = ${replicated}ReplacingMergeTree${replication_path}
         ORDER BY (block_number, transaction_hash)
         SETTINGS index_granularity = 8192;
         
@@ -57,17 +57,30 @@ def upgrade() -> None:
         
         CREATE MATERIALIZED VIEW `inscription_mv_parsed_transactions` $on_cluster
         TO `inscriptions`
-        AS
+        (
+            `block_number` UInt64,
+            `block_timestamp` UInt32,
+            `transaction_hash` String,
+            `from_address` String,
+            `to_address` Nullable(String),
+            `transaction_index` UInt32,
+            `standard` LowCardinality(String),
+            `operation` LowCardinality(String),
+            `ticker` String,
+            `amount` String,
+            `gas_used` UInt64,
+            `gas_price` UInt256,
+            `inscription` String
+        ) AS
         SELECT
-            block_number as block_number,
-            block_timestamp as block_timestamp,
+            block_number AS block_number,
+            block_timestamp AS block_timestamp,
             hash AS transaction_hash,
             from_address AS from_address,
             to_address AS to_address,
             transaction_index AS transaction_index,
-            ifNull(receipt_gas_used, 0) as gas_used,
-            ifNull(receipt_effective_gas_price, 0) as gas_price,
-            `gas_price` UInt256,
+            ifNull(receipt_gas_used, 0) AS gas_used,
+            ifNull(receipt_effective_gas_price, 0) AS gas_price,
             JSONExtractString(input_json, 'p') AS standard,
             JSONExtractString(input_json, 'op') AS operation,
             JSONExtractString(inscription, 'tick') AS ticker,
@@ -94,35 +107,42 @@ def upgrade() -> None:
     """
 
     if is_clickhouse_replicated():
-        on_cluster = "ON CLUSTER '{cluster}'"
+        on_cluster = "ON CLUSTER 'stage_testnets'"
         replicated = "Replicated"
+        replication_path = "('/clickhouse/tables/{database}/{shard}/{table}', '{replica}')"
     else:
         on_cluster = ""
         replicated = ""
-
+        replication_path = ""
     sql = string.Template(schema_template).substitute(
         on_cluster=on_cluster,
         replicated=replicated,
+        replication_path=replication_path,
     )
     statements = filter(None, map(str.strip, sql.split(";\n")))
     for statement in statements:
-        op.execute(statement)
+        print(statement)
+        # op.execute(statement)
 
 
 def downgrade() -> None:
     schema_template = "DROP TABLE example $on_cluster SYNC"
 
     if is_clickhouse_replicated():
-        on_cluster = "ON CLUSTER '{cluster}'"
+        on_cluster = "ON CLUSTER 'stage_testnets'",
         replicated = "Replicated"
+        replication_path = "('/clickhouse/tables/{database}/{shard}/{table}', '{replica}')"
+
     else:
         on_cluster = ""
         replicated = ""
-
+        replication_path = ""
     _ = replicated
 
     sql = string.Template(schema_template).substitute(
         on_cluster=on_cluster,
+        replicated=replicated,
+        replication_path=replication_path,
     )
 
     op.execute(sql)
