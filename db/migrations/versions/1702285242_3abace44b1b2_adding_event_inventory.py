@@ -121,7 +121,7 @@ def upgrade() -> None:
     sql = string.Template(schema_template).substitute(
         on_cluster=on_cluster,
         replicated=replicated,
-        replication_path="('/clickhouse/tables/{database}/{shard}/${table}', '{replica}')"
+        replication_path=replication_path
     )
     statements = filter(None, map(str.strip, sql.split(";\n")))
     for statement in statements:
@@ -244,7 +244,7 @@ def downgrade() -> None:
     else:
         on_cluster = ""
         replicated = ""
-        replication_path = "('/clickhouse/tables/{database}/{shard}/{table}', '{replica}')"
+        replication_path = ""
     _ = replicated
 
     sql = string.Template(schema_template).substitute(on_cluster=on_cluster, replicated=replicated,

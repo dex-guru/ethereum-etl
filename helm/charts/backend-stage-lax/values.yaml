@@ -38,7 +38,7 @@ chainEnv:
     gnosis-100:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/gnosis?table_name=last_synced_block'
     celo-42220:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/celo?table_name=last_synced_block'
     zetatestnet-7001:         'clickhouse+http://testuser3:testplpassword@10.0.100.175/zetatestnet?table_name=last_synced_block'
-    manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.186/manta?table_name=last_synced_block'
+    manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/manta?table_name=last_synced_block'
   OUTPUT:
     eth-1:             'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum'
     canto-7700:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/canto'
@@ -55,7 +55,7 @@ chainEnv:
     gnosis-100:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/gnosis'
     celo-42220:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/celo'
     zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/zetatestnet'
-    manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.186/manta'
+    manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/manta'
   EXPORT_FROM_CLICKHOUSE:
     default: ''
     eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
@@ -73,7 +73,7 @@ chainEnv:
     gnosis-100: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
     celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
     zetatestnet-7001:       'clickhouse+http://testuser3:testplpassword@10.0.100.171/zetatestnet'
-    manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.186/manta'
+    manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/manta'
 
 raw-data-streamer:
 # Streams the data raw block,transaction,log data
@@ -111,7 +111,7 @@ raw-data-streamer:
       gnosis-100:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/gnosis,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       celo-42220:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/celo,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/zetatestnet,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
-      manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.186/manta,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
+      manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/manta,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
     BLOCK_BATCH_SIZE:
       default: '30'
       arbitrum-42161: '50'
@@ -170,7 +170,7 @@ raw-verify-data-trigger:
       gnosis-100:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/gnosis?table_name=last_synced_block_verify'
       celo-42220:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/celo?table_name=last_synced_block_verify'
       zetatestnet-7001:         'clickhouse+http://testuser3:testplpassword@10.0.100.175/zetatestnet?table_name=last_synced_block_verify'
-      manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.186/manta?table_name=last_synced_block_verify'
+      manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/manta?table_name=last_synced_block_verify'
     OUTPUT:
       eth-1:             'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       canto-7700:        'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
@@ -311,7 +311,7 @@ raw-data-streamer-transfers-preevents:
       gnosis-100:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/gnosis,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       celo-42220:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/celo,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       zetatestnet-7001:   'clickhouse+http://testuser3:testplpassword@10.0.100.175/zetatestnet,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
-      manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.186/manta,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
+      manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/manta,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
@@ -379,7 +379,7 @@ raw-data-streamer-gethtrace:
       gnosis-100:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/gnosis,http://10.0.100.34:9200,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       celo-42220:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/celo,http://10.0.100.34:9200,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/zetatestnet,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
-      manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.186/manta,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
+      manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/manta,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
@@ -464,7 +464,7 @@ raw-data-streamer-token-tokentransferpriced:
       gnosis-100:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/gnosis,http://10.0.100.34:9200'
       celo-42220:        'clickhouse+http://testuser3:testplpassword@10.0.100.175/celo,http://10.0.100.34:9200'
       zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/zetatestnet,http://10.0.100.34:9200'
-      manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.186/manta,http://10.0.100.34:9200'
+      manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/manta,http://10.0.100.34:9200'
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:

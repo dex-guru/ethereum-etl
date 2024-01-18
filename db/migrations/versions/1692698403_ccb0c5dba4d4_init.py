@@ -1104,7 +1104,7 @@ def upgrade() -> None:
         sql = string.Template(SCHEMA_TEMPLATE).substitute(
             on_cluster="",
             replicated="",
-            replication_path="('/clickhouse/tables/{database}/{shard}/{table}', '{replica}')"
+            replication_path=""
         )
 
     statements = filter(None, map(str.strip, sql.split(";\n")))
