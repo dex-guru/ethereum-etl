@@ -199,7 +199,7 @@ def upgrade() -> None:
 
     if clickhouse_replicated:
         sql = string.Template(SCHEMA_TEMPLATE).substitute(
-            on_cluster="ON CLUSTER 'testnets'",
+            on_cluster="ON CLUSTER 'stage_testnets'",
             replicated="Replicated",
             replication_path="('/clickhouse/tables/{database}/{shard}/{table}', '{replica}')"
         )
