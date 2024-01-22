@@ -18,6 +18,7 @@ ELASTIC_MAX_FLOAT = 3.402823466e38
 
 
 class ExtractInternalTransfersPricedJob(BaseJob):
+    # TODO add from config
     WRAPPED_TOKENS_BY_CHAIN = {
         1: {
             'address': '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',

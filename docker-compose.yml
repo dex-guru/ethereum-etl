@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   clickhouse:
-    image: clickhouse/clickhouse-server
+    image: clickhouse/clickhouse-server:23.5.4.25
     ports:
       - "8123:8123" # HTTP interface
       - "9000:9000" # Native client interface
@@ -13,6 +13,27 @@ services:
         soft: 262144
         hard: 262144
     restart: unless-stopped
+
+  rabbit:
+    image: registry.gitlab.com/telekomconsalting/dexguru/dex-guru-workers/dexguru-rabbit
+    environment:
+      RABBITMQ_DEFAULT_VHOST: dex
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    restart: on-failure
+
+  elasticsearch:
+    image: docker-registry.dexguru.biz/dex.guru/utils/elasticsearch:7.17.3
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "http.cors.enabled=true"
+      - "http.cors.allow-origin=*"
+    ports:
+      - "9200:9200"
+
 
 volumes:
   clickhouse_data:

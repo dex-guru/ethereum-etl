@@ -8,17 +8,16 @@ from typing import Any
 import clickhouse_connect
 from clickhouse_connect.driver import Client
 from clickhouse_connect.driver.exceptions import DatabaseError
+from eth_utils import is_address
 
 from blockchainetl.jobs.exporters.clickhouse_exporter import ClickHouseItemExporter
 from blockchainetl.jobs.exporters.multi_item_exporter import MultiItemExporter
 from ethereumetl.clickhouse import ITEM_TYPE_TO_TABLE_MAPPING
 from ethereumetl.enumeration.entity_type import ALL, EntityType
-from ethereumetl.misc.info import PARSABLE_SWAPS_BURNS_MINTS_EVENTS
 from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter, sort_by
 from ethereumetl.utils import parse_clickhouse_url
 
 logger = logging.getLogger(__name__)
-
 
 BLOCK = EntityType.BLOCK
 TRANSACTION = EntityType.TRANSACTION
@@ -37,6 +36,9 @@ TOKEN_TRANSFER_PRICED = EntityType.TOKEN_TRANSFER_PRICED
 INTERNAL_TRANSFER_PRICED = EntityType.INTERNAL_TRANSFER_PRICED
 PRE_EVENT = EntityType.PRE_EVENT
 DEX_POOL = EntityType.DEX_POOL
+DEX_TRADE = EntityType.DEX_TRADE
+PARSED_LOG = EntityType.PARSED_LOG
+ENRICHED_DEX_TRADE = EntityType.ENRICHED_DEX_TRADE
 
 
 # noinspection PyProtectedMember
@@ -90,7 +92,10 @@ class ClickhouseEthStreamerAdapter:
             f"   and not is_reorged"
         )
         try:
-            return tuple(self.clickhouse.query(query).named_results())
+            res = tuple(self.clickhouse.query(query).named_results())
+            for item in res:
+                item['type'] = entity_type
+            return res
         except DatabaseError as e:
             if 'UNKNOWN_TABLE' in str(e):  # The error code is not exposed by the driver
                 logger.warning("Cannot export %s items from clickhouse: %s", entity_type, e)
@@ -146,7 +151,15 @@ class ClickhouseEthStreamerAdapter:
             if 'UNKNOWN_TABLE' in str(e):  # The error code is not exposed by the driver
                 logger.warning("Cannot export %s items from clickhouse: %s", entity_type, e)
                 return ()
-            raise
+
+    def select_where_with_type_assignment(
+        self, entity_type: EntityType, distinct_on: str, **kwargs
+    ):
+        """Assigning the types for compatibility with the eth_streamer."""
+        items = self.select_where(entity_type, distinct_on, **kwargs)
+        for item in items:
+            item['type'] = entity_type
+        return items
 
     @staticmethod
     def get_logs_count_from_transactions(transactions: tuple) -> int:
@@ -157,6 +170,28 @@ class ClickhouseEthStreamerAdapter:
             return -1
         want_logs_count = sum(b['receipt_logs_count'] for b in transactions)
         return want_logs_count
+
+    def _calculate_pools_count_for_tokens(self, tokens) -> dict:
+        # here we calculating token score based on it's relationships ration
+        # more pools existing with token - bigger score,
+        # could be explored further using liquidity/volume as weights in
+        # links between pools (nodes) in vector representaion of it.
+        assert self.clickhouse, "Clickhouse client is not initialized"
+        table_name = self.item_type_to_table_mapping[EntityType.DEX_POOL]
+        query = f"""
+        SELECT
+            token_address,
+            count() AS pool_count
+        FROM {table_name}
+        ARRAY JOIN arrayMap(token_address -> if(has(token_addresses, token_address), token_address, NULL), {tokens})
+         AS token_address
+        WHERE token_address IS NOT NULL
+        GROUP BY token_address
+        """
+        return {
+            d['token_address']: d['pool_count']
+            for d in self.clickhouse.query(query).named_results()
+        }
 
     def export_all(self, start_block, end_block):
         want_block_count = end_block - start_block + 1
@@ -345,11 +380,9 @@ class ClickhouseEthStreamerAdapter:
             logger.info("exporting TOKENS...")
             transfers = extract_token_transfers()[0]
             token_addresses = {t['token_address'] for t in transfers}
-            tokens_ch = self.select_where(
+            tokens_ch = self.select_where_with_type_assignment(
                 entity_type=TOKEN, distinct_on='address', address=token_addresses
             )
-            for t in tokens_ch:
-                t['type'] = TOKEN
             if len(tokens_ch) == len(token_addresses):
                 from_ch = True
                 return tokens_ch, from_ch
@@ -463,52 +496,203 @@ class ClickhouseEthStreamerAdapter:
             return events, False
 
         @cache
+        def parse_logs():
+            logger.info("parsing LOGS...")
+            logs = export_logs()[0]
+            parsed_logs = self.eth_streamer.parse_logs(logs)
+            return parsed_logs, False
+
+        @cache
         def export_dex_pools():
             assert self.clickhouse, "Clickhouse client is not initialized"
             _from_ch = False
             logger.info("exporting DEX_POOLS_INVENTORY...")
-            logs = export_logs()[0]
-            if not logs:
+            parsed_logs = parse_logs()[0]
+            if not parsed_logs:
                 return (), _from_ch
-            existing_dex_pools = self.select_where(
-                entity_type=DEX_POOL, distinct_on='address', address={l['address'] for l in logs}
-            )
-            existing_dex_pools = {p['address'] for p in existing_dex_pools}
 
-            query_get_events_inventory = f"""
-                SELECT event_signature_hash_and_log_topic_count,
-                       namespace
-                FROM event_inventory
-                WHERE event_name IN {PARSABLE_SWAPS_BURNS_MINTS_EVENTS}
-            """
-            events_inventory = tuple(
-                self.clickhouse.query(query_get_events_inventory).named_results()
-            )
-            potential_dex_types = {
-                event_inventory['event_signature_hash_and_log_topic_count']: event_inventory[
-                    'namespace'
-                ]
-                for event_inventory in events_inventory
-            }
+            log_addresses = set()
+            for log in parsed_logs:
+                # check if balancer Vault is in the logs
+                pool_id = log['parsed_event'].get('poolId')
+                if pool_id:
+                    log_address = f'0x{pool_id.hex()[:40].lower()}'
+                else:
+                    log_address = log['address'].lower()
+                if not is_address(log_address):
+                    logger.warning(
+                        f"Invalid address from poolId: {log_address} for log: {log}",
+                    )
+                    continue
+                log_addresses.add(log_address)
 
-            parsable_logs = [
-                log
-                for log in logs
-                if log['topics'] and (log['topics'][0], len(log['topics'])) in potential_dex_types
-            ]
+            existing_dex_pools = self.select_where_with_type_assignment(
+                entity_type=DEX_POOL,
+                distinct_on='address',
+                address=log_addresses,
+            )
+            for pool in existing_dex_pools:
+                pool['type'] = DEX_POOL
+            existing_dex_pool_addresses = {p['address'] for p in existing_dex_pools}
 
             logs_to_export = [
-                log for log in parsable_logs if log['address'] not in existing_dex_pools
+                log
+                for log in parsed_logs
+                if (log['address'] not in existing_dex_pool_addresses)
+                or (
+                    log['parsed_event'].get('poolId')
+                    and log['parsed_event']['poolId'][:42].lower()
+                    not in existing_dex_pool_addresses
+                )
             ]
             if not logs_to_export:
                 _from_ch = True
+
+                return existing_dex_pools, _from_ch
+
+            dex_pools_inventory = self.eth_streamer.export_dex_pools(logs_to_export)
+
+            return dex_pools_inventory + list(existing_dex_pools), _from_ch
+
+        @cache
+        def export_dex_trades():
+            assert self.clickhouse, "Clickhouse client is not initialized"
+            _from_ch = False
+            logger.info("exporting DEX_TRADES...")
+            parsed_logs = parse_logs()[0]
+            if not parsed_logs:
                 return (), _from_ch
+            token_transfers = extract_token_transfers()[0]
+            tokens = export_tokens()[0]
+            dex_pools = export_dex_pools()[0]
 
-            dex_pools_inventory = self.eth_streamer.export_dex_pools(
-                logs_to_export, sighash_to_namespace=potential_dex_types
+            dex_trades = self.eth_streamer.export_dex_trades(
+                parsed_logs=parsed_logs,
+                token_transfers=token_transfers,
+                tokens=tokens,
+                dex_pools=dex_pools,
             )
+            return dex_trades, _from_ch
 
-            return dex_pools_inventory, _from_ch
+        def get_latest_prices_from_trades_for_tokens(base_tokens_addresses):
+            # Here we are recieving prices for base tokens from last trades on those tokens
+            # logic needs to be improved in future os we either have trust index for prices saved
+            # along dex_trade or we would be able to calculate closest path to stable based on
+            # pools route
+            assert self.clickhouse, "Clickhouse client is not initialized"
+            table_name = self.item_type_to_table_mapping[EntityType.ENRICHED_DEX_TRADE]
+            query = f"""
+                    SELECT
+                        token_address,
+                        argMax(price_stable, block_number) as latest_price_stable,
+                        argMax(price_native, block_number) as latest_price_native
+                    FROM
+                        {table_name}
+                    ARRAY JOIN
+                        token_addresses as token_address,
+                        prices_stable as price_stable,
+                        prices_native as price_native
+                    WHERE
+                        token_address IN ({", ".join(base_tokens_addresses)})
+                    GROUP BY
+                        token_address
+                    ORDER BY
+                        token_address
+
+                    """
+            return {
+                d['token_address']: {
+                    'token_address': d['token_address'],
+                    'price_stable': d['price_stable'],
+                    'price_native': d['price_native'],
+                }
+                for d in self.clickhouse.query(query).named_results()
+            }
+
+        @cache
+        def import_base_tokens_prices() -> list:
+            assert self.clickhouse, "Clickhouse client is not initialized"
+            _from_ch = False
+            logger.info("exporting DEX_POOL_PRICES...")
+            dex_pools = export_dex_pools()[0]
+            if not dex_pools:
+                return []
+            tokens_to_score = []
+
+            for pool in dex_pools:
+                tokens_to_score.extend(pool['token_addresses'])
+
+            token_address_to_score: dict[str, int] = self._calculate_pools_count_for_tokens(
+                list(set(tokens_to_score))
+            )
+            stablecoin_addresses = self.eth_streamer.chain_config["stablecoin_addresses"]
+            native_token_address = self.eth_streamer.chain_config["native_token"]["address"]
+
+            base_tokens_addresses_set = set()
+            for pool in dex_pools:
+                pool_ranking = []
+
+                for token_address in pool['token_addresses']:
+                    if token_address in stablecoin_addresses:
+                        pool_ranking.append(float('inf'))
+                    else:
+                        pool_ranking.append(token_address_to_score.get(token_address, 0))
+                all_equal = all(element == pool_ranking[0] for element in pool_ranking)
+                if all_equal:
+                    # we would be resolving all tokens if we can't score them by PoolRanking
+                    base_tokens_addresses_set.update(pool['token_addresses'])
+                else:
+                    # if there is token with highest score, we would be resolving it as a base token for prices
+                    # calculation
+                    base_token_index = pool_ranking.index(max(pool_ranking))
+                    base_tokens_addresses_set.add(pool['token_addresses'][base_token_index])
+            base_tokens_addresses = list(base_tokens_addresses_set)
+            base_token_prices = []
+            latest_trades_prices = get_latest_prices_from_trades_for_tokens(base_tokens_addresses)
+            for token_address in base_tokens_addresses:
+                prices_ = latest_trades_prices.get(
+                    token_address,
+                    {'price_stable': 0, 'price_native': 0, 'token_address': token_address},
+                )
+                if token_address in stablecoin_addresses:
+                    # Assigning all stablecoins to be equal to 1 for now, we can complicate the logic here in future
+                    # not setting the $1 price only to stable which is most trustable at that point
+                    # (most liquidity/volume) or resolving the prices against CEXes here for stables
+                    prices_['price_stable'] = 1
+                elif token_address == native_token_address:
+                    prices_['price_native'] = 1
+                base_token_prices.append(prices_)
+            return base_token_prices
+
+        @cache
+        def export_enriched_dex_trades():
+            assert self.clickhouse, "Clickhouse client is not initialized"
+            from_ch_ = False
+            logger.info("enriching DEX_TRADES...")
+            # enriched_dex_trades = self.select_distinct(
+            #     ENRICHED_DEX_TRADE, start_block, end_block, 'transaction_hash,log_index'
+            # )
+            # if enriched_dex_trades:
+            #     for t in enriched_dex_trades:
+            #         t['type'] = ENRICHED_DEX_TRADE
+            #     return enriched_dex_trades, from_ch_
+            dex_trades = export_dex_trades()[0]
+            dex_pools = export_dex_pools()[0]
+            tokens = export_tokens()[0]
+            token_transfers = extract_token_transfers()[0]
+            internal_transfers = extract_internal_transfers()[0]
+            transactions = export_blocks_and_transactions()[1]
+            base_tokens_prices = import_base_tokens_prices()
+            enriched_dex_trades = self.eth_streamer.export_enriched_dex_trades(
+                dex_trades=dex_trades,
+                dex_pools=dex_pools,
+                base_tokens_prices=base_tokens_prices,
+                tokens=tokens,
+                token_transfers=token_transfers,
+                internal_transfers=internal_transfers,
+                transactions=transactions,
+            )
+            return enriched_dex_trades, from_ch_
 
         exported: dict[EntityType, list] = {ERROR: []}
         from_ch: dict[EntityType, bool] = {}
@@ -531,6 +715,9 @@ class ClickhouseEthStreamerAdapter:
             ((INTERNAL_TRANSFER_PRICED,), extract_internal_transfers_priced),
             ((PRE_EVENT,), prepare_events),
             ((DEX_POOL,), export_dex_pools),
+            ((PARSED_LOG,), parse_logs),
+            ((DEX_TRADE,), export_dex_trades),
+            ((ENRICHED_DEX_TRADE,), export_enriched_dex_trades),
         ):
             for entity_type in entity_types:
                 if entity_type not in self.eth_streamer.should_export:

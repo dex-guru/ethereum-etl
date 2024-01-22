@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 NULL_ADDRESSES = {
     '0x0000000000000000000000000000000000000000',
     '0x0000000000000000000000000000000000000001',
@@ -26,7 +29,7 @@ NULL_ADDRESSES = {
     '0xffffffffffffffffffffffffffffffffffffffff',
 }
 
-PARSABLE_SWAPS_BURNS_MINTS_EVENTS = [
+PARSABLE_TRADE_EVENTS = [
     "Swap",
     "Burn",
     "Mint",
@@ -61,3 +64,13 @@ PARSABLE_SWAPS_BURNS_MINTS_EVENTS = [
     "RemoveLiquidityOne",
     "RemoveLiquidityImbalance",
 ]
+
+
+def get_chain_config(chain_id) -> dict:
+    with open(Path(__file__).parent.parent / 'chains_config.json') as file:
+        data = json.load(file)
+        # Search for the dictionary with the matching chain_id
+    for item in data:
+        if item.get("id") == chain_id:
+            return item
+    raise ValueError(f'Chain id {chain_id} not found in chains_config.json')

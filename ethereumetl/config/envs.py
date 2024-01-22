@@ -41,7 +41,7 @@ class EnvsConfig(BaseSettings):
     LOG_HANDLERS: list[str] = ['console']
     SERVICE_NAME: str = ''
     SKIP_NONE_RECEIPTS: bool = False
-    MIN_INSERT_BATCH_SIZE: int = 1000
+    MIN_INSERT_BATCH_SIZE: int = 1
     EXPORT_FROM_CLICKHOUSE: AnyUrl | Literal[''] = ''
     # Overwrite these item types read from ClickHouse using EXPORT_FROM_CLICKHOUSE option when the
     # output is set to the same ClickHouse instance. Comma-separated list of item types.
@@ -55,6 +55,7 @@ class EnvsConfig(BaseSettings):
     ROUTING_KEY: str | None = ''
     QUEUE_NAME: str | None = ''
     EXCHANGE_NAME: str | None = ''
+    PRICE_IMPORTER_URL: str = ''
 
 
 envs = EnvsConfig()
