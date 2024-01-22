@@ -24,35 +24,51 @@ from collections.abc import Iterable
 from blockchainetl.jobs.base_job import BaseJob
 from ethereumetl.executors.batch_work_executor import BatchWorkExecutor
 from ethereumetl.mappers.dex_pool_mapper import EthDexPoolMapper
-from ethereumetl.service.eth_pool_service import EthPoolService
+from ethereumetl.mappers.parsed_log_mapper import EthParsedReceiptLogMapper
+from ethereumetl.misc.info import PARSABLE_TRADE_EVENTS
+from ethereumetl.service.eth_resolve_log_service import EthResolveLogService
 
 
 class ExportPoolsJob(BaseJob):
     def __init__(
         self,
-        logs_iterable: Iterable[dict],
-        sighash_to_namespace: dict | None,  # {(event_sig, topic_count): namespace}
+        parsed_logs_iterable: Iterable[dict],
+        chain_id,
         item_exporter,
         batch_size,
         batch_web3_provider,
         max_workers,
-        chain_id,
     ):
+        self.chain_id = chain_id
         self.item_exporter = item_exporter
         self.batch_work_executor = BatchWorkExecutor(1, max_workers)
         self.batch_web3_provider = batch_web3_provider
         self.batch_size = batch_size
-        logs_iterable = sorted(logs_iterable, key=lambda log: log['address'])
-        self.sighash_to_namespace = sighash_to_namespace or {}
-        self.pool_service = EthPoolService(batch_web3_provider, chain_id=chain_id)
+        self.pool_service = EthResolveLogService(batch_web3_provider, chain_id)
         self.dex_pool_mapper = EthDexPoolMapper()
+        self.parsed_log_mapper = EthParsedReceiptLogMapper()
+        self.logs_iterable = [
+            EthParsedReceiptLogMapper.dict_to_parsed_receipt_log(log)
+            for log in self._collect_unique_addresses(parsed_logs_iterable)
+            if log['event_name'] in PARSABLE_TRADE_EVENTS
+        ]
+
+    @staticmethod
+    def _collect_unique_addresses(parsed_logs_iterable):
         logs_with_unique_addresses = []
         added_addresses = set()
-        for log in logs_iterable:
-            if log['address'] not in added_addresses:
+
+        for log in sorted(parsed_logs_iterable, key=lambda log_: log_['address']):
+            # Balancer vault address is always in the log address
+            pool_address = f"0x{log['parsed_event'].get('poolId', '')[:40].lower()}"
+            if pool_address and pool_address not in added_addresses:
+                added_addresses.add(pool_address)
+                logs_with_unique_addresses.append(log)
+
+            elif log['address'] not in added_addresses:
                 added_addresses.add(log['address'])
                 logs_with_unique_addresses.append(log)
-        self.logs_iterable = logs_with_unique_addresses
+        return logs_with_unique_addresses
 
     def _start(self):
         self.item_exporter.open()
@@ -69,12 +85,7 @@ class ExportPoolsJob(BaseJob):
     def _export_pools(self, logs):
         pools = []
         for log in logs:
-            potential_dex_types = self.sighash_to_namespace.get(
-                (log['topics'][0], len(log['topics']))
-            )
-            if not potential_dex_types:
-                continue
-            pool = self.pool_service.get_dex_pool(log['address'], potential_dex_types)
+            pool = self.pool_service.get_dex_pool(log)
             if pool:
                 pools.append(self.dex_pool_mapper.pool_to_dict(pool))
 

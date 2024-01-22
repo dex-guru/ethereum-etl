@@ -33,3 +33,18 @@ class EthTokenTransferMapper:
         result = asdict(token_transfer)
         result['type'] = EntityType.TOKEN_TRANSFER.value
         return result
+
+    @staticmethod
+    def dict_to_token_transfer(d: dict[str, Any]) -> EthTokenTransfer:
+        return EthTokenTransfer(
+            token_address=d['token_address'],
+            from_address=d['from_address'],
+            to_address=d['to_address'],
+            value=d['value'],
+            transaction_hash=d['transaction_hash'],
+            log_index=d['log_index'],
+            block_number=d['block_number'],
+            token_standard=d['token_standard'],
+            token_id=d['token_id'],
+            operator_address=d['operator_address'],
+        )

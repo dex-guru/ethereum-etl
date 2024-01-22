@@ -704,9 +704,23 @@ raw-data-streamer-dexpool-stage:
     entrypoint: [""]
   variables:
     SERVICE_NAME: "raw-data-streamer-dexpool"
-    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE_TRACE}
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
     HELM_CHART: ${HELM_CHART_STAGE_LAX}
   script:
     - helm/lax_stage_deploy.sh
   only:
     - master
+
+raw-data-streamer-dextrade-stage:
+    stage: deploy-stage
+    image:
+        name: ${IMAGE_HELM_KUBECTL}
+        entrypoint: [""]
+    variables:
+        SERVICE_NAME: "raw-data-streamer-dextrade"
+        KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE_TRACE}
+        HELM_CHART: ${HELM_CHART_STAGE_LAX}
+    script:
+        - helm/lax_stage_deploy.sh
+    only:
+        - master

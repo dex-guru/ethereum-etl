@@ -1,0 +1,296 @@
+[
+    {
+        "id": 1,
+        "name": "eth",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2-eth",
+            "address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+            "name": "Wrapped Ether",
+            "symbol": "WETH",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0xdac17f958d2ee523a2206206994597c13d831ec7",
+            "0x0000000000085d4780b73119b644ae5ecd22b376",
+            "0x4fabb145d64652a948d72533023f6e7a623c7c53",
+            "0x8e870d67f660d95d5be530380d0ec0bd388289e1",
+            "0x956f47f50a910163d8bf957cf5846d573e7f87ca",
+            "0x853d955acef822db058eb8505911ed77f175b99e",
+            "0xbc6da0fe9ad5f3b0d58160288917aa56653660e9",
+            "0x57ab1ec28d129707052df4df418d58a2d46d5f51",
+            "0x5f98805a4e8be255a32880fdec7f6728c6568ba0",
+            "0x674c6ad92fd080e4004b2312b45f796a192d27a0",
+            "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+        ]
+    },
+    {
+        "id": 10,
+        "name": "optimism",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x4200000000000000000000000000000000000006-optimism",
+            "address": "0x4200000000000000000000000000000000000006",
+            "name": "Wrapped Ether",
+            "symbol": "WETH",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0x94b008aa00579c1307b0ef2c499ad98a8ce58e58",
+            "0x8c6f28f2f1a3c87f0f938b96d27520d9751ec8d9"
+        ]
+    },
+    {
+        "id": 56,
+        "name": "bsc",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c-bsc",
+            "address": "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c",
+            "name": "Wrapped BNB",
+            "symbol": "WBNB",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0x55d398326f99059ff775485246999027b3197955",
+            "0xe9e7cea3dedca5984780bafc599bd69add087d56",
+            "0xb7f8cd00c5a06c0537e2abff0b58033d02e5e094",
+            "0x29ced01c447166958605519f10dcf8b0255fb379",
+            "0x23e8a70534308a4aaf76fb8c32ec13d17a3bd89e",
+            "0x03ab98f5dc94996f8c33e15cd4468794d12d41f9"
+        ]
+    },
+    {
+        "id": 100,
+        "name": "gnosis",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0xe91d153e0b41518a2ce8dd3d7944fa863463a97d-gnosis",
+            "address": "0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "name": "Wrapped xDAI",
+            "symbol": "xDAI",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0x4ecaba5870353805a9f068101a40e0f32ed605c6"
+        ]
+    },
+    {
+        "id": 137,
+        "name": "polygon",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270-polygon",
+            "address": "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
+            "name": "WMATIC2",
+            "symbol": "WMATIC",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+            "0x45c32fa6df82ead1e2ef74d17b76547eddfaff89",
+            "0x87ff96aba480f1813af5c780387d8de7cf7d8261",
+            "0x104592a158490a9228070e0a8e5343b499e125d0",
+            "0xd2eba21c2e0d6f996fdd063ae20aca8264ac1929",
+            "0x23001f892c0c82b79303edc9b9033cd190bb21c7",
+            "0x60d55f02a771d515e077c9c2403a1ef324885cec",
+            "0x27f8d03b3a2196956ed754badc28d73be8830a6e",
+            "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359"
+        ]
+    },
+    {
+        "id": 250,
+        "name": "fantom",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83-fantom",
+            "address": "0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83",
+            "name": "Wrapped FTM",
+            "symbol": "WFTM",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0xdc301622e621166bd8e82f2ca0a26c13ad0be355",
+            "0x1b6382dbdea11d97f24495c9a90b7c88469134a4"
+        ]
+    },
+    {
+        "id": 42161,
+        "name": "arbitrum",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x82af49447d8a07e3bd95bd0d56f35241523fbab1-arbitrum",
+            "address": "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
+            "name": "WETH",
+            "symbol": "WETH",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
+            "0xaf88d065e77c8cc2239327c5edb3a432268e5831"
+        ]
+    },
+    {
+        "id": 42220,
+        "name": "celo",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x471ece3750da237f93b8e339c536989b8978a438-celo",
+            "address": "0x471ece3750da237f93b8e339c536989b8978a438",
+            "name": "Celo",
+            "symbol": "CELO",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0x64defa3544c695db8c535d289d843a189aa26b98",
+            "0x765de816845861e75a25fca122bb6898b8b1282a",
+            "0x2a3684e9dc20b857375ea04235f2f7edbe818fa7",
+            "0x37f750b7cc259a2f741af45294f6a16572cf5cad"
+        ]
+    },
+    {
+        "id": 43114,
+        "name": "avalanche",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7-avalanche",
+            "address": "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7",
+            "name": "Wrapped AVAX",
+            "symbol": "WAVAX",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0xc7198437980c041c805a1edcba50c1ce5db95118",
+            "0x9702230a8ea53601f5cd2dc00fdbc13d4df4a8c7",
+            "0xd24c2ad096400b6fbcd2ad8b24e7acbc21a1da64"
+        ]
+    },
+    {
+        "id": 42170,
+        "name": "nova",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x722e8bdd2ce80a4422e880164f2079488e115365-nova",
+            "address": "0x722e8bdd2ce80a4422e880164f2079488e115365",
+            "name": "Wrapped Ether",
+            "symbol": "WETH",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0x750ba8b76187092b0d1e87e28daaf484d1b5273b",
+            "0xda10009cbd5d07dd0cecc66161fc93d7c9000da1"
+        ]
+    },
+    {
+        "id": 7700,
+        "name": "canto",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x826551890dc65655a0aceca109ab11abdbd7a07b-canto",
+            "address": "0x826551890dc65655a0aceca109ab11abdbd7a07b",
+            "name": "WCANTO",
+            "symbol": "WCANTO",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0xd567b3d7b8fe3c79a1ad8da978812cfc4fa05e75"
+        ]
+    },
+    {
+        "id": 324,
+        "name": "zksync",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x5aea5775959fbc2557cc8789bc1bf90a239d9a91-zksync",
+            "address": "0x5aea5775959fbc2557cc8789bc1bf90a239d9a91",
+            "name": "WETH",
+            "symbol": "WETH",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0x3355df6d4c9c3035724fd0e3914de96a5a83aaf4"
+        ]
+    },
+    {
+        "id": 321,
+        "name": "kcc",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x5aea5775959fbc2557cc8789bc1bf90a239d9a91-zksync",
+            "address": "0x5aea5775959fbc2557cc8789bc1bf90a239d9a91",
+            "name": "WETH",
+            "symbol": "WETH",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0x0039f574ee5cc39bdd162e9a88e3eb1f111baf48",
+            "0x980a5afef3d17ad98635f6c5aebcbaeded3c3430",
+            "0x05713def8f4379c17dcf50a0cfc538a675b4f79c"
+        ]
+    },
+    {
+        "id": 1101,
+        "name": "zkevm",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x4F9A0e7FD2Bf6067db6994CF12E4495Df938E6e9-zkevm",
+            "address": "0x4f9a0e7fd2bf6067db6994cf12e4495df938e6e9",
+            "name": "WETH",
+            "symbol": "WETH",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0xa8ce8aee21bc2a48a5ef670afcc9274c7bbbc035"
+        ]
+    },
+    {
+        "id": 8453,
+        "name": "base",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x4200000000000000000000000000000000000006-base",
+            "address": "0x4200000000000000000000000000000000000006",
+            "name": "ETH",
+            "symbol": "ETH",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0xeb466342c4d449bc9f53a865d5cb90586f405215",
+            "0xfe668a3d6f05e7799aae04659fc274ac00d094c0",
+            "0xd9aaec86b65d86f6a7b5b1b0c42ffa531710b6ca"
+        ]
+    },
+    {
+        "id": 169,
+        "name": "manta",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x0dc808adce2099a9f62aa87d9670745aba741746-manta",
+            "address": "0x0dc808adce2099a9f62aa87d9670745aba741746",
+            "name": "Wrapped Ether",
+            "symbol": "WETH",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0xb73603c5d87fa094b7314c74ace2e64d165016fb",
+            "0xf417f5a458ec102b90352f697d6e2ac3a3d2851f",
+            "0x1c466b9371f8aba0d7c458be10a62192fcb8aa71"
+        ]
+    }
+]

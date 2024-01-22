@@ -1,6 +1,7 @@
 import json
 import logging
-from enum import Enum
+from collections.abc import Callable
+from functools import cache
 from pathlib import Path
 
 from eth_typing import ChecksumAddress
@@ -8,10 +9,13 @@ from web3 import Web3
 from web3.exceptions import BadFunctionCallOutput, ContractLogicError
 
 from ethereumetl.domain.dex_pool import EthDexPool
-from ethereumetl.domain.receipt_log import EthReceiptLog
+from ethereumetl.domain.dex_trade import EthDexTrade
+from ethereumetl.domain.receipt_log import ParsedReceiptLog
 from ethereumetl.domain.token import EthToken
-from ethereumetl.service.dex.base.base_dex_client import BaseDexClient
+from ethereumetl.domain.token_transfer import EthTokenTransfer
+from ethereumetl.service.dex.base.interface import DexClientInterface
 from ethereumetl.service.dex.enums import DexPoolFeeAmount
+from ethereumetl.utils import get_prices_for_two_pool
 
 AMM_TYPE = "uniswap_v2"
 FACTORY_CONTRACT = "UniswapV2Factory"
@@ -19,30 +23,22 @@ POOL_CONTRACT = "Pool"
 to_checksum = Web3.toChecksumAddress
 
 
-class UniswapV2Amm(BaseDexClient):
-    pool_contract_names = (POOL_CONTRACT,)
-
-    class ParsableEvents(Enum):
-        """supported events from uniswap v2 contracts."""
-
-        swap = "swap"
-        burn = "burn"
-        mint = "mint"
-        sync = "sync"
-
-    def __init__(self, web3: Web3):
-        super().__init__(web3)
+class UniswapV2Amm(DexClientInterface):
+    def __init__(self, web3: Web3, chain_id: int | None = None):
         pool_abi_path = Path(__file__).parent / "Pool.json"
-        self.pool_contract_abi = self._w3.eth.contract(abi=json.loads(pool_abi_path.read_text()))
+        abi = json.loads(pool_abi_path.read_text())
+        self._w3: Web3 = web3
+        self.pool_contract = self._w3.eth.contract(abi=abi)
 
-    # def _get_event_name(self, topics: List[str]):
-    #     try:
-    #         topic = topics[0][0:4]
-    #     except IndexError:
-    #         logging.error(f"Cant get receipt_log.topics[0][0:4], index error, topics: {topics}")
-    #         return None
-    #     event_name = self.abi[POOL_CONTRACT].topic_keccaks.get(topic, None)
-    #     return event_name
+    @property
+    def event_resolver(self) -> dict[str, Callable]:
+        return {
+            "Swap": self._get_trade_from_swap_event,
+            "Burn": self._get_trade_from_burn_event,
+            "Mint": self._get_trade_from_mint_event,
+            # "Sync": self.get_pool_finances_from_sync_event,
+        }
+
     #
     # def get_num_pairs(self, block_identifier: Union[str, int] = "latest") -> int:
     #     """
@@ -143,21 +139,16 @@ class UniswapV2Amm(BaseDexClient):
     #     ]
     #     return {"address": pair_address.lower(), "tokens_addresses": tokens}
 
-    def resolve_receipt_log(
-        self,
-        receipt_log: EthReceiptLog,
-        base_pool: EthDexPool,
-        erc20_tokens: list[EthToken],
-    ) -> dict | None:
-        pass
-
-    def get_base_pool(self, address: str) -> EthDexPool | None:
+    def resolve_asset_from_log(self, parsed_log: ParsedReceiptLog) -> EthDexPool | None:
+        address = parsed_log.address
         logging.debug(f"Resolving pool addresses for {address}")
         factory_address = self.get_factory_address(to_checksum(address))
         if not factory_address:
+            logging.warning(f"Factory address not found for {address}, resolving {parsed_log}")
             return None
         tokens_addresses = self.get_tokens_addresses_for_pool(to_checksum(address))
         if not tokens_addresses:
+            logging.warning(f"Tokens addresses not found for {address}, resolving {parsed_log}")
             return None
         return EthDexPool(
             address=address,
@@ -167,86 +158,179 @@ class UniswapV2Amm(BaseDexClient):
             factory_address=factory_address.lower(),
         )
 
+    @cache
     def get_factory_address(self, pool_address: str) -> str | None:
         try:
-            factory_address = self.pool_contract_abi.functions.factory().call(
+            factory_address = self.pool_contract.functions.factory().call(
                 {"to": to_checksum(pool_address)}, "latest"
             )
+            if not self._w3.is_address(factory_address):
+                raise ValueError(f"Factory address is not valid: {factory_address}")
             return factory_address.lower()
         except (TypeError, ContractLogicError, ValueError, BadFunctionCallOutput) as e:
-            logging.debug(f"Not found factory, fallback to maintainer. Error: {e}")
+            logging.warning(f"Not found factory, fallback to maintainer. Error: {e}")
         return None
 
+    @cache
     def get_tokens_addresses_for_pool(self, pool_address: ChecksumAddress) -> list | None:
         logging.debug(f"Resolving tokens addresses for {pool_address}")
         try:
             tokens_addresses = [
-                (self.pool_contract_abi.functions.token0().call({"to": pool_address}, "latest")),
-                (self.pool_contract_abi.functions.token1().call({"to": pool_address}, "latest")),
+                (self.pool_contract.functions.token0().call({"to": pool_address}, "latest")),
+                (self.pool_contract.functions.token1().call({"to": pool_address}, "latest")),
             ]
+            for token_address in tokens_addresses:
+                if not self._w3.is_address(token_address):
+                    raise ValueError(f"Token address is not valid: {token_address}")
+            return tokens_addresses
         except (TypeError, ContractLogicError, ValueError, BadFunctionCallOutput) as e:
-            logging.error(f"Cant resolve tokens_addressese for pair {pool_address}, {e}")
+            logging.error(f"Cant resolve tokens_addresses for pair {pool_address}, {e}")
+        return None
+
+    def resolve_receipt_log(
+        self,
+        parsed_receipt_log: ParsedReceiptLog,
+        dex_pool: EthDexPool | None = None,
+        tokens_for_pool: list[EthToken] | None = None,
+        transfers_for_transaction: list[EthTokenTransfer] | None = None,
+    ) -> EthDexTrade | None:
+        logging.debug(f"Resolving receipt log {parsed_receipt_log}")
+        event_name = parsed_receipt_log.event_name
+        if not self.event_resolver.get(event_name):
+            logging.debug(f"Event {event_name} not found in resolver")
             return None
 
-        return tokens_addresses
+        resolve_func: Callable = self.event_resolver[event_name]
+        finance_info = self.resolve_finance_info(parsed_receipt_log, dex_pool, tokens_for_pool)
+        if not finance_info:
+            logging.debug(f"Finance info not found for {parsed_receipt_log}")
+            return None
+        resolved_log = resolve_func(parsed_receipt_log, finance_info)
+        logging.debug(f"Resolved receipt log {resolved_log}")
+        return resolved_log
 
-    # def resolve_receipt_log(
-    #     self,
-    #     receipt_log: EthReceiptLog,
-    #     base_pool: EthDexPool,
-    #     erc20_tokens: List[EthToken],
-    # ) -> Optional[dict]:
-    #     logging.debug(f"resolving {receipt_log.transaction_hash.hex()}-{receipt_log.log_index}")
-    #     event_name = self._get_event_name(receipt_log.topics)
-    #
-    #     if not all((receipt_log.topics, event_name)):
-    #         return None
-    #
-    #     tokens_scalars = []
-    #     for erc20_token in erc20_tokens:
-    #         tokens_scalars.append(10**erc20_token.decimals)
-    #     parsed_event = self.parse_event(self.abi[POOL_CONTRACT], event_name, receipt_log)
-    #     if event_name.lower() == self.pool_contracts_events_enum.swap.name:
-    #         logging.debug("resolving swap from swap event")
-    #         swap = self.get_swap_from_swap_event(base_pool, parsed_event, tokens_scalars)
-    #         pool = self.get_pool_finances(base_pool, receipt_log.block_number, tokens_scalars)
-    #         logging.debug(f"resolved swap from swap event {swap}")
-    #         swap.log_index = receipt_log.log_index
-    #         return {
-    #             "swaps": [swap],
-    #             "pools": [pool] if pool else [],
-    #         }
-    #
-    #     if event_name.lower() == self.pool_contracts_events_enum.burn.name:
-    #         logging.debug(f"resolving burn from burn event")
-    #         burn = self.get_mint_burn_from_events(base_pool, parsed_event, tokens_scalars)
-    #         pool = self.get_pool_finances(base_pool, receipt_log.block_number - 1, tokens_scalars)
-    #         logging.debug(f"resolving burn from burn event")
-    #         burn.log_index = receipt_log.log_index
-    #         return {
-    #             "burns": [burn],
-    #             "pools": [pool] if pool else [],
-    #         }
-    #
-    #     if event_name.lower() == self.pool_contracts_events_enum.mint.name:
-    #         logging.debug(f"resolving burn from mint event")
-    #         mint = self.get_mint_burn_from_events(base_pool, parsed_event, tokens_scalars)
-    #         pool = self.get_pool_finances(base_pool, receipt_log.block_number, tokens_scalars)
-    #         logging.debug(f"resolving burn from mint event")
-    #         mint.log_index = receipt_log.log_index
-    #         return {
-    #             "mints": [mint],
-    #             "pools": [pool] if pool else [],
-    #         }
-    #
-    #     # if event_name.lower() == self.pool_contracts_events_enum.sync.name:
-    #     #     logging.debug(f'resolving pool finances from sync event')
-    #     #     pool = self.get_pool_finances_from_sync_event(base_pool, parsed_event, tokens_scalars)
-    #     #     logging.debug(f'resolved pool finances from sync event {pool}')
-    #     #     return {
-    #     #         "pools": [pool]
-    #     #     }
-    #
+    def resolve_finance_info(
+        self, parsed_receipt_log: ParsedReceiptLog, dex_pool, tokens
+    ) -> dict | None:
+        token_scalars = []
+        for token_address in dex_pool.token_addresses:
+            token = next((token for token in tokens if token.address == token_address), None)
+            if not token:
+                logging.debug(f"Token {token_address} not found in tokens")
+                return None
+            token_scalars.append(10**token.decimals)
+        try:
+            reserves = self.pool_contract.functions.getReserves().call(
+                {"to": to_checksum(parsed_receipt_log.address)},
+                block_identifier=parsed_receipt_log.block_number - 1,
+            )
+        except (TypeError, ContractLogicError, ValueError, BadFunctionCallOutput) as e:
+            logging.debug(f"Not found reserves for {parsed_receipt_log.address}. Error: {e}")
+            return None
+        reserve_0 = reserves[0] / token_scalars[0]
+        reserve_1 = reserves[1] / token_scalars[1]
+        return {
+            'reserve_0': reserve_0,
+            'reserve_1': reserve_1,
+            'price_0': float(reserve_1 / reserve_0),
+            'price_1': float(reserve_0 / reserve_1),
+        }
+
+        # if event_name.lower() == self.pool_contracts_events_enum.swap.name:
+        #     logging.debug("resolving swap from swap event")
+        #     swap = self.get_swap_from_swap_event(base_pool, parsed_event, tokens_scalars)
+        #     pool = self.get_pool_finances(base_pool, receipt_log.block_number, tokens_scalars)
+        #     logging.debug(f"resolved swap from swap event {swap}")
+        #     swap.log_index = receipt_log.log_index
+        #     return {
+        #         "swaps": [swap],
+        #         "pools": [pool] if pool else [],
+        #     }
+        #
+        # if event_name.lower() == self.pool_contracts_events_enum.burn.name:
+        #     logging.debug("resolving burn from burn event")
+        #     burn = self.get_mint_burn_from_events(base_pool, parsed_event, tokens_scalars)
+        #     pool = self.get_pool_finances(base_pool, receipt_log.block_number - 1, tokens_scalars)
+        #     logging.debug("resolving burn from burn event")
+        #     burn.log_index = receipt_log.log_index
+        #     return {
+        #         "burns": [burn],
+        #         "pools": [pool] if pool else [],
+        #     }
+        #
+        # if event_name.lower() == self.pool_contracts_events_enum.mint.name:
+        #     logging.debug("resolving burn from mint event")
+        #     mint = self.get_mint_burn_from_events(base_pool, parsed_event, tokens_scalars)
+        #     pool = self.get_pool_finances(base_pool, receipt_log.block_number, tokens_scalars)
+        #     logging.debug("resolving burn from mint event")
+        #     mint.log_index = receipt_log.log_index
+        #     return {
+        #         "mints": [mint],
+        #         "pools": [pool] if pool else [],
+        #     }
+
+    @staticmethod
+    def _get_trade_from_mint_event(
+        parsed_receipt_log: ParsedReceiptLog, finance_info: dict
+    ) -> EthDexTrade:
+        parsed_event = parsed_receipt_log.parsed_event
+        return EthDexTrade(
+            pool_address=parsed_receipt_log.address,
+            token_amounts_raw=(parsed_event["amount0"], parsed_event["amount1"]),
+            transaction_hash=parsed_receipt_log.transaction_hash,
+            log_index=parsed_receipt_log.log_index,
+            block_number=parsed_receipt_log.block_number,
+            event_type='mint',
+            token_reserves=(finance_info['reserve_0'], finance_info['reserve_1']),
+            token_prices=get_prices_for_two_pool(finance_info['price_0'], finance_info['price_1']),
+            lp_token_address=parsed_receipt_log.address,
+        )
+
+    @staticmethod
+    def _get_trade_from_burn_event(
+        parsed_receipt_log: ParsedReceiptLog, finance_info: dict
+    ) -> EthDexTrade:
+        parsed_event = parsed_receipt_log.parsed_event
+
+        return EthDexTrade(
+            pool_address=parsed_receipt_log.address,
+            token_amounts_raw=(parsed_event["amount0"], parsed_event["amount1"]),
+            transaction_hash=parsed_receipt_log.transaction_hash,
+            log_index=parsed_receipt_log.log_index,
+            block_number=parsed_receipt_log.block_number,
+            event_type='burn',
+            token_reserves=(finance_info['reserve_0'], finance_info['reserve_1']),
+            token_prices=get_prices_for_two_pool(finance_info['price_0'], finance_info['price_1']),
+            lp_token_address=parsed_receipt_log.address,
+        )
+
+    @staticmethod
+    def _get_trade_from_swap_event(
+        parsed_receipt_log: ParsedReceiptLog, finance_info: dict
+    ) -> EthDexTrade:
+        parsed_event = parsed_receipt_log.parsed_event
+        return EthDexTrade(
+            pool_address=parsed_receipt_log.address,
+            token_amounts_raw=(
+                parsed_event["amount0In"] - parsed_event["amount0Out"],
+                parsed_event["amount1In"] - parsed_event["amount1Out"],
+            ),
+            transaction_hash=parsed_receipt_log.transaction_hash,
+            log_index=parsed_receipt_log.log_index,
+            block_number=parsed_receipt_log.block_number,
+            event_type='swap',
+            token_reserves=(finance_info['reserve_0'], finance_info['reserve_1']),
+            token_prices=get_prices_for_two_pool(finance_info['price_0'], finance_info['price_1']),
+        )
+
+        # if event_name.lower() == self.pool_contracts_events_enum.sync.name:
+        #     logging.debug(f'resolving pool finances from sync event')
+        #     pool = self.get_pool_finances_from_sync_event(base_pool, parsed_event, tokens_scalars)
+        #     logging.debug(f'resolved pool finances from sync event {pool}')
+        #     return {
+        #         "pools": [pool]
+        #     }
+
     # # def get_pool_finances(
     # #     self,
     # #     base_pool: BasePool,
@@ -368,5 +452,5 @@ class UniswapV2Amm(BaseDexClient):
     # #         token1_price = 0
     # #     pool = PoolFinances(**base_pool.dict())
     # #     pool.reserves = [reserve0, reserve1]
-    # #     pool.prices = get_prices_for_two_pool(token0_price, token1_price)
-    # #     return pool
+    #     pool.prices = get_prices_for_two_pool(token0_price, token1_price)
+    #     return pool

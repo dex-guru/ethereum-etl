@@ -46,10 +46,8 @@ def hex_to_dec(hex_string):
     try:
         return int(hex_string, 16)
     except ValueError:
-        print("Not a hex string %s" % hex_string)
         return hex_string
     except TypeError:
-        print("Not a hex string %s" % hex_string)
         return hex_string
 
 
@@ -248,3 +246,26 @@ def execute_in_batches(
         return [rpc_responses_by_id[request['id']] for request in rpc_requests]
     except KeyError:
         raise ValueError('batch RPC: some request ids are missing in the response')
+
+
+def get_default_prices(token_count: int) -> list[list[float]]:
+    prices = [[1.0] * token_count for _ in range(token_count)]
+    return prices
+
+
+def get_prices_for_two_pool(token0_price: float, token1_price: float):
+    prices = get_default_prices(2)
+    prices[0][1] = token1_price
+    prices[1][0] = token0_price
+    return prices
+
+
+def get_price_matrix_for_price_array(price_array: list) -> list[list[float]]:
+    count = len(price_array)
+    prices = get_default_prices(count)
+    for i in range(count):
+        for j in range(count):
+            if i == j:
+                continue
+            prices[i][j] = price_array[j] / price_array[i]
+    return prices

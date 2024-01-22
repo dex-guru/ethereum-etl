@@ -25,6 +25,7 @@ from collections import defaultdict
 from dataclasses import fields
 from datetime import datetime
 
+from ethereumetl.domain.dex_trade import EnrichedDexTrade
 from ethereumetl.domain.internal_transfer import InternalTransfer
 from ethereumetl.domain.token_balance import EthTokenBalance
 from ethereumetl.domain.token_transfer_priced import TokenTransferPriced
@@ -358,6 +359,36 @@ def enrich_token_transfers_priced(blocks, token_transfers):
             ['type'] + [f.name for f in dataclasses.fields(TokenTransferPriced)],
             [
                 ('timestamp', 'timestamp'),
+            ],
+        )
+    )
+
+
+def enrich_dex_trades(blocks, dex_trades):
+    return list(
+        join(
+            dex_trades,
+            blocks,
+            ('block_number', 'number'),
+            ['type'] + [f.name for f in dataclasses.fields(EnrichedDexTrade)],
+            [
+                ('timestamp', 'block_timestamp'),
+                ('hash', 'block_hash'),
+            ],
+        )
+    )
+
+
+def enrich_parsed_logs(blocks, parsed_logs):
+    return list(
+        join(
+            parsed_logs,
+            blocks,
+            ('block_number', 'number'),
+            ['type'] + [f.name for f in dataclasses.fields(EnrichedDexTrade)],
+            [
+                ('timestamp', 'block_timestamp'),
+                ('hash', 'block_hash'),
             ],
         )
     )

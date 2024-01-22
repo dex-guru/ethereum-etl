@@ -12,7 +12,7 @@ from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter
 
 
 @pytest.fixture()
-def clickhouse_adapter(clickhouse_url):
+def clickhouse_adapter(clickhouse_url) -> ClickhouseEthStreamerAdapter:
     item_exporter = ClickHouseItemExporter(clickhouse_url)
 
     eth_streamer_adapter = EthStreamerAdapter(
@@ -20,6 +20,7 @@ def clickhouse_adapter(clickhouse_url):
         batch_size=1,
         item_exporter=item_exporter,
         entity_types=[EntityType.BLOCK],
+        chain_id=1,
     )
 
     ch_eth_streamer_adapter = ClickhouseEthStreamerAdapter(

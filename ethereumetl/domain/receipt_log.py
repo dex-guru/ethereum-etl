@@ -19,7 +19,9 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from collections.abc import Collection
 from dataclasses import dataclass, field
+from typing import Any
 
 
 @dataclass(slots=True)
@@ -32,3 +34,14 @@ class EthReceiptLog:
     transaction_index: int
     topics: list[str] = field(default_factory=list)
     block_hash: str | None = None
+
+
+@dataclass(slots=True)
+class ParsedReceiptLog:
+    transaction_hash: str
+    block_number: int
+    log_index: int
+    event_name: str
+    namespace: Collection[str]
+    address: str
+    parsed_event: dict[str, Any]

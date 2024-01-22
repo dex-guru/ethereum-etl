@@ -125,10 +125,34 @@ CREATE TABLE dex_pools
     `factory_address` LowCardinality(String),
     `token_addresses` Array(String) CODEC(ZSTD(1)),
     `lp_token_addresses` Array(String) CODEC(ZSTD(1)),
-    `fee` UInt16
+    `fee` UInt16,
+    `underlying_token_addresses` Array(String)
 )
 ENGINE = EmbeddedRocksDB
 PRIMARY KEY address;
+
+CREATE TABLE dex_trades
+(
+    `block_number` UInt64 CODEC(ZSTD(1)),
+    `block_hash` String CODEC(ZSTD(1)),
+    `block_timestamp` UInt64 CODEC(ZSTD(1)),
+    `transaction_hash` String CODEC(ZSTD(1)),
+    `log_index` UInt64 CODEC(ZSTD(1)),
+    `transaction_type` String CODEC(ZSTD(1)),
+    `token_addresses` Array(String) CODEC(ZSTD(1)),
+    `amounts` Array(Float64) CODEC(ZSTD(1)),
+    `amount_stable` Float64 CODEC(ZSTD(1)),
+    `amount_native` Float64 CODEC(ZSTD(1)),
+    `prices_stable` Array(Float64) CODEC(ZSTD(1)),
+    `prices_native` Array(Float64) CODEC(ZSTD(1)),
+    `pool_address` String CODEC(ZSTD(1)),
+    `wallet_address` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
+    INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
+)
+ENGINE = ReplacingMergeTree
+ORDER BY (block_number, transaction_hash, log_index)
+SETTINGS index_granularity = 8192;
 
 CREATE TABLE errors
 (

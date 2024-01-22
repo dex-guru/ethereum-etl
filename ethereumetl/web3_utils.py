@@ -29,16 +29,6 @@ def build_web3(provider):
     return w3
 
 
-# def parse_event(contract: ABIContract, event_name: str, receipt_log: EthReceiptLog):
-#     encoded_topics = [decode_hex(Web3.toHex(topic)) for topic in receipt_log.topics[1:]]
-#     indexed_values = [
-#         eth_abi.decode_single(t, v)
-#         for t, v in zip(contract.topic_indexed_types[event_name], encoded_topics)
-#     ]
-#     values = eth_abi.decode_abi(contract.topic_types[event_name], decode_hex(receipt_log.data))
-#     return {
-#         **{
-#             **dict(zip(contract.topic_names[event_name], values)),
-#             **dict(zip(contract.topic_indexed_names[event_name], indexed_values)),
-#         }
-#     }
+def is_checksum_address(address):
+    checksum = Web3.toChecksumAddress(address)
+    return checksum == address

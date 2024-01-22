@@ -37,6 +37,7 @@ ITEM_TYPE_TO_TABLE_MAPPING: Mapping = {
     EntityType.ERROR: "errors",
     EntityType.NATIVE_BALANCE: "native_balances",
     EntityType.DEX_POOL: "dex_pools",
+    EntityType.ENRICHED_DEX_TRADE: "dex_trades",
 }
 SCHEMA_FILE_PATH = Path(ethereumetl.__file__).parent.parent / 'db/migrations/schema.sql'
 
