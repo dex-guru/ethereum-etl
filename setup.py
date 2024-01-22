@@ -21,7 +21,7 @@ setup(
     packages=find_packages(exclude=["schemas", "tests*", "db", "helm"]),
     package_data={
         "blockchainetl.jobs.exporters": ["clickhouse_schemas.sql.tpl"],
-        "ethereumetl": ["dex/*.json", "chain_config.json"],
+        "ethereumetl": ["dex/*.json", "chains_config.json"],
     },
     include_package_data=True,
     classifiers=[
