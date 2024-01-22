@@ -7,7 +7,7 @@ import yaml
 
 @click.command()
 @click.argument('helm_values_file_path', type=click.Path(exists=True))
-def run_alembic_upgrade(helm_values_file_path, clickhouse_replicated):
+def run_alembic_upgrade(helm_values_file_path):
     """
     Runs alembic upgrade head with CLICKHOUSE_URL set for each chain in the YAML file.
     """

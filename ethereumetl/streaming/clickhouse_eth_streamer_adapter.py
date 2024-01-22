@@ -622,6 +622,7 @@ class ClickhouseEthStreamerAdapter:
             for pool in dex_pools:
                 tokens_to_score.extend(pool['token_addresses'])
 
+
             token_address_to_score: dict[str, int] = self._calculate_pools_count_for_tokens(
                 list(set(tokens_to_score))
             )
@@ -661,6 +662,7 @@ class ClickhouseEthStreamerAdapter:
                     prices_['price_stable'] = 1
                 elif token_address == native_token_address:
                     prices_['price_native'] = 1
+                prices_['score'] = token_address_to_score.get(token_address, 0)
                 base_token_prices.append(prices_)
             return base_token_prices
 

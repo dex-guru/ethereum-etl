@@ -59,18 +59,29 @@ class PriceService:
         """Checks if the trade involves a native token."""
         return self.native_token['address'] in dex_trade['token_addresses']
 
+    def _get_base_token(self, dex_trade):
+        """Gets the base token for the trade."""
+        _score = 0
+        _token_address = None
+        for token_address in dex_trade['token_addresses']:
+            if self.base_tokens_prices.get(token_address, {}).get('score', 0) > _score:
+                _score = self.base_tokens_prices[token_address]['score']
+                _token_address = token_address
+        return _token_address
+
     def _resolve_prices_for_generic_trade(self, dex_trade):
         """Resolves prices for trades without stablecoins."""
         if len(dex_trade['token_addresses']) != 2:
             # Handling for trades with more than two tokens can be added here
             return dex_trade
 
-        for idx, token_address in enumerate(dex_trade['token_addresses']):
-            base_price = self.base_tokens_prices.get(token_address)
-            if not base_price:
-                continue
+        base_token_address = self._get_base_token(dex_trade)
 
-            self._calculate_token_prices(dex_trade, idx, base_price)
+        for idx, token_address in enumerate(dex_trade['token_addresses']):
+            if token_address == base_token_address:
+                base_price = self.base_tokens_prices.get(token_address)
+                self._calculate_token_prices(dex_trade, idx, base_price)
+                break
 
         return dex_trade
 
