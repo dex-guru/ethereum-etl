@@ -3,13 +3,15 @@ import logging
 from enum import Enum
 from pathlib import Path
 
+from eth_utils import to_hex
 from web3 import Web3
 from web3.exceptions import ContractLogicError
 
 from ethereumetl.domain.dex_pool import EthDexPool
-from ethereumetl.domain.receipt_log import EthReceiptLog
+from ethereumetl.domain.dex_trade import EthDexTrade
+from ethereumetl.domain.receipt_log import ParsedReceiptLog
 from ethereumetl.domain.token import EthToken
-from ethereumetl.service.dex.base.base_dex_client import BaseDexClient
+from ethereumetl.domain.token_transfer import EthTokenTransfer
 from ethereumetl.service.dex.base.interface import DexClientInterface
 
 logs = logging.getLogger(__name__)
@@ -54,49 +56,62 @@ class BalancerTransactionType(Enum):
     poolbalancechanged = "PoolBalanceChanged"
 
 
-class BalancerAmm(BaseDexClient, DexClientInterface):
+class BalancerAmm(DexClientInterface):
     pool_contract_names = [POOL_CONTRACT, VAULT_CONTRACT]
     pool_contracts_events_enum = BalancerTransactionType
+    VAULT_ADDRESS = '0xBA12222222228d8Ba445958a75a0704d566BF2C8'
 
-    def __init__(self, web3: Web3):
-        super().__init__(web3)
+    def __init__(self, web3: Web3, chain_id: int | None = None):
         pool_abi_path = Path(__file__).parent / "Pool.json"
         vault_abi_path = Path(__file__).parent / "Vault.json"
+        if chain_id:
+            with open(Path(__file__).parent / "deploys" / str(chain_id) / "metadata.json") as f:
+                metadata = json.load(f)
+                self.VAULT_ADDRESS = metadata["contracts"][VAULT_CONTRACT]
+        self._w3 = web3
         self.pool_contract_abi = self._w3.eth.contract(abi=json.loads(pool_abi_path.read_text()))
         self.vault_contract_abi = self._w3.eth.contract(abi=json.loads(vault_abi_path.read_text()))
 
     def resolve_receipt_log(
         self,
-        receipt_log: EthReceiptLog,
-        base_pool: EthDexPool,
-        erc20_tokens: list[EthToken],
-    ) -> dict | None:
+        parsed_receipt_log: ParsedReceiptLog,
+        base_pool: EthDexPool | None = None,
+        erc20_tokens: list[EthToken] | None = None,
+        token_transfers: list[EthTokenTransfer] | None = None,
+    ) -> EthDexTrade | None:
         pass
 
-    def get_base_pool(self, address: str) -> EthDexPool | None:
+    def resolve_asset_from_log(self, parsed_log: ParsedReceiptLog) -> EthDexPool | None:
+        pool_id, pool_address = self._get_pool_id_and_address_from_receipt_log(parsed_log)
+        if not pool_id:
+            return None
+
+        return self.get_base_pool(pool_id)
+
+    def get_base_pool(self, pool_id: str) -> EthDexPool | None:
         """
         Supports resolving base pool by PoolID only, can're solve by smart contract address.
         """
-        checksum_address = to_checksum(address)
-        logs.debug(f"Resolving pool addresses for {address}")
-        tokens_addresses = self.get_tokens_addresses_for_pool(checksum_address)
+        logs.debug(f"Resolving pool addresses for {pool_id}")
+        tokens_addresses = self.get_tokens_addresses_for_pool(pool_id)
+        pool_address = self._pool_id_to_address(pool_id)
+        pool_address_lower = pool_address.lower()
         if not tokens_addresses:
             return None
         try:
             pool_fee = self.pool_contract_abi.functions.getSwapFeePercentage().call(
-                {"to": self._pool_id_to_address(checksum_address)}, "latest"
+                {"to": pool_address}, "latest"
             )
             fee_converted = pool_fee / (10**18)
         except ContractLogicError:
             fee_converted = 0
         # TODO Check if fees are braking something
-
         return EthDexPool(
-            address=address[:42],
+            address=pool_address_lower,
             token_addresses=[token_address.lower() for token_address in tokens_addresses],
-            fee=fee_converted,
-            lp_token_addresses=[address],
-            factory_address='',
+            fee=int(fee_converted),
+            lp_token_addresses=[pool_address_lower],
+            factory_address=self.VAULT_ADDRESS.lower(),
         )
 
     def get_tokens_addresses_for_pool(self, pool_address: str) -> list | None:
@@ -106,10 +121,9 @@ class BalancerAmm(BaseDexClient, DexClientInterface):
         """
         pool_id = pool_address  #
         logs.debug(f"Resolving tokens addresses for {pool_id}")
-        vault_address = self.contracts_by_dex_name['balancer']['Vault']
         try:
             tokens_addresses = self.vault_contract_abi.functions.getPoolTokens(pool_id).call(
-                {"to": vault_address}, "latest"
+                {"to": self.VAULT_ADDRESS}, "latest"
             )
         except (ContractLogicError, ValueError, TypeError):
             # logs.error(f"Cant resolve tokens_addresses for pool {pool_id}, {e}")
@@ -123,28 +137,15 @@ class BalancerAmm(BaseDexClient, DexClientInterface):
         pool_address = Web3.toChecksumAddress(pool_id[:42])
         return pool_address
 
-    # def get_pool_id_and_address_from_receipt_log(self, receipt_log: EthReceiptLog) -> Optional[Tuple]:
-    #     # temporary need to move to base_contract or blockchain_service
-    #     keccaks = {}
-    #     for contract_name, contract in self.abi.items():
-    #         for keccak, event_name in contract.topic_keccaks.items():
-    #             keccaks[keccak] = (contract_name, event_name)
-    #     receipt_log: EthReceiptLog
-    #     logs.debug(f"** Log: {receipt_log}")
-    #     try:
-    #         topic = receipt_log.topics[0][0:4]
-    #     except IndexError:
-    #         logs.error(f"Cant get receipt_log.topics[0][0:4], index error, log: {receipt_log}")
-    #         return None
-    #     keccak = keccaks.get(topic)
-    #     if not keccak:
-    #         return None
-    #     contract_name, event_name = keccak
-    #     if event_name in ["Swap", "PoolBalanceChanged"]:
-    #         parsed_event = self.parse_event(self.abi[contract_name], event_name, receipt_log)
-    #         pool_id = to_hex(parsed_event["poolId"])
-    #         pool_address = self._pool_id_to_address(pool_id)
-    #         return pool_id, pool_address
+    def _get_pool_id_and_address_from_receipt_log(
+        self, receipt_log: ParsedReceiptLog
+    ) -> tuple[str, str] | tuple[None, None]:
+        if receipt_log.event_name.lower() in ["swap", "poolbalancechanged"]:
+            pool_id = to_hex(receipt_log.parsed_event["poolId"])
+            pool_address = self._pool_id_to_address(pool_id)
+            return pool_id, pool_address
+        return None, None
+
     #
     # # def resolve_receipt_log(
     # #     self,

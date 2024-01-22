@@ -35,6 +35,7 @@ from ethereumetl.streaming.clickhouse_eth_streamer_adapter import (
     VerifyingClickhouseEthStreamerAdapter,
 )
 from ethereumetl.streaming.item_exporter_creator import create_item_exporters
+from ethereumetl.streaming.price_importer_creator import create_price_importers
 from ethereumetl.thread_local_proxy import ThreadLocalProxy
 
 
@@ -188,6 +189,13 @@ def validate_start_block(_ctx, _param, value):
     type=str,
     help='Elasticsearch URL',
 )
+@click.option(
+    '--price-importer-url',
+    default=envs.PRICE_IMPORTER_URL,
+    show_default=True,
+    type=str,
+    help='URL to get prices from',
+)
 def stream(
     chain_id,
     last_synced_block_provider_uri,
@@ -207,6 +215,7 @@ def stream(
     is_verifier=False,
     is_skip_cycle=False,
     elastic_url=None,
+    price_importer_url='',
 ):
     """Streams all data types to console or Google Pub/Sub."""
     # we need to increase recursion limit for traces
@@ -236,6 +245,7 @@ def stream(
         entity_types=entity_types,
         chain_id=chain_id,
         elastic_client=Elasticsearch(elastic_url) if elastic_url else None,
+        price_importer=create_price_importers(input_=price_importer_url, chain_id=chain_id),
     )
     if export_from_clickhouse:
         rewrite_entity_types = [EntityType(x) for x in envs.REWRITE_CLICKHOUSE.split(',') if x]

@@ -36,6 +36,7 @@ from blockchainetl.jobs.exporters.clickhouse_exporter import ClickHouseItemExpor
 from blockchainetl.jobs.exporters.composite_item_exporter import CompositeItemExporter
 from blockchainetl.jobs.exporters.elasticsearch_exporter import ElasticsearchItemExporter
 from blockchainetl.jobs.exporters.in_memory_item_exporter import InMemoryItemExporter
+from blockchainetl.jobs.importers.price_importers.base_price_importer import BasePriceImporter
 from blockchainetl.streaming.streamer import Streamer
 from blockchainetl.streaming.streamer_adapter_stub import StreamerAdapterStub
 from ethereumetl.domain.token_transfer import TokenStandard
@@ -116,7 +117,7 @@ def test_stream(
                     [RESOURCE_GROUP, resource_group], file, content
                 ),
                 batch=True,
-            )
+            ),
         ),
         batch_size=batch_size,
         item_exporter=CompositeItemExporter(
@@ -133,6 +134,7 @@ def test_stream(
             }
         ),
         entity_types=entity_types,
+        chain_id=chain_id,
     )
     streamer = Streamer(
         chain_id=chain_id,
@@ -218,6 +220,15 @@ def test_stream_clickhouse(
     # first run - get data from blockchain
     ####################################################################
 
+    excluded_from_ch_entities = {
+        EntityType.TOKEN_TRANSFER_PRICED,
+        EntityType.INTERNAL_TRANSFER_PRICED,
+        EntityType.PARSED_LOG,
+        EntityType.DEX_TRADE,
+        EntityType.ENRICHED_DEX_TRADE,
+        EntityType.DEX_POOL,
+    }
+
     with contextlib.suppress(OSError):
         os.remove('last_synced_block.txt')
 
@@ -240,7 +251,7 @@ def test_stream_clickhouse(
         item_exporter=item_exporter,
         entity_types=entity_types,
         elastic_client=Elasticsearch(elastic_url, timeout=30),
-        chain_id=1,
+        chain_id=chain_id,
     )
 
     ch_eth_streamer_adapter = ClickhouseEthStreamerAdapter(
@@ -306,8 +317,7 @@ def test_stream_clickhouse(
         batch_web3_provider=fake_batch_web3_provider,
         batch_size=batch_size,
         item_exporter=item_exporter,
-        entity_types=entity_types
-        - {EntityType.TOKEN_TRANSFER_PRICED, EntityType.INTERNAL_TRANSFER_PRICED},
+        entity_types=entity_types - excluded_from_ch_entities,
         chain_id=1,
     )
     eth_streamer_adapter.get_current_block_number = lambda *_: 12242307  # type: ignore
@@ -415,8 +425,7 @@ def test_stream_clickhouse(
         batch_web3_provider=fake_batch_web3_provider,
         batch_size=batch_size,
         item_exporter=item_exporter,
-        entity_types=entity_types
-        - {EntityType.TOKEN_TRANSFER_PRICED, EntityType.INTERNAL_TRANSFER_PRICED},
+        entity_types=entity_types - excluded_from_ch_entities,
         chain_id=1,
     )
     eth_streamer_adapter.get_current_block_number = lambda *_: 12242307  # type: ignore
@@ -455,6 +464,7 @@ def test_stream_token_balances(
         batch_size=20,
         item_exporter=exporter,
         entity_types=[EntityType.TOKEN_BALANCE],
+        chain_id=1,
     )
 
     if streamer_adapter_cls is EthStreamerAdapter:
@@ -566,9 +576,10 @@ def test_eth_streamer_with_clickhouse_exporter(
         batch_web3_provider=ThreadLocalProxy(lambda: get_web3_provider('infura', batch=True)),
         batch_size=10,
         item_exporter=exporter,
-        entity_types=entity_type.ALL,
+        entity_types=tuple(set(entity_type.ALL) - {EntityType.CONTRACT, EntityType.TRACE}),
         elastic_client=Elasticsearch(elastic_url),
         chain_id=1,
+        price_importer=BasePriceImporter(chain_id=1),
     )
     streamer = Streamer(
         chain_id=1,
@@ -596,6 +607,9 @@ def test_eth_streamer_with_clickhouse_exporter(
         assert_table_not_empty(EntityType.GETH_TRACE)
         assert_table_not_empty(EntityType.INTERNAL_TRANSFER)
         assert_table_not_empty(EntityType.NATIVE_BALANCE)
+        assert_table_not_empty(EntityType.TOKEN)
+        assert_table_not_empty(EntityType.DEX_POOL)
+        assert_table_not_empty(EntityType.ENRICHED_DEX_TRADE)
 
 
 def test_clickhouse_exporter_export_items(tmp_path, clickhouse_migrated_url):
@@ -674,6 +688,7 @@ def ch_verifier(clickhouse_url):
         batch_size=20,
         item_exporter=exporter,
         entity_types=[EntityType.TOKEN_BALANCE],
+        chain_id=1,
     )
 
     ch_streamer_adapter = ClickhouseEthStreamerAdapter(

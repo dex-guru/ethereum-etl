@@ -1,5 +1,6 @@
 import logging
 from collections.abc import Collection
+from copy import deepcopy
 from datetime import datetime
 from functools import cached_property
 from typing import Any
@@ -9,11 +10,15 @@ from elasticsearch import Elasticsearch
 from blockchainetl.exporters import BaseItemExporter
 from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExporter
 from blockchainetl.jobs.exporters.in_memory_item_exporter import InMemoryItemExporter
+from blockchainetl.jobs.importers.price_importers.interface import PriceImporterInterface
 from ethereumetl.enumeration.entity_type import ALL_FOR_STREAMING, EntityType
+from ethereumetl.jobs.enrich_dex_trades_job import EnrichDexTradeJob
 from ethereumetl.jobs.export_blocks_job import ExportBlocksJob
 from ethereumetl.jobs.export_dex_pools_job import ExportPoolsJob
+from ethereumetl.jobs.export_dex_trades import ExportDexTradesJob
 from ethereumetl.jobs.export_geth_traces_job import ExportGethTracesJob
 from ethereumetl.jobs.export_native_balances_job import ExportNativeBalancesJob
+from ethereumetl.jobs.export_prices_for_tokens_job import ExportPricesForTokensJob
 from ethereumetl.jobs.export_receipts_job import ExportReceiptsJob
 from ethereumetl.jobs.export_token_balances_job import ExportTokenBalancesJob
 from ethereumetl.jobs.export_tokens_job import ExportTokensJob
@@ -25,12 +30,16 @@ from ethereumetl.jobs.extract_internal_transfers_priced import ExtractInternalTr
 from ethereumetl.jobs.extract_token_transfers_job import ExtractTokenTransfersJob
 from ethereumetl.jobs.extract_token_transfers_priced import ExtractTokenTransfersPricedJob
 from ethereumetl.jobs.extract_tokens_job import ExtractTokensJob
+from ethereumetl.jobs.parse_logs_job import ParseLogsJob
+from ethereumetl.misc.info import get_chain_config
 from ethereumetl.streaming.enrich import (
+    enrich_dex_trades,
     enrich_errors,
     enrich_geth_traces,
     enrich_internal_transfers,
     enrich_logs,
     enrich_native_balances,
+    enrich_parsed_logs,
     enrich_token_balances,
     enrich_token_transfers,
     enrich_token_transfers_priced,
@@ -59,6 +68,9 @@ TOKEN_TRANSFER_PRICED = EntityType.TOKEN_TRANSFER_PRICED
 INTERNAL_TRANSFER_PRICED = EntityType.INTERNAL_TRANSFER_PRICED
 PRE_EVENT = EntityType.PRE_EVENT
 DEX_POOL = EntityType.DEX_POOL
+DEX_TRADE = EntityType.DEX_TRADE
+PARSED_LOG = EntityType.PARSED_LOG
+ENRICHED_DEX_TRADE = EntityType.ENRICHED_DEX_TRADE
 
 
 class EthStreamerAdapter:
@@ -79,7 +91,10 @@ class EthStreamerAdapter:
         TOKEN_TRANSFER_PRICED: ('block_number', 'log_index'),
         INTERNAL_TRANSFER_PRICED: ('block_number',),
         PRE_EVENT: ('block_number', 'log_index'),
+        PARSED_LOG: ('block_number', 'log_index'),
         DEX_POOL: ('address',),
+        DEX_TRADE: ('block_number', 'log_index'),
+        ENRICHED_DEX_TRADE: ('block_number', 'transaction_hash', 'log_index'),
     }
 
     ENRICH = {
@@ -95,9 +110,11 @@ class EthStreamerAdapter:
         # lambda because here the arg order is different
         TRANSACTION: (RECEIPT, lambda r, t: enrich_transactions(t, r)),
         TOKEN_TRANSFER_PRICED: (BLOCK, enrich_token_transfers_priced),
+        ENRICHED_DEX_TRADE: (BLOCK, enrich_dex_trades),
+        PARSED_LOG: (BLOCK, enrich_parsed_logs),
     }
 
-    EXPORT_DEPENDENCIES = {
+    __EXPORT_DEPENDENCIES = {
         RECEIPT: (TRANSACTION,),
         TRANSACTION: (RECEIPT,),
         TRACE: (BLOCK,),
@@ -111,8 +128,9 @@ class EthStreamerAdapter:
         NATIVE_BALANCE: (TRANSACTION, INTERNAL_TRANSFER),
         TOKEN_TRANSFER_PRICED: (TOKEN_TRANSFER, TOKEN),
         PRE_EVENT: (BLOCK, LOG, TRANSACTION, TOKEN_TRANSFER, RECEIPT),
-        DEX_POOL: (LOG,),
-        # DEX_TRADE: (DEX_POOL, TOKEN, LOG, TOKEN_TRANSFER),
+        PARSED_LOG: (LOG,),
+        DEX_POOL: (PARSED_LOG,),
+        DEX_TRADE: (DEX_POOL, PARSED_LOG, TOKEN, TOKEN_TRANSFER, INTERNAL_TRANSFER, TRANSACTION),
     }
 
     def __init__(
@@ -124,8 +142,11 @@ class EthStreamerAdapter:
         entity_types=tuple(ALL_FOR_STREAMING),
         chain_id=None,
         elastic_client: Elasticsearch | None = None,
+        price_importer: PriceImporterInterface | None = None,
     ):
+        self.EXPORT_DEPENDENCIES = deepcopy(self.__EXPORT_DEPENDENCIES)
         self.batch_web3_provider = batch_web3_provider
+        self.w3 = build_web3(self.batch_web3_provider)
         self.item_exporter = item_exporter
         self.batch_size = batch_size
         self.max_workers = max_workers
@@ -134,15 +155,17 @@ class EthStreamerAdapter:
         self.item_timestamp_calculator = EthItemTimestampCalculator()
         self.chain_id = chain_id
         self.elastic_client = elastic_client
+        self.price_importer = price_importer
         if CONTRACT in self.entity_types:
             self.EXPORT_DEPENDENCIES[TOKEN] = (CONTRACT,)
+        self.chain_config: dict[str, Any] = {}
 
     def open(self):
+        self.chain_config = get_chain_config(self.chain_id)
         self.item_exporter.open()
 
     def get_current_block_number(self):
-        w3 = build_web3(self.batch_web3_provider)
-        return int(w3.eth.getBlock("latest").number)
+        return int(self.w3.eth.getBlock("latest").number)
 
     def export_batch(self, start_block: int, end_block: int) -> dict[EntityType, list[dict]]:
         exported: dict[EntityType, list[dict]] = {}
@@ -185,7 +208,20 @@ class EthStreamerAdapter:
                     export(TRANSACTION),
                     export(RECEIPT),
                 ),
-                (DEX_POOL,): lambda: self.export_dex_pools(export(LOG)),
+                (DEX_POOL,): lambda: self.export_dex_pools(export(PARSED_LOG)),
+                (DEX_TRADE,): lambda: self.export_dex_trades(
+                    export(PARSED_LOG), export(TOKEN), export(DEX_POOL), export(TOKEN_TRANSFER)
+                ),
+                (PARSED_LOG,): lambda: self.parse_logs(export(LOG)),
+                (ENRICHED_DEX_TRADE,): lambda: self.export_enriched_dex_trades(
+                    export(DEX_TRADE),
+                    export(DEX_POOL),
+                    self.import_base_token_prices([t['address'] for t in export(TOKEN)]),
+                    export(TOKEN),
+                    export(TOKEN_TRANSFER),
+                    export(INTERNAL_TRANSFER),
+                    export(TRANSACTION),
+                ),
             }.items()
             for entity_type in export_types
         }
@@ -240,13 +276,11 @@ class EthStreamerAdapter:
         return should_export
 
     def enrich(self, entity_type, get_exported):
-        try:
-            enrich_with_type, enrich_func = self.ENRICH[entity_type]
-        except KeyError:
+        enrich_with_type, enrich_func = self.ENRICH.get(entity_type, (None, None))
+        if enrich_with_type is None or enrich_func is None:
             return get_exported(entity_type)
-        else:
-            enrich_with_items = get_exported(enrich_with_type)
-            return enrich_func(enrich_with_items, get_exported(entity_type))
+        enrich_with_items = get_exported(enrich_with_type)
+        return enrich_func(enrich_with_items, get_exported(entity_type))
 
     def log_batch_export_progress(
         self,
@@ -504,39 +538,103 @@ class EthStreamerAdapter:
         events = exporter.get_items(EntityType.PRE_EVENT)
         return events
 
-    def export_dex_pools(self, logs, sighash_to_namespace=None):
+    def export_dex_pools(self, parsed_logs):
         exporter = InMemoryItemExporter(item_types=[DEX_POOL])
         job = ExportPoolsJob(
-            logs_iterable=logs,
-            sighash_to_namespace=sighash_to_namespace,
+            parsed_logs_iterable=parsed_logs,
+            chain_id=self.chain_id,
             batch_web3_provider=ThreadLocalProxy(lambda: build_web3(self.batch_web3_provider)),
             item_exporter=exporter,
             max_workers=self.max_workers,
             batch_size=self.batch_size,
-            chain_id=self.chain_id,
         )
         job.run()
         pools = exporter.get_items(DEX_POOL)
         return pools
 
-    # def export_dex_trades(
-    #     self,
-    #     pool_address,
-    #     start_block,
-    #     end_block,
-    # ):
-    #     exporter = InMemoryItemExporter(item_types=[DEX_TRADE])
-    #     job = ExportTradesJob(
-    #         pool_address=pool_address,
-    #         start_block=start_block,
-    #         end_block=end_block,
-    #         web3=ThreadLocalProxy(lambda: build_web3(self.batch_web3_provider)),
-    #         item_exporter=exporter,
-    #         max_workers=self.max_workers,
-    #     )
-    #     job.run()
-    #     trades = exporter.get_items(DEX_TRADE)
-    #     return trades
+    def export_dex_trades(
+        self,
+        parsed_logs: list,
+        tokens: list,
+        dex_pools: list,
+        token_transfers: list,
+    ):
+        exporter = InMemoryItemExporter(item_types=[DEX_TRADE])
+        job = ExportDexTradesJob(
+            logs_iterable=parsed_logs,
+            tokens_iterable=tokens,
+            dex_pools_iterable=dex_pools,
+            token_transfers_iterable=token_transfers,
+            batch_web3_provider=ThreadLocalProxy(lambda: build_web3(self.batch_web3_provider)),
+            batch_size=self.batch_size,
+            item_exporter=exporter,
+            max_workers=self.max_workers,
+        )
+        job.run()
+        trades = exporter.get_items(DEX_TRADE)
+        return trades
+
+    def parse_logs(self, logs: Collection[dict]) -> list[dict]:
+        exporter = InMemoryItemExporter(item_types=[PARSED_LOG])
+        job = ParseLogsJob(
+            logs_iterable=logs,
+            batch_web3_provider=ThreadLocalProxy(lambda: build_web3(self.batch_web3_provider)),
+            item_exporter=exporter,
+            max_workers=self.max_workers,
+            batch_size=self.batch_size,
+        )
+        job.run()
+        parsed_logs = exporter.get_items(PARSED_LOG)
+        return parsed_logs
+
+    def export_enriched_dex_trades(
+        self,
+        dex_trades: list,
+        dex_pools: list,
+        base_tokens_prices: list,
+        tokens: list,
+        token_transfers: list,
+        internal_transfers: list,
+        transactions: list,
+    ):
+        item_exporter = InMemoryItemExporter([ENRICHED_DEX_TRADE])
+        stablecoin_addresses = self.chain_config['stablecoin_addresses']
+        native_token = self.chain_config['native_token']
+        job = EnrichDexTradeJob(
+            dex_pools=dex_pools,
+            base_tokens_prices=base_tokens_prices,
+            tokens=tokens,
+            token_transfers=token_transfers,
+            internal_transfers=internal_transfers,
+            transactions=transactions,
+            dex_trades=dex_trades,
+            item_exporter=item_exporter,
+            stablecoin_addresses=stablecoin_addresses,
+            native_token=native_token,
+        )
+        job.run()
+        enriched_dex_trades = item_exporter.get_items(ENRICHED_DEX_TRADE)
+        return enriched_dex_trades
+
+    def import_base_token_prices(
+        self,
+        token_addresses: list[str],
+    ):
+        assert (
+            self.price_importer is not None
+        ), 'Cannot import base token prices. Price importer is required'
+        item_exporter = InMemoryItemExporter(['base_token_price'])
+        job = ExportPricesForTokensJob(
+            token_addresses_iterable=token_addresses,
+            item_exporter=item_exporter,
+            max_workers=self.max_workers,
+            batch_size=self.batch_size,
+            chain_id=self.chain_id,
+            price_importer=self.price_importer,
+        )
+        job.run()
+        tokens = item_exporter.get_items('base_token_price')
+        return tokens
 
     def calculate_item_ids(self, items):
         for item in items:

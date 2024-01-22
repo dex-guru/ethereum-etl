@@ -33,3 +33,13 @@ class EthTokenMapper:
         result = asdict(token)
         result['type'] = EntityType.TOKEN.value
         return result
+
+    @staticmethod
+    def dict_to_token(d: dict[str, Any]) -> EthToken:
+        return EthToken(
+            address=d['address'].lower(),
+            name=d['name'],
+            symbol=d['symbol'],
+            decimals=int(d['decimals']),
+            total_supply=int(d['total_supply']),
+        )

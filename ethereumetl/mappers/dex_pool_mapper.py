@@ -31,5 +31,35 @@ class EthDexPoolMapper:
     @staticmethod
     def pool_to_dict(pool: EthDexPool) -> dict[str, Any]:
         result = asdict(pool)
+        result['fee'] = int(result['fee'])
         result['type'] = EntityType.DEX_POOL.value
+        result['token_addresses'] = [
+            token_address.lower() for token_address in result['token_addresses']
+        ]
+        result['address'] = result['address'].lower()
+        result['factory_address'] = result['factory_address'].lower()
+        result['lp_token_addresses'] = [
+            lp_token_address.lower() for lp_token_address in result['lp_token_addresses']
+        ]
+        result['underlying_token_addresses'] = [
+            underlying_token_address.lower()
+            for underlying_token_address in result['underlying_token_addresses']
+        ]
+
         return result
+
+    @staticmethod
+    def dict_to_pool(d: dict[str, Any]) -> EthDexPool:
+        return EthDexPool(
+            address=d['address'].lower(),
+            factory_address=d['factory_address'].lower(),
+            token_addresses=[token_address.lower() for token_address in d['token_addresses']],
+            fee=int(d['fee']),
+            lp_token_addresses=[
+                lp_token_address.lower() for lp_token_address in d['lp_token_addresses']
+            ],
+            underlying_token_addresses=[
+                underlying_token_address.lower()
+                for underlying_token_address in d['underlying_token_addresses']
+            ],
+        )
