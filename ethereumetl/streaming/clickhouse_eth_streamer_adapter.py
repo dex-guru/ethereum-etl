@@ -632,7 +632,13 @@ class ClickhouseEthStreamerAdapter:
             all_tokens_addresses = set(token_address_to_score.keys())
 
             base_token_prices = []
-            latest_trades_prices = get_latest_prices_from_trades_for_tokens(all_tokens_addresses)
+            try:
+                latest_trades_prices = get_latest_prices_from_trades_for_tokens(
+                    all_tokens_addresses
+                )
+            except Exception as e:
+                logger.warning(f"Failed to get latest prices from trades for tokens: {e}.")
+                latest_trades_prices = {}
             for token_address in all_tokens_addresses:
                 prices_ = latest_trades_prices.get(
                     token_address,
