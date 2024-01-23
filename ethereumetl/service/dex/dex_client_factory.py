@@ -132,7 +132,7 @@ class ContractAdaptersFactory:
         for namespace in namespaces:
             dex_client = self.initiated_adapters.get(namespace)
             if not dex_client:
-                logging.info(f"Failed to get dex client for namespace: {namespace}")
+                logging.debug(f"Failed to get dex client for namespace: {namespace}")
                 continue
             try:
                 resolved_log = dex_client.resolve_receipt_log(
@@ -151,12 +151,12 @@ class ContractAdaptersFactory:
         for namespace in parsed_log.namespace:
             dex_client = self.initiated_adapters.get(namespace)
             if not dex_client:
-                logging.info(f"Failed to get dex client for namespace: {namespace}")
+                logging.debug(f"Failed to get dex client for namespace: {namespace}")
                 continue
             try:
                 asset = dex_client.resolve_asset_from_log(parsed_log)
             except Exception as e:
-                logging.info(f"Failed to resolve asset from log: {e}")
+                logging.debug(f"Failed to resolve asset from log: {e}")
                 continue
             if asset:
                 parsed_log.namespace = (namespace,)

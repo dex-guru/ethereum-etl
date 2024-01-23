@@ -40,3 +40,10 @@ class MultiPriceImporter(PriceImporterInterface):
     def close(self):
         for item_importer in self.item_importers:
             item_importer.close()
+
+    def get_token_score(self, token_address: str) -> int:
+        for item_importer in self.item_importers:
+            score = item_importer.get_token_score(token_address)
+            if score:
+                return score
+        return 0

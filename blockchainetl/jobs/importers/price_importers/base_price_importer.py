@@ -32,3 +32,10 @@ class BasePriceImporter(PriceImporterInterface):
         if token_address == self.native_token_address:
             return 1.0
         return 0
+
+    def get_token_score(self, token_address: str) -> int:
+        if token_address in self.stablecoin_addresses:
+            return 2
+        if token_address == self.native_token_address:
+            return 1
+        return 0

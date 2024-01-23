@@ -1,3 +1,6 @@
+from copy import copy
+
+
 class PriceService:
     def __init__(
         self,
@@ -12,7 +15,7 @@ class PriceService:
             base_token_price['token_address'].lower(): {
                 'price_stable': base_token_price['price_stable'],
                 'price_native': base_token_price['price_native'],
-                'score': base_token_price['score'],
+                'score': base_token_price.get('score', 0),
             }
             for base_token_price in base_tokens_prices
         }
@@ -28,18 +31,28 @@ class PriceService:
             self._update_base_prices(dex_trade)
             return dex_trade
 
-        return self._resolve_prices_for_generic_trade(dex_trade)
+        dex_trade = self._resolve_prices_for_generic_trade(dex_trade)
+        self._update_base_prices(dex_trade)
+        return dex_trade
 
     def _update_base_prices(self, dex_trade):
         """Updates the base token prices based on the trade."""
         for idx, token_address in enumerate(dex_trade['token_addresses']):
             if token_address in self.base_tokens_prices:
-                self.base_tokens_prices[token_address]['price_stable'] = dex_trade[
-                    'prices_stable'
-                ][idx]
-                self.base_tokens_prices[token_address]['price_native'] = dex_trade[
-                    'prices_native'
-                ][idx]
+                self.base_tokens_prices[token_address]['price_stable'] = (
+                    dex_trade['prices_stable'][idx]
+                    or self.base_tokens_prices[token_address]['price_stable']
+                )
+                self.base_tokens_prices[token_address]['price_native'] = (
+                    dex_trade['prices_native'][idx]
+                    or self.base_tokens_prices[token_address]['price_native']
+                )
+            else:
+                self.base_tokens_prices[token_address] = {
+                    'price_stable': dex_trade['prices_stable'][idx],
+                    'price_native': dex_trade['prices_native'][idx],
+                    'score': 1,
+                }
 
     @staticmethod
     def _initialize_prices(dex_trade):
@@ -102,8 +115,8 @@ class PriceService:
             opposite_token_ratio,
         )
 
-    @staticmethod
     def _update_trade_prices(
+        self,
         dex_trade,
         idx,
         opposite_idx,
@@ -114,17 +127,31 @@ class PriceService:
         """Updates the trade prices based on the base and opposite token prices."""
         if base_price['price_stable']:
             dex_trade['prices_stable'][idx] = base_price['price_stable']
-            dex_trade['prices_stable'][opposite_idx] = (
-                base_price['price_stable'] / opposite_token_ratio
-            )
+            try:
+                dex_trade['prices_stable'][opposite_idx] = (
+                    base_price['price_stable'] / opposite_token_ratio
+                )
+            except ZeroDivisionError:
+                dex_trade['prices_stable'][opposite_idx] = copy(
+                    self.base_tokens_prices[dex_trade['token_addresses'][opposite_idx]][
+                        'price_stable'
+                    ]
+                )
             dex_trade['amount_stable'] = base_price['price_stable'] * abs(
                 dex_trade['amounts'][idx]
             )
         if base_price['price_native']:
             dex_trade['prices_native'][idx] = base_price['price_native']
-            dex_trade['prices_native'][opposite_idx] = (
-                base_price['price_native'] / opposite_token_ratio
-            )
+            try:
+                dex_trade['prices_native'][opposite_idx] = (
+                    base_price['price_native'] / opposite_token_ratio
+                )
+            except ZeroDivisionError:
+                dex_trade['prices_native'][opposite_idx] = copy(
+                    self.base_tokens_prices[dex_trade['token_addresses'][opposite_idx]][
+                        'price_native'
+                    ]
+                )
             dex_trade['amount_native'] = base_price['price_native'] * abs(
                 dex_trade['amounts'][idx]
             )

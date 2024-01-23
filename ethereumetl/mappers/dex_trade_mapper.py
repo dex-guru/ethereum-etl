@@ -51,4 +51,7 @@ class EnrichedDexTradeMapper:
             wallet_address=trade_dict['wallet_address'].lower(),
             block_timestamp=trade_dict['block_timestamp'],
             block_hash=trade_dict['block_hash'].lower(),
+            reserves=trade_dict['reserves'],
+            reserves_stable=trade_dict['reserves_stable'],
+            reserves_native=trade_dict['reserves_native'],
         )
