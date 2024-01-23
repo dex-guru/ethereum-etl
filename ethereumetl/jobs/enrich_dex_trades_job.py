@@ -201,6 +201,7 @@ class EnrichDexTradeJob(BaseJob):
                     'prices_stable': merged_event['prices_stable'],
                     'prices_native': merged_event['prices_native'],
                     'pool_address': pool_address,
+                    'type': 'enriched_dex_trade',
                 }
 
                 lp_token = self._tokens_by_address[merged_event['lp_token_address']]
@@ -209,7 +210,6 @@ class EnrichDexTradeJob(BaseJob):
                     event['token_addresses'].append(merged_event['lp_token_address'])
                     event['symbols'].append(lp_token['symbol'])
                     event['amounts'].append(transfer['value'] / 10 ** lp_token['decimals'])
-                    event['prices_stable'].append(1.0)
 
                 self.item_exporter.export_item(event)
 
