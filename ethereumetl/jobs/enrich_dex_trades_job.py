@@ -208,12 +208,8 @@ class EnrichDexTradeJob(BaseJob):
                     event['amounts'].append(transfer['value'] / 10 ** lp_token['decimals'])
                     event['token_addresses'].append(merged_event['lp_token_address'])
                     event['symbols'].append(lp_token['symbol'])
-                    event['amount_stable'].append(
-                        transfer['value'] / 10 ** lp_token['decimals']
-                    )  # TODO
-                    event['amount_native'].append(
-                        transfer['value'] / 10 ** lp_token['decimals']
-                    )  # TODO
+                    event['amounts'].append(transfer['value'] / 10 ** lp_token['decimals'])
+                    event['prices_stable'].append(1.0)
 
                 self.item_exporter.export_item(event)
 

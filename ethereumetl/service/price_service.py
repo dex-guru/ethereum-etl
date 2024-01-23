@@ -31,14 +31,15 @@ class PriceService:
         return self._resolve_prices_for_generic_trade(dex_trade)
 
     def _update_base_prices(self, dex_trade):
-        self.base_tokens_prices[dex_trade['token_addresses'][0]] = {
-            'price_stable': dex_trade['prices_stable'][0],
-            'price_native': dex_trade['prices_native'][0],
-        }
-        self.base_tokens_prices[dex_trade['token_addresses'][1]] = {
-            'price_stable': dex_trade['prices_stable'][1],
-            'price_native': dex_trade['prices_native'][1],
-        }
+        """Updates the base token prices based on the trade."""
+        for idx, token_address in enumerate(dex_trade['token_addresses']):
+            if token_address in self.base_tokens_prices:
+                self.base_tokens_prices[token_address]['price_stable'] = dex_trade[
+                    'prices_stable'
+                ][idx]
+                self.base_tokens_prices[token_address]['price_native'] = dex_trade[
+                    'prices_native'
+                ][idx]
 
     @staticmethod
     def _initialize_prices(dex_trade):
