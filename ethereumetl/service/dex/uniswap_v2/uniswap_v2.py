@@ -226,7 +226,12 @@ class UniswapV2Amm(DexClientInterface):
             )
         except (TypeError, ContractLogicError, ValueError, BadFunctionCallOutput) as e:
             logging.debug(f"Not found reserves for {parsed_receipt_log.address}. Error: {e}")
-            return None
+            return {
+                'reserve_0': 0,
+                'reserve_1': 0,
+                'price_0': 0,
+                'price_1': 0,
+            }
         reserve_0 = reserves[0] / token_scalars[0]
         reserve_1 = reserves[1] / token_scalars[1]
         return {
@@ -236,39 +241,6 @@ class UniswapV2Amm(DexClientInterface):
             'price_1': float(reserve_0 / reserve_1),
         }
 
-        # if event_name.lower() == self.pool_contracts_events_enum.swap.name:
-        #     logging.debug("resolving swap from swap event")
-        #     swap = self.get_swap_from_swap_event(base_pool, parsed_event, tokens_scalars)
-        #     pool = self.get_pool_finances(base_pool, receipt_log.block_number, tokens_scalars)
-        #     logging.debug(f"resolved swap from swap event {swap}")
-        #     swap.log_index = receipt_log.log_index
-        #     return {
-        #         "swaps": [swap],
-        #         "pools": [pool] if pool else [],
-        #     }
-        #
-        # if event_name.lower() == self.pool_contracts_events_enum.burn.name:
-        #     logging.debug("resolving burn from burn event")
-        #     burn = self.get_mint_burn_from_events(base_pool, parsed_event, tokens_scalars)
-        #     pool = self.get_pool_finances(base_pool, receipt_log.block_number - 1, tokens_scalars)
-        #     logging.debug("resolving burn from burn event")
-        #     burn.log_index = receipt_log.log_index
-        #     return {
-        #         "burns": [burn],
-        #         "pools": [pool] if pool else [],
-        #     }
-        #
-        # if event_name.lower() == self.pool_contracts_events_enum.mint.name:
-        #     logging.debug("resolving burn from mint event")
-        #     mint = self.get_mint_burn_from_events(base_pool, parsed_event, tokens_scalars)
-        #     pool = self.get_pool_finances(base_pool, receipt_log.block_number, tokens_scalars)
-        #     logging.debug("resolving burn from mint event")
-        #     mint.log_index = receipt_log.log_index
-        #     return {
-        #         "mints": [mint],
-        #         "pools": [pool] if pool else [],
-        #     }
-
     @staticmethod
     def _get_trade_from_mint_event(
         parsed_receipt_log: ParsedReceiptLog, finance_info: dict
@@ -276,12 +248,12 @@ class UniswapV2Amm(DexClientInterface):
         parsed_event = parsed_receipt_log.parsed_event
         return EthDexTrade(
             pool_address=parsed_receipt_log.address,
-            token_amounts_raw=(parsed_event["amount0"], parsed_event["amount1"]),
+            token_amounts_raw=[parsed_event["amount0"], parsed_event["amount1"]],
             transaction_hash=parsed_receipt_log.transaction_hash,
             log_index=parsed_receipt_log.log_index,
             block_number=parsed_receipt_log.block_number,
             event_type='mint',
-            token_reserves=(finance_info['reserve_0'], finance_info['reserve_1']),
+            token_reserves=[finance_info['reserve_0'], finance_info['reserve_1']],
             token_prices=get_prices_for_two_pool(finance_info['price_0'], finance_info['price_1']),
             lp_token_address=parsed_receipt_log.address,
         )
@@ -294,12 +266,12 @@ class UniswapV2Amm(DexClientInterface):
 
         return EthDexTrade(
             pool_address=parsed_receipt_log.address,
-            token_amounts_raw=(parsed_event["amount0"], parsed_event["amount1"]),
+            token_amounts_raw=[parsed_event["amount0"], parsed_event["amount1"]],
             transaction_hash=parsed_receipt_log.transaction_hash,
             log_index=parsed_receipt_log.log_index,
             block_number=parsed_receipt_log.block_number,
             event_type='burn',
-            token_reserves=(finance_info['reserve_0'], finance_info['reserve_1']),
+            token_reserves=[finance_info['reserve_0'], finance_info['reserve_1']],
             token_prices=get_prices_for_two_pool(finance_info['price_0'], finance_info['price_1']),
             lp_token_address=parsed_receipt_log.address,
         )
@@ -311,15 +283,15 @@ class UniswapV2Amm(DexClientInterface):
         parsed_event = parsed_receipt_log.parsed_event
         return EthDexTrade(
             pool_address=parsed_receipt_log.address,
-            token_amounts_raw=(
+            token_amounts_raw=[
                 parsed_event["amount0In"] - parsed_event["amount0Out"],
                 parsed_event["amount1In"] - parsed_event["amount1Out"],
-            ),
+            ],
             transaction_hash=parsed_receipt_log.transaction_hash,
             log_index=parsed_receipt_log.log_index,
             block_number=parsed_receipt_log.block_number,
             event_type='swap',
-            token_reserves=(finance_info['reserve_0'], finance_info['reserve_1']),
+            token_reserves=[finance_info['reserve_0'], finance_info['reserve_1']],
             token_prices=get_prices_for_two_pool(finance_info['price_0'], finance_info['price_1']),
         )
 

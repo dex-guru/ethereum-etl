@@ -625,32 +625,15 @@ class ClickhouseEthStreamerAdapter:
             token_address_to_score: dict[
                 str, int | float
             ] = self._calculate_pools_count_for_tokens(list(set(tokens_to_score)))
+
             stablecoin_addresses = self.eth_streamer.chain_config["stablecoin_addresses"]
             native_token_address = self.eth_streamer.chain_config["native_token"]["address"]
 
-            base_tokens_addresses_set = set()
-            for pool in dex_pools:
-                pool_ranking = []
+            all_tokens_addresses = set(token_address_to_score.keys())
 
-                for token_address in pool['token_addresses']:
-                    if token_address in stablecoin_addresses:
-                        pool_ranking.append(float('inf'))
-                        token_address_to_score[token_address] = float('inf')
-                    else:
-                        pool_ranking.append(token_address_to_score.get(token_address, 0))
-                all_equal = all(element == pool_ranking[0] for element in pool_ranking)
-                if all_equal:
-                    # we would be resolving all tokens if we can't score them by PoolRanking
-                    base_tokens_addresses_set.update(pool['token_addresses'])
-                else:
-                    # if there is token with highest score, we would be resolving it as a base token for prices
-                    # calculation
-                    base_token_index = pool_ranking.index(max(pool_ranking))
-                    base_tokens_addresses_set.add(pool['token_addresses'][base_token_index])
-            base_tokens_addresses = list(base_tokens_addresses_set)
             base_token_prices = []
-            latest_trades_prices = get_latest_prices_from_trades_for_tokens(base_tokens_addresses)
-            for token_address in base_tokens_addresses:
+            latest_trades_prices = get_latest_prices_from_trades_for_tokens(all_tokens_addresses)
+            for token_address in all_tokens_addresses:
                 prices_ = latest_trades_prices.get(
                     token_address,
                     {'price_stable': 0, 'price_native': 0, 'token_address': token_address},

@@ -28,3 +28,7 @@ class PriceImporterInterface(ABC):
         block_number: int | None = None,
     ) -> float:
         pass
+
+    @abstractmethod
+    def get_token_score(self, token_address: str) -> int:
+        pass

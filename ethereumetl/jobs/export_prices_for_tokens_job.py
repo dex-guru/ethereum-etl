@@ -37,10 +37,12 @@ class ExportPricesForTokensJob(BaseJob):
         for token_address in token_addresses_iterable:
             stable_price = self.price_importer.get_stable_price_for_token(token_address, 0)
             native_price = self.price_importer.get_native_price_for_token(token_address, 0)
+
             price = {
                 'token_address': token_address,
                 'price_stable': stable_price,
                 'price_native': native_price,
+                'score': 1,
                 'type': 'base_token_price',
             }
             self.item_exporter.export_item(price)

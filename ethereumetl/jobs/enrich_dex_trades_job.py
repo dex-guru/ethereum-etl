@@ -157,6 +157,7 @@ class EnrichDexTradeJob(BaseJob):
 
         for merged_event in merged_events:
             pool_address = merged_event['pool_address']
+            pool = self._dex_pools_by_address[pool_address]
             transfers = merged_transfers.get(merged_event['lp_token_address'], [])
             transfers_amount_sum = sum([i['value'] for i in transfers])
 
@@ -178,10 +179,33 @@ class EnrichDexTradeJob(BaseJob):
                         for amount, price_native in zip(amounts, merged_event['prices_native'])
                     ]
                 )
+                reserves_stable = [
+                    r * p
+                    for r, p in zip(
+                        merged_event['token_reserves'],
+                        [
+                            self._price_service.base_tokens_prices.get(
+                                token_address.lower(), {}
+                            ).get('price_stable', 0)
+                            for token_address in pool['token_addresses']
+                        ],
+                    )
+                ]
+                reserves_native = [
+                    r * p
+                    for r, p in zip(
+                        merged_event['token_reserves'],
+                        [
+                            self._price_service.base_tokens_prices.get(
+                                token_address.lower(), {}
+                            ).get('price_native', 0)
+                            for token_address in pool['token_addresses']
+                        ],
+                    )
+                ]
 
                 event = {
                     # 'type': factory?, TODO ?
-                    # 'chain_id': TODO ?
                     'block_number': transfer['block_number'],
                     'log_index': merged_event['log_index'],
                     'transaction_hash': transfer['transaction_hash'],
@@ -202,6 +226,10 @@ class EnrichDexTradeJob(BaseJob):
                     'prices_native': merged_event['prices_native'],
                     'pool_address': pool_address,
                     'type': 'enriched_dex_trade',
+                    'lp_token_address': merged_event['lp_token_address'],
+                    'reserves': merged_event['token_reserves'],
+                    'reserves_stable': reserves_stable,
+                    'reserves_native': reserves_native,
                 }
 
                 lp_token = self._tokens_by_address[merged_event['lp_token_address']]
@@ -210,6 +238,17 @@ class EnrichDexTradeJob(BaseJob):
                     event['token_addresses'].append(merged_event['lp_token_address'])
                     event['symbols'].append(lp_token['symbol'])
                     event['amounts'].append(transfer['value'] / 10 ** lp_token['decimals'])
+                    event['reserves'].append(lp_token['total_supply'])
+                    event['prices_stable'].append(
+                        sum(reserves_stable) / lp_token['total_supply']
+                        if lp_token['total_supply']
+                        else 0
+                    )
+                    event['prices_native'].append(
+                        sum(reserves_native) / lp_token['total_supply']
+                        if lp_token['total_supply']
+                        else 0
+                    )
 
                 self.item_exporter.export_item(event)
 
@@ -220,9 +259,14 @@ class EnrichDexTradeJob(BaseJob):
             pool=self._dex_pools_by_address[pool_address],
             all_pool_addresses=list(self._dex_pools_by_address.keys()),
         )
+        reserves_stable = [
+            r * p for r, p in zip(swap_event['token_reserves'], swap_event['prices_stable'])
+        ]
+        reserves_native = [
+            r * p for r, p in zip(swap_event['token_reserves'], swap_event['prices_native'])
+        ]
         event = {
             # 'type': factory?, TODO ?
-            # 'chain_id': TODO ?
             'block_number': swap_event['block_number'],
             'log_index': swap_event['log_index'],
             'transaction_hash': swap_event['transaction_hash'],
@@ -232,7 +276,7 @@ class EnrichDexTradeJob(BaseJob):
                 self._tokens_by_address[token_address]['symbol']
                 for token_address in self._dex_pools_by_address[pool_address]['token_addresses']
             ],
-            'wallet_address': swap_owner,  # TODO detect owner
+            'wallet_address': swap_owner,
             'amounts': swap_event['amounts'],
             'prices': swap_event['token_prices'],
             'amount_stable': swap_event['amount_stable'],
@@ -240,6 +284,10 @@ class EnrichDexTradeJob(BaseJob):
             'prices_stable': swap_event['prices_stable'],
             'prices_native': swap_event['prices_native'],
             'pool_address': pool_address,
+            'lp_token_address': '',
+            'reserves': swap_event['token_reserves'],
+            'reserves_stable': reserves_stable,
+            'reserves_native': reserves_native,
             'type': 'enriched_dex_trade',
         }
 

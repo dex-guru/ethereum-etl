@@ -82,7 +82,7 @@ class SwapOwnerDetectionService:
                 if wallet in [_['from_address'] for _ in erc_20_transfers] and wallet in [
                     _['to_address'] for _ in erc_20_transfers
                 ]:
-                    logging.info(
+                    logging.debug(
                         f"Arbitrage bot detected: {wallet}",
                         extra={"transaction_hash": erc_20_transfers[-1]['transaction_hash']},
                     )
