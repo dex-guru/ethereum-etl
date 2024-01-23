@@ -12,6 +12,7 @@ class PriceService:
             base_token_price['token_address'].lower(): {
                 'price_stable': base_token_price['price_stable'],
                 'price_native': base_token_price['price_native'],
+                'score': base_token_price['score'],
             }
             for base_token_price in base_tokens_prices
         }

@@ -622,10 +622,9 @@ class ClickhouseEthStreamerAdapter:
             for pool in dex_pools:
                 tokens_to_score.extend(pool['token_addresses'])
 
-
-            token_address_to_score: dict[str, int] = self._calculate_pools_count_for_tokens(
-                list(set(tokens_to_score))
-            )
+            token_address_to_score: dict[
+                str, int | float
+            ] = self._calculate_pools_count_for_tokens(list(set(tokens_to_score)))
             stablecoin_addresses = self.eth_streamer.chain_config["stablecoin_addresses"]
             native_token_address = self.eth_streamer.chain_config["native_token"]["address"]
 
@@ -636,6 +635,7 @@ class ClickhouseEthStreamerAdapter:
                 for token_address in pool['token_addresses']:
                     if token_address in stablecoin_addresses:
                         pool_ranking.append(float('inf'))
+                        token_address_to_score[token_address] = float('inf')
                     else:
                         pool_ranking.append(token_address_to_score.get(token_address, 0))
                 all_equal = all(element == pool_ranking[0] for element in pool_ranking)
