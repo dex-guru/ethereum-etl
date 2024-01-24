@@ -33,7 +33,7 @@ class EnrichDexTradeJob(BaseJob):
         )
 
         self.item_exporter = item_exporter
-
+        self._native_token_address = native_token['address']
         self._dex_pools_by_address = {dex_pool['address']: dex_pool for dex_pool in dex_pools}
         self._lp_addresses_by_pool_address = {
             dex_pool['address']: dex_pool['lp_token_addresses'] for dex_pool in dex_pools
@@ -71,7 +71,7 @@ class EnrichDexTradeJob(BaseJob):
         for transfer in internal_transfers:
             if transfer['value'] == 0:
                 continue
-            transfer['token_address'] = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'
+            transfer['token_address'] = copy(self._native_token_address)
             self._token_transfers_by_hash[transfer['transaction_hash']].append(transfer)
 
     def _build_token_transfers_from_transactions(self, transactions):
@@ -204,7 +204,6 @@ class EnrichDexTradeJob(BaseJob):
                 ]
 
                 event = {
-                    # 'type': factory?, TODO ?
                     'block_number': transfer['block_number'],
                     'log_index': merged_event['log_index'],
                     'transaction_hash': transfer['transaction_hash'],
@@ -227,6 +226,7 @@ class EnrichDexTradeJob(BaseJob):
                     'reserves': merged_event['token_reserves'],
                     'reserves_stable': reserves_stable,
                     'reserves_native': reserves_native,
+                    'factory_address': merged_event['factory_address'],
                 }
 
                 lp_token = self._tokens_by_address[merged_event['lp_token_address']]
@@ -263,7 +263,6 @@ class EnrichDexTradeJob(BaseJob):
             r * p for r, p in zip(swap_event['token_reserves'], swap_event['prices_native'])
         ]
         event = {
-            # 'type': factory?, TODO ?
             'block_number': swap_event['block_number'],
             'log_index': swap_event['log_index'],
             'transaction_hash': swap_event['transaction_hash'],
@@ -286,6 +285,7 @@ class EnrichDexTradeJob(BaseJob):
             'reserves_stable': reserves_stable,
             'reserves_native': reserves_native,
             'type': 'enriched_dex_trade',
+            'factory_address': swap_event['factory_address'],
         }
 
         self.item_exporter.export_item(event)

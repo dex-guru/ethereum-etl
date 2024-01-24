@@ -146,6 +146,7 @@ CREATE TABLE dex_trades
     `prices_stable` Array(Float64) CODEC(ZSTD(1)),
     `prices_native` Array(Float64) CODEC(ZSTD(1)),
     `pool_address` String CODEC(ZSTD(1)),
+    `factory_address` LowCardinality(String) DEFAULT '' CODEC(ZSTD(1)),
     `lp_token_address` String DEFAULT '' CODEC(ZSTD(1)),
     `reserves` Array(Float64) DEFAULT [] CODEC(ZSTD(1)),
     `reserves_stable` Array(Float64) DEFAULT [] CODEC(ZSTD(1)),
