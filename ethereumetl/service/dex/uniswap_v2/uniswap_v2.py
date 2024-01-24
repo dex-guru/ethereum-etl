@@ -205,7 +205,7 @@ class UniswapV2Amm(DexClientInterface):
         if not finance_info:
             logging.debug(f"Finance info not found for {parsed_receipt_log}")
             return None
-        resolved_log = resolve_func(parsed_receipt_log, finance_info)
+        resolved_log = resolve_func(parsed_receipt_log, dex_pool, finance_info)
         logging.debug(f"Resolved receipt log {resolved_log}")
         return resolved_log
 
@@ -243,7 +243,7 @@ class UniswapV2Amm(DexClientInterface):
 
     @staticmethod
     def _get_trade_from_mint_event(
-        parsed_receipt_log: ParsedReceiptLog, finance_info: dict
+        parsed_receipt_log: ParsedReceiptLog, dex_pool, finance_info: dict
     ) -> EthDexTrade:
         parsed_event = parsed_receipt_log.parsed_event
         return EthDexTrade(
@@ -256,11 +256,12 @@ class UniswapV2Amm(DexClientInterface):
             token_reserves=[finance_info['reserve_0'], finance_info['reserve_1']],
             token_prices=get_prices_for_two_pool(finance_info['price_0'], finance_info['price_1']),
             lp_token_address=parsed_receipt_log.address,
+            token_addresses=[dex_pool.token_addresses[0], dex_pool.token_addresses[1]],
         )
 
     @staticmethod
     def _get_trade_from_burn_event(
-        parsed_receipt_log: ParsedReceiptLog, finance_info: dict
+        parsed_receipt_log: ParsedReceiptLog, dex_pool, finance_info: dict
     ) -> EthDexTrade:
         parsed_event = parsed_receipt_log.parsed_event
 
@@ -274,11 +275,12 @@ class UniswapV2Amm(DexClientInterface):
             token_reserves=[finance_info['reserve_0'], finance_info['reserve_1']],
             token_prices=get_prices_for_two_pool(finance_info['price_0'], finance_info['price_1']),
             lp_token_address=parsed_receipt_log.address,
+            token_addresses=[dex_pool.token_addresses[0], dex_pool.token_addresses[1]],
         )
 
     @staticmethod
     def _get_trade_from_swap_event(
-        parsed_receipt_log: ParsedReceiptLog, finance_info: dict
+        parsed_receipt_log: ParsedReceiptLog, dex_pool, finance_info: dict
     ) -> EthDexTrade:
         parsed_event = parsed_receipt_log.parsed_event
         return EthDexTrade(
@@ -293,6 +295,7 @@ class UniswapV2Amm(DexClientInterface):
             event_type='swap',
             token_reserves=[finance_info['reserve_0'], finance_info['reserve_1']],
             token_prices=get_prices_for_two_pool(finance_info['price_0'], finance_info['price_1']),
+            token_addresses=[dex_pool.token_addresses[0], dex_pool.token_addresses[1]],
         )
 
         # if event_name.lower() == self.pool_contracts_events_enum.sync.name:

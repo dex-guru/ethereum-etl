@@ -177,6 +177,8 @@ class ClickhouseEthStreamerAdapter:
         # could be explored further using liquidity/volume as weights in
         # links between pools (nodes) in vector representaion of it.
         assert self.clickhouse, "Clickhouse client is not initialized"
+        if not tokens:
+            return {}
         table_name = self.item_type_to_table_mapping[EntityType.DEX_POOL]
         query = f"""
         SELECT
@@ -593,7 +595,8 @@ class ClickhouseEthStreamerAdapter:
                         prices_stable as price_stable,
                         prices_native as price_native
                     WHERE
-                        token_address IN ({", ".join(base_tokens_addresses)})
+                        token_address IN {tuple(base_tokens_addresses)}
+                        AND amount_stable > 0
                     GROUP BY
                         token_address
                     ORDER BY
@@ -603,8 +606,8 @@ class ClickhouseEthStreamerAdapter:
             return {
                 d['token_address']: {
                     'token_address': d['token_address'],
-                    'price_stable': d['price_stable'],
-                    'price_native': d['price_native'],
+                    'price_stable': d['latest_price_stable'],
+                    'price_native': d['latest_price_stable'],
                 }
                 for d in self.clickhouse.query(query).named_results()
             }
@@ -613,33 +616,31 @@ class ClickhouseEthStreamerAdapter:
         def import_base_tokens_prices() -> list:
             assert self.clickhouse, "Clickhouse client is not initialized"
             _from_ch = False
-            logger.info("exporting DEX_POOL_PRICES...")
+            logger.info("Importing TOKEN_PRICES...")
             dex_pools = export_dex_pools()[0]
             if not dex_pools:
                 return []
-            tokens_to_score = []
+            all_token_addresses = set()
 
             for pool in dex_pools:
-                tokens_to_score.extend(pool['token_addresses'])
+                all_token_addresses.update(pool['token_addresses'])
 
             token_address_to_score: dict[
                 str, int | float
-            ] = self._calculate_pools_count_for_tokens(list(set(tokens_to_score)))
+            ] = self._calculate_pools_count_for_tokens(list(set(all_token_addresses)))
 
             stablecoin_addresses = self.eth_streamer.chain_config["stablecoin_addresses"]
             native_token_address = self.eth_streamer.chain_config["native_token"]["address"]
 
-            all_tokens_addresses = set(token_address_to_score.keys())
-
             base_token_prices = []
             try:
                 latest_trades_prices = get_latest_prices_from_trades_for_tokens(
-                    all_tokens_addresses
+                    all_token_addresses
                 )
             except Exception as e:
                 logger.warning(f"Failed to get latest prices from trades for tokens: {e}.")
                 latest_trades_prices = {}
-            for token_address in all_tokens_addresses:
+            for token_address in all_token_addresses:
                 prices_ = latest_trades_prices.get(
                     token_address,
                     {'price_stable': 0, 'price_native': 0, 'token_address': token_address},

@@ -23,6 +23,9 @@ class EthDexTradeMapper:
             token_reserves=trade_dict['token_reserves'],
             token_prices=trade_dict['token_prices'],
             lp_token_address=trade_dict['lp_token_address'].lower(),
+            token_addresses=[
+                token_address.lower() for token_address in trade_dict['token_addresses']
+            ],
         )
 
 

@@ -38,21 +38,26 @@ class PriceService:
     def _update_base_prices(self, dex_trade):
         """Updates the base token prices based on the trade."""
         for idx, token_address in enumerate(dex_trade['token_addresses']):
-            if token_address in self.base_tokens_prices:
-                self.base_tokens_prices[token_address]['price_stable'] = (
-                    dex_trade['prices_stable'][idx]
-                    or self.base_tokens_prices[token_address]['price_stable']
-                )
-                self.base_tokens_prices[token_address]['price_native'] = (
-                    dex_trade['prices_native'][idx]
-                    or self.base_tokens_prices[token_address]['price_native']
-                )
-            else:
+            price_stable = dex_trade['prices_stable'][idx]
+            price_native = dex_trade['prices_native'][idx]
+            if token_address not in self.base_tokens_prices:
                 self.base_tokens_prices[token_address] = {
                     'price_stable': dex_trade['prices_stable'][idx],
                     'price_native': dex_trade['prices_native'][idx],
                     'score': 1,
                 }
+                continue
+
+            self.base_tokens_prices[token_address]['price_stable'] = (
+                price_stable
+                if price_stable
+                else self.base_tokens_prices[token_address]['price_stable']
+            )
+            self.base_tokens_prices[token_address]['price_native'] = (
+                price_native
+                if price_native
+                else self.base_tokens_prices[token_address]['price_native']
+            )
 
     @staticmethod
     def _initialize_prices(dex_trade):
@@ -79,7 +84,8 @@ class PriceService:
         _score = 0
         _token_address = None
         for token_address in dex_trade['token_addresses']:
-            if self.base_tokens_prices.get(token_address, {}).get('score', 0) > _score:
+            base_price = self.base_tokens_prices.get(token_address, {})
+            if base_price.get('score', 0) > _score:
                 _score = self.base_tokens_prices[token_address]['score']
                 _token_address = token_address
         return _token_address
@@ -94,7 +100,7 @@ class PriceService:
 
         for idx, token_address in enumerate(dex_trade['token_addresses']):
             if token_address == base_token_address:
-                base_price = self.base_tokens_prices.get(token_address)
+                base_price = self.base_tokens_prices.get(token_address, {})
                 self._calculate_token_prices(dex_trade, idx, base_price)
                 break
 
@@ -103,7 +109,6 @@ class PriceService:
     def _calculate_token_prices(self, dex_trade, idx, base_price):
         """Calculates and updates the token prices in the trade."""
         opposite_idx = 1 - idx
-        base_token_ratio = dex_trade['token_prices'][idx][opposite_idx]
         opposite_token_ratio = dex_trade['token_prices'][opposite_idx][idx]
 
         self._update_trade_prices(
@@ -111,7 +116,6 @@ class PriceService:
             idx,
             opposite_idx,
             base_price,
-            base_token_ratio,
             opposite_token_ratio,
         )
 
@@ -121,12 +125,11 @@ class PriceService:
         idx,
         opposite_idx,
         base_price,
-        base_token_ratio,
         opposite_token_ratio,
     ):
         """Updates the trade prices based on the base and opposite token prices."""
         if base_price['price_stable']:
-            dex_trade['prices_stable'][idx] = base_price['price_stable']
+            dex_trade['prices_stable'][idx] = copy(base_price['price_stable'])
             try:
                 dex_trade['prices_stable'][opposite_idx] = (
                     base_price['price_stable'] / opposite_token_ratio
@@ -141,7 +144,7 @@ class PriceService:
                 dex_trade['amounts'][idx]
             )
         if base_price['price_native']:
-            dex_trade['prices_native'][idx] = base_price['price_native']
+            dex_trade['prices_native'][idx] = copy(base_price['price_native'])
             try:
                 dex_trade['prices_native'][opposite_idx] = (
                     base_price['price_native'] / opposite_token_ratio

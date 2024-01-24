@@ -99,7 +99,6 @@ class EnrichDexTradeJob(BaseJob):
             if not dex_pool:
                 logging.warning(f'Could not find dex pool: {dex_trade["pool_address"]}')
                 continue
-            dex_trade['token_addresses'] = dex_pool['token_addresses']
             dex_trade['amounts'] = [
                 token_amount / 10 ** self._tokens_by_address[token_address]['decimals']
                 for token_amount, token_address in zip(
@@ -210,12 +209,10 @@ class EnrichDexTradeJob(BaseJob):
                     'log_index': merged_event['log_index'],
                     'transaction_hash': transfer['transaction_hash'],
                     'transaction_type': merged_event['event_type'],
-                    'token_addresses': self._dex_pools_by_address[pool_address]['token_addresses'],
+                    'token_addresses': merged_event['token_addresses'],
                     'symbols': [
                         self._tokens_by_address[token_address]['symbol']
-                        for token_address in self._dex_pools_by_address[pool_address][
-                            'token_addresses'
-                        ]
+                        for token_address in merged_event['token_addresses']
                     ],
                     'wallet_address': transfer['to_address'],
                     'amounts': amounts,
@@ -271,10 +268,10 @@ class EnrichDexTradeJob(BaseJob):
             'log_index': swap_event['log_index'],
             'transaction_hash': swap_event['transaction_hash'],
             'transaction_type': swap_event['event_type'],
-            'token_addresses': self._dex_pools_by_address[pool_address]['token_addresses'],
+            'token_addresses': swap_event['token_addresses'],
             'symbols': [
                 self._tokens_by_address[token_address]['symbol']
-                for token_address in self._dex_pools_by_address[pool_address]['token_addresses']
+                for token_address in swap_event['token_addresses']
             ],
             'wallet_address': swap_owner,
             'amounts': swap_event['amounts'],
@@ -316,7 +313,7 @@ class EnrichDexTradeJob(BaseJob):
             and current_transfer[from_address] in NULL_ADDRESSES
             and current_transfer[to_address] in NULL_ADDRESSES
         ):
-            current_transfer[to_address] = (transfers[0][from_address],)
+            current_transfer[to_address] = transfers[0][from_address]
             return current_transfer
 
         if current_transfer[to_address] not in [i[from_address] for i in __transfers.values()]:
