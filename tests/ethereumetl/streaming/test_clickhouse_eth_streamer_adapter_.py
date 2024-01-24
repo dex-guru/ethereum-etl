@@ -13237,3 +13237,4 @@ def test_export_dex_trades(
         EntityType.ENRICHED_DEX_TRADE, start_block, end_block, 'transaction_hash,log_index'
     )
     assert len(exported_trades) == len(dex_trades_sample)
+    assert exported_trades[0]['factory_address']

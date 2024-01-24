@@ -57,4 +57,5 @@ class EnrichedDexTradeMapper:
             reserves=trade_dict['reserves'],
             reserves_stable=trade_dict['reserves_stable'],
             reserves_native=trade_dict['reserves_native'],
+            factory_address=trade_dict['factory_address'].lower(),
         )

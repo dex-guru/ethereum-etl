@@ -36,4 +36,5 @@ class EnrichedDexTrade:
     reserves: list[float]
     reserves_stable: list[float]
     reserves_native: list[float]
+    factory_address: str
     lp_token_address: str = ''
