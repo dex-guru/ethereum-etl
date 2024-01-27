@@ -42,7 +42,10 @@ raw-data-streamer:
       avalanche-43114: 'http://rpc-gw-prod.dexguru.biz/full/43114'
       celo-42220: 'http://rpc-gw-prod.dexguru.biz/full/42220'
       zetatestnet-7001: 'http://rpc-gw-stage.dexguru.biz/test/7001'
-      manta-169: 'http://rpc-gw-stage.dexguru.biz/public/169'
+      manta-169: 'http://rpc-gw-stage.dexguru.biz/full/169'
+      x1test-195: 'http://rpc-gw-stage.dexguru.biz/public/195'
+      beratest-80085: 'http://rpc-gw-stage.dexguru.biz/public/80085'
+      blasttest-168587773: 'http://rpc-gw-stage.dexguru.biz/paid/168587773'
     LAST_SYNCED_BLOCK_PROVIDER:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum?table_name=last_synced_block'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto?table_name=last_synced_block'
@@ -59,7 +62,10 @@ raw-data-streamer:
       gnosis-100: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis?table_name=last_synced_block'
       celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo?table_name=last_synced_block'
       zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/zetatestnet?table_name=last_synced_block'
-      manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.186/manta?table_name=last_synced_block'
+      manta-169: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/manta?table_name=last_synced_block'
+      x1test-195: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/x1_test?table_name=last_synced_block'
+      beratest-80085: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bera_test?table_name=last_synced_block'
+      blasttest-168587773: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/blast_test?table_name=last_synced_block'
     OUTPUT:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
@@ -76,8 +82,10 @@ raw-data-streamer:
       gnosis-100: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
       celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
       zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/zetatestnet,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
-      manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.186/manta,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
-
+      manta-169: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/manta,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
+      x1test-195: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/x1_test,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
+      beratest-80085: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bera_test,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
+      blasttest-168587773: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/blast_test,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
     EXPORT_FROM_CLICKHOUSE:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -94,7 +102,11 @@ raw-data-streamer:
       gnosis-100: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
       celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
       zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/zetatestnet'
-      manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.186/manta'
+      manta-169: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/manta'
+      x1test-195: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/x1_test'
+      beratest-80085: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bera_test'
+      blasttest-168587773: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/blast_test'
+
     BLOCK_BATCH_SIZE:
       default: '30'
     SKIP_NONE_RECEIPTS:
@@ -173,7 +185,10 @@ raw-data-streamer-resync:
       avalanche-43114: 'http://rpc-gw-prod.dexguru.biz/full/43114'
       celo-42220: 'http://rpc-gw-prod.dexguru.biz/archive/42220'
       zetatestnet-7001:  'http://rpc-gw-stage.dexguru.biz/test/7001'
-      manta-169: 'http://rpc-gw-stage.dexguru.biz/public/169'
+      manta-169: 'http://rpc-gw-stage.dexguru.biz/full/169'
+      x1test-195: 'http://rpc-gw-stage.dexguru.biz/public/195'
+      beratest-80085: 'http://rpc-gw-stage.dexguru.biz/public/80085'
+      blasttest-168587773: 'http://rpc-gw-stage.dexguru.biz/paid/168587773'
     LAST_SYNCED_BLOCK_PROVIDER:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum?table_name=resync_blocks'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto?table_name=resync_blocks'
@@ -191,6 +206,9 @@ raw-data-streamer-resync:
       celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo?table_name=resync_blocks'
       zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/zetatestnet?table_name=resync_blocks'
       manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.186/manta?table_name=resync_blocks'
+      x1test-195: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/x1_test?table_name=resync_blocks'
+      beratest-80085: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bera_test?table_name=resync_blocks'
+      blasttest-168587773: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/blast_test?table_name=resync_blocks'
     OUTPUT:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -207,8 +225,10 @@ raw-data-streamer-resync:
       gnosis-100: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
       celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
       zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/zetatestnet'
-      manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.186/manta'
-
+      manta-169: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/manta'
+      x1test-195: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/x1_test'
+      beratest-80085: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bera_test'
+      blasttest-168587773: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/blast_test'
 
     EXPORT_FROM_CLICKHOUSE:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
@@ -226,7 +246,10 @@ raw-data-streamer-resync:
       gnosis-100: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
       celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
       zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/zetatestnet'
-      manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.186/manta'
+      manta-169: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/manta'
+      x1test-195: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/x1_test'
+      beratest-80085: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bera_test'
+      blasttest-168587773: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/blast_test'
 
     BLOCK_BATCH_SIZE:
       default: '100'
@@ -282,8 +305,10 @@ raw-verify-data-trigger:
       avalanche-43114:   'http://rpc-gw-prod.dexguru.biz/full/43114'
       celo-42220:        'http://rpc-gw-prod.dexguru.biz/full/42220'
       zetatestnet-7001: 'http://rpc-gw-stage.dexguru.biz/test/7001'
-      manta-169: 'http://rpc-gw-stage.dexguru.biz/public/169'
-
+      manta-169: 'http://rpc-gw-stage.dexguru.biz/full/169'
+      x1test-195: 'http://rpc-gw-stage.dexguru.biz/public/195'
+      beratest-80085: 'http://rpc-gw-stage.dexguru.biz/public/80085'
+      blasttest-168587773: 'http://rpc-gw-stage.dexguru.biz/paid/168587773'
     LAST_SYNCED_BLOCK_PROVIDER:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum?table_name=last_synced_block_verify'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto?table_name=last_synced_block_verify'
@@ -300,8 +325,10 @@ raw-verify-data-trigger:
       gnosis-100: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis?table_name=last_synced_block_verify'
       celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo?table_name=last_synced_block_verify'
       zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/zetatestnet?table_name=last_synced_block_verify'
-      manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.186/manta?table_name=last_synced_block_verify'
-
+      manta-169: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/manta?table_name=last_synced_block_verify'
+      x1test-195: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/x1_test?table_name=last_synced_block_verify'
+      beratest-80085: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bera_test?table_name=last_synced_block_verify'
+      blasttest-168587773: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/blast_test?table_name=last_synced_block_verify'
     OUTPUT:
       default:             'amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
     EXPORT_FROM_CLICKHOUSE:
@@ -320,7 +347,10 @@ raw-verify-data-trigger:
       gnosis-100: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
       celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
       zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/zetatestnet'
-      manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.186/manta'
+      manta-169: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/manta'
+      x1test-195: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/x1_test'
+      beratest-80085: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bera_test'
+      blasttest-168587773: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/blast_test'
     BLOCK_BATCH_SIZE:
       default: '10'
     MAX_WORKERS:
@@ -375,8 +405,10 @@ raw-data-streamer-transfers-preevents:
       avalanche-43114:   'http://rpc-gw-prod.dexguru.biz/full/43114'
       celo-42220:        'http://rpc-gw-prod.dexguru.biz/full/42220'
       zetatestnet-7001: 'http://rpc-gw-stage.dexguru.biz/test/7001'
-      manta-169: 'http://rpc-gw-stage.dexguru.biz/public/169'
-
+      manta-169: 'http://rpc-gw-stage.dexguru.biz/full/169'
+      x1test-195: 'http://rpc-gw-stage.dexguru.biz/public/195'
+      beratest-80085: 'http://rpc-gw-stage.dexguru.biz/public/80085'
+      blasttest-168587773: 'http://rpc-gw-stage.dexguru.biz/paid/168587773'
     OUTPUT:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
@@ -393,8 +425,10 @@ raw-data-streamer-transfers-preevents:
       gnosis-100: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
       celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
       zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/zetatestnet,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
-      manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.186/manta,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
-
+      manta-169: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/manta,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
+      x1test-195: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/x1_test,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
+      beratest-80085: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bera_test,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
+      blasttest-168587773: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/blast_test,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
     EXPORT_FROM_CLICKHOUSE:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -411,8 +445,10 @@ raw-data-streamer-transfers-preevents:
       gnosis-100: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
       celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
       zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/zetatestnet'
-      manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.186/manta'
-
+      manta-169: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/manta'
+      x1test-195: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/x1_test'
+      beratest-80085: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bera_test'
+      blasttest-168587773: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/blast_test'
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
@@ -472,7 +508,10 @@ raw-data-streamer-gethtrace:
       avalanche-43114:   'http://rpc-gw-prod.dexguru.biz/full/43114'
       celo-42220:        'http://rpc-gw-prod.dexguru.biz/full/42220'
       zetatestnet-7001: 'http://rpc-gw-stage.dexguru.biz/test/7001'
-      manta-169: 'http://rpc-gw-stage.dexguru.biz/public/169'
+      manta-169: 'http://rpc-gw-stage.dexguru.biz/full/169'
+      x1test-195: 'http://rpc-gw-stage.dexguru.biz/public/195'
+      beratest-80085: 'http://rpc-gw-stage.dexguru.biz/public/80085'
+      blasttest-168587773: 'http://rpc-gw-stage.dexguru.biz/paid/168587773'
     OUTPUT:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum,http://10.0.200.184:9200,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto,http://10.0.200.184:9200,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
@@ -489,8 +528,10 @@ raw-data-streamer-gethtrace:
       gnosis-100: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis,http://10.0.200.184:9200,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
       celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo,http://10.0.200.184:9200,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
       zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/zetatestnet,http://10.0.200.184:9200,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
-      manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.186/manta,http://10.0.200.184:9200,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
-
+      manta-169: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/manta,http://10.0.200.184:9200,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
+      x1test-195: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/x1_test,http://10.0.200.184:9200,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
+      beratest-80085: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bera_test,http://10.0.200.184:9200,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
+      blasttest-168587773: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/blast_test,http://10.0.200.184:9200,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
     EXPORT_FROM_CLICKHOUSE:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -507,7 +548,10 @@ raw-data-streamer-gethtrace:
       gnosis-100: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
       celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
       zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/zetatestnet'
-      manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.186/manta'
+      manta-169: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/manta'
+      x1test-195: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/x1_test'
+      beratest-80085: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bera_test'
+      blasttest-168587773: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/blast_test'
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
@@ -565,7 +609,10 @@ raw-data-streamer-balance:
       avalanche-43114:   'http://rpc-gw-prod.dexguru.biz/full/43114'
       celo-42220:        'http://rpc-gw-prod.dexguru.biz/full/42220'
       zetatestnet-7001: 'http://rpc-gw-stage.dexguru.biz/test/7001'
-      manta-169: 'http://rpc-gw-stage.dexguru.biz/public/169'
+      manta-169: 'http://rpc-gw-stage.dexguru.biz/full/169'
+      x1test-195: 'http://rpc-gw-stage.dexguru.biz/public/195'
+      beratest-80085: 'http://rpc-gw-stage.dexguru.biz/public/80085'
+      blasttest-168587773: 'http://rpc-gw-stage.dexguru.biz/paid/168587773'
     OUTPUT:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -582,7 +629,10 @@ raw-data-streamer-balance:
       gnosis-100: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
       celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
       zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/zetatestnet'
-      manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.186/manta'
+      manta-169: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/manta'
+      x1test-195: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/x1_test'
+      beratest-80085: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bera_test'
+      blasttest-168587773: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/blast_test'
     EXPORT_FROM_CLICKHOUSE:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -599,8 +649,10 @@ raw-data-streamer-balance:
       gnosis-100: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
       celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
       zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/zetatestnet'
-      manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.186/manta'
-
+      manta-169: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/manta'
+      x1test-195: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/x1_test'
+      beratest-80085: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bera_test'
+      blasttest-168587773: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/blast_test'
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
@@ -656,8 +708,10 @@ raw-data-streamer-token-tokentransferpriced:
       avalanche-43114:   'http://rpc-gw-prod.dexguru.biz/full/43114'
       celo-42220:        'http://rpc-gw-prod.dexguru.biz/full/42220'
       zetatestnet-7001: 'http://rpc-gw-stage.dexguru.biz/test/7001'
-      manta-169: 'http://rpc-gw-stage.dexguru.biz/public/169'
-
+      manta-169: 'http://rpc-gw-stage.dexguru.biz/full/169'
+      x1test-195: 'http://rpc-gw-stage.dexguru.biz/public/195'
+      beratest-80085: 'http://rpc-gw-stage.dexguru.biz/public/80085'
+      blasttest-168587773: 'http://rpc-gw-stage.dexguru.biz/paid/168587773'
     OUTPUT:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum,http://10.0.200.184:9200'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto,http://10.0.200.184:9200'
@@ -674,8 +728,10 @@ raw-data-streamer-token-tokentransferpriced:
       gnosis-100: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis,http://10.0.200.184:9200'
       celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo,http://10.0.200.184:9200'
       zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/zetatestnet,http://10.0.200.184:9200'
-      manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.186/manta'
-
+      manta-169: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/manta,http://10.0.200.184:9200'
+      x1test-195: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/x1_test,http://10.0.200.184:9200'
+      beratest-80085: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bera_test,http://10.0.200.184:9200'
+      blasttest-168587773: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/blast_test,http://10.0.200.184:9200'
     EXPORT_FROM_CLICKHOUSE:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -692,8 +748,10 @@ raw-data-streamer-token-tokentransferpriced:
       gnosis-100: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
       celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
       zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/zetatestnet'
-      manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.186/manta'
-
+      manta-169: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/manta'
+      x1test-195: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/x1_test'
+      beratest-80085: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bera_test'
+      blasttest-168587773: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/blast_test'
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
@@ -749,8 +807,10 @@ raw-data-streamer-nativebalance:
       avalanche-43114:   'http://rpc-gw-prod.dexguru.biz/full/43114'
       celo-42220:        'http://rpc-gw-prod.dexguru.biz/full/42220'
       zetatestnet-7001: 'http://rpc-gw-stage.dexguru.biz/test/7001'
-      manta-169: 'http://rpc-gw-stage.dexguru.biz/public/169'
-
+      manta-169: 'http://rpc-gw-stage.dexguru.biz/full/169'
+      x1test-195: 'http://rpc-gw-stage.dexguru.biz/public/195'
+      beratest-80085: 'http://rpc-gw-stage.dexguru.biz/public/80085'
+      blasttest-168587773: 'http://rpc-gw-stage.dexguru.biz/paid/168587773'
     OUTPUT:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -767,8 +827,10 @@ raw-data-streamer-nativebalance:
       gnosis-100: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
       celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
       zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/zetatestnet'
-      manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.186/manta'
-
+      manta-169: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/manta'
+      x1test-195: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/x1_test'
+      beratest-80085: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bera_test'
+      blasttest-168587773: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/blast_test'
     EXPORT_FROM_CLICKHOUSE:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -785,9 +847,10 @@ raw-data-streamer-nativebalance:
       gnosis-100: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
       celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
       zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/zetatestnet'
-      manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.186/manta'
-
-
+      manta-169: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/manta'
+      x1test-195: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/x1_test'
+      beratest-80085: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bera_test'
+      blasttest-168587773: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/blast_test'
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
@@ -843,8 +906,10 @@ raw-data-streamer-contract-token:
       avalanche-43114:   'http://rpc-gw-prod.dexguru.biz/full/43114'
       celo-42220:        'http://rpc-gw-prod.dexguru.biz/full/42220'
       zetatestnet-7001: 'http://rpc-gw-stage.dexguru.biz/test/7001'
-      manta-169: 'http://rpc-gw-stage.dexguru.biz/public/169'
-
+      manta-169: 'http://rpc-gw-stage.dexguru.biz/full/169'
+      x1test-195: 'http://rpc-gw-stage.dexguru.biz/public/195'
+      beratest-80085: 'http://rpc-gw-stage.dexguru.biz/public/80085'
+      blasttest-168587773: 'http://rpc-gw-stage.dexguru.biz/paid/168587773'
     OUTPUT:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -861,8 +926,10 @@ raw-data-streamer-contract-token:
       gnosis-100: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
       celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
       zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/zetatestnet'
-      manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.186/manta'
-
+      manta-169: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/manta'
+      x1test-195: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/x1_test'
+      beratest-80085: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bera_test'
+      blasttest-168587773: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/blast_test'
     EXPORT_FROM_CLICKHOUSE:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -879,8 +946,10 @@ raw-data-streamer-contract-token:
       gnosis-100: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
       celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
       zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/zetatestnet'
-      manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.186/manta'
-
+      manta-169: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/manta'
+      x1test-195: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/x1_test'
+      beratest-80085: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bera_test'
+      blasttest-168587773: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/blast_test'
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
@@ -949,8 +1018,10 @@ raw-verify-data-streamer:
       avalanche-43114:   'http://rpc-gw-prod.dexguru.biz/full/43114'
       celo-42220:        'http://rpc-gw-prod.dexguru.biz/full/42220'
       zetatestnet-7001:  'http://rpc-gw-stage.dexguru.biz/test/7001'
-      manta-169: 'http://rpc-gw-stage.dexguru.biz/public/169'
-
+      manta-169: 'http://rpc-gw-stage.dexguru.biz/full/169'
+      x1test-195: 'http://rpc-gw-stage.dexguru.biz/public/195'
+      beratest-80085: 'http://rpc-gw-stage.dexguru.biz/public/80085'
+      blasttest-168587773: 'http://rpc-gw-stage.dexguru.biz/paid/168587773'
     OUTPUT:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -967,8 +1038,10 @@ raw-verify-data-streamer:
       gnosis-100: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
       celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
       zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/zetatestnet'
-      manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.186/manta'
-
+      manta-169: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/manta'
+      x1test-195: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/x1_test'
+      beratest-80085: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bera_test'
+      blasttest-168587773: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/blast_test'
     EXPORT_FROM_CLICKHOUSE:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -985,8 +1058,10 @@ raw-verify-data-streamer:
       gnosis-100: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
       celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
       zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/zetatestnet'
-      manta-169: 'clickhouse+http://testuser3:testplpassword@10.0.100.186/manta'
-
+      manta-169: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/manta'
+      x1test-195: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/x1_test'
+      beratest-80085: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bera_test'
+      blasttest-168587773: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/blast_test'
     BLOCK_BATCH_SIZE:
       default: '10'
     MAX_WORKERS:
@@ -998,3 +1073,98 @@ raw-verify-data-streamer:
       polygon-137: 'True'
     MIN_INSERT_BATCH_SIZE:
       default: '1'
+
+
+raw-data-streamer-dexpool:
+  replicas:
+    default: 1
+  limitsCpu: 4
+  limitsMemory: 9000Mi
+  requestsCpu: 100m
+  requestsMemory: 1000Mi
+  strategyType: 'Recreate'
+  command: '[ "ethereumetl", "amqp_stream" ]'
+  env:
+    POLLING_PERIOD: '2'
+    BATCH_SIZE: '5'
+    LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
+    LOG_HANDLERS: '["console","logstash"]'
+    SERVICE_NAME: 'raw-data-streamer-dexpool'
+    REWRITE_CLICKHOUSE: ''
+    ELASTIC_URL: 'http://10.0.100.34:9200'
+    AMQP_URL: 'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
+    ROUTING_KEY: 'block'
+    ENTITY_TYPES: 'dex_pool'
+  chainEnv:
+    BLOCK_BATCH_SIZE:
+      default: '100'
+    MAX_WORKERS:
+      default: '10'
+    SKIP_NONE_RECEIPTS:
+      default: 'False'
+      polygon-137: 'True'
+    MIN_INSERT_BATCH_SIZE:
+      default: '1'
+    LAG:
+      default: 0
+    PROVIDER_URL:
+      default: 'http://rpc-gw-prod.dexguru.biz/full/-999'
+      eth-1: 'http://rpc-gw-prod.dexguru.biz/full/1'
+      polygon-137: 'http://rpc-gw-prod.dexguru.biz/full/137'
+      bsc-56: 'http://rpc-gw-prod.dexguru.biz/full/56'
+      canto-7700: 'http://rpc-gw-prod.dexguru.biz/full/7700'
+      acanto-7701: 'http://canto-testnet.plexnode.wtf'
+      fantom-250: 'http://rpc-gw-prod.dexguru.biz/full/250'
+      optimism-10: 'http://rpc-gw-prod.dexguru.biz/full/10'
+      gnosis-100: 'http://rpc-gw-prod.dexguru.biz/full/100'
+      arbitrum-42161: 'http://rpc-gw-prod.dexguru.biz/full/42161'
+      nova-42170: 'http://rpc-gw-prod.dexguru.biz/full/42170'
+      basetestnet-84531: 'http://rpc-gw-prod.dexguru.biz/full/84531'
+      base-8453: 'http://rpc-gw-prod.dexguru.biz/full/8453'
+      avalanche-43114: 'http://rpc-gw-prod.dexguru.biz/full/43114'
+      celo-42220: 'http://rpc-gw-prod.dexguru.biz/full/42220'
+      zetatestnet-7001: 'http://rpc-gw-stage.dexguru.biz/test/7001'
+      manta-169: 'http://rpc-gw-stage.dexguru.biz/full/169'
+      x1test-195: 'http://rpc-gw-stage.dexguru.biz/public/195'
+      beratest-80085: 'http://rpc-gw-stage.dexguru.biz/public/80085'
+      blasttest-168587773: 'http://rpc-gw-stage.dexguru.biz/paid/168587773'
+    OUTPUT:
+      eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
+      canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
+      acanto-7701: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto'
+      optimism-10: 'clickhouse+http://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism'
+      bsc-56: 'clickhouse+http://testuser3:testplpassword@stage-ch-bsc-01.dexguru.biz/bsc'
+      polygon-137: 'clickhouse+http://testuser3:testplpassword@stage-ch-polygon-01.dexguru.biz/polygon'
+      fantom-250: 'clickhouse+http://testuser3:testplpassword@stage-ch-fantom-01.dexguru.biz/fantom'
+      base-8453: 'clickhouse+http://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/base'
+      basetestnet-84531: 'clickhouse+http://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/basetestnet'
+      avalanche-43114: 'clickhouse+http://testuser3:testplpassword@stage-ch-avalanche-01.dexguru.biz/avalanche'
+      arbitrum-42161: 'clickhouse+http://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum'
+      nova-42170: 'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
+      gnosis-100: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
+      celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
+      zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/zetatestnet'
+      manta-169: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/manta'
+      x1test-195: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/x1_test'
+      beratest-80085: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bera_test'
+      blasttest-168587773: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/blast_test'
+    EXPORT_FROM_CLICKHOUSE:
+      eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
+      canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
+      acanto-7701: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto'
+      optimism-10: 'clickhouse+http://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism'
+      bsc-56: 'clickhouse+http://testuser3:testplpassword@stage-ch-bsc-01.dexguru.biz/bsc'
+      polygon-137: 'clickhouse+http://testuser3:testplpassword@stage-ch-polygon-01.dexguru.biz/polygon'
+      fantom-250: 'clickhouse+http://testuser3:testplpassword@stage-ch-fantom-01.dexguru.biz/fantom'
+      base-8453: 'clickhouse+http://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/base'
+      basetestnet-84531: 'clickhouse+http://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/basetestnet'
+      avalanche-43114: 'clickhouse+http://testuser3:testplpassword@stage-ch-avalanche-01.dexguru.biz/avalanche'
+      arbitrum-42161: 'clickhouse+http://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum'
+      nova-42170: 'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
+      gnosis-100: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
+      celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
+      zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/zetatestnet'
+      manta-169: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/manta'
+      x1test-195: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/x1_test'
+      beratest-80085: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bera_test'
+      blasttest-168587773: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/blast_test'

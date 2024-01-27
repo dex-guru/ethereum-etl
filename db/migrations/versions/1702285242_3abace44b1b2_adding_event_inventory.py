@@ -237,8 +237,14 @@ def downgrade() -> None:
      SETTINGS join_algorithm = 'direct'
     """
 
-    if is_clickhouse_replicated():
+    on_cluster = os.getenv('ON_CLUSTER', '').lower() in ('true', '1')
+    if on_cluster:
         on_cluster = "ON CLUSTER '{cluster}'"
+    else:
+        on_cluster = ""
+
+    if is_clickhouse_replicated():
+        on_cluster = on_cluster
         replicated = "Replicated"
         replication_path = "('/clickhouse/tables/{database}/{shard}/{table}', '{replica}')"
     else:
