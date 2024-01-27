@@ -1094,15 +1094,20 @@ def upgrade() -> None:
         or op.get_bind().execute("SELECT count() FROM system.replicas").scalar_one() > 0
     )
 
+    on_cluster = os.getenv('ON_CLUSTER', '').lower() in ('true', '1')
+    if on_cluster:
+        on_cluster = "ON CLUSTER '{cluster}'"
+    else:
+        on_cluster = ""
     if clickhouse_replicated:
         sql = string.Template(SCHEMA_TEMPLATE).substitute(
-            on_cluster="ON CLUSTER '{cluster}'",
+            on_cluster=on_cluster,
             replicated="Replicated",
             replication_path="('/clickhouse/tables/{database}/{shard}/{table}', '{replica}')",
         )
     else:
         sql = string.Template(SCHEMA_TEMPLATE).substitute(
-            on_cluster="",
+            on_cluster=on_cluster,
             replicated="",
             replication_path=""
         )
