@@ -292,5 +292,50 @@
             "0xf417f5a458ec102b90352f697d6e2ac3a3d2851f",
             "0x1c466b9371f8aba0d7c458be10a62192fcb8aa71"
         ]
+    },
+        {
+        "id": 195,
+        "name": "X1 testnet",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0xa2affd8301bfb3c5b815829f2f509f053556d21b-x1_testnet",
+            "address": "0xa2affd8301bfb3c5b815829f2f509f053556d21b",
+            "name": "OKB",
+            "symbol": "OKB",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+        ]
+    },
+        {
+        "id": 80085,
+        "name": "bera testnet",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x0dc808adce2099a9f62aa87d9670745aba741746-bera_testnet",
+            "address": "0x0dc808adce2099a9f62aa87d9670745aba741746",
+            "name": "Wrapped BERA",
+            "symbol": "WBERA",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+        ]
+    },
+        {
+        "id": 168587773,
+        "name": "blast testnet",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0xa37f751177ad228a434f3e7829615c6124902178-blast_testnet",
+            "address": "0xa37f751177ad228a434f3e7829615c6124902178",
+            "name": "Wrapped Ether",
+            "symbol": "WETH",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+        ]
     }
 ]
