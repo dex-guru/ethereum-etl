@@ -337,5 +337,69 @@
         },
         "stablecoin_addresses": [
         ]
+    },
+    {
+        "id": 245022934,
+        "name": "neonevm",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x202C35e517Fa803B537565c40F0a6965D7204609-neonevm",
+            "address": "0x202C35e517Fa803B537565c40F0a6965D7204609",
+            "name": "Wrapped NEON",
+            "symbol": "wNEON",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0xEA6B04272f9f62F997F666F07D3a974134f7FFb9",
+            "0x5f0155d08eF4aaE2B500AefB64A3419dA8bB611a"
+        ]
+    },
+    {
+        "id": 4157,
+        "name": "XFI testnet",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0xa37f751177ad228a434f3e7829615c6124902178-xfi_testnet",
+            "address": "0xa37f751177ad228a434f3e7829615c6124902178",
+            "name": "XFI",
+            "symbol": "XFI",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0xAE1446dDcf8daAAF42b659d33bfa1C9b8D337947"
+        ]
+    },
+    {
+        "id": 167008,
+        "name": "taiko testnet",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0xa37f751177ad228a434f3e7829615c6124902178-taiko_testnet",
+            "address": "0xa37f751177ad228a434f3e7829615c6124902178",
+            "name": "Wrapped Ether",
+            "symbol": "WETH",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0xae2C46ddb314B9Ba743C6dEE4878F151881333D9"
+        ]
+    },
+    {
+        "id": 355113,
+        "name": "bitfinity testnet",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0xa37f751177ad228a434f3e7829615c6124902178-blast_testnet",
+            "address": "0xa37f751177ad228a434f3e7829615c6124902178",
+            "name": "Wrapped Ether",
+            "symbol": "WETH",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+        ]
     }
 ]

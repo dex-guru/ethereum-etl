@@ -81,6 +81,8 @@ variables:
     prod-indexation-avalanche-43114
     prod-indexation-celo-42220
     prod-indexation-manta-169
+    prod-indexation-neonevm-245022934
+    prod-indexation-xfitest-4157
   KUBE_NAMESPACE_PROD: >-
     prod-indexation-eth-1
     prod-indexation-gnosis-100
@@ -100,7 +102,10 @@ variables:
     prod-indexation-manta-169
     prod-indexation-blasttest-168587773
     prod-indexation-x1test-195
-    prod-indexation-beratest-80085
+    prod-indexation-neonevm-245022934
+    prod-indexation-xfitest-4157
+    prod-indexation-taikotest-167008
+    prod-indexation-bitfinitytest-355113
 build:
   stage: build
   before_script:
