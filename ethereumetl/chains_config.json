@@ -208,6 +208,21 @@
         ]
     },
     {
+        "id": 7701,
+        "name": "canto testnet",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x826551890dc65655a0aceca109ab11abdbd7a07b-canto",
+            "address": "0x826551890dc65655a0aceca109ab11abdbd7a07b",
+            "name": "aCANTO",
+            "symbol": "aCANTO",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+        ]
+    },
+    {
         "id": 324,
         "name": "zksync",
         "type": "evm",
@@ -273,6 +288,21 @@
             "0xeb466342c4d449bc9f53a865d5cb90586f405215",
             "0xfe668a3d6f05e7799aae04659fc274ac00d094c0",
             "0xd9aaec86b65d86f6a7b5b1b0c42ffa531710b6ca"
+        ]
+    },
+    {
+        "id": 84531,
+        "name": "basetestnet",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x4200000000000000000000000000000000000006-base_testnet",
+            "address": "0x4200000000000000000000000000000000000006",
+            "name": "ETH",
+            "symbol": "ETH",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
         ]
     },
     {
@@ -397,6 +427,21 @@
             "address": "0xa37f751177ad228a434f3e7829615c6124902178",
             "name": "Wrapped Ether",
             "symbol": "WETH",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+        ]
+    },
+     {
+        "id": 7001,
+        "name": "zeta testnet",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x5f0b1a82749cb4e2278ec87f8bf6b618dc71a8bf-zeta_testnet",
+            "address": "0x5f0b1a82749cb4e2278ec87f8bf6b618dc71a8bf",
+            "name": "aZETA",
+            "symbol": "aZETA",
             "decimals": 18
         },
         "stablecoin_addresses": [
