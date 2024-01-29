@@ -32,7 +32,7 @@ class EthDexPoolMapper:
     def pool_to_dict(pool: EthDexPool) -> dict[str, Any]:
         result = asdict(pool)
         result['fee'] = int(result['fee'])
-        result['type'] = EntityType.DEX_POOL.value
+        result['type'] = str(EntityType.DEX_POOL.value)
         result['token_addresses'] = [
             token_address.lower() for token_address in result['token_addresses']
         ]

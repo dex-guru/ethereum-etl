@@ -31,7 +31,7 @@ class EthTokenTransferMapper:
     @staticmethod
     def token_transfer_to_dict(token_transfer: EthTokenTransfer) -> dict[str, Any]:
         result = asdict(token_transfer)
-        result['type'] = EntityType.TOKEN_TRANSFER.value
+        result['type'] = str(EntityType.TOKEN_TRANSFER.value)
         return result
 
     @staticmethod

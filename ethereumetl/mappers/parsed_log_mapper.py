@@ -44,5 +44,5 @@ class EthParsedReceiptLogMapper:
     @staticmethod
     def parsed_receipt_log_to_dict(receipt_log: ParsedReceiptLog) -> dict[str, Any]:
         result = asdict(receipt_log)
-        result['type'] = EntityType.PARSED_LOG.value
+        result['type'] = str(EntityType.PARSED_LOG.value)
         return result

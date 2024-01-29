@@ -8,5 +8,5 @@ class EthTokenBalanceMapper:
     @staticmethod
     def token_balance_to_dict(balance: EthTokenBalance) -> dict[str, int | str | None]:
         res = dataclasses.asdict(balance)
-        res['type'] = EntityType.TOKEN_BALANCE.value
+        res['type'] = str(EntityType.TOKEN_BALANCE.value)
         return res

@@ -52,5 +52,5 @@ class EthTransactionMapper:
     @staticmethod
     def transaction_to_dict(transaction: EthTransaction) -> dict[str, Any]:
         result = asdict(transaction)
-        result['type'] = EntityType.TRANSACTION.value
+        result['type'] = str(EntityType.TRANSACTION.value)
         return result

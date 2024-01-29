@@ -170,5 +170,5 @@ class EthTraceMapper:
     @staticmethod
     def trace_to_dict(trace: EthTrace) -> dict[str, Any]:
         result = asdict(trace)
-        result['type'] = EntityType.TRACE.value
+        result['type'] = str(EntityType.TRACE.value)
         return result

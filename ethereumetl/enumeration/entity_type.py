@@ -45,6 +45,7 @@ ALL_FOR_STREAMING = (
     EntityType.INTERNAL_TRANSFER_PRICED,
     EntityType.PRE_EVENT,
     EntityType.DEX_POOL,
+    EntityType.DEX_TRADE,
     EntityType.ENRICHED_DEX_TRADE,
 )
 ALL_FOR_INFURA = (

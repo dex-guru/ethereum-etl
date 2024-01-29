@@ -148,7 +148,7 @@ class UniswapV2Amm(DexClientInterface):
             return None
         tokens_addresses = self.get_tokens_addresses_for_pool(to_checksum(address))
         if not tokens_addresses:
-            logging.warning(f"Tokens addresses not found for {address}, resolving {parsed_log}")
+            logging.debug(f"Tokens addresses not found for {address}, resolving {parsed_log}")
             return None
         return EthDexPool(
             address=address,
@@ -184,8 +184,19 @@ class UniswapV2Amm(DexClientInterface):
                     raise ValueError(f"Token address is not valid: {token_address}")
             return tokens_addresses
         except (TypeError, ContractLogicError, ValueError, BadFunctionCallOutput) as e:
-            logging.error(f"Cant resolve tokens_addresses for pair {pool_address}, {e}")
+            logging.debug(f"Cant resolve tokens_addresses for pair {pool_address}, {e}")
         return None
+
+    @staticmethod
+    def _get_scalars_for_tokens(tokens: list[EthToken], dex_pool: EthDexPool) -> list[int]:
+        token_scalars = []
+        for token_address in dex_pool.token_addresses:
+            token = next((token for token in tokens if token.address == token_address), None)
+            if not token:
+                logging.debug(f"Token {token_address} not found in tokens")
+                return []
+            token_scalars.append(10**token.decimals)
+        return token_scalars
 
     def resolve_receipt_log(
         self,
@@ -199,26 +210,24 @@ class UniswapV2Amm(DexClientInterface):
         if not self.event_resolver.get(event_name):
             logging.debug(f"Event {event_name} not found in resolver")
             return None
+        if not dex_pool or not tokens_for_pool:
+            logging.debug(f"Pool or tokens not found for {parsed_receipt_log}")
+            return None
+
+        token_scalars = self._get_scalars_for_tokens(tokens_for_pool, dex_pool)
 
         resolve_func: Callable = self.event_resolver[event_name]
-        finance_info = self.resolve_finance_info(parsed_receipt_log, dex_pool, tokens_for_pool)
+        finance_info = self.resolve_finance_info(parsed_receipt_log, token_scalars)
         if not finance_info:
             logging.debug(f"Finance info not found for {parsed_receipt_log}")
             return None
-        resolved_log = resolve_func(parsed_receipt_log, dex_pool, finance_info)
+        resolved_log = resolve_func(parsed_receipt_log, dex_pool, finance_info, token_scalars)
         logging.debug(f"Resolved receipt log {resolved_log}")
         return resolved_log
 
     def resolve_finance_info(
-        self, parsed_receipt_log: ParsedReceiptLog, dex_pool, tokens
+        self, parsed_receipt_log: ParsedReceiptLog, token_scalars: list[int]
     ) -> dict | None:
-        token_scalars = []
-        for token_address in dex_pool.token_addresses:
-            token = next((token for token in tokens if token.address == token_address), None)
-            if not token:
-                logging.debug(f"Token {token_address} not found in tokens")
-                return None
-            token_scalars.append(10**token.decimals)
         try:
             reserves = self.pool_contract.functions.getReserves().call(
                 {"to": to_checksum(parsed_receipt_log.address)},
@@ -243,12 +252,18 @@ class UniswapV2Amm(DexClientInterface):
 
     @staticmethod
     def _get_trade_from_mint_event(
-        parsed_receipt_log: ParsedReceiptLog, dex_pool, finance_info: dict
+        parsed_receipt_log: ParsedReceiptLog,
+        dex_pool,
+        finance_info: dict,
+        tokens_scalars: list[int],
     ) -> EthDexTrade:
         parsed_event = parsed_receipt_log.parsed_event
         return EthDexTrade(
             pool_address=parsed_receipt_log.address,
-            token_amounts_raw=[parsed_event["amount0"], parsed_event["amount1"]],
+            token_amounts=[
+                parsed_event["amount0"] / tokens_scalars[0],
+                parsed_event["amount1"] / tokens_scalars[1],
+            ],
             transaction_hash=parsed_receipt_log.transaction_hash,
             log_index=parsed_receipt_log.log_index,
             block_number=parsed_receipt_log.block_number,
@@ -261,13 +276,19 @@ class UniswapV2Amm(DexClientInterface):
 
     @staticmethod
     def _get_trade_from_burn_event(
-        parsed_receipt_log: ParsedReceiptLog, dex_pool, finance_info: dict
+        parsed_receipt_log: ParsedReceiptLog,
+        dex_pool,
+        finance_info: dict,
+        tokens_scalars: list[int],
     ) -> EthDexTrade:
         parsed_event = parsed_receipt_log.parsed_event
 
         return EthDexTrade(
             pool_address=parsed_receipt_log.address,
-            token_amounts_raw=[parsed_event["amount0"], parsed_event["amount1"]],
+            token_amounts=[
+                parsed_event["amount0"] / tokens_scalars[0],
+                parsed_event["amount1"] / tokens_scalars[1],
+            ],
             transaction_hash=parsed_receipt_log.transaction_hash,
             log_index=parsed_receipt_log.log_index,
             block_number=parsed_receipt_log.block_number,
@@ -280,14 +301,19 @@ class UniswapV2Amm(DexClientInterface):
 
     @staticmethod
     def _get_trade_from_swap_event(
-        parsed_receipt_log: ParsedReceiptLog, dex_pool, finance_info: dict
+        parsed_receipt_log: ParsedReceiptLog,
+        dex_pool,
+        finance_info: dict,
+        tokens_scalars: list[int],
     ) -> EthDexTrade:
         parsed_event = parsed_receipt_log.parsed_event
         return EthDexTrade(
             pool_address=parsed_receipt_log.address,
-            token_amounts_raw=[
-                parsed_event["amount0In"] - parsed_event["amount0Out"],
-                parsed_event["amount1In"] - parsed_event["amount1Out"],
+            token_amounts=[
+                parsed_event["amount0In"] / tokens_scalars[0]
+                - parsed_event["amount0Out"] / tokens_scalars[0],
+                parsed_event["amount1In"] / tokens_scalars[1]
+                - parsed_event["amount1Out"] / tokens_scalars[1],
             ],
             transaction_hash=parsed_receipt_log.transaction_hash,
             log_index=parsed_receipt_log.log_index,

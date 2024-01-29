@@ -40,5 +40,5 @@ class InternalTransferMapper:
     @staticmethod
     def internal_transfer_to_dict(internal_transfer: InternalTransfer):
         internal_transfer_as_dict = asdict(internal_transfer)
-        internal_transfer_as_dict['type'] = EntityType.INTERNAL_TRANSFER.value
+        internal_transfer_as_dict['type'] = str(EntityType.INTERNAL_TRANSFER.value)
         return internal_transfer_as_dict

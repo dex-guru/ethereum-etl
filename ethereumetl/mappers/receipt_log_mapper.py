@@ -71,7 +71,7 @@ class EthReceiptLogMapper:
     @staticmethod
     def receipt_log_to_dict(receipt_log: EthReceiptLog) -> dict[str, Any]:
         result = asdict(receipt_log)
-        result['type'] = EntityType.LOG.value
+        result['type'] = str(EntityType.LOG.value)
         return result
 
     @staticmethod
