@@ -4,7 +4,7 @@ from typing import Literal
 
 @dataclass(slots=True)
 class EthDexTrade:
-    token_amounts_raw: list[int]
+    token_amounts: list[float]
     pool_address: str
     transaction_hash: str
     log_index: int

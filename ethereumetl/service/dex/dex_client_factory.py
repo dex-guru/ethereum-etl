@@ -14,6 +14,7 @@ from ethereumetl.domain.token_transfer import EthTokenTransfer
 from ethereumetl.service.dex.base.base_dex_client import BaseDexClient
 from ethereumetl.service.dex.base.interface import DexClientInterface
 from ethereumetl.service.dex.uniswap_v2.uniswap_v2 import UniswapV2Amm
+from ethereumetl.service.dex.uniswap_v3.uniswap_v3 import UniswapV3Amm
 
 ABI = Sequence[Mapping[str, Any]]
 EventABI = dict[str, Any]
@@ -29,7 +30,7 @@ class ContractAdaptersFactory:
     default_adapters: dict[str, type[DexClientInterface]] = {
         'base': BaseDexClient,
         "uniswap_v2": UniswapV2Amm,
-        # "uniswap_v3": UniswapV3Amm,
+        "uniswap_v3": UniswapV3Amm,
         # "meshswap": MeshswapAmm,
         "solidly": UniswapV2Amm,
         # "dmm": DMMAmm,
@@ -46,7 +47,7 @@ class ContractAdaptersFactory:
         # "kyberswap_elastic": KyberSwapElasticAmm,
         # "wombat": WombatAmm,
         # "canto_dex": CantoDexAmm,
-        # "pancakeswap_v3": UniswapV3Amm,
+        "pancakeswap_v3": UniswapV3Amm,
         # "quickswap_v3": QuickswapV3Amm,
         # "traderjoe_v2_1": TraderJoeV21Amm,
     }

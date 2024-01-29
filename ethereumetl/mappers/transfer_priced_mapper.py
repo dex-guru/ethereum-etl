@@ -37,5 +37,5 @@ class TokenTransferPricedMapper:
     @staticmethod
     def transfer_priced_to_dict(transfer_priced: TokenTransferPriced):
         priced_transfer_as_dict = asdict(transfer_priced)
-        priced_transfer_as_dict['type'] = EntityType.TOKEN_TRANSFER_PRICED.value
+        priced_transfer_as_dict['type'] = str(EntityType.TOKEN_TRANSFER_PRICED.value)
         return priced_transfer_as_dict

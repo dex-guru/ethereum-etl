@@ -130,7 +130,15 @@ class EthStreamerAdapter:
         PRE_EVENT: (BLOCK, LOG, TRANSACTION, TOKEN_TRANSFER, RECEIPT),
         PARSED_LOG: (LOG,),
         DEX_POOL: (PARSED_LOG,),
-        DEX_TRADE: (DEX_POOL, PARSED_LOG, TOKEN, TOKEN_TRANSFER, INTERNAL_TRANSFER, TRANSACTION),
+        DEX_TRADE: (PARSED_LOG, TOKEN, DEX_POOL, TOKEN_TRANSFER),
+        ENRICHED_DEX_TRADE: (
+            DEX_POOL,
+            PARSED_LOG,
+            TOKEN,
+            TOKEN_TRANSFER,
+            INTERNAL_TRANSFER,
+            TRANSACTION,
+        ),
     }
 
     def __init__(

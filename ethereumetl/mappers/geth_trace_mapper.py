@@ -48,7 +48,7 @@ class EthGethTraceMapper:
     @staticmethod
     def geth_trace_to_dict(geth_trace: EthGethTrace):
         return {
-            'type': EntityType.GETH_TRACE.value,
+            'type': str(EntityType.GETH_TRACE.value),
             'transaction_hash': geth_trace.transaction_hash,
             'transaction_traces': json.dumps(geth_trace.transaction_traces),
         }

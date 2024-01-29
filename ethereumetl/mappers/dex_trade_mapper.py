@@ -14,8 +14,8 @@ class EthDexTradeMapper:
     @staticmethod
     def dex_trade_from_dict(trade_dict: dict):
         return EthDexTrade(
-            token_amounts_raw=trade_dict['token_amounts_raw'],
             pool_address=trade_dict['pool_address'].lower(),
+            token_amounts=trade_dict['token_amounts'],
             transaction_hash=trade_dict['transaction_hash'].lower(),
             log_index=trade_dict['log_index'],
             block_number=trade_dict['block_number'],

@@ -73,6 +73,9 @@ def test_resolve_receipt_log(dex_client_uniswap_v2, dex_pool, tokens_for_pool):
     )
     res = dex_client_uniswap_v2.resolve_receipt_log(log, dex_pool, tokens_for_pool)
     assert res
-    assert res.token_amounts_raw == [9157112000000000000000000, -204349302466713085]
+    assert res.token_amounts == [
+        9157112000000000000000000 / 10**18,
+        -204349302466713085 / 10**18,
+    ]
     assert res.token_reserves == [1, 1]
     assert res.token_prices == [[1.0, 1.0], [1.0, 1.0]]

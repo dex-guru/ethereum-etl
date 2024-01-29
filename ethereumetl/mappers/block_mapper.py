@@ -73,5 +73,5 @@ class EthBlockMapper:
     def block_to_dict(block):
         result = asdict(block)
         del result['transactions']
-        result['type'] = EntityType.BLOCK.value
+        result['type'] = str(EntityType.BLOCK.value)
         return result

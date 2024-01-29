@@ -15,7 +15,7 @@ class NativeBalanceMapper:
     @staticmethod
     def native_balance_to_dict(native_balance: EthNativeBalance) -> EthNativeBalanceItem:
         return {
-            'type': EntityType.NATIVE_BALANCE.value,
+            'type': str(EntityType.NATIVE_BALANCE.value),
             'block_number': native_balance.block_number,
             'address': native_balance.address,
             'value': native_balance.value,

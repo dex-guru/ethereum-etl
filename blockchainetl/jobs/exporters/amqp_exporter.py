@@ -31,7 +31,7 @@ class AMQPItemExporter(BaseItemExporter):
         """
         raises: IOError.
         """
-        if self._connection is not Ellipsis:
+        if self._connection is not Ellipsis and self._producer is not Ellipsis:
             raise RuntimeError('already opened')
 
         try:
@@ -52,13 +52,17 @@ class AMQPItemExporter(BaseItemExporter):
             )
         except OSError as e:
             logging.error('Failed to connect to AMQP broker: %s', e)
+            self._connection = ...
+            self._producer = ...
             raise
 
     def close(self):
+        if self._producer is not Ellipsis:
+            self._producer.close()
+            self._producer = ...
         if self._connection is not Ellipsis:
             self._connection.close()
             self._connection = ...
-            self._producer = ...
 
     @retry(ConnectionError, tries=3)
     def export_item(self, item: dict[str, Any]):

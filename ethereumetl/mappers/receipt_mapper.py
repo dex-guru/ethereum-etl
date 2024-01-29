@@ -58,7 +58,7 @@ class EthReceiptMapper:
     @staticmethod
     def receipt_to_dict(receipt: EthReceipt) -> dict[str, Any]:
         result = asdict(receipt)
-        result['type'] = EntityType.RECEIPT.value
+        result['type'] = str(EntityType.RECEIPT.value)
         del result['logs']
         result['logs_count'] = len(receipt.logs)
         return result

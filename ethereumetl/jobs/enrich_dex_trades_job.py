@@ -99,12 +99,7 @@ class EnrichDexTradeJob(BaseJob):
             if not dex_pool:
                 logging.warning(f'Could not find dex pool: {dex_trade["pool_address"]}')
                 continue
-            dex_trade['amounts'] = [
-                token_amount / 10 ** self._tokens_by_address[token_address]['decimals']
-                for token_amount, token_address in zip(
-                    dex_trade['token_amounts_raw'], dex_trade['token_addresses']
-                )
-            ]
+            dex_trade['amounts'] = copy(dex_trade['token_amounts'])
             dex_trade['factory_address'] = dex_pool['factory_address']
             dex_trade['log_index'] = int(dex_trade['log_index'])
             dex_trade = self._price_service.resolve_price_for_trade(dex_trade)
@@ -131,9 +126,9 @@ class EnrichDexTradeJob(BaseJob):
                     sum([i['amounts'][token_idx] for i in event_list])
                     for token_idx in range(len(event_list[0]['amounts']))
                 ]
-                merged_event['token_amounts_raw'] = [
-                    sum([i['token_amounts_raw'][token_idx] for i in event_list])
-                    for token_idx in range(len(event_list[0]['token_amounts_raw']))
+                merged_event['token_amounts'] = [
+                    sum([i['token_amounts'][token_idx] for i in event_list])
+                    for token_idx in range(len(event_list[0]['token_amounts']))
                 ]
 
                 _merged_events.append(merged_event)
