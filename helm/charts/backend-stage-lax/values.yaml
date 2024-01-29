@@ -392,6 +392,30 @@ raw-data-streamer-gethtrace:
       x1test-195: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/x1_test,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       beratest-80085: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/bera_test,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
       blasttest-168587773: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/blast_test,amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
+    EXPORT_FROM_CLICKHOUSE:
+      eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
+      canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
+      acanto-7701: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/acanto'
+      optimism-10: 'clickhouse+http://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism'
+      bsc-56: 'clickhouse+http://testuser3:testplpassword@stage-ch-bsc-01.dexguru.biz/bsc'
+      polygon-137: 'clickhouse+http://testuser3:testplpassword@stage-ch-polygon-01.dexguru.biz/polygon'
+      fantom-250: 'clickhouse+http://testuser3:testplpassword@stage-ch-fantom-01.dexguru.biz/fantom'
+      base-8453: 'clickhouse+http://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/base'
+      basetestnet-84531: 'clickhouse+http://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/basetestnet'
+      avalanche-43114: 'clickhouse+http://testuser3:testplpassword@stage-ch-avalanche-01.dexguru.biz/avalanche'
+      arbitrum-42161: 'clickhouse+http://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum'
+      nova-42170: 'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
+      gnosis-100: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
+      celo-42220: 'clickhouse+http://testuser3:testplpassword@stage-ch-celo-01.dexguru.biz/celo'
+      zetatestnet-7001: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/zetatestnet'
+      manta-169: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/manta'
+      x1test-195: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/x1_test'
+      beratest-80085: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bera_test'
+      blasttest-168587773: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/blast_test'
+      neonevm-245022934: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/neonevm'
+      xfitest-4157: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/xfi_test'
+      taikotest-167008: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/taiko_test'
+      bitfinitytest-355113: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bitfinity_test'
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
@@ -407,6 +431,7 @@ raw-data-streamer-gethtrace:
 raw-data-streamer-balance:
   replicas:
     default: 1
+    arbitrum-42161: 2
   limitsCpu: 4
   limitsMemory: 9000Mi
   requestsCpu: 100m
@@ -442,6 +467,8 @@ raw-data-streamer-balance:
 raw-data-streamer-token-tokentransferpriced:
   replicas:
     default: 1
+    arbitrum-42161: 3
+    nova-42170: 3
   limitsCpu: 4
   limitsMemory: 9000Mi
   requestsCpu: 100m
@@ -615,6 +642,9 @@ raw-verify-data-streamer:
 raw-data-streamer-dexpool:
   replicas:
     default: 1
+    arbitrum-42161: 2
+    bsc-56: 2
+    nova-42170: 2
   limitsCpu: 4
   limitsMemory: 9000Mi
   requestsCpu: 100m
@@ -648,6 +678,8 @@ raw-data-streamer-dexpool:
 raw-data-streamer-dextrade:
   replicas:
     default: 1
+    arbitrum-42161: 2
+    base-8453: 2
   limitsCpu: 4
   limitsMemory: 9000Mi
   requestsCpu: 100m

@@ -509,6 +509,8 @@ raw-data-streamer-gethtrace:
     avalanche-43114: 4
     bsc-56: 5
     polygon-137: 5
+    nova-42170: 4
+    optimism-10: 3
   limitsCpu: 4
   limitsMemory: 9000Mi
   requestsCpu: 100m
@@ -622,6 +624,7 @@ raw-data-streamer-balance:
     default: 1
     polygon-137: 2
     bsc-56: 2
+    arbitrum-42161: 2
   limitsCpu: 4
   limitsMemory: 9000Mi
   requestsCpu: 100m
@@ -733,6 +736,8 @@ raw-data-streamer-balance:
 raw-data-streamer-token-tokentransferpriced:
   replicas:
     default: 1
+    arbitrum-42161: 3
+    nova-42170: 3
   limitsCpu: 4
   limitsMemory: 9000Mi
   requestsCpu: 100m
