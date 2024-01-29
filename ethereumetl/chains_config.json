@@ -344,15 +344,15 @@
         "type": "evm",
         "enabled": true,
         "native_token": {
-            "id": "0x202C35e517Fa803B537565c40F0a6965D7204609-neonevm",
-            "address": "0x202C35e517Fa803B537565c40F0a6965D7204609",
+            "id": "0x202c35e517fa803b537565c40f0a6965d7204609-neonevm",
+            "address": "0x202c35e517fa803b537565c40f0a6965d7204609",
             "name": "Wrapped NEON",
             "symbol": "wNEON",
             "decimals": 18
         },
         "stablecoin_addresses": [
-            "0xEA6B04272f9f62F997F666F07D3a974134f7FFb9",
-            "0x5f0155d08eF4aaE2B500AefB64A3419dA8bB611a"
+            "0x202c35e517fa803b537565c40f0a6965d7204609",
+            "0x5f0155d08ef4aae2b500aefb64a3419da8bb611a"
         ]
     },
     {
@@ -368,7 +368,7 @@
             "decimals": 18
         },
         "stablecoin_addresses": [
-            "0xAE1446dDcf8daAAF42b659d33bfa1C9b8D337947"
+            "0xae1446ddcf8daaaf42b659d33bfa1c9b8d337947"
         ]
     },
     {
@@ -384,7 +384,7 @@
             "decimals": 18
         },
         "stablecoin_addresses": [
-            "0xae2C46ddb314B9Ba743C6dEE4878F151881333D9"
+            "0xae2c46ddb314b9ba743c6dee4878f151881333d9"
         ]
     },
     {
