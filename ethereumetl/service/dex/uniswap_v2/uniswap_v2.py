@@ -218,9 +218,6 @@ class UniswapV2Amm(DexClientInterface):
 
         resolve_func: Callable = self.event_resolver[event_name]
         finance_info = self.resolve_finance_info(parsed_receipt_log, token_scalars)
-        if not finance_info:
-            logging.debug(f"Finance info not found for {parsed_receipt_log}")
-            return None
         resolved_log = resolve_func(parsed_receipt_log, dex_pool, finance_info, token_scalars)
         logging.debug(f"Resolved receipt log {resolved_log}")
         return resolved_log

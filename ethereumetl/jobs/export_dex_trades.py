@@ -28,11 +28,9 @@ class ExportDexTradesJob(BaseJob):
         max_workers: int,
     ):
         self.item_exporter = item_exporter
-        self.batch_work_executor = BatchWorkExecutor(1, max_workers)
-        self.batch_web3_provider = batch_web3_provider
-        self.batch_size = batch_size
         self.logs_iterable = logs_iterable
 
+        self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers)
         self.log_resolve_service = EthResolveLogService(batch_web3_provider)
 
         self.dex_trade_mapper = EthDexTradeMapper()

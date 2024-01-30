@@ -334,6 +334,7 @@ raw-data-streamer-gethtrace:
   replicas:
     default: 1
     arbitrum-42161: 3
+    nova-42170: 3
   limitsCpu: 4
   limitsMemory: 9000Mi
   requestsCpu: 100m
@@ -646,6 +647,7 @@ raw-data-streamer-dexpool:
     arbitrum-42161: 3
     bsc-56: 2
     nova-42170: 2
+    polygon-137: 3
   limitsCpu: 4
   limitsMemory: 9000Mi
   requestsCpu: 100m
@@ -667,7 +669,7 @@ raw-data-streamer-dexpool:
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
-      default: '10'
+      default: '20'
     SKIP_NONE_RECEIPTS:
       default: 'False'
       polygon-137: 'True'
@@ -681,6 +683,8 @@ raw-data-streamer-dextrade:
     default: 1
     arbitrum-42161: 3
     base-8453: 2
+    bsc-56: 5
+    polygon-137: 3
   limitsCpu: 4
   limitsMemory: 9000Mi
   requestsCpu: 100m
@@ -751,7 +755,7 @@ raw-data-streamer-dextrade:
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
-      default: '10'
+      default: '20'
     SKIP_NONE_RECEIPTS:
       default: 'False'
       polygon-137: 'True'
