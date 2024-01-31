@@ -808,6 +808,7 @@ class VerifyingClickhouseEthStreamerAdapter:
     def __init__(self, clickhouse_eth_streamer_adapter: ClickhouseEthStreamerAdapter):
         self.ch_streamer = clickhouse_eth_streamer_adapter
         self._validate_export_destination()
+        self.skip_entity_types = [ERROR, *ALL_STATIC]
 
     def _validate_export_destination(self):
         msg = 'VerifyingClickhouseEthStreamerAdapter can be used only when exporting to the same ClickHouse instance'
@@ -871,13 +872,20 @@ class VerifyingClickhouseEthStreamerAdapter:
                     try:
                         self.ch_streamer.clickhouse.command(command)
                         break
+                    except DatabaseError as e:
+                        if 'UNKNOWN_TABLE' in str(
+                            e
+                        ):  # The error code is not exposed by the driver
+                            logger.warning("Skip unsupported entity %s: %s", entity, e)
+                            self.skip_entity_types.append(entity)
+                            break
                     except Exception as e:
                         logger.warning('Error while executing command: %s', e)
                         logger.warning('Retrying in 2 seconds')
                         sleep(2)
 
             for entity, table in self.ch_streamer.item_type_to_table_mapping.items():
-                if entity in (ERROR, *ALL_STATIC):
+                if entity in self.skip_entity_types:
                     continue
                 if entity == BLOCK:
                     where_condition = (
@@ -897,12 +905,7 @@ class VerifyingClickhouseEthStreamerAdapter:
                     )
                 query = f"INSERT INTO {table} SELECT * EXCEPT is_reorged, 1 FROM {table} {where_condition}"
                 logger.warning('Marking records as reorged: %s', query)
-                try:
-                    safe_execute(query.strip())
-                except DatabaseError as e:
-                    if 'UNKNOWN_TABLE' in str(e):  # The error code is not exposed by the driver
-                        logger.warning("Skip unsupported entity %s: %s", entity, e)
-                        self.ch_streamer.item_type_to_table_mapping.pop(entity)
+                safe_execute(query.strip())
 
         inconsistent_blocks: set[int] = set()
         inconsistent_timestamps: set[int] = set()
