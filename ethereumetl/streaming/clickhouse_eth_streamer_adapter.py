@@ -533,8 +533,7 @@ class ClickhouseEthStreamerAdapter:
                 distinct_on='address',
                 address=log_addresses,
             )
-            for pool in existing_dex_pools:
-                pool['type'] = DEX_POOL
+
             existing_dex_pool_addresses = {p['address'] for p in existing_dex_pools}
 
             logs_to_export = [
@@ -549,7 +548,6 @@ class ClickhouseEthStreamerAdapter:
             ]
             if not logs_to_export:
                 _from_ch = True
-
                 return existing_dex_pools, _from_ch
 
             dex_pools_inventory = self.eth_streamer.export_dex_pools(logs_to_export)
@@ -625,9 +623,9 @@ class ClickhouseEthStreamerAdapter:
             for pool in dex_pools:
                 all_token_addresses.update(pool['token_addresses'])
 
-            token_address_to_score: dict[
-                str, int | float
-            ] = self._calculate_pools_count_for_tokens(list(set(all_token_addresses)))
+            token_address_to_score: dict[str, int | float] = (
+                self._calculate_pools_count_for_tokens(list(set(all_token_addresses)))
+            )
 
             stablecoin_addresses = self.eth_streamer.chain_config["stablecoin_addresses"]
             native_token_address = self.eth_streamer.chain_config["native_token"]["address"]

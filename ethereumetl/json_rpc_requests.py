@@ -99,6 +99,7 @@ def generate_balance_of_json_rpc(
     ----
         ERC-1155:        balanceOf(address,tokenId).
         ERC-20, ERC-721: balanceOf(address)         - cannot get balance for a specific token_id.
+
     """
     if token_id is None:  # ERC-20 or ERC-721 contract
         # [ selector: 4 bytes, address: 20 bytes zero padded to 32 bytes ]

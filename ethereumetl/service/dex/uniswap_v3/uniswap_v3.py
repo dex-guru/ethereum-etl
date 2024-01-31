@@ -40,9 +40,9 @@ class UniswapV3Amm(DexClientInterface):
         )
         self.pool_contract_abi = self.web3.eth.contract(abi=json.loads(pool_abi_path.read_text()))
         self.event_resolver = {
-            'swap': self.get_swap_from_swap_event,
-            'burn': self.get_burn_from_event,
-            'mint': self.get_mint_from_event,
+            'Swap': self.get_swap_from_swap_event,
+            'Burn': self.get_burn_from_event,
+            'Mint': self.get_mint_from_event,
         }
 
     def resolve_asset_from_log(self, parsed_log: ParsedReceiptLog) -> EthDexPool | None:
@@ -74,7 +74,7 @@ class UniswapV3Amm(DexClientInterface):
         logging.debug(f"Resolving receipt log {parsed_receipt_log}")
         if not dex_pool or not tokens_for_pool:
             return None
-        event_name = parsed_receipt_log.event_name.lower()
+        event_name = parsed_receipt_log.event_name
         if not self.event_resolver.get(event_name):
             logging.debug(f"Event {event_name} not found in resolver")
             return None
@@ -491,8 +491,9 @@ class UniswapV3Amm(DexClientInterface):
     def get_ticks_spacing(
         self,
         pool_address,
-        block_identifier: Literal['latest', 'earliest', 'pending', 'safe', 'finalized']
-        | int = "latest",
+        block_identifier: (
+            Literal['latest', 'earliest', 'pending', 'safe', 'finalized'] | int
+        ) = "latest",
     ):
         return self.pool_contract_abi.functions.tickSpacing().call(
             {"to": pool_address}, block_identifier

@@ -144,7 +144,7 @@ class UniswapV2Amm(DexClientInterface):
         logging.debug(f"Resolving pool addresses for {address}")
         factory_address = self.get_factory_address(to_checksum(address))
         if not factory_address:
-            logging.warning(f"Factory address not found for {address}, resolving {parsed_log}")
+            logging.debug(f"Factory address not found for {address}, resolving {parsed_log}")
             return None
         tokens_addresses = self.get_tokens_addresses_for_pool(to_checksum(address))
         if not tokens_addresses:
@@ -168,7 +168,7 @@ class UniswapV2Amm(DexClientInterface):
                 raise ValueError(f"Factory address is not valid: {factory_address}")
             return factory_address.lower()
         except (TypeError, ContractLogicError, ValueError, BadFunctionCallOutput) as e:
-            logging.warning(f"Not found factory, fallback to maintainer. Error: {e}")
+            logging.debug(f"Not found factory, fallback to maintainer. Error: {e}")
         return None
 
     @cache

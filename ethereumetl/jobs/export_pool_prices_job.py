@@ -19,11 +19,9 @@ class ExportPoolPricesJob(BaseJob):
         self.item_exporter.open()
         self._export()
 
-    def _export(self):
-        ...
+    def _export(self): ...
 
-    def _export_dex_pool_prices(self, dex_pool, dex_trades):
-        ...
+    def _export_dex_pool_prices(self, dex_pool, dex_trades): ...
 
     def _end(self):
         self.item_exporter.close()

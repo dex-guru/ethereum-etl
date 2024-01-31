@@ -19,14 +19,18 @@ class InternalTransferMapper:
                 yield InternalTransfer(
                     from_address=word_to_address(trace.get('from')),
                     to_address=word_to_address(trace.get('to')),
-                    value=hex_to_dec(trace['value'])
-                    if isinstance(trace['value'], str)
-                    else trace['value'],
+                    value=(
+                        hex_to_dec(trace['value'])
+                        if isinstance(trace['value'], str)
+                        else trace['value']
+                    ),
                     transaction_hash=transaction_hash,
                     id=trace.get('type', 'call').lower() + f'_{depth}',
-                    gas_limit=hex_to_dec(trace.get('gas', '0x0'))
-                    if isinstance(trace.get('gas'), str)
-                    else trace.get('gas'),
+                    gas_limit=(
+                        hex_to_dec(trace.get('gas', '0x0'))
+                        if isinstance(trace.get('gas'), str)
+                        else trace.get('gas')
+                    ),
                 )
             for trace_id, subtrace in enumerate(trace.get('calls', [])):
                 if trace_id == 0:

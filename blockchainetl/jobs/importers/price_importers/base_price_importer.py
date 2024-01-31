@@ -13,8 +13,7 @@ class BasePriceImporter(PriceImporterInterface):
         self.stablecoin_addresses = chain_config['stablecoin_addresses']
         self.native_token_address = chain_config['native_token']['address']
 
-    def close(self):
-        ...
+    def close(self): ...
 
     def get_stable_price_for_token(
         self, token_address: str, timestamp: int | None = None, block_number: int | None = None

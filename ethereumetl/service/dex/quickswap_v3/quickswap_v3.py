@@ -164,12 +164,14 @@ class QuickswapV3Amm(UniswapV3Amm, BaseContract, BaseBlockchainClient, AmmClient
     def get_mint_burn_from_events(base_pool, parsed_event, tokens_scalars):
         mint_burn = MintBurn(
             pool_address=base_pool.address,
-            sender=parsed_event["owner"]
-            if parsed_event.get("owner")
-            else parsed_event["recipient"],
-            owner=parsed_event["recipient"]
-            if parsed_event.get("recipient")
-            else parsed_event["owner"],
+            sender=(
+                parsed_event["owner"] if parsed_event.get("owner") else parsed_event["recipient"]
+            ),
+            owner=(
+                parsed_event["recipient"]
+                if parsed_event.get("recipient")
+                else parsed_event["owner"]
+            ),
             amounts=[
                 parsed_event["amount0"] / tokens_scalars[0],
                 parsed_event["amount1"] / tokens_scalars[1],
