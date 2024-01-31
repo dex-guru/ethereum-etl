@@ -4,7 +4,7 @@ import os
 import random
 import re
 from collections import defaultdict
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from string import ascii_uppercase
@@ -22,7 +22,7 @@ from ethereumetl.enumeration.entity_type import EntityType
 logger = logging.getLogger(__name__)
 
 
-ITEM_TYPE_TO_TABLE_MAPPING: Mapping = {
+ITEM_TYPE_TO_TABLE_MAPPING: dict = {
     EntityType.BLOCK: "blocks",
     EntityType.TRANSACTION: "transactions",
     # EntityType.RECEIPT: receipts are stored with transactions

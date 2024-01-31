@@ -13,7 +13,7 @@ from eth_utils import is_address
 from blockchainetl.jobs.exporters.clickhouse_exporter import ClickHouseItemExporter
 from blockchainetl.jobs.exporters.multi_item_exporter import MultiItemExporter
 from ethereumetl.clickhouse import ITEM_TYPE_TO_TABLE_MAPPING
-from ethereumetl.enumeration.entity_type import ALL, EntityType, ALL_STATIC
+from ethereumetl.enumeration.entity_type import ALL, ALL_STATIC, EntityType
 from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter, sort_by
 from ethereumetl.utils import parse_clickhouse_url
 
@@ -897,7 +897,12 @@ class VerifyingClickhouseEthStreamerAdapter:
                     )
                 query = f"INSERT INTO {table} SELECT * EXCEPT is_reorged, 1 FROM {table} {where_condition}"
                 logger.warning('Marking records as reorged: %s', query)
-                safe_execute(query.strip())
+                try:
+                    safe_execute(query.strip())
+                except DatabaseError as e:
+                    if 'UNKNOWN_TABLE' in str(e):  # The error code is not exposed by the driver
+                        logger.warning("Skip unsupported entity %s: %s", entity, e)
+                        self.ch_streamer.item_type_to_table_mapping.pop(entity)
 
         inconsistent_blocks: set[int] = set()
         inconsistent_timestamps: set[int] = set()
