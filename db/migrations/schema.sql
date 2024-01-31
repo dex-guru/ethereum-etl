@@ -35,6 +35,358 @@ ENGINE = ReplacingMergeTree
 ORDER BY (number, hash)
 SETTINGS index_granularity = 8192;
 
+CREATE TABLE candles_1d
+(
+    `timestamp` UInt64,
+    `token_address` String,
+    `pool_address` String,
+    `factory_address` String,
+    `c_s` SimpleAggregateFunction(max, Tuple(UInt64, Float64)),
+    `o_s` SimpleAggregateFunction(min, Tuple(UInt64, Float64)),
+    `h_s` SimpleAggregateFunction(max, Float64),
+    `l_s` SimpleAggregateFunction(min, Float64),
+    `c_n` SimpleAggregateFunction(max, Tuple(UInt64, Float64)),
+    `o_n` SimpleAggregateFunction(min, Tuple(UInt64, Float64)),
+    `h_n` SimpleAggregateFunction(max, Float64),
+    `l_n` SimpleAggregateFunction(min, Float64),
+    `v_s` SimpleAggregateFunction(sum, Float64),
+    `v_n` SimpleAggregateFunction(sum, Float64),
+    `liq_s` SimpleAggregateFunction(max, Tuple(UInt64, Float64)),
+    `liq_n` SimpleAggregateFunction(max, Tuple(UInt64, Float64)),
+    `tx_count` SimpleAggregateFunction(sum, UInt64)
+)
+ENGINE = AggregatingMergeTree
+PARTITION BY toYYYYMM(FROM_UNIXTIME(timestamp))
+ORDER BY (token_address, pool_address, timestamp)
+SETTINGS index_granularity = 8192;
+
+CREATE TABLE dex_trades
+(
+    `block_number` UInt64 CODEC(ZSTD(1)),
+    `block_hash` String CODEC(ZSTD(1)),
+    `block_timestamp` UInt64 CODEC(ZSTD(1)),
+    `transaction_hash` String CODEC(ZSTD(1)),
+    `log_index` UInt64 CODEC(ZSTD(1)),
+    `transaction_type` String CODEC(ZSTD(1)),
+    `token_addresses` Array(String) CODEC(ZSTD(1)),
+    `amounts` Array(Float64) CODEC(ZSTD(1)),
+    `amount_stable` Float64 CODEC(ZSTD(1)),
+    `amount_native` Float64 CODEC(ZSTD(1)),
+    `prices_stable` Array(Float64) CODEC(ZSTD(1)),
+    `prices_native` Array(Float64) CODEC(ZSTD(1)),
+    `pool_address` String CODEC(ZSTD(1)),
+    `factory_address` LowCardinality(String) DEFAULT '' CODEC(ZSTD(1)),
+    `lp_token_address` String DEFAULT '' CODEC(ZSTD(1)),
+    `reserves` Array(Float64) DEFAULT [] CODEC(ZSTD(1)),
+    `reserves_stable` Array(Float64) DEFAULT [] CODEC(ZSTD(1)),
+    `reserves_native` Array(Float64) DEFAULT [] CODEC(ZSTD(1)),
+    `wallet_address` String CODEC(ZSTD(1)),
+    `is_reorged` Bool DEFAULT 0,
+    INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
+)
+ENGINE = ReplacingMergeTree
+ORDER BY (block_number, transaction_hash, log_index)
+SETTINGS index_granularity = 8192;
+
+CREATE MATERIALIZED VIEW candles_1d_mv TO candles_1d
+(
+    `timestamp` UInt64,
+    `token_address` String,
+    `pool_address` String,
+    `factory_address` String,
+    `c_s` Tuple(UInt64, Float64),
+    `o_s` Tuple(UInt64, Float64),
+    `h_s` Float64,
+    `l_s` Float64,
+    `c_n` Tuple(UInt64, Float64),
+    `o_n` Tuple(UInt64, Float64),
+    `h_n` Float64,
+    `l_n` Float64,
+    `v_s` Float64,
+    `v_n` Float64,
+    `liq_s` Float64,
+    `liq_n` Float64,
+    `tx_count` UInt64
+) AS
+SELECT
+    toStartOfDay(FROM_UNIXTIME(block_timestamp)) AS timestamp,
+    tokens_data.1 AS token_address,
+    pool_address AS pool_address,
+    factory_address AS factory_address,
+    max((block_timestamp, tokens_data.2)) AS c_s,
+    min((block_timestamp, tokens_data.2)) AS o_s,
+    max(tokens_data.2) AS h_s,
+    min(tokens_data.2) AS l_s,
+    max((block_timestamp, tokens_data.3)) AS c_n,
+    min((block_timestamp, tokens_data.3)) AS o_n,
+    max(tokens_data.3) AS h_n,
+    min(tokens_data.3) AS l_n,
+    sum(abs(tokens_data.4) * (tokens_data.2)) AS v_s,
+    sum(abs(tokens_data.4) * (tokens_data.3)) AS v_n,
+    max((block_timestamp, (tokens_data.5) * (tokens_data.2))) AS liq_s,
+    max((block_timestamp, (tokens_data.5) * (tokens_data.3))) AS liq_n,
+    countDistinct(swap_id) AS tx_count
+FROM
+(
+    SELECT
+        arrayJoin(arrayZip(token_addresses, arrayMap(i -> if(i <= length(prices_stable), prices_stable[i], 0), arrayEnumerate(token_addresses)), arrayMap(i -> if(i <= length(prices_native), prices_native[i], 0), arrayEnumerate(token_addresses)), arrayMap(i -> if(i <= length(amounts), amounts[i], 0), arrayEnumerate(token_addresses)), arrayMap(i -> if(i <= length(reserves), reserves[i], 0), arrayEnumerate(token_addresses)))) AS tokens_data,
+        pool_address AS pool_address,
+        factory_address AS factory_address,
+        block_timestamp AS block_timestamp,
+        concat(transaction_hash, toString(log_index)) AS swap_id
+    FROM dex_trades
+    WHERE transaction_type = 'swap'
+)
+WHERE ((tokens_data.2) > 0) AND ((tokens_data.3) > 0)
+GROUP BY
+    token_address,
+    pool_address,
+    timestamp,
+    factory_address;
+
+CREATE TABLE candles_1h
+(
+    `timestamp` UInt64,
+    `token_address` String CODEC(ZSTD(1)),
+    `pool_address` String CODEC(ZSTD(1)),
+    `factory_address` String CODEC(ZSTD(1)),
+    `c_s` SimpleAggregateFunction(max, Tuple(UInt64, Float64)),
+    `o_s` SimpleAggregateFunction(min, Tuple(UInt64, Float64)),
+    `h_s` SimpleAggregateFunction(max, Float64),
+    `l_s` SimpleAggregateFunction(min, Float64),
+    `c_n` SimpleAggregateFunction(max, Tuple(UInt64, Float64)),
+    `o_n` SimpleAggregateFunction(min, Tuple(UInt64, Float64)),
+    `h_n` SimpleAggregateFunction(max, Float64),
+    `l_n` SimpleAggregateFunction(min, Float64),
+    `v_s` SimpleAggregateFunction(sum, Float64),
+    `v_n` SimpleAggregateFunction(sum, Float64),
+    `liq_s` SimpleAggregateFunction(max, Tuple(UInt64, Float64)),
+    `liq_n` SimpleAggregateFunction(max, Tuple(UInt64, Float64)),
+    `tx_count` SimpleAggregateFunction(sum, UInt64)
+)
+ENGINE = AggregatingMergeTree
+PARTITION BY toYYYYMM(FROM_UNIXTIME(timestamp))
+ORDER BY (token_address, pool_address, timestamp)
+SETTINGS index_granularity = 8192;
+
+CREATE MATERIALIZED VIEW candles_1h_mv TO candles_1h
+(
+    `timestamp` UInt64,
+    `token_address` String,
+    `pool_address` String,
+    `factory_address` String,
+    `c_s` Tuple(UInt64, Float64),
+    `o_s` Tuple(UInt64, Float64),
+    `h_s` Float64,
+    `l_s` Float64,
+    `c_n` Tuple(UInt64, Float64),
+    `o_n` Tuple(UInt64, Float64),
+    `h_n` Float64,
+    `l_n` Float64,
+    `v_s` Float64,
+    `v_n` Float64,
+    `liq_s` Float64,
+    `liq_n` Float64,
+    `tx_count` UInt64
+) AS
+SELECT
+    toStartOfHour(FROM_UNIXTIME(block_timestamp)) AS timestamp,
+    tokens_data.1 AS token_address,
+    pool_address AS pool_address,
+    factory_address AS factory_address,
+    max((block_timestamp, tokens_data.2)) AS c_s,
+    min((block_timestamp, tokens_data.2)) AS o_s,
+    max(tokens_data.2) AS h_s,
+    min(tokens_data.2) AS l_s,
+    max((block_timestamp, tokens_data.3)) AS c_n,
+    min((block_timestamp, tokens_data.3)) AS o_n,
+    max(tokens_data.3) AS h_n,
+    min(tokens_data.3) AS l_n,
+    sum(abs(tokens_data.4) * (tokens_data.2)) AS v_s,
+    sum(abs(tokens_data.4) * (tokens_data.3)) AS v_n,
+    max((block_timestamp, (tokens_data.5) * (tokens_data.2))) AS liq_s,
+    max((block_timestamp, (tokens_data.5) * (tokens_data.3))) AS liq_n,
+    countDistinct(swap_id) AS tx_count
+FROM
+(
+    SELECT
+        arrayJoin(arrayZip(token_addresses, arrayMap(i -> if(i <= length(prices_stable), prices_stable[i], 0), arrayEnumerate(token_addresses)), arrayMap(i -> if(i <= length(prices_native), prices_native[i], 0), arrayEnumerate(token_addresses)), arrayMap(i -> if(i <= length(amounts), amounts[i], 0), arrayEnumerate(token_addresses)), arrayMap(i -> if(i <= length(reserves), reserves[i], 0), arrayEnumerate(token_addresses)))) AS tokens_data,
+        pool_address AS pool_address,
+        factory_address AS factory_address,
+        block_timestamp AS block_timestamp,
+        concat(transaction_hash, toString(log_index)) AS swap_id
+    FROM dex_trades
+    WHERE transaction_type = 'swap'
+)
+WHERE ((tokens_data.2) > 0) AND ((tokens_data.3) > 0)
+GROUP BY
+    token_address,
+    pool_address,
+    timestamp,
+    factory_address;
+
+CREATE TABLE candles_1m
+(
+    `timestamp` UInt64,
+    `token_address` String CODEC(ZSTD(1)),
+    `pool_address` String CODEC(ZSTD(1)),
+    `factory_address` String CODEC(ZSTD(1)),
+    `c_s` SimpleAggregateFunction(max, Tuple(UInt64, Float64)),
+    `o_s` SimpleAggregateFunction(min, Tuple(UInt64, Float64)),
+    `h_s` SimpleAggregateFunction(max, Float64),
+    `l_s` SimpleAggregateFunction(min, Float64),
+    `c_n` SimpleAggregateFunction(max, Tuple(UInt64, Float64)),
+    `o_n` SimpleAggregateFunction(min, Tuple(UInt64, Float64)),
+    `h_n` SimpleAggregateFunction(max, Float64),
+    `l_n` SimpleAggregateFunction(min, Float64),
+    `v_s` SimpleAggregateFunction(sum, Float64),
+    `v_n` SimpleAggregateFunction(sum, Float64),
+    `liq_s` SimpleAggregateFunction(max, Tuple(UInt64, Float64)),
+    `liq_n` SimpleAggregateFunction(max, Tuple(UInt64, Float64)),
+    `tx_count` SimpleAggregateFunction(sum, UInt64)
+)
+ENGINE = AggregatingMergeTree
+PARTITION BY toYYYYMM(FROM_UNIXTIME(timestamp))
+ORDER BY (token_address, pool_address, timestamp)
+SETTINGS index_granularity = 8192;
+
+CREATE MATERIALIZED VIEW candles_1m_mv TO candles_1m
+(
+    `timestamp` UInt64,
+    `token_address` String,
+    `pool_address` String,
+    `factory_address` String,
+    `c_s` Tuple(UInt64, Float64),
+    `o_s` Tuple(UInt64, Float64),
+    `h_s` Float64,
+    `l_s` Float64,
+    `c_n` Tuple(UInt64, Float64),
+    `o_n` Tuple(UInt64, Float64),
+    `h_n` Float64,
+    `l_n` Float64,
+    `v_s` Float64,
+    `v_n` Float64,
+    `liq_s` Float64,
+    `liq_n` Float64,
+    `tx_count` UInt64
+) AS
+SELECT
+    toStartOfMinute(FROM_UNIXTIME(block_timestamp)) AS timestamp,
+    tokens_data.1 AS token_address,
+    pool_address AS pool_address,
+    factory_address AS factory_address,
+    max((block_timestamp, tokens_data.2)) AS c_s,
+    min((block_timestamp, tokens_data.2)) AS o_s,
+    max(tokens_data.2) AS h_s,
+    min(tokens_data.2) AS l_s,
+    max((block_timestamp, tokens_data.3)) AS c_n,
+    min((block_timestamp, tokens_data.3)) AS o_n,
+    max(tokens_data.3) AS h_n,
+    min(tokens_data.3) AS l_n,
+    sum(abs(tokens_data.4) * (tokens_data.2)) AS v_s,
+    sum(abs(tokens_data.4) * (tokens_data.3)) AS v_n,
+    max((block_timestamp, (tokens_data.5) * (tokens_data.2))) AS liq_s,
+    max((block_timestamp, (tokens_data.5) * (tokens_data.3))) AS liq_n,
+    countDistinct(swap_id) AS tx_count
+FROM
+(
+    SELECT
+        arrayJoin(arrayZip(token_addresses, arrayMap(i -> if(i <= length(prices_stable), prices_stable[i], 0), arrayEnumerate(token_addresses)), arrayMap(i -> if(i <= length(prices_native), prices_native[i], 0), arrayEnumerate(token_addresses)), arrayMap(i -> if(i <= length(amounts), amounts[i], 0), arrayEnumerate(token_addresses)), arrayMap(i -> if(i <= length(reserves), reserves[i], 0), arrayEnumerate(token_addresses)))) AS tokens_data,
+        pool_address AS pool_address,
+        factory_address AS factory_address,
+        block_timestamp AS block_timestamp,
+        concat(transaction_hash, toString(log_index)) AS swap_id
+    FROM dex_trades
+    WHERE transaction_type = 'swap'
+)
+WHERE ((tokens_data.2) > 0) AND ((tokens_data.3) > 0)
+GROUP BY
+    token_address,
+    pool_address,
+    timestamp,
+    factory_address;
+
+CREATE TABLE candles_5m
+(
+    `timestamp` UInt64,
+    `token_address` String CODEC(ZSTD(1)),
+    `pool_address` String CODEC(ZSTD(1)),
+    `factory_address` String CODEC(ZSTD(1)),
+    `c_s` SimpleAggregateFunction(max, Tuple(UInt64, Float64)),
+    `o_s` SimpleAggregateFunction(min, Tuple(UInt64, Float64)),
+    `h_s` SimpleAggregateFunction(max, Float64),
+    `l_s` SimpleAggregateFunction(min, Float64),
+    `c_n` SimpleAggregateFunction(max, Tuple(UInt64, Float64)),
+    `o_n` SimpleAggregateFunction(min, Tuple(UInt64, Float64)),
+    `h_n` SimpleAggregateFunction(max, Float64),
+    `l_n` SimpleAggregateFunction(min, Float64),
+    `v_s` SimpleAggregateFunction(sum, Float64),
+    `v_n` SimpleAggregateFunction(sum, Float64),
+    `liq_s` SimpleAggregateFunction(max, Tuple(UInt64, Float64)),
+    `liq_n` SimpleAggregateFunction(max, Tuple(UInt64, Float64)),
+    `tx_count` SimpleAggregateFunction(sum, UInt64)
+)
+ENGINE = AggregatingMergeTree
+PARTITION BY toYYYYMM(FROM_UNIXTIME(timestamp))
+ORDER BY (token_address, pool_address, timestamp)
+SETTINGS index_granularity = 8192;
+
+CREATE MATERIALIZED VIEW candles_5m_mv TO candles_5m
+(
+    `timestamp` UInt64,
+    `token_address` String,
+    `pool_address` String,
+    `factory_address` String,
+    `c_s` Tuple(UInt64, Float64),
+    `o_s` Tuple(UInt64, Float64),
+    `h_s` Float64,
+    `l_s` Float64,
+    `c_n` Tuple(UInt64, Float64),
+    `o_n` Tuple(UInt64, Float64),
+    `h_n` Float64,
+    `l_n` Float64,
+    `v_s` Float64,
+    `v_n` Float64,
+    `liq_s` Float64,
+    `liq_n` Float64,
+    `tx_count` UInt64
+) AS
+SELECT
+    toStartOfFiveMinute(FROM_UNIXTIME(block_timestamp)) AS timestamp,
+    tokens_data.1 AS token_address,
+    pool_address AS pool_address,
+    factory_address AS factory_address,
+    max((block_timestamp, tokens_data.2)) AS c_s,
+    min((block_timestamp, tokens_data.2)) AS o_s,
+    max(tokens_data.2) AS h_s,
+    min(tokens_data.2) AS l_s,
+    max((block_timestamp, tokens_data.3)) AS c_n,
+    min((block_timestamp, tokens_data.3)) AS o_n,
+    max(tokens_data.3) AS h_n,
+    min(tokens_data.3) AS l_n,
+    sum(abs(tokens_data.4) * (tokens_data.2)) AS v_s,
+    sum(abs(tokens_data.4) * (tokens_data.3)) AS v_n,
+    max((block_timestamp, (tokens_data.5) * (tokens_data.2))) AS liq_s,
+    max((block_timestamp, (tokens_data.5) * (tokens_data.3))) AS liq_n,
+    countDistinct(swap_id) AS tx_count
+FROM
+(
+    SELECT
+        arrayJoin(arrayZip(token_addresses, arrayMap(i -> if(i <= length(prices_stable), prices_stable[i], 0), arrayEnumerate(token_addresses)), arrayMap(i -> if(i <= length(prices_native), prices_native[i], 0), arrayEnumerate(token_addresses)), arrayMap(i -> if(i <= length(amounts), amounts[i], 0), arrayEnumerate(token_addresses)), arrayMap(i -> if(i <= length(reserves), reserves[i], 0), arrayEnumerate(token_addresses)))) AS tokens_data,
+        pool_address AS pool_address,
+        factory_address AS factory_address,
+        block_timestamp AS block_timestamp,
+        concat(transaction_hash, toString(log_index)) AS swap_id
+    FROM dex_trades
+    WHERE transaction_type = 'swap'
+)
+WHERE ((tokens_data.2) > 0) AND ((tokens_data.3) > 0)
+GROUP BY
+    token_address,
+    pool_address,
+    timestamp,
+    factory_address;
+
 CREATE TABLE chain_counts
 (
     `active_addresses` AggregateFunction(uniq, Nullable(String)),
@@ -130,34 +482,6 @@ CREATE TABLE dex_pools
 )
 ENGINE = EmbeddedRocksDB
 PRIMARY KEY address;
-
-CREATE TABLE dex_trades
-(
-    `block_number` UInt64 CODEC(ZSTD(1)),
-    `block_hash` String CODEC(ZSTD(1)),
-    `block_timestamp` UInt64 CODEC(ZSTD(1)),
-    `transaction_hash` String CODEC(ZSTD(1)),
-    `log_index` UInt64 CODEC(ZSTD(1)),
-    `transaction_type` String CODEC(ZSTD(1)),
-    `token_addresses` Array(String) CODEC(ZSTD(1)),
-    `amounts` Array(Float64) CODEC(ZSTD(1)),
-    `amount_stable` Float64 CODEC(ZSTD(1)),
-    `amount_native` Float64 CODEC(ZSTD(1)),
-    `prices_stable` Array(Float64) CODEC(ZSTD(1)),
-    `prices_native` Array(Float64) CODEC(ZSTD(1)),
-    `pool_address` String CODEC(ZSTD(1)),
-    `factory_address` LowCardinality(String) DEFAULT '' CODEC(ZSTD(1)),
-    `lp_token_address` String DEFAULT '' CODEC(ZSTD(1)),
-    `reserves` Array(Float64) DEFAULT [] CODEC(ZSTD(1)),
-    `reserves_stable` Array(Float64) DEFAULT [] CODEC(ZSTD(1)),
-    `reserves_native` Array(Float64) DEFAULT [] CODEC(ZSTD(1)),
-    `wallet_address` String CODEC(ZSTD(1)),
-    `is_reorged` Bool DEFAULT 0,
-    INDEX blocks_timestamp block_timestamp TYPE minmax GRANULARITY 1
-)
-ENGINE = ReplacingMergeTree
-ORDER BY (block_number, transaction_hash, log_index)
-SETTINGS index_granularity = 8192;
 
 CREATE TABLE errors
 (
