@@ -55,4 +55,9 @@ ALL_FOR_INFURA = (
     EntityType.TOKEN_TRANSFER,
     EntityType.TOKEN_BALANCE,
 )
+ALL_STATIC = (
+    EntityType.DEX_POOL,
+    EntityType.TOKEN,
+    EntityType.CONTRACT,
+)
 ALL = tuple(EntityType)

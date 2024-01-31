@@ -13,7 +13,7 @@ from eth_utils import is_address
 from blockchainetl.jobs.exporters.clickhouse_exporter import ClickHouseItemExporter
 from blockchainetl.jobs.exporters.multi_item_exporter import MultiItemExporter
 from ethereumetl.clickhouse import ITEM_TYPE_TO_TABLE_MAPPING
-from ethereumetl.enumeration.entity_type import ALL, EntityType
+from ethereumetl.enumeration.entity_type import ALL, EntityType, ALL_STATIC
 from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter, sort_by
 from ethereumetl.utils import parse_clickhouse_url
 
@@ -623,9 +623,9 @@ class ClickhouseEthStreamerAdapter:
             for pool in dex_pools:
                 all_token_addresses.update(pool['token_addresses'])
 
-            token_address_to_score: dict[str, int | float] = (
-                self._calculate_pools_count_for_tokens(list(set(all_token_addresses)))
-            )
+            token_address_to_score: dict[
+                str, int | float
+            ] = self._calculate_pools_count_for_tokens(list(set(all_token_addresses)))
 
             stablecoin_addresses = self.eth_streamer.chain_config["stablecoin_addresses"]
             native_token_address = self.eth_streamer.chain_config["native_token"]["address"]
@@ -877,7 +877,7 @@ class VerifyingClickhouseEthStreamerAdapter:
                         sleep(2)
 
             for entity, table in self.ch_streamer.item_type_to_table_mapping.items():
-                if entity in (ERROR, TOKEN, CONTRACT):
+                if entity in (ERROR, *ALL_STATIC):
                     continue
                 if entity == BLOCK:
                     where_condition = (
@@ -885,7 +885,7 @@ class VerifyingClickhouseEthStreamerAdapter:
                         f" AND timestamp IN {tuple(timestamps)}"
                         f" AND hash IN {tuple(hashes)}"
                     )
-                elif entity in (LOG, CONTRACT, TOKEN):
+                elif entity == LOG:
                     where_condition = (
                         f"WHERE block_number IN {tuple(blocks)} AND block_hash IN {tuple(hashes)}"
                     )
