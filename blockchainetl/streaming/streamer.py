@@ -196,12 +196,10 @@ def write_to_file(file, content):
 
 class LastSyncedBlockProvider(ABC):
     @abstractmethod
-    def get_last_synced_block(self):
-        ...
+    def get_last_synced_block(self): ...
 
     @abstractmethod
-    def set_last_synced_block(self, last_synced_block):
-        ...
+    def set_last_synced_block(self, last_synced_block): ...
 
     @classmethod
     def from_uri(cls, uri, chain_id):

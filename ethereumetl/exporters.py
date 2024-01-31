@@ -59,8 +59,7 @@ class BaseItemExporter(ABC):
             raise TypeError("Unexpected options: %s" % ', '.join(options.keys()))
 
     @abstractmethod
-    def export_item(self, item):
-        ...
+    def export_item(self, item): ...
 
     def export_items(self, items):
         for item in items:

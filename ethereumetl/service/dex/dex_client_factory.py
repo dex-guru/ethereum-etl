@@ -13,6 +13,7 @@ from ethereumetl.domain.token import EthToken
 from ethereumetl.domain.token_transfer import EthTokenTransfer
 from ethereumetl.service.dex.base.base_dex_client import BaseDexClient
 from ethereumetl.service.dex.base.interface import DexClientInterface
+from ethereumetl.service.dex.meshswap.meshswap import MeshswapAmm
 from ethereumetl.service.dex.uniswap_v2.uniswap_v2 import UniswapV2Amm
 from ethereumetl.service.dex.uniswap_v3.uniswap_v3 import UniswapV3Amm
 
@@ -31,7 +32,7 @@ class ContractAdaptersFactory:
         'base': BaseDexClient,
         "uniswap_v2": UniswapV2Amm,
         "uniswap_v3": UniswapV3Amm,
-        # "meshswap": MeshswapAmm,
+        "meshswap": MeshswapAmm,
         "solidly": UniswapV2Amm,
         # "dmm": DMMAmm,
         # "dodo": DODOv1Amm,
@@ -126,8 +127,9 @@ class ContractAdaptersFactory:
         if dex_pool:
             namespace = self.namespace_by_factory_address.get(dex_pool.factory_address.lower())
             if namespace:
-                # Move the namespace to the front of the list so that it is checked first
-                namespaces.remove(namespace)
+                if namespace in namespaces:
+                    # Move the namespace to the front of the list so that it is checked first
+                    namespaces.remove(namespace)
                 namespaces.insert(0, namespace)
 
         for namespace in namespaces:

@@ -22,7 +22,7 @@
 import json
 import logging
 from collections import defaultdict
-from collections.abc import Collection, Mapping, Sequence
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any, cast
 
@@ -49,7 +49,7 @@ to_checksum = Web3.to_checksum_address
 
 class EthResolveLogService:
     def __init__(self, web3, chain_id=None):
-        self._web3 = web3
+        self._web3: Web3 = web3
         self._chain_id = chain_id
         self._events_inventory = {}
         self._dex_client_factory = ContractAdaptersFactory(self._web3, self._chain_id)
@@ -72,7 +72,7 @@ class EthResolveLogService:
                 rel_path = file_path.relative_to(abi_dir)
                 yield str(rel_path), data
 
-        def get_event_abis_with_file_paths(abis: Collection[tuple[FilePath, ABI]]):
+        def get_event_abis_with_file_paths(abis):
             for file_path_, abi_objects in abis:
                 for abi_object in abi_objects:
                     match abi_object:
@@ -92,7 +92,8 @@ class EthResolveLogService:
             sighash_topic_count = (event_signature_hash, event_topic_count)
             if events_inventory.get(sighash_topic_count):
                 events_inventory[sighash_topic_count]['namespace'].add(str(parent_path))
-                events_inventory[sighash_topic_count]['contract_name'].add(str(parent_path))
+                events_inventory[sighash_topic_count]['contract_name'].add(str(file_name[:-5]))
+                events_inventory[sighash_topic_count]['event_abi_json_list'].append(event_abi)
                 continue
 
             events_inventory[(event_signature_hash, event_topic_count)] = {
@@ -101,6 +102,7 @@ class EthResolveLogService:
                 'namespace': {str(parent_path)},
                 'contract_name': {file_name[:-5]},
                 'event_abi_json': event_abi,
+                'event_abi_json_list': [event_abi],
             }
         self.events_inventory = events_inventory
 
@@ -113,16 +115,21 @@ class EthResolveLogService:
         event = self._get_event_inventory_for_log(log)
         if not event:
             return None
-        contract = self._web3.eth.contract(abi=[event['event_abi_json']])
-        event_abi = getattr(contract.events, event['event_name'], None)
-        if not event_abi:
-            logging.debug(f"Event method not found: {event['event_name']}")
+        for event_abi in event['event_abi_json_list']:
+            contract = self._web3.eth.contract(abi=[event_abi])
+            event_abi = getattr(contract.events, event['event_name'], None)
+            if not event_abi:
+                logging.debug(f"Event method not found: {event['event_name']}")
+                continue
+            try:
+                parsed_event = event_abi().process_log(self._to_hex_log(log))
+                break
+            except (MismatchedABI, LogTopicError, TypeError) as e:
+                logging.debug(f"Failed to parse event: {e}")
+        else:
+            logger.warning(f"Could not parse log {log}")
             return None
-        try:
-            parsed_event = event_abi().process_log(self._to_hex_log(log))
-        except (MismatchedABI, LogTopicError, TypeError) as e:
-            logging.debug(f"Failed to parse event: {e}")
-            return None
+
         return ParsedReceiptLog(
             transaction_hash=log.transaction_hash,
             block_number=log.block_number,
