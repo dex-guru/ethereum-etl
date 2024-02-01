@@ -17,9 +17,6 @@ from ethereumetl.service.dex.base.interface import DexClientInterface
 from ethereumetl.service.dex.enums import DexPoolFeeAmount
 from ethereumetl.utils import get_prices_for_two_pool
 
-AMM_TYPE = "uniswap_v2"
-FACTORY_CONTRACT = "UniswapV2Factory"
-POOL_CONTRACT = "Pool"
 to_checksum = Web3.toChecksumAddress
 
 

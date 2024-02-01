@@ -14,6 +14,7 @@ from ethereumetl.domain.token_transfer import EthTokenTransfer
 from ethereumetl.service.dex.base.base_dex_client import BaseDexClient
 from ethereumetl.service.dex.base.interface import DexClientInterface
 from ethereumetl.service.dex.meshswap.meshswap import MeshswapAmm
+from ethereumetl.service.dex.sushiswap_bento.sushiswap_bento import SushiSwapBentoAmm
 from ethereumetl.service.dex.uniswap_v2.uniswap_v2 import UniswapV2Amm
 from ethereumetl.service.dex.uniswap_v3.uniswap_v3 import UniswapV3Amm
 
@@ -42,7 +43,7 @@ class ContractAdaptersFactory:
         # "bancor_v2": BancorV2Amm,
         # "ellipsis": EllipsisAmm,
         # "balancer": BalancerAmm,
-        # "sushiswap_bento": SushiSwapBentoAmm,
+        "sushiswap_bento": SushiSwapBentoAmm,
         # "saddle": SaddleAmm,
         # "platypus": PlatypusAmm,
         # "kyberswap_elastic": KyberSwapElasticAmm,
@@ -69,7 +70,7 @@ class ContractAdaptersFactory:
 
     def _init_metadata(self):
         path = Path(__file__).parent
-        for file_path in path.rglob('metadata.json'):
+        for file_path in path.rglob(f'{self.chain_id}/metadata.json'):
             with file_path.open() as f:
                 data = json.load(f)
                 for metadata in data:

@@ -381,7 +381,14 @@ class ClickhouseEthStreamerAdapter:
         def export_tokens():
             logger.info("exporting TOKENS...")
             transfers = extract_token_transfers()[0]
+            dex_pools = export_dex_pools()[0]
             token_addresses = {t['token_address'] for t in transfers}
+            if dex_pools:
+                token_addresses.update(
+                    token_address
+                    for dex_pool in dex_pools
+                    for token_address in dex_pool['token_addresses']
+                )
             tokens_ch = self.select_where_with_type_assignment(
                 entity_type=TOKEN, distinct_on='address', address=token_addresses
             )
