@@ -141,7 +141,7 @@ raw-data-streamer:
       default: 30
       arbitrum-42161: 30
       eth: 5
-
+      bsc-56: 40
 raw-verify-data-trigger:
   replicas:
     default: 1
@@ -162,7 +162,7 @@ raw-verify-data-trigger:
     LAG:
       default: 100
       eth-1: 64
-      bsc-56: 64
+      bsc-56: 32
       polygon-137: 200
       arbitrum-42161: 200
       nova-42170: 200
