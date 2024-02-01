@@ -99,6 +99,7 @@ variables:
     prod-indexation-avalanche-43114
     prod-indexation-celo-42220
     prod-indexation-zetatestnet-7001
+    prod-indexation-zeta-7000
     prod-indexation-manta-169
     prod-indexation-blasttest-168587773
     prod-indexation-x1test-195
