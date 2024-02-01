@@ -107,6 +107,8 @@ class EthResolveLogService:
         self.events_inventory = events_inventory
 
     def _get_event_inventory_for_log(self, log: EthReceiptLog) -> dict | None:
+        if not log.topics:
+            return None
         sighash_with_topics_count = (log.topics[0], len(log.topics))
         event: dict | None = self.events_inventory.get(sighash_with_topics_count, None)
         return event
