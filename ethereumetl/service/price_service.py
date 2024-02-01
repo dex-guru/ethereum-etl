@@ -81,7 +81,7 @@ class PriceService:
 
     def _get_base_token(self, dex_trade):
         """Gets the base token for the trade."""
-        _score = 0
+        _score = -1
         _token_address = None
         for token_address in dex_trade['token_addresses']:
             base_price = self.base_tokens_prices.get(token_address, {})
@@ -173,7 +173,7 @@ class PriceService:
         ][0]
         dex_trade['amount_stable'] = abs(dex_trade['amounts'][stablecoin_index])
         dex_trade['prices_stable'][stablecoin_index] = 1.0
-        dex_trade['prices_stable'][abs(stablecoin_index - 1)] = dex_trade['token_prices'][
+        dex_trade['prices_stable'][1 - stablecoin_index] = dex_trade['token_prices'][
             stablecoin_index
         ][abs(stablecoin_index - 1)]
         return dex_trade

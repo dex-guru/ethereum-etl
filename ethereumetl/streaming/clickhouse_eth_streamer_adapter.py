@@ -612,7 +612,7 @@ class ClickhouseEthStreamerAdapter:
                 d['token_address']: {
                     'token_address': d['token_address'],
                     'price_stable': d['latest_price_stable'],
-                    'price_native': d['latest_price_stable'],
+                    'price_native': d['latest_price_native'],
                 }
                 for d in self.clickhouse.query(query).named_results()
             }
@@ -630,9 +630,9 @@ class ClickhouseEthStreamerAdapter:
             for pool in dex_pools:
                 all_token_addresses.update(pool['token_addresses'])
 
-            token_address_to_score: dict[
-                str, int | float
-            ] = self._calculate_pools_count_for_tokens(list(set(all_token_addresses)))
+            token_address_to_score: dict[str, int | float] = (
+                self._calculate_pools_count_for_tokens(list(set(all_token_addresses)))
+            )
 
             stablecoin_addresses = self.eth_streamer.chain_config["stablecoin_addresses"]
             native_token_address = self.eth_streamer.chain_config["native_token"]["address"]

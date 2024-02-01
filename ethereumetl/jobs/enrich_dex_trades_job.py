@@ -232,12 +232,14 @@ class EnrichDexTradeJob(BaseJob):
                     event['amounts'].append(transfer['value'] / 10 ** lp_token['decimals'])
                     event['reserves'].append(lp_token['total_supply'])
                     event['prices_stable'].append(
-                        sum(reserves_stable) / lp_token['total_supply']
+                        sum(reserves_stable)
+                        / (lp_token['total_supply'] / 10 ** lp_token['decimals'])
                         if lp_token['total_supply']
                         else 0
                     )
                     event['prices_native'].append(
-                        sum(reserves_native) / lp_token['total_supply']
+                        sum(reserves_native)
+                        / (lp_token['total_supply'] / 10 ** lp_token['decimals'])
                         if lp_token['total_supply']
                         else 0
                     )
@@ -320,7 +322,10 @@ class EnrichDexTradeJob(BaseJob):
                 and _transfer['token_address'] in _tokens
             ):
                 current_transfer = __transfers.pop(_transfer['log_index'])
-                transfers = [t for t in transfers if t['log_index'] != _transfer['log_index']]
+                try:
+                    transfers = [t for t in transfers if t['log_index'] != _transfer['log_index']]
+                except KeyError:
+                    print(_transfer)
                 return self._get_target_transfer(
                     current_transfer,
                     _tokens,
