@@ -15,7 +15,7 @@ known_first_party = ["blockchainetl", "ethereumetl", "schemas", "tests"]
 
 [tool.ruff]
 line-length = 150
-ignore = [
+lint.ignore = [
     "C90",    # line too long (handled by black)
     "D100",   # missing docstring in public module
     "D101",   # missing docstring in public class
@@ -34,7 +34,7 @@ ignore = [
     "Q000",   # Double quotes found but single quotes preferred
     "UP038",  # Use X | Y in {} call instead of (X, Y)
 ]
-extend-select = [
+lint.extend-select = [
     "C4",       # comprehensions
     "D",        # pydocstyle
     "I",        # sort imports
@@ -44,7 +44,7 @@ extend-select = [
     "RUF100",   # unused-noqa
     "UP",       # pyupgrade
 ]
-isort = { known-first-party = ["blockchainetl", "ethereumetl", "schemas", "tests"] }
+lint.isort = { known-first-party = ["blockchainetl", "ethereumetl", "schemas", "tests"] }
 target-version = "py310"
 
 [tool.mypy]

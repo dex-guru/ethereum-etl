@@ -22,7 +22,6 @@
 
 
 import json
-import socket
 from typing import Any
 
 from web3._utils.threads import Timeout
@@ -55,7 +54,7 @@ class BatchIPCProvider(IPCProvider):
                 while True:
                     try:
                         raw_response += sock.recv(4096)
-                    except socket.timeout:
+                    except TimeoutError:
                         timeout.sleep(0)
                         continue
                     if raw_response == b"":

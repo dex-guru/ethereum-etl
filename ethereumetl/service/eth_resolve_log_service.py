@@ -48,7 +48,7 @@ to_checksum = Web3.to_checksum_address
 
 
 class EthResolveLogService:
-    def __init__(self, web3, chain_id=None):
+    def __init__(self, web3, chain_id):
         self._web3: Web3 = web3
         self._chain_id = chain_id
         self._events_inventory = {}

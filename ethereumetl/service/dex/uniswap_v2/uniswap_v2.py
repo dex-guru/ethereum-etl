@@ -13,6 +13,7 @@ from ethereumetl.domain.dex_trade import EthDexTrade
 from ethereumetl.domain.receipt_log import ParsedReceiptLog
 from ethereumetl.domain.token import EthToken
 from ethereumetl.domain.token_transfer import EthTokenTransfer
+from ethereumetl.misc.info import INFINITE_PRICE_THRESHOLD
 from ethereumetl.service.dex.base.interface import DexClientInterface
 from ethereumetl.service.dex.enums import DexPoolFeeAmount
 from ethereumetl.utils import get_prices_for_two_pool
@@ -35,106 +36,6 @@ class UniswapV2Amm(DexClientInterface):
             "Mint": self._get_trade_from_mint_event,
             # "Sync": self.get_pool_finances_from_sync_event,
         }
-
-    #
-    # def get_num_pairs(self, block_identifier: Union[str, int] = "latest") -> int:
-    #     """
-    #     Gets the total number of pairs created through the factory so far.
-    #
-    #     :param block_identifier: block number(int) or 'latest'
-    #     :return: Total number of pairs.
-    #     """
-    #     try:
-    #         return (
-    #             self.abi[FACTORY_CONTRACT]
-    #             .contract.functions.allPairsLength()
-    #             .call(block_identifier=block_identifier)
-    #         )
-    #     except (BadFunctionCallOutput, ValueError) as e:
-    #         logging.error(
-    #             f"Cant get pairs length on {self.factory_address}:{block_identifier}, trying latest:{e}"
-    #         )
-    #         try:
-    #             return (
-    #                 self.abi[FACTORY_CONTRACT]
-    #                 .contract.functions.allPairsLength()
-    #                 .call(block_identifier="latest")
-    #             )
-    #         except (BadFunctionCallOutput, ValueError) as e:
-    #             logging.error(
-    #                 f"Cant get pairs length on {self.factory_address}: 'latest', error: {e}"
-    #             )
-    #
-    # def get_pair_address_by_index(
-    #     self, pair_index: int, block_identifier: Union[str, int] = "latest"
-    # ) -> Union[str, None]:
-    #     """
-    #     Gets the address of the nth pair (0-indexed) created through
-    #     the factory, or 0x0 if not enough pairs have been created yet.
-    #
-    #     :param pair_index: Index of the pair in the factory.
-    #     :param block_identifier: block number(int) or 'latest'
-    #     :return: Address of the indexed pair.
-    #     """
-    #     try:
-    #         return Web3.toHex(
-    #             hexstr=self.abi[FACTORY_CONTRACT]
-    #             .contract.functions.allPairs(pair_index)
-    #             .call(block_identifier=block_identifier)
-    #         )
-    #     except BadFunctionCallOutput:
-    #         logging.error(
-    #             "BadFunctionCallOutput while requesting address for pair with"
-    #             f" pair_index: {pair_index}"
-    #             f" in block: {block_identifier}"
-    #         )
-    #         return None
-    #     except ValueError:
-    #         logging.error(
-    #             "Found no address for pair with"
-    #             f" pair_index: {pair_index}"
-    #             f" in block: {block_identifier}"
-    #         )
-    #         return None
-    #
-    # def get_pair_tokens_by_index(
-    #     self, pair_index: int, block_identifier: Union[str, int] = "latest"
-    # ) -> Union[dict, None]:
-    #     """
-    #     Gets pair_address and tokens addresses for pair_index
-    #
-    #     :param pair_index: Index of the pair in the factory.
-    #     :param block_identifier: block number(int) or 'latest'
-    #     :return: Pair dict pair address, tokens addresses
-    #     """
-    #     pair_address = self.get_pair_address_by_index(
-    #         pair_index=pair_index, block_identifier=block_identifier
-    #     )
-    #     if not pair_address:
-    #         return None
-    #
-    #     pair_address = Web3.toChecksumAddress(pair_address)
-    #
-    #     if not pair_address:
-    #         logging.error(
-    #             f"Can get pair by index for AMM:{self.factory_address}, index:{pair_index},"
-    #             f" at {block_identifier}"
-    #         )
-    #         return None
-    #
-    #     tokens = [
-    #         (
-    #             self.abi[POOL_CONTRACT]
-    #             .contract.functions.token0()
-    #             .call({"to": pair_address}, block_identifier)
-    #         ).lower(),
-    #         (
-    #             self.abi[POOL_CONTRACT]
-    #             .contract.functions.token1()
-    #             .call({"to": pair_address}, block_identifier)
-    #         ).lower(),
-    #     ]
-    #     return {"address": pair_address.lower(), "tokens_addresses": tokens}
 
     def resolve_asset_from_log(self, parsed_log: ParsedReceiptLog) -> EthDexPool | None:
         address = parsed_log.address
@@ -237,11 +138,19 @@ class UniswapV2Amm(DexClientInterface):
             }
         reserve_0 = reserves[0] / token_scalars[0]
         reserve_1 = reserves[1] / token_scalars[1]
+        price_0 = float(reserve_1 / reserve_0)
+        price_1 = float(reserve_0 / reserve_1)
+        if price_0 >= INFINITE_PRICE_THRESHOLD:
+            logging.debug(f"Price is infinite for {parsed_receipt_log.address}")
+            price_0 = 0
+        if price_1 >= INFINITE_PRICE_THRESHOLD:
+            logging.debug(f"Price is infinite for {parsed_receipt_log.address}")
+            price_1 = 0
         return {
             'reserve_0': reserve_0,
             'reserve_1': reserve_1,
-            'price_0': float(reserve_1 / reserve_0),
-            'price_1': float(reserve_0 / reserve_1),
+            'price_0': price_0,
+            'price_1': price_1,
         }
 
     @staticmethod
