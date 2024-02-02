@@ -13,6 +13,7 @@ from ethereumetl.domain.token import EthToken
 from ethereumetl.domain.token_transfer import EthTokenTransfer
 from ethereumetl.service.dex.base.base_dex_client import BaseDexClient
 from ethereumetl.service.dex.base.interface import DexClientInterface
+from ethereumetl.service.dex.canto_dex.canto_dex import CantoDexAmm
 from ethereumetl.service.dex.meshswap.meshswap import MeshswapAmm
 from ethereumetl.service.dex.sushiswap_bento.sushiswap_bento import SushiSwapBentoAmm
 from ethereumetl.service.dex.uniswap_v2.uniswap_v2 import UniswapV2Amm
@@ -48,7 +49,7 @@ class ContractAdaptersFactory:
         # "platypus": PlatypusAmm,
         # "kyberswap_elastic": KyberSwapElasticAmm,
         # "wombat": WombatAmm,
-        # "canto_dex": CantoDexAmm,
+        "canto_dex": CantoDexAmm,
         "pancakeswap_v3": UniswapV3Amm,
         # "quickswap_v3": QuickswapV3Amm,
         # "traderjoe_v2_1": TraderJoeV21Amm,
@@ -64,9 +65,12 @@ class ContractAdaptersFactory:
 
     def __initiate_adapters(self):
         for contract_type, contract_instance in self.default_adapters.items():
-            self.initiated_adapters[contract_type] = contract_instance(
-                web3=self.web3, chain_id=self.chain_id
-            )
+            try:
+                self.initiated_adapters[contract_type] = contract_instance(
+                    web3=self.web3, chain_id=self.chain_id
+                )
+            except ValueError as e:
+                logging.info(f"Failed to initiate adapter for {contract_type}: {e}")
 
     def _init_metadata(self):
         path = Path(__file__).parent

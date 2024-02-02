@@ -579,6 +579,7 @@ class EthStreamerAdapter:
             batch_size=self.batch_size,
             item_exporter=exporter,
             max_workers=self.max_workers,
+            chain_id=self.chain_id,
         )
         job.run()
         trades = exporter.get_items(DEX_TRADE)
@@ -592,6 +593,7 @@ class EthStreamerAdapter:
             item_exporter=exporter,
             max_workers=self.max_workers,
             batch_size=self.batch_size,
+            chain_id=self.chain_id,
         )
         job.run()
         parsed_logs = exporter.get_items(PARSED_LOG)

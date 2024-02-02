@@ -13,12 +13,12 @@ def web3():
 
 @pytest.fixture
 def mock_dex_client_factory(web3):
-    return ContractAdaptersFactory(web3)
+    return ContractAdaptersFactory(web3, 1)
 
 
 @pytest.fixture
 def eth_resolve_log_service(web3, mock_dex_client_factory):
-    return EthResolveLogService(web3)
+    return EthResolveLogService(web3, 1)
 
 
 def test_init(eth_resolve_log_service, web3, mock_dex_client_factory):

@@ -65,12 +65,24 @@ PARSABLE_TRADE_EVENTS = [
     "RemoveLiquidityImbalance",
 ]
 
+INFINITE_PRICE_THRESHOLD = 9.999999999999999e45
+
 
 def get_chain_config(chain_id) -> dict:
+    def all_addresses_to_lower(item: dict):
+        for key in item:
+            if isinstance(item[key], str) and item[key].startswith('0x'):
+                item[key] = item[key].lower()
+            elif isinstance(item[key], dict):
+                all_addresses_to_lower(item[key])
+
+        return item
+
     with open(Path(__file__).parent.parent / 'chains_config.json') as file:
         data = json.load(file)
         # Search for the dictionary with the matching chain_id
     for item in data:
         if item.get("id") == chain_id:
+            all_addresses_to_lower(item)
             return item
     raise ValueError(f'Chain id {chain_id} not found in chains_config.json')

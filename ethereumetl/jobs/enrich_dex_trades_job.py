@@ -151,7 +151,6 @@ class EnrichDexTradeJob(BaseJob):
 
         for merged_event in merged_events:
             pool_address = merged_event['pool_address']
-            pool = self._dex_pools_by_address[pool_address]
             transfers = merged_transfers.get(merged_event['lp_token_address'], [])
             transfers_amount_sum = sum([i['value'] for i in transfers])
 
@@ -177,24 +176,14 @@ class EnrichDexTradeJob(BaseJob):
                     r * p
                     for r, p in zip(
                         merged_event['token_reserves'],
-                        [
-                            self._price_service.base_tokens_prices.get(
-                                token_address.lower(), {}
-                            ).get('price_stable', 0)
-                            for token_address in pool['token_addresses']
-                        ],
+                        merged_event['prices_stable'],
                     )
                 ]
                 reserves_native = [
                     r * p
                     for r, p in zip(
                         merged_event['token_reserves'],
-                        [
-                            self._price_service.base_tokens_prices.get(
-                                token_address.lower(), {}
-                            ).get('price_native', 0)
-                            for token_address in pool['token_addresses']
-                        ],
+                        merged_event['prices_native'],
                     )
                 ]
 

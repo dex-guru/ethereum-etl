@@ -23,6 +23,7 @@ class PriceService:
     def resolve_price_for_trade(self, dex_trade: dict):
         """Resolves the prices of tokens in a DEX trade."""
         self._initialize_prices(dex_trade)
+        self._ensure_base_prices(dex_trade)
         if self._trade_involves_stablecoin(dex_trade):
             dex_trade = self._resolve_prices_for_pools_with_stablecoin(dex_trade)
         if self._trade_involves_native_token(dex_trade):
@@ -40,24 +41,17 @@ class PriceService:
         for idx, token_address in enumerate(dex_trade['token_addresses']):
             price_stable = dex_trade['prices_stable'][idx]
             price_native = dex_trade['prices_native'][idx]
-            if token_address not in self.base_tokens_prices:
+            if token_address not in self.base_tokens_prices.keys():
                 self.base_tokens_prices[token_address] = {
                     'price_stable': dex_trade['prices_stable'][idx],
                     'price_native': dex_trade['prices_native'][idx],
                     'score': 1,
                 }
                 continue
-
-            self.base_tokens_prices[token_address]['price_stable'] = (
-                price_stable
-                if price_stable
-                else self.base_tokens_prices[token_address]['price_stable']
-            )
-            self.base_tokens_prices[token_address]['price_native'] = (
-                price_native
-                if price_native
-                else self.base_tokens_prices[token_address]['price_native']
-            )
+            if price_stable:
+                self.base_tokens_prices[token_address]['price_stable'] = copy(price_stable)
+            if price_native:
+                self.base_tokens_prices[token_address]['price_native'] = copy(price_native)
 
     @staticmethod
     def _initialize_prices(dex_trade):
@@ -67,6 +61,16 @@ class PriceService:
         dex_trade['prices_native'] = [0.0] * token_count
         dex_trade['amount_stable'] = 0.0
         dex_trade['amount_native'] = 0.0
+
+    def _ensure_base_prices(self, dex_trade):
+        """Ensures that the base token prices are present in the trade."""
+        for token_address in dex_trade['token_addresses']:
+            if token_address not in self.base_tokens_prices.keys():
+                self.base_tokens_prices[token_address] = {
+                    'price_stable': 0.0,
+                    'price_native': 0.0,
+                    'score': 0,
+                }
 
     def _trade_involves_stablecoin(self, dex_trade):
         """Checks if the trade involves a stablecoin."""
@@ -84,8 +88,7 @@ class PriceService:
         _score = -1
         _token_address = None
         for token_address in dex_trade['token_addresses']:
-            base_price = self.base_tokens_prices.get(token_address, {})
-            if base_price.get('score', 0) > _score:
+            if self.base_tokens_prices[token_address]['score'] > _score:
                 _score = self.base_tokens_prices[token_address]['score']
                 _token_address = token_address
         return _token_address

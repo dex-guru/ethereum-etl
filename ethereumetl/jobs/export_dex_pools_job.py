@@ -41,19 +41,19 @@ class ExportPoolsJob(BaseJob):
     ):
         self.chain_id = chain_id
         self.item_exporter = item_exporter
-        self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers)
+        self.batch_work_executor = BatchWorkExecutor(1, max_workers)
         self.batch_web3_provider = batch_web3_provider
         self.pool_service = EthResolveLogService(batch_web3_provider, chain_id)
         self.dex_pool_mapper = EthDexPoolMapper()
         self.parsed_log_mapper = EthParsedReceiptLogMapper()
         self.logs_iterable = [
             EthParsedReceiptLogMapper.dict_to_parsed_receipt_log(log)
-            for log in self._collect_unique_addresses(parsed_logs_iterable)
+            for log in self._collect_logs_with_unique_addresses(parsed_logs_iterable)
             if log['event_name'] in PARSABLE_TRADE_EVENTS
         ]
 
     @staticmethod
-    def _collect_unique_addresses(parsed_logs_iterable):
+    def _collect_logs_with_unique_addresses(parsed_logs_iterable):
         logs_with_unique_addresses = []
         added_addresses = set()
 
