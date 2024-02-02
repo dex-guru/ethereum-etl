@@ -83,6 +83,7 @@ variables:
     prod-indexation-manta-169
     prod-indexation-neonevm-245022934
     prod-indexation-xfitest-4157
+    prod-indexation-zeta-7000
   KUBE_NAMESPACE_PROD: >-
     prod-indexation-eth-1
     prod-indexation-gnosis-100
