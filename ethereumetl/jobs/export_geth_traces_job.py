@@ -77,6 +77,9 @@ class ExportGethTracesJob(BaseJob):
                     in response_item.get('error', {}).get('message')
                     or response_item.get('error', {}).get('message', '')
                     == 'genesis is not traceable'
+                    # zetachain tx
+                    or response_item.get('error', {}).get('message', '')
+                    == 'invalid transaction type *tx.wrapper'
                 )
                 and response_item.get('result') is None
             ):

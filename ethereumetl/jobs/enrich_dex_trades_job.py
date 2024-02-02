@@ -1,6 +1,6 @@
 import logging
 from collections import defaultdict
-from copy import copy
+from copy import copy, deepcopy
 from typing import Literal
 
 from blockchainetl.jobs.base_job import BaseJob
@@ -64,20 +64,37 @@ class EnrichDexTradeJob(BaseJob):
             self._enrich(_dex_trades_by_hash)
 
     def _build_token_transfers_by_hash(self, token_transfers):
-        for transfer in token_transfers:
+        token_transfers_ = deepcopy(token_transfers)
+        for transfer in token_transfers_:
             self._token_transfers_by_hash[transfer['transaction_hash']].append(transfer)
 
     def _build_token_transfers_from_internal_transfers(self, internal_transfers):
         for transfer in internal_transfers:
             if transfer['value'] == 0:
                 continue
+            if not self._token_transfers_by_hash.get(transfer['transaction_hash']):
+                max_log_index = 0
+            else:
+                max_log_index = max(
+                    [
+                        i['log_index']
+                        for i in self._token_transfers_by_hash[transfer['transaction_hash']]
+                    ]
+                )
             transfer['token_address'] = copy(self._native_token_address)
+            transfer['log_index'] = max_log_index + 1
             self._token_transfers_by_hash[transfer['transaction_hash']].append(transfer)
 
     def _build_token_transfers_from_transactions(self, transactions):
         for tx in transactions:
             if tx['value'] == 0:
                 continue
+            if not self._token_transfers_by_hash.get(tx['hash']):
+                max_log_index = 0
+            else:
+                max_log_index = max(
+                    [i['log_index'] for i in self._token_transfers_by_hash[tx['hash']]]
+                )
             transfer = {
                 'value': tx['value'],
                 'from_address': tx['from_address'],
@@ -85,6 +102,7 @@ class EnrichDexTradeJob(BaseJob):
                 'transaction_hash': tx['hash'],
                 'block_number': tx['block_number'],
                 'token_address': '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+                'log_index': max_log_index + 1,
             }
             self._token_transfers_by_hash[transfer['transaction_hash']].append(transfer)
 
