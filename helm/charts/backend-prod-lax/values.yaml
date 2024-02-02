@@ -754,9 +754,9 @@ raw-data-streamer-balance:
 
 raw-data-streamer-token-tokentransferpriced:
   replicas:
-    default: 1
-    arbitrum-42161: 3
-    nova-42170: 3
+    default: 3
+    bsc-56: 5
+    polygon-137: 5
   limitsCpu: 4
   limitsMemory: 9000Mi
   requestsCpu: 100m
