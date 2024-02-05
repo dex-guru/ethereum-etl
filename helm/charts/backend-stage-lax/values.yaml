@@ -87,6 +87,7 @@ chainEnv:
     x1test-195: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/x1_test'
     beratest-80085: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/bera_test'
     blasttest-168587773: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/blast_test'
+
 raw-data-streamer:
 # Streams the data raw block,transaction,log data
   replicas:
@@ -282,7 +283,7 @@ raw-data-streamer-transfers-preevents:
     default: 1
   limitsCpu: 0.15
   limitsMemory: 9000Mi
-  requestsCpu: 0.07
+  requestsCpu: 0.2
   requestsMemory: 1000Mi
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "amqp_stream" ]'
@@ -337,7 +338,7 @@ raw-data-streamer-gethtrace:
     nova-42170: 3
   limitsCpu: 0.1
   limitsMemory: 9000Mi
-  requestsCpu: 0.05
+  requestsCpu: 0.1
   requestsMemory: 1000Mi
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "amqp_stream" ]'
@@ -436,7 +437,7 @@ raw-data-streamer-balance:
     arbitrum-42161: 2
   limitsCpu: 0.7
   limitsMemory: 9000Mi
-  requestsCpu: 0.05
+  requestsCpu: 0.1
   requestsMemory: 1000Mi
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "amqp_stream" ]'
@@ -471,9 +472,9 @@ raw-data-streamer-token-tokentransferpriced:
     default: 1
     arbitrum-42161: 3
     nova-42170: 3
-  limitsCpu: 0.08
+  limitsCpu: 0.1
   limitsMemory: 9000Mi
-  requestsCpu: 0.05
+  requestsCpu: 0.1
   requestsMemory: 1000Mi
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "amqp_stream" ]'
@@ -528,7 +529,7 @@ raw-data-streamer-nativebalance:
     default: 1
   limitsCpu: 0.1
   limitsMemory: 9000Mi
-  requestsCpu: 0.05
+  requestsCpu: 0.1
   requestsMemory: 1000Mi
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "amqp_stream" ]'
@@ -561,9 +562,9 @@ raw-data-streamer-nativebalance:
 raw-data-streamer-contract-token:
   replicas:
     default: 1
-  limitsCpu: 0.04
+  limitsCpu: 0.1
   limitsMemory: 9000Mi
-  requestsCpu: 0.02
+  requestsCpu: 0.1
   requestsMemory: 1000Mi
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "amqp_stream" ]'
@@ -596,9 +597,9 @@ raw-verify-data-streamer:
     default: 1
     bsc-56: 5
     polygon-137: 5
-  limitsCpu: 0.08
+  limitsCpu: 0.1
   limitsMemory: 9000Mi
-  requestsCpu: 0.05
+  requestsCpu: 0.1
   requestsMemory: 1000Mi
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "amqp_stream" ]'
@@ -648,7 +649,7 @@ raw-data-streamer-dexpool:
     bsc-56: 2
     nova-42170: 2
     polygon-137: 3
-  limitsCpu: 4
+  limitsCpu: 0.5
   limitsMemory: 9000Mi
   requestsCpu: 100m
   requestsMemory: 1000Mi
@@ -685,7 +686,7 @@ raw-data-streamer-dextrade:
     base-8453: 2
     bsc-56: 5
     polygon-137: 3
-  limitsCpu: 4
+  limitsCpu: 0.5
   limitsMemory: 9000Mi
   requestsCpu: 100m
   requestsMemory: 1000Mi

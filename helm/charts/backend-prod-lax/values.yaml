@@ -144,9 +144,9 @@ raw-data-streamer:
 raw-data-streamer-resync:
   replicas:
     default: 1
-  limitsCpu: 4
+  limitsCpu: 1
   limitsMemory: 9000Mi
-  requestsCpu: 1
+  requestsCpu: 0.5
   requestsMemory: 1000Mi
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "stream" ]'
@@ -288,7 +288,7 @@ raw-verify-data-trigger:
     default: 1
   limitsCpu: 0.1
   limitsMemory: 9000Mi
-  requestsCpu: 0.02
+  requestsCpu: 0.1
   requestsMemory: 1000Mi
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "stream" ]'
@@ -405,7 +405,7 @@ raw-data-streamer-transfers-preevents:
     default: 1
   limitsCpu: 0.15
   limitsMemory: 9000Mi
-  requestsCpu: 0.07
+  requestsCpu: 0.2
   requestsMemory: 1000Mi
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "amqp_stream" ]'
@@ -518,15 +518,15 @@ raw-data-streamer-transfers-preevents:
 raw-data-streamer-gethtrace:
   replicas:
     default: 1
-    arbitrum-42161: 4
+    arbitrum-42161: 5
     avalanche-43114: 4
     bsc-56: 5
     polygon-137: 5
-    nova-42170: 4
+    nova-42170: 5
     optimism-10: 3
   limitsCpu: 0.1
   limitsMemory: 9000Mi
-  requestsCpu: 0.05
+  requestsCpu: 0.1
   requestsMemory: 1000Mi
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "amqp_stream" ]'
@@ -643,7 +643,7 @@ raw-data-streamer-balance:
     arbitrum-42161: 2
   limitsCpu: 0.7
   limitsMemory: 9000Mi
-  requestsCpu: 0.05
+  requestsCpu: 0.1
   requestsMemory: 1000Mi
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "amqp_stream" ]'
@@ -757,9 +757,11 @@ raw-data-streamer-token-tokentransferpriced:
     default: 3
     bsc-56: 5
     polygon-137: 5
-  limitsCpu: 0.08
+    arbitrum-42161: 5
+    nova-42170: 5
+  limitsCpu: 0.1
   limitsMemory: 9000Mi
-  requestsCpu: 0.05
+  requestsCpu: 0.1
   requestsMemory: 1000Mi
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "amqp_stream" ]'
@@ -873,7 +875,7 @@ raw-data-streamer-nativebalance:
     default: 1
   limitsCpu: 0.1
   limitsMemory: 9000Mi
-  requestsCpu: 0.05
+  requestsCpu: 0.1
   requestsMemory: 1000Mi
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "amqp_stream" ]'
@@ -981,9 +983,9 @@ raw-data-streamer-nativebalance:
 raw-data-streamer-contract-token:
   replicas:
     default: 1
-  limitsCpu: 0.04
+  limitsCpu: 0.1
   limitsMemory: 9000Mi
-  requestsCpu: 0.02
+  requestsCpu: 0.1
   requestsMemory: 1000Mi
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "amqp_stream" ]'
@@ -1096,9 +1098,9 @@ raw-verify-data-streamer:
     default: 1
     bsc-56: 5
     polygon-137: 5
-  limitsCpu: 0.08
+  limitsCpu: 0.1
   limitsMemory: 9000Mi
-  requestsCpu: 0.05
+  requestsCpu: 0.1
   requestsMemory: 1000Mi
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "amqp_stream" ]'
@@ -1221,7 +1223,7 @@ raw-verify-data-streamer:
 raw-data-streamer-dexpool:
   replicas:
     default: 1
-  limitsCpu: 4
+  limitsCpu: 0.5
   limitsMemory: 9000Mi
   requestsCpu: 100m
   requestsMemory: 1000Mi
