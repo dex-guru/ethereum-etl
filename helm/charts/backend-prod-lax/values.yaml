@@ -403,7 +403,7 @@ raw-verify-data-trigger:
 raw-data-streamer-transfers-preevents:
   replicas:
     default: 1
-  limitsCpu: 0.15
+  limitsCpu: 0.3
   limitsMemory: 9000Mi
   requestsCpu: 0.2
   requestsMemory: 1000Mi
