@@ -162,7 +162,7 @@ class EthResolveLogService:
     def resolve_log(
         self,
         parsed_log: ParsedReceiptLog,
-        dex_pool: EthDexPool | None = None,
+        dex_pool: EthDexPool,
         tokens_for_pool: list[EthToken] | None = None,
         transfers_for_transaction: list[EthTokenTransfer] | None = None,
     ) -> EthDexTrade | None:
