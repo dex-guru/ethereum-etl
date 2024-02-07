@@ -43,6 +43,7 @@ class UniswapV3Amm(DexClientInterface):
             'Swap': self.get_swap_from_swap_event,
             'Burn': self.get_burn_from_event,
             'Mint': self.get_mint_from_event,
+            'Collect': self.get_burn_from_event,
         }
 
     def resolve_asset_from_log(self, parsed_log: ParsedReceiptLog) -> EthDexPool | None:
@@ -82,8 +83,8 @@ class UniswapV3Amm(DexClientInterface):
         resolve_func: Callable = self.event_resolver[event_name]
         try:
             finance_info = self._resolve_finance_info(parsed_receipt_log, dex_pool, token_scalars)
-        except (ValueError, TypeError, BadFunctionCallOutput, ContractLogicError):
-            logging.debug(f"Finance info not found for {parsed_receipt_log}")
+        except (ValueError, TypeError, BadFunctionCallOutput, ContractLogicError) as e:
+            logging.debug(f"Finance info not found for {parsed_receipt_log}: {e}")
             finance_info = {
                 'reserve_0': 0,
                 'reserve_1': 0,
@@ -173,6 +174,8 @@ class UniswapV3Amm(DexClientInterface):
         token_scalars: list[int],
     ):
         parsed_event = parsed_receipt_log.parsed_event
+        if parsed_event['amount0'] == 0 and parsed_event['amount1'] == 0:
+            return None
         burn = EthDexTrade(
             pool_address=base_pool.address,
             token_amounts=[
@@ -197,6 +200,8 @@ class UniswapV3Amm(DexClientInterface):
         token_scalars: list[int],
     ):
         parsed_event = parsed_receipt_log.parsed_event
+        if parsed_event['amount0'] == 0 and parsed_event['amount1'] == 0:
+            return None
         mint = EthDexTrade(
             pool_address=base_pool.address,
             token_amounts=[

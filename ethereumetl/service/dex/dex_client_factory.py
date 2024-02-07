@@ -15,6 +15,7 @@ from ethereumetl.service.dex.base.base_dex_client import BaseDexClient
 from ethereumetl.service.dex.base.interface import DexClientInterface
 from ethereumetl.service.dex.canto_dex.canto_dex import CantoDexAmm
 from ethereumetl.service.dex.meshswap.meshswap import MeshswapAmm
+from ethereumetl.service.dex.quickswap_v3.quickswap_v3 import QuickswapV3Amm
 from ethereumetl.service.dex.sushiswap_bento.sushiswap_bento import SushiSwapBentoAmm
 from ethereumetl.service.dex.uniswap_v2.uniswap_v2 import UniswapV2Amm
 from ethereumetl.service.dex.uniswap_v3.uniswap_v3 import UniswapV3Amm
@@ -51,7 +52,7 @@ class ContractAdaptersFactory:
         # "wombat": WombatAmm,
         "canto_dex": CantoDexAmm,
         "pancakeswap_v3": UniswapV3Amm,
-        # "quickswap_v3": QuickswapV3Amm,
+        "quickswap_v3": QuickswapV3Amm,
         # "traderjoe_v2_1": TraderJoeV21Amm,
     }
 
@@ -124,18 +125,14 @@ class ContractAdaptersFactory:
     def resolve_log(
         self,
         parsed_log: ParsedReceiptLog,
-        dex_pool: EthDexPool | None = None,
+        dex_pool: EthDexPool,
         tokens_for_pool: list[EthToken] | None = None,
         transfers_for_transaction: list[EthTokenTransfer] | None = None,
     ) -> EthDexTrade | None:
         namespaces = list(parsed_log.namespace)
-        if dex_pool:
-            namespace = self.namespace_by_factory_address.get(dex_pool.factory_address.lower())
-            if namespace:
-                if namespace in namespaces:
-                    # Move the namespace to the front of the list so that it is checked first
-                    namespaces.remove(namespace)
-                namespaces.insert(0, namespace)
+        namespace = self.namespace_by_factory_address.get(dex_pool.factory_address.lower())
+        if namespace and self.initiated_adapters.get(namespace):
+            namespaces = [namespace]
 
         for namespace in namespaces:
             dex_client = self.initiated_adapters.get(namespace)

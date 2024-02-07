@@ -1,7 +1,6 @@
 import json
 import logging
 from collections.abc import Callable
-from functools import cache
 from pathlib import Path
 
 from eth_typing import ChecksumAddress
@@ -56,7 +55,6 @@ class UniswapV2Amm(DexClientInterface):
             factory_address=factory_address.lower(),
         )
 
-    @cache
     def get_factory_address(self, pool_address: str) -> str | None:
         try:
             factory_address = self.pool_contract.functions.factory().call(
@@ -69,7 +67,6 @@ class UniswapV2Amm(DexClientInterface):
             logging.debug(f"Not found factory, fallback to maintainer. Error: {e}")
         return None
 
-    @cache
     def get_tokens_addresses_for_pool(self, pool_address: ChecksumAddress) -> list | None:
         logging.debug(f"Resolving tokens addresses for {pool_address}")
         try:

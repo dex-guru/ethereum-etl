@@ -1,3 +1,5 @@
+from web3.exceptions import BadFunctionCallOutput, ContractLogicError
+
 from ethereumetl.domain.dex_trade import EthDexTrade
 from ethereumetl.domain.receipt_log import ParsedReceiptLog
 from ethereumetl.service.dex.uniswap_v2.uniswap_v2 import UniswapV2Amm
@@ -30,3 +32,9 @@ class SushiSwapBentoAmm(UniswapV2Amm):
             token_prices=get_prices_for_two_pool(finance_info['price_0'], finance_info['price_1']),
             token_addresses=[dex_pool.token_addresses[0], dex_pool.token_addresses[1]],
         )
+
+    def get_factory_address(self, pool_address: str) -> str | None:
+        try:
+            return self.pool_contract.functions.bento().call({"to": pool_address})
+        except (ValueError, TypeError, ContractLogicError, BadFunctionCallOutput):
+            return None
