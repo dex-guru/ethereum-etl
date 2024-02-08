@@ -61,7 +61,11 @@ class EnrichDexTradeJob(BaseJob):
 
     def _enrich_all(self):
         for _dex_trades_by_hash in self._dex_trades_by_hash.values():
-            self._enrich(_dex_trades_by_hash)
+            try:
+                self._enrich(_dex_trades_by_hash)
+            except Exception as e:
+                # TODO
+                logging.error(f'Failed to enrich dex trades: {e}')
 
     def _build_token_transfers_by_hash(self, token_transfers):
         token_transfers_ = deepcopy(token_transfers)

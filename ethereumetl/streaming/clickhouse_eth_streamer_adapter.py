@@ -565,6 +565,19 @@ class ClickhouseEthStreamerAdapter:
             token_transfers = extract_token_transfers()[0]
             tokens = export_tokens()[0]
             dex_pools = export_dex_pools()[0]
+            token_addresses_from_pools = set()
+            for pool in dex_pools:
+                token_addresses_from_pools.update(pool['token_addresses'])
+            absent_tokens = token_addresses_from_pools - {t['address'] for t in tokens}
+            if absent_tokens:
+                tokens_from_pools = self.select_where_with_type_assignment(
+                    entity_type=TOKEN, distinct_on='address', address=absent_tokens
+                )
+                tokens_from_pools = list(tokens_from_pools)
+                if len(tokens_from_pools) != len(absent_tokens):
+                    absent_tokens = absent_tokens - {t['address'] for t in tokens_from_pools}
+                    tokens_from_pools.extend(self.eth_streamer.export_tokens(absent_tokens))
+                tokens = list(tokens) + tokens_from_pools
 
             dex_trades = self.eth_streamer.export_dex_trades(
                 parsed_logs=parsed_logs,

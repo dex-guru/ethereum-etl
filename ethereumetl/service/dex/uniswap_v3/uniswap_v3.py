@@ -91,7 +91,11 @@ class UniswapV3Amm(DexClientInterface):
                 'price_0': 0,
                 'price_1': 0,
             }
-        resolved_log = resolve_func(parsed_receipt_log, dex_pool, finance_info, token_scalars)
+        try:
+            resolved_log = resolve_func(parsed_receipt_log, dex_pool, finance_info, token_scalars)
+        except (ValueError, TypeError, KeyError, BadFunctionCallOutput, ContractLogicError) as e:
+            logging.debug(f"Resolved log not found for {parsed_receipt_log}: {e}")
+            resolved_log = None
         logging.debug(f"Resolved receipt log {resolved_log}")
         return resolved_log
 
