@@ -174,8 +174,6 @@ class UniswapV3Amm(DexClientInterface):
         token_scalars: list[int],
     ):
         parsed_event = parsed_receipt_log.parsed_event
-        if parsed_event['amount0'] == 0 and parsed_event['amount1'] == 0:
-            return None
         burn = EthDexTrade(
             pool_address=base_pool.address,
             token_amounts=[
@@ -200,8 +198,6 @@ class UniswapV3Amm(DexClientInterface):
         token_scalars: list[int],
     ):
         parsed_event = parsed_receipt_log.parsed_event
-        if parsed_event['amount0'] == 0 and parsed_event['amount1'] == 0:
-            return None
         mint = EthDexTrade(
             pool_address=base_pool.address,
             token_amounts=[
