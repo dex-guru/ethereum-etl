@@ -19,32 +19,37 @@ from ethereumetl.utils import get_prices_for_two_pool
 logs = logging.getLogger(__name__)
 to_checksum = Web3.toChecksumAddress
 
-POOL_CONTRACT = "Pool"
 TICK_BASE = 1.0001
 MIN_TICK = -887272
 MAX_TICK = -MIN_TICK
 MIN_SQRT_RATIO = 4295128739
 MAX_SQRT_RATIO = 1461446703485210103287273052203988822378723970342
-POOL_INIT_CODE_HASH = "0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54"
 
 
 class UniswapV3Amm(DexClientInterface):
-    pool_contract_names = (POOL_CONTRACT,)
 
-    def __init__(self, web3: Web3, chain_id: int | None = None):
+    def __init__(self, web3: Web3, chain_id: int | None = None, file_path: str | None = None):
         self.web3 = web3
-        pool_abi_path = Path(__file__).parent / "Pool.json"
-        erc20_abi_path = Path(__file__).parent.parent / "base" / "ERC20.json"
+        if not file_path:
+            file_path = __file__
+        pool_abi_path = Path(file_path).parent / "Pool.json"
+        erc20_abi_path = Path(file_path).parent.parent / "base" / "ERC20.json"
         self.erc20_contract_abi = self.web3.eth.contract(
             abi=json.loads(erc20_abi_path.read_text())
         )
         self.pool_contract_abi = self.web3.eth.contract(abi=json.loads(pool_abi_path.read_text()))
-        self.event_resolver = {
+
+    @property
+    def event_resolver(self):
+        return {
             'Swap': self.get_swap_from_swap_event,
             'Burn': self.get_burn_from_event,
             'Mint': self.get_mint_from_event,
             'Collect': self.get_burn_from_event,
         }
+
+    def get_event_abi(self, event_name: str):
+        return self.pool_contract_abi.events[event_name]().abi
 
     def resolve_asset_from_log(self, parsed_log: ParsedReceiptLog) -> EthDexPool | None:
         pool_address = parsed_log.address
@@ -81,6 +86,10 @@ class UniswapV3Amm(DexClientInterface):
             return None
         token_scalars = self._get_token_scalars(tokens_for_pool, dex_pool)
         resolve_func: Callable = self.event_resolver[event_name]
+        parsed_receipt_log.parsed_event = self.normalize_event(
+            self.get_event_abi(event_name)['inputs'],
+            parsed_receipt_log.parsed_event,
+        )
         try:
             finance_info = self._resolve_finance_info(parsed_receipt_log, dex_pool, token_scalars)
         except (ValueError, TypeError, BadFunctionCallOutput, ContractLogicError) as e:
@@ -110,6 +119,8 @@ class UniswapV3Amm(DexClientInterface):
         if not sqrt_price_x96:
             slot0 = self.get_slot0(to_checksum(dex_pool.address))
             sqrt_price_x96 = slot0["sqrtPriceX96"]
+            if sqrt_price_x96 < MIN_SQRT_RATIO or sqrt_price_x96 > MAX_SQRT_RATIO:
+                raise ValueError(f"Invalid sqrt price {sqrt_price_x96}")
 
         token0_price = self.calculate_token0_price_from_sqrt_price_x96(
             sqrt_price_x96, token_scalars

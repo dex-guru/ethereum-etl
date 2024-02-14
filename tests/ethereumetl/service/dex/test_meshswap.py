@@ -1,7 +1,6 @@
 from unittest.mock import MagicMock
 
 import pytest
-from web3 import Web3
 
 from ethereumetl.domain.dex_pool import EthDexPool
 from ethereumetl.domain.receipt_log import ParsedReceiptLog
@@ -10,8 +9,8 @@ from ethereumetl.service.dex.dex_client_factory import ContractAdaptersFactory
 
 
 @pytest.fixture
-def dex_client_meshswap():
-    return ContractAdaptersFactory.get_dex_client('meshswap', Web3(), 1)
+def dex_client_meshswap(web3):
+    return ContractAdaptersFactory(web3, 1).get_dex_client('meshswap')
 
 
 @pytest.fixture
@@ -21,7 +20,7 @@ def meshswap_log_sample():
         block_number=52922548,
         log_index=135,
         event_name='ExchangePos',
-        namespace={'meshswap'},
+        namespaces=('meshswap',),
         address='0x67fa408a4cd3f23d1f14414e6292a01bb451c117',
         parsed_event={
             'token0': '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063',
@@ -73,7 +72,7 @@ def test_resolve_receipt_log(
     meshswap_log_sample,
     meshswap_tokens_for_pool_sample,
 ):
-    dex_client_meshswap.pool_contract = MagicMock()
+    dex_client_meshswap.pool_contract.functions.getReserves = MagicMock()
     dex_client_meshswap.pool_contract.functions.getReserves.return_value.call.return_value = (
         10**6,
         10**18,

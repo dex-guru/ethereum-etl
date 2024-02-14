@@ -19,7 +19,6 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-from collections.abc import Collection
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -42,6 +41,6 @@ class ParsedReceiptLog:
     block_number: int
     log_index: int
     event_name: str
-    namespace: Collection[str]
+    namespaces: tuple[str]
     address: str
     parsed_event: dict[str, Any]

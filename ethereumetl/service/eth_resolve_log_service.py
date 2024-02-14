@@ -21,7 +21,7 @@
 # SOFTWARE.
 import json
 import logging
-from collections import defaultdict
+from collections import OrderedDict, defaultdict
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any, cast
@@ -91,18 +91,22 @@ class EthResolveLogService:
             event_topic_count = sum(1 for i in event_abi['inputs'] if i['indexed']) + 1
             sighash_topic_count = (event_signature_hash, event_topic_count)
             if events_inventory.get(sighash_topic_count):
-                events_inventory[sighash_topic_count]['namespace'].add(str(parent_path))
+                events_inventory[sighash_topic_count]['namespaces'].add(str(parent_path))
                 events_inventory[sighash_topic_count]['contract_name'].add(str(file_name[:-5]))
                 events_inventory[sighash_topic_count]['event_abi_json_list'].append(event_abi)
+                events_inventory[sighash_topic_count]['event_abi_by_namespace'][
+                    str(parent_path)
+                ] = event_abi
                 continue
 
             events_inventory[(event_signature_hash, event_topic_count)] = {
                 'event_signature': _abi_to_signature(event_abi),
                 'event_name': event_abi['name'],
-                'namespace': {str(parent_path)},
+                'namespaces': {str(parent_path)},
                 'contract_name': {file_name[:-5]},
                 'event_abi_json': event_abi,
                 'event_abi_json_list': [event_abi],
+                'event_abi_by_namespace': {str(parent_path): event_abi},
             }
         self.events_inventory = events_inventory
 
@@ -117,14 +121,18 @@ class EthResolveLogService:
         event = self._get_event_inventory_for_log(log)
         if not event:
             return None
-        for event_abi in event['event_abi_json_list']:
-            contract = self._web3.eth.contract(abi=[event_abi])
+        for event_abi_json in event['event_abi_json_list']:
+            contract = self._web3.eth.contract(abi=[event_abi_json])
             event_abi = getattr(contract.events, event['event_name'], None)
             if not event_abi:
                 logging.debug(f"Event method not found: {event['event_name']}")
                 continue
             try:
                 parsed_event = event_abi().process_log(self._to_hex_log(log))
+                input_names = [i['name'] for i in event_abi_json['inputs']]
+                ordered_args = OrderedDict(
+                    (input_name, parsed_event.args[input_name]) for input_name in input_names
+                )
                 break
             except (MismatchedABI, LogTopicError, TypeError) as e:
                 logging.debug(f"Failed to parse event: {e}")
@@ -137,9 +145,9 @@ class EthResolveLogService:
             block_number=log.block_number,
             log_index=log.log_index,
             event_name=event['event_name'],
-            namespace=event['namespace'],
+            namespaces=event['namespaces'],
             address=log.address,
-            parsed_event={**parsed_event.args},
+            parsed_event=ordered_args,
         )
 
     @staticmethod
@@ -155,10 +163,6 @@ class EthResolveLogService:
             "logIndex": receipt_log.log_index,
         }
 
-    def get_dex_pool(self, log: ParsedReceiptLog) -> EthDexPool | None:
-        dex_pool = self._dex_client_factory.resolve_asset_from_log(log)
-        return dex_pool
-
     def resolve_log(
         self,
         parsed_log: ParsedReceiptLog,
@@ -166,6 +170,41 @@ class EthResolveLogService:
         tokens_for_pool: list[EthToken] | None = None,
         transfers_for_transaction: list[EthTokenTransfer] | None = None,
     ) -> EthDexTrade | None:
-        return self._dex_client_factory.resolve_log(
-            parsed_log, dex_pool, tokens_for_pool, transfers_for_transaction
-        )
+        namespace = self._dex_client_factory.get_namespace_by_factory(dex_pool.factory_address)
+        if namespace and self._dex_client_factory.get(namespace):
+            namespaces = (namespace,)
+        else:
+            namespaces = parsed_log.namespaces
+
+        for namespace in namespaces:
+            dex_client = self._dex_client_factory.get(namespace)
+            if not dex_client:
+                logging.debug(f"Failed to get dex client for namespace: {namespace}")
+                continue
+            try:
+                resolved_log = dex_client.resolve_receipt_log(
+                    parsed_receipt_log=parsed_log,
+                    dex_pool=dex_pool,
+                    tokens_for_pool=tokens_for_pool,
+                    transfers_for_transaction=transfers_for_transaction,
+                )
+            except Exception as e:
+                logging.info(f"Failed to resolve log: {e}")
+                continue
+            if resolved_log:
+                return resolved_log
+
+    def resolve_asset_from_log(self, parsed_log: ParsedReceiptLog) -> EthDexPool | None:
+        for namespace in parsed_log.namespaces:
+            dex_client = self._dex_client_factory.initiated_adapters.get(namespace)
+            if not dex_client:
+                logging.debug(f"Failed to get dex client for namespace: {namespace}")
+                continue
+            try:
+                asset = dex_client.resolve_asset_from_log(parsed_log)
+            except Exception as e:
+                logging.debug(f"Failed to resolve asset from log: {e}")
+                continue
+            if asset:
+                return asset
+        return None

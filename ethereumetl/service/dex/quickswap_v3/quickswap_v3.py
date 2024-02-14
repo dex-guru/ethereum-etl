@@ -1,6 +1,4 @@
-import json
 import logging
-from pathlib import Path
 from typing import Literal
 
 from web3 import Web3
@@ -21,13 +19,7 @@ POOL_CONTRACT = "Pool"
 class QuickswapV3Amm(UniswapV3Amm):
 
     def __init__(self, web3: Web3, chain_id: int | None = None):
-        super().__init__(web3, chain_id)
-        pool_abi_path = Path(__file__).parent / "Pool.json"
-        erc20_abi_path = Path(__file__).parent.parent / "base" / "ERC20.json"
-        self.erc20_contract_abi = self.web3.eth.contract(
-            abi=json.loads(erc20_abi_path.read_text())
-        )
-        self.pool_contract_abi = self.web3.eth.contract(abi=json.loads(pool_abi_path.read_text()))
+        super().__init__(web3, chain_id, __file__)
 
     def resolve_receipt_log(
         self,

@@ -21,11 +21,16 @@ to_checksum = Web3.toChecksumAddress
 
 
 class UniswapV2Amm(DexClientInterface):
-    def __init__(self, web3: Web3, chain_id: int | None = None):
-        pool_abi_path = Path(__file__).parent / "Pool.json"
+    def __init__(self, web3: Web3, chain_id: int | None = None, file_path: str | None = None):
+        if not file_path:
+            file_path = __file__
+        pool_abi_path = Path(file_path).parent / "Pool.json"
         abi = json.loads(pool_abi_path.read_text())
         self._w3: Web3 = web3
         self.pool_contract = self._w3.eth.contract(abi=abi)
+
+    def get_event_abi(self, event_name: str):
+        return self.pool_contract.events[event_name]().abi
 
     @property
     def event_resolver(self) -> dict[str, Callable]:
@@ -108,7 +113,10 @@ class UniswapV2Amm(DexClientInterface):
         if not dex_pool or not tokens_for_pool:
             logging.debug(f"Pool or tokens not found for {parsed_receipt_log}")
             return None
-
+        parsed_receipt_log.parsed_event = self.normalize_event(
+            self.get_event_abi(event_name)['inputs'],
+            parsed_receipt_log.parsed_event,
+        )
         token_scalars = self._get_scalars_for_tokens(tokens_for_pool, dex_pool)
 
         resolve_func: Callable = self.event_resolver[event_name]
