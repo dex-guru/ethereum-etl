@@ -38,31 +38,15 @@ variables:
   LAX_STAGE_CLUSTER_NAME: stage-k8s
   LAX_PROD_CLUSTER_NAME: prod-k8s
   KUBE_NAMESPACE_STAGE: >-
-    stage-indexation-gnosis-100
     stage-indexation-eth-1
-    stage-indexation-polygon-137
-    stage-indexation-fantom-250
-    stage-indexation-arbitrum-42161
     stage-indexation-canto-7700
-    stage-indexation-acanto-7701
-    stage-indexation-nova-42170
-    stage-indexation-base-8453
     stage-indexation-basetestnet-84531
-    stage-indexation-zetatestnet-7001
-    stage-indexation-avalanche-43114
-    stage-indexation-celo-42220
-    stage-indexation-manta-169
+    stage-indexation-bsc-56
   KUBE_NAMESPACE_STAGE_TRACE: >-
     stage-indexation-eth-1
-    stage-indexation-polygon-137
-    stage-indexation-arbitrum-42161
     stage-indexation-canto-7700
-    stage-indexation-nova-42170
-    stage-indexation-fantom-250
-    stage-indexation-base-8453
-    stage-indexation-avalanche-43114
-    stage-indexation-celo-42220
-    stage-indexation-manta-169
+    stage-indexation-basetestnet-84531
+    stage-indexation-bsc-56
   KUBE_NAMESPACE_PROD_TRACE: >-
     prod-indexation-eth-1
     prod-indexation-bsc-56
