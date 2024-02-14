@@ -7,6 +7,10 @@ from ethereumetl.utils import get_prices_for_two_pool
 
 
 class SushiSwapBentoAmm(UniswapV2Amm):
+
+    def __init__(self, web3, chain_id: int | None = None):
+        super().__init__(web3, chain_id, __file__)
+
     @staticmethod
     def _get_trade_from_swap_event(
         parsed_receipt_log: ParsedReceiptLog,

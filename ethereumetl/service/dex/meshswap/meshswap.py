@@ -18,6 +18,10 @@ to_checksum = Web3.toChecksumAddress
 
 
 class MeshswapAmm(UniswapV2Amm):
+
+    def __init__(self, web3: Web3, chain_id: int | None = None):
+        super().__init__(web3, chain_id, __file__)
+
     @property
     def event_resolver(self) -> dict[str, Callable]:
         return {

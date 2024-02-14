@@ -1,24 +1,12 @@
 import pytest
-from web3 import Web3
 
 from ethereumetl.domain.receipt_log import EthReceiptLog, ParsedReceiptLog
 from ethereumetl.service.dex.dex_client_factory import ContractAdaptersFactory
-from ethereumetl.service.eth_resolve_log_service import EthResolveLogService
-
-
-@pytest.fixture
-def web3():
-    return Web3()
 
 
 @pytest.fixture
 def mock_dex_client_factory(web3):
     return ContractAdaptersFactory(web3, 1)
-
-
-@pytest.fixture
-def eth_resolve_log_service(web3, mock_dex_client_factory):
-    return EthResolveLogService(web3, 1)
 
 
 def test_init(eth_resolve_log_service, web3, mock_dex_client_factory):
@@ -30,7 +18,7 @@ def test_init(eth_resolve_log_service, web3, mock_dex_client_factory):
     assert eth_resolve_log_service.events_inventory
 
 
-@pytest.mark.skip(reason='Parsed logs should have exact namespaces')
+@pytest.mark.skip(reason="moved into test_uniswap_v3")
 def test_parse_log(eth_resolve_log_service):
     log = EthReceiptLog(
         log_index=45,
@@ -52,7 +40,7 @@ def test_parse_log(eth_resolve_log_service):
         block_number=18962404,
         log_index=45,
         event_name='Swap',
-        namespace={'kyberswap_elastic', 'quickswap_v3', 'uniswap_v3'},
+        namespaces={'kyberswap_elastic', 'quickswap_v3', 'uniswap_v3'},
         address='0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
         parsed_event={
             'sender': '0xA69babEF1cA67A37Ffaf7a485DfFF3382056e78C',

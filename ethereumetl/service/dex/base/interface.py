@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
 from typing import Generic, TypeVar
 
 from web3 import Web3
@@ -14,7 +15,7 @@ TDexClient = TypeVar("TDexClient", bound="DexClientInterface")
 
 class DexClientInterface(ABC, Generic[TDexClient]):
     @abstractmethod
-    def __init__(self, web3: Web3, chain_id: int | None = None): ...
+    def __init__(self, web3: Web3, chain_id: int | None = None, file_path: str | None = None): ...
 
     @abstractmethod
     def resolve_asset_from_log(self, parsed_log: ParsedReceiptLog) -> EthDexPool | None: ...
@@ -27,3 +28,7 @@ class DexClientInterface(ABC, Generic[TDexClient]):
         tokens_for_pool: list[EthToken] | None = None,
         transfers_for_transaction: list[EthTokenTransfer] | None = None,
     ) -> EthDexTrade | None: ...
+
+    @staticmethod
+    def normalize_event(inputs: Sequence, event_to_fix: dict) -> dict:
+        return {k['name']: v for k, v in zip(inputs, event_to_fix.values())}

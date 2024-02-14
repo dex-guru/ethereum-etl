@@ -38,16 +38,16 @@ def test_factory_init(contract_adapters_factory):
         assert isinstance(adapter, DexClientInterface)
 
     # Test if namespace_by_factory_address is populated
-    assert isinstance(contract_adapters_factory.namespace_by_factory_address, dict)
-    assert len(contract_adapters_factory.namespace_by_factory_address) > 0
+    assert isinstance(contract_adapters_factory._namespace_by_factory_address, dict)
+    assert len(contract_adapters_factory._namespace_by_factory_address) > 0
 
 
 def test_get_dex_client(contract_adapters_factory):
     # Test with valid AMM type
     amm_type = 'uniswap_v2'
-    dex_client = contract_adapters_factory.get_dex_client(amm_type, MagicMock(), 1)
+    dex_client = contract_adapters_factory.get_dex_client(amm_type)
     assert isinstance(dex_client, UniswapV2Amm)
 
     # Test with invalid AMM type
     with pytest.raises(ValueError):
-        contract_adapters_factory.get_dex_client('invalid_amm_type', MagicMock(), 1)
+        contract_adapters_factory.get_dex_client('invalid_amm_type')

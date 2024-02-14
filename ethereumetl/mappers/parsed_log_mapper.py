@@ -35,7 +35,7 @@ class EthParsedReceiptLogMapper:
             block_number=hex_to_dec(json_dict['block_number']),
             log_index=hex_to_dec(json_dict['log_index']),
             event_name=json_dict['event_name'],
-            namespace=json_dict['namespace'],
+            namespaces=json_dict['namespaces'],
             address=json_dict['address'],
             parsed_event=json_dict.get('parsed_event', {}),
         )

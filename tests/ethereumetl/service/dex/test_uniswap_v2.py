@@ -1,34 +1,33 @@
 from unittest.mock import MagicMock
 
 import pytest
-from web3 import Web3
 
 from ethereumetl.domain.dex_pool import EthDexPool
-from ethereumetl.domain.receipt_log import ParsedReceiptLog
+from ethereumetl.domain.receipt_log import EthReceiptLog
 from ethereumetl.domain.token import EthToken
 from ethereumetl.service.dex.dex_client_factory import ContractAdaptersFactory
 
 
 @pytest.fixture
-def dex_client_uniswap_v2():
-    return ContractAdaptersFactory.get_dex_client('uniswap_v2', Web3(), 1)
+def dex_client_uniswap_v2(web3):
+    return ContractAdaptersFactory(web3, 1).get_dex_client('uniswap_v2')
 
 
-log = ParsedReceiptLog(
-    transaction_hash='0x4235fd4f96a42895cc0f143d2c2ad65a096e55d2400577c4b7fa6a7bfda3cc85',
-    block_number=18962404,
-    log_index=208,
-    event_name='Swap',
-    namespace={'canto_dex', 'solidly', 'uniswap_v2'},
-    address='0xe4d96c90d2608a9e8efe2d7feee5a1feb8eead29',
-    parsed_event={
-        'sender': '0x80a64c6D7f12C47B7c66c5B4E20E72bc1FCd5d9e',
-        'to': '0x80a64c6D7f12C47B7c66c5B4E20E72bc1FCd5d9e',
-        'amount0In': 9157112000000000000000000,
-        'amount1In': 0,
-        'amount0Out': 0,
-        'amount1Out': 204349302466713085,
-    },
+log = EthReceiptLog(
+    **{
+        'log_index': 11,
+        'transaction_hash': '0x4937857736a8512ff2f43d0b253b0fe28fe857d6d196b74d5211069951ef3315',
+        'block_number': 19226988,
+        'address': '0x68e4af213c49f320175116bff189c9ca452ce29c',
+        'data': '0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000016345785d8a0000000000000000000000000000000000000000000000000000035658d07444f9b020000000000000000000000000000000000000000000000000000000000000000',
+        'transaction_index': 1,
+        'topics': [
+            '0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822',
+            '0x0000000000000000000000003fc91a3afd70395cd496c647d5a6cc9d4b2b7fad',
+            '0x000000000000000000000000e6a92cf7d584d238e34960fcb2b1386b0f6f4432',
+        ],
+        'block_hash': '0xabec07f193f5348e9955c954cb6b7cf11e083266e0339aae69624374bd975513',
+    }
 )
 
 
@@ -64,18 +63,19 @@ def tokens_for_pool():
     ]
 
 
-def test_resolve_receipt_log(dex_client_uniswap_v2, dex_pool, tokens_for_pool):
-    dex_client_uniswap_v2.pool_contract = MagicMock()
-    dex_client_uniswap_v2.pool_contract.functions.getReserves.return_value.call.return_value = (
+def test_resolve_receipt_log(
+    eth_resolve_log_service, dex_client_uniswap_v2, dex_pool, tokens_for_pool
+):
+    client = eth_resolve_log_service._dex_client_factory.get_dex_client('uniswap_v2')
+    client.pool_contract.functions.getReserves = MagicMock()
+    client.pool_contract.functions.getReserves.return_value.call.return_value = (
         10**18,
         10**18,
         1234,
     )
-    res = dex_client_uniswap_v2.resolve_receipt_log(log, dex_pool, tokens_for_pool)
+    parsed_log = eth_resolve_log_service.parse_log(log)
+    res = eth_resolve_log_service.resolve_log(parsed_log, dex_pool, tokens_for_pool)
     assert res
-    assert res.token_amounts == [
-        9157112000000000000000000 / 10**18,
-        -204349302466713085 / 10**18,
-    ]
+    assert res.token_amounts == [-3.847636519008312, 1.6]
     assert res.token_reserves == [1, 1]
     assert res.token_prices == [[1.0, 1.0], [1.0, 1.0]]

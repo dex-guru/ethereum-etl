@@ -57,7 +57,7 @@ class ExportPoolsJob(BaseJob):
         logs_with_unique_addresses = []
         added_addresses = set()
 
-        for log in sorted(parsed_logs_iterable, key=lambda log_: log_['address']):
+        for log in parsed_logs_iterable:
             # Balancer vault address is always in the log address
             pool_address = f"0x{log['parsed_event'].get('poolId', '')[:40].lower()}"
             if pool_address and pool_address not in added_addresses:
@@ -84,7 +84,7 @@ class ExportPoolsJob(BaseJob):
     def _export_pools(self, logs):
         pools = []
         for log in logs:
-            pool = self.pool_service.get_dex_pool(log)
+            pool = self.pool_service.resolve_asset_from_log(log)
             if pool:
                 pools.append(self.dex_pool_mapper.pool_to_dict(pool))
 

@@ -6,11 +6,6 @@ from typing import Any
 
 from web3 import Web3
 
-from ethereumetl.domain.dex_pool import EthDexPool
-from ethereumetl.domain.dex_trade import EthDexTrade
-from ethereumetl.domain.receipt_log import ParsedReceiptLog
-from ethereumetl.domain.token import EthToken
-from ethereumetl.domain.token_transfer import EthTokenTransfer
 from ethereumetl.service.dex.base.base_dex_client import BaseDexClient
 from ethereumetl.service.dex.base.interface import DexClientInterface
 from ethereumetl.service.dex.canto_dex.canto_dex import CantoDexAmm
@@ -60,9 +55,15 @@ class ContractAdaptersFactory:
         self.initiated_adapters: dict[str, DexClientInterface] = {}
         self.web3 = web3
         self.chain_id = chain_id
-        self.namespace_by_factory_address: dict[str, str] = {}
+        self._namespace_by_factory_address: dict[str, str] = {}
         self.__initiate_adapters()
         self._init_metadata()
+
+    def get_namespace_by_factory(self, factory_address: str) -> str | None:
+        return self._namespace_by_factory_address.get(factory_address.lower())
+
+    def get(self, amm_type: str) -> DexClientInterface | None:
+        return self.initiated_adapters.get(amm_type)
 
     def __initiate_adapters(self):
         for contract_type, contract_instance in self.default_adapters.items():
@@ -80,7 +81,7 @@ class ContractAdaptersFactory:
                 data = json.load(f)
                 for metadata in data:
                     for address in metadata['contracts'].values():
-                        self.namespace_by_factory_address[address.lower()] = metadata['type']
+                        self._namespace_by_factory_address[address.lower()] = metadata['type']
 
     # @staticmethod
     # def get_dex_by_factory_address(factory_address: str) -> str | None:
@@ -93,12 +94,10 @@ class ContractAdaptersFactory:
     #                     if address.lower() == factory_address.lower():
     #                         return metadata['name']
 
-    @classmethod
-    def get_dex_client(cls, amm_type: str, web3: Web3, chain_id: int) -> DexClientInterface:
-        adapter_class = cls.default_adapters.get(amm_type)
-        if not adapter_class:
+    def get_dex_client(self, amm_type: str) -> DexClientInterface:
+        adapter_instance = self.initiated_adapters.get(amm_type)
+        if not adapter_instance:
             raise ValueError(f"Unsupported AMM type: {amm_type}")
-        adapter_instance = adapter_class(web3=web3, chain_id=chain_id)
         # path_to_metadata = (
         #     Path(__file__).parent / amm_type / 'deploys' / str(chain_id) / cls.METADATA_FILE_NAME
         # )
@@ -121,49 +120,3 @@ class ContractAdaptersFactory:
     @classmethod
     def get_all_supported_dex_types(cls) -> list[str]:
         return list(cls.default_adapters.keys())
-
-    def resolve_log(
-        self,
-        parsed_log: ParsedReceiptLog,
-        dex_pool: EthDexPool,
-        tokens_for_pool: list[EthToken] | None = None,
-        transfers_for_transaction: list[EthTokenTransfer] | None = None,
-    ) -> EthDexTrade | None:
-        namespaces = list(parsed_log.namespace)
-        namespace = self.namespace_by_factory_address.get(dex_pool.factory_address.lower())
-        if namespace and self.initiated_adapters.get(namespace):
-            namespaces = [namespace]
-
-        for namespace in namespaces:
-            dex_client = self.initiated_adapters.get(namespace)
-            if not dex_client:
-                logging.debug(f"Failed to get dex client for namespace: {namespace}")
-                continue
-            try:
-                resolved_log = dex_client.resolve_receipt_log(
-                    parsed_receipt_log=parsed_log,
-                    dex_pool=dex_pool,
-                    tokens_for_pool=tokens_for_pool,
-                    transfers_for_transaction=transfers_for_transaction,
-                )
-            except Exception as e:
-                logging.info(f"Failed to resolve log: {e}")
-                continue
-            if resolved_log:
-                return resolved_log
-
-    def resolve_asset_from_log(self, parsed_log: ParsedReceiptLog) -> EthDexPool | None:
-        for namespace in parsed_log.namespace:
-            dex_client = self.initiated_adapters.get(namespace)
-            if not dex_client:
-                logging.debug(f"Failed to get dex client for namespace: {namespace}")
-                continue
-            try:
-                asset = dex_client.resolve_asset_from_log(parsed_log)
-            except Exception as e:
-                logging.debug(f"Failed to resolve asset from log: {e}")
-                continue
-            if asset:
-                parsed_log.namespace = (namespace,)
-                return asset
-        return None

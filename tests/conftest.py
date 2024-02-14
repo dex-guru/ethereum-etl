@@ -4,14 +4,17 @@ from collections.abc import Generator
 from datetime import datetime
 from random import randint
 from unittest import mock
+from unittest.mock import MagicMock
 from urllib.parse import urlunparse
 
 import clickhouse_connect
 import pytest
 from elasticsearch import Elasticsearch
 from retry import retry
+from web3 import Web3
 
 from ethereumetl.clickhouse import migrate_up
+from ethereumetl.service.eth_resolve_log_service import EthResolveLogService
 from ethereumetl.utils import parse_clickhouse_url
 
 pytest.register_assert_rewrite("tests.helpers")
@@ -155,3 +158,13 @@ def clickhouse_migrated_url(clickhouse_url) -> str:
 @pytest.fixture
 def clickhouse_migrated(clickhouse_migrated_url, clickhouse) -> clickhouse_connect.driver.Client:
     return clickhouse
+
+
+@pytest.fixture(scope="function")
+def web3():
+    return Web3(MagicMock())
+
+
+@pytest.fixture()
+def eth_resolve_log_service(web3):
+    return EthResolveLogService(web3, 1)
