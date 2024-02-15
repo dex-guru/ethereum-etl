@@ -1223,7 +1223,7 @@ raw-verify-data-streamer:
 raw-data-streamer-dexpool:
   replicas:
     default: 1
-  limitsCpu: 0.5
+  limitsCpu: 1
   limitsMemory: 9000Mi
   requestsCpu: 100m
   requestsMemory: 1000Mi

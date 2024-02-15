@@ -336,7 +336,7 @@ raw-data-streamer-gethtrace:
     default: 1
     arbitrum-42161: 3
     nova-42170: 3
-  limitsCpu: 0.1
+  limitsCpu: 0.7
   limitsMemory: 9000Mi
   requestsCpu: 0.1
   requestsMemory: 1000Mi
@@ -435,7 +435,7 @@ raw-data-streamer-balance:
   replicas:
     default: 1
     arbitrum-42161: 2
-  limitsCpu: 0.7
+  limitsCpu: 1
   limitsMemory: 9000Mi
   requestsCpu: 0.1
   requestsMemory: 1000Mi
@@ -649,7 +649,7 @@ raw-data-streamer-dexpool:
     bsc-56: 2
     nova-42170: 2
     polygon-137: 3
-  limitsCpu: 0.5
+  limitsCpu: 1
   limitsMemory: 9000Mi
   requestsCpu: 100m
   requestsMemory: 1000Mi
@@ -686,7 +686,7 @@ raw-data-streamer-dextrade:
     base-8453: 2
     bsc-56: 5
     polygon-137: 3
-  limitsCpu: 0.5
+  limitsCpu: 1
   limitsMemory: 9000Mi
   requestsCpu: 100m
   requestsMemory: 1000Mi
