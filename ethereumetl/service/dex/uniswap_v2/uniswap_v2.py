@@ -21,10 +21,13 @@ to_checksum = Web3.toChecksumAddress
 
 
 class UniswapV2Amm(DexClientInterface):
+
+    POOL_ABI_PATH = "Pool.json"
+
     def __init__(self, web3: Web3, chain_id: int | None = None, file_path: str | None = None):
         if not file_path:
             file_path = __file__
-        pool_abi_path = Path(file_path).parent / "Pool.json"
+        pool_abi_path = Path(file_path).parent / self.POOL_ABI_PATH
         abi = json.loads(pool_abi_path.read_text())
         self._w3: Web3 = web3
         self.pool_contract = self._w3.eth.contract(abi=abi)

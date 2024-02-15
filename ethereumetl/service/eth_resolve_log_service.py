@@ -124,6 +124,8 @@ class EthResolveLogService:
             return None
         contract = event['contract']
         event_abi = getattr(contract.events, event['event_name'], None)
+        if not event_abi:
+            return None
         try:
             parsed_event = event_abi().process_log(self._to_hex_log(log))
             input_names = [i['name'] for i in event['event_abi_json']['inputs']]
