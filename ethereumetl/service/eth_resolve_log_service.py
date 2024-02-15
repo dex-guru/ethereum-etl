@@ -107,6 +107,7 @@ class EthResolveLogService:
                 'event_abi_json': event_abi,
                 'event_abi_json_list': [event_abi],
                 'event_abi_by_namespace': {str(parent_path): event_abi},
+                'contract': self._web3.eth.contract(abi=[event_abi]),
             }
         self.events_inventory = events_inventory
 
@@ -121,23 +122,16 @@ class EthResolveLogService:
         event = self._get_event_inventory_for_log(log)
         if not event:
             return None
-        for event_abi_json in event['event_abi_json_list']:
-            contract = self._web3.eth.contract(abi=[event_abi_json])
-            event_abi = getattr(contract.events, event['event_name'], None)
-            if not event_abi:
-                logging.debug(f"Event method not found: {event['event_name']}")
-                continue
-            try:
-                parsed_event = event_abi().process_log(self._to_hex_log(log))
-                input_names = [i['name'] for i in event_abi_json['inputs']]
-                ordered_args = OrderedDict(
-                    (input_name, parsed_event.args[input_name]) for input_name in input_names
-                )
-                break
-            except (MismatchedABI, LogTopicError, TypeError) as e:
-                logging.debug(f"Failed to parse event: {e}")
-        else:
-            logger.warning(f"Could not parse log {log}")
+        contract = event['contract']
+        event_abi = getattr(contract.events, event['event_name'], None)
+        try:
+            parsed_event = event_abi().process_log(self._to_hex_log(log))
+            input_names = [i['name'] for i in event['event_abi_json']['inputs']]
+            ordered_args = OrderedDict(
+                (input_name, parsed_event.args[input_name]) for input_name in input_names
+            )
+        except (MismatchedABI, LogTopicError, TypeError) as e:
+            logging.warning(f"Failed to parse event: {e}")
             return None
 
         return ParsedReceiptLog(
