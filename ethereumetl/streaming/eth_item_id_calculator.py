@@ -48,6 +48,7 @@ class EthItemIdCalculator:
         EntityType.PARSED_LOG: ('transaction_hash', 'log_index'),
         EntityType.DEX_TRADE: ('transaction_hash', 'log_index'),
         EntityType.ENRICHED_DEX_TRADE: ('transaction_hash', 'log_index'),
+        EntityType.ENRICHED_TRANSFER: ('transaction_hash', 'log_index'),
     }
 
     def calculate(self, item):

@@ -703,7 +703,7 @@ raw-data-streamer-dextrade:
     ROUTING_KEY: 'internal_transfer'
   chainEnv:
     ENTITY_TYPES:
-      default: 'enriched_dex_trade'
+      default: 'enriched_dex_trade,enriched_transfer'
       # basetestnet-84531: 'block,transaction,log,token_transfer,token_balance,error,token'
       # acanto-7701: 'block,transaction,log,token_transfer,token_balance,error,token'
     PROVIDER_URL:

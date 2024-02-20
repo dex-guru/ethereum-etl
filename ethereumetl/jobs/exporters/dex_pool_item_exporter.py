@@ -39,7 +39,7 @@ FIELDS_TO_EXPORT = [
 assert {f.name for f in fields(EthDexPool)} >= set(FIELDS_TO_EXPORT)
 
 
-def tokens_item_exporter(tokens_output, converters=()):
+def dex_pool_item_exporter(tokens_output, converters=()):
     return CompositeItemExporter(
         filename_mapping={'dex_pool': tokens_output},
         field_mapping={'dex_pool': FIELDS_TO_EXPORT},
