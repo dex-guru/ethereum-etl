@@ -74,7 +74,7 @@ def test_resolve_receipt_log(
         1234,
     )
     parsed_log = eth_resolve_log_service.parse_log(log)
-    res = eth_resolve_log_service.resolve_log(parsed_log, dex_pool, tokens_for_pool)
+    res = eth_resolve_log_service.resolve_log(parsed_log, dex_pool, tokens_for_pool, [])
     assert res
     assert res.token_amounts == [-3.847636519008312, 1.6]
     assert res.token_reserves == [1, 1]

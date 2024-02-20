@@ -76,7 +76,7 @@ class ExportDexTradesJob(BaseJob):
                 self.tokens_by_address[token_address] for token_address in dex_pool.token_addresses
             ]
             transfers_for_transaction = self.transfers_by_transaction_hash.get(
-                log.transaction_hash
+                log.transaction_hash, []
             )
             resolved_log = self.log_resolve_service.resolve_log(
                 log, dex_pool, tokens_for_pool, transfers_for_transaction

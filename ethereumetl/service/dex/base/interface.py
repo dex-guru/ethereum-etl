@@ -24,9 +24,9 @@ class DexClientInterface(ABC, Generic[TDexClient]):
     def resolve_receipt_log(
         self,
         parsed_receipt_log: ParsedReceiptLog,
-        dex_pool: EthDexPool | None = None,
-        tokens_for_pool: list[EthToken] | None = None,
-        transfers_for_transaction: list[EthTokenTransfer] | None = None,
+        dex_pool: EthDexPool,
+        tokens_for_pool: list[EthToken],
+        transfers_for_transaction: list[EthTokenTransfer],
     ) -> EthDexTrade | None: ...
 
     @staticmethod

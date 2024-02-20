@@ -163,8 +163,8 @@ class EthResolveLogService:
         self,
         parsed_log: ParsedReceiptLog,
         dex_pool: EthDexPool,
-        tokens_for_pool: list[EthToken] | None = None,
-        transfers_for_transaction: list[EthTokenTransfer] | None = None,
+        tokens_for_pool: list[EthToken],
+        transfers_for_transaction: list[EthTokenTransfer],
     ) -> EthDexTrade | None:
         namespace = self._dex_client_factory.get_namespace_by_factory(dex_pool.factory_address)
         if namespace and self._dex_client_factory.get(namespace):
