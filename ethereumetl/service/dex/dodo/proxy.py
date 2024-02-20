@@ -1,24 +1,23 @@
-from collections.abc import Iterator
+import logging
 from functools import lru_cache
 
-from clients.blockchain import BaseBlockchainClient
-from clients.blockchain.amm.base.base_contract import BaseContract
-from clients.blockchain.amm.dodo.contracts_v1 import DODOv1Amm
-from clients.blockchain.amm.dodo.contracts_v2 import DODOv2Amm
-from clients.blockchain.interfaces import AmmClientI
-from clients.blockchain.models.pool import BasePool
-from clients.blockchain.models.tokens import ERC20Token
-from clients.blockchain.models.transaction import ReceiptLog
-from clients.blockchain.models.transfer import TransferBase
-from eth_typing import ChecksumAddress
-from utils.logger import get_logger
+from web3 import Web3
 
-logs = get_logger(__name__)
+from ethereumetl.domain.dex_pool import EthDexPool
+from ethereumetl.domain.dex_trade import EthDexTrade
+from ethereumetl.domain.receipt_log import ParsedReceiptLog
+from ethereumetl.domain.token import EthToken
+from ethereumetl.domain.token_transfer import EthTokenTransfer
+from ethereumetl.service.dex.base.interface import DexClientInterface
+from ethereumetl.service.dex.dodo.contracts_v1 import DODOv1Amm
+from ethereumetl.service.dex.dodo.contracts_v2 import DODOv2Amm
+
+logs = logging.getLogger(__name__)
 
 AMM_TYPE = "dodo"
 
 
-class DODOAmm(BaseContract, BaseBlockchainClient, AmmClientI):
+class DODOAmm(DexClientInterface):
     """
     DODO proxy AMM client
     This class proxying parsing to 2 versions of contracts (v1 and v2).
@@ -36,30 +35,19 @@ class DODOAmm(BaseContract, BaseBlockchainClient, AmmClientI):
         0x41d3f26a42a6fe734db47d08c02af8faba22576825568f00b94690768dbca217 (events 115 and 118).
     """
 
-    _amm_clients: list[AmmClientI]
+    _amm_clients: list
 
-    def __init__(self, uri: str, amm_type: str, contracts: dict):
-        self._init_amm_clients(uri=uri, amm_type=amm_type, contracts=contracts)
-        super().__init__(uri=uri, amm_type=amm_type, contracts=contracts)
+    def __init__(self, web3: Web3, chain_id: int, path_to_file: str | None = None):
+        self._init_amm_clients(web3, chain_id, path_to_file)
 
-    def _init_amm_clients(self, uri: str, amm_type: str, contracts: dict):
+    def _init_amm_clients(self, web3: Web3, chain_id: int, path_to_file: str | None = None):
         self._amm_clients = [
-            DODOv1Amm(uri=uri, amm_type=amm_type, contracts=contracts),
-            DODOv2Amm(uri=uri, amm_type=amm_type, contracts=contracts),
+            DODOv1Amm(web3, chain_id, path_to_file),
+            DODOv2Amm(web3, chain_id, path_to_file),
         ]
 
-    @property
-    def pool_contract_names(self) -> Iterator[str]:
-        for client in self._amm_clients:
-            yield from client.pool_contract_names
-
-    @property
-    def pool_contracts_events_names(self) -> Iterator[str]:
-        for client in self._amm_clients:
-            yield from client.pool_contracts_events_names()
-
     @lru_cache(maxsize=50)
-    def _choose_amm_client(self, pool_address: str) -> AmmClientI:
+    def _choose_amm_client(self, pool_address: str) -> DODOv1Amm | DODOv2Amm:
         logs.debug(f"Choosing amm client for pool {pool_address}")
         for amm_client in self._amm_clients:
             if amm_client.is_pool_address_for_amm(pool_address):
@@ -68,24 +56,18 @@ class DODOAmm(BaseContract, BaseBlockchainClient, AmmClientI):
 
         raise ValueError(f"No amm client for pool {pool_address}")
 
-    def get_tokens_addresses_for_pool(self, pool_address: ChecksumAddress) -> list | None:
-        client = self._choose_amm_client(pool_address)
-        return client.get_tokens_addresses_for_pool(pool_address)
-
-    def get_base_pool(self, address: ChecksumAddress) -> BasePool | None:
-        client = self._choose_amm_client(address)
-        return client.get_base_pool(address)
+    def resolve_asset_from_log(self, parsed_log: ParsedReceiptLog) -> EthDexPool | None:
+        client = self._choose_amm_client(parsed_log.address)
+        return client.resolve_asset_from_log(parsed_log)
 
     def resolve_receipt_log(
         self,
-        receipt_log: ReceiptLog,
-        base_pool: BasePool,
-        erc20_tokens: list[ERC20Token],
-        transfers: list[TransferBase],
-    ) -> dict | None:
-        client = self._choose_amm_client(base_pool.address)
-        return client.resolve_receipt_log(receipt_log, base_pool, erc20_tokens, transfers)
-
-    def get_lp_token_address_for_pool(self, pool_address: str) -> list[str]:
-        client = self._choose_amm_client(pool_address)
-        return client.get_lp_token_address_for_pool(pool_address)
+        parsed_receipt_log: ParsedReceiptLog,
+        dex_pool: EthDexPool,
+        tokens_for_pool: list[EthToken],
+        transfers_for_transaction: list[EthTokenTransfer],
+    ) -> EthDexTrade | None:
+        client = self._choose_amm_client(dex_pool.address)
+        return client.resolve_receipt_log(
+            parsed_receipt_log, dex_pool, tokens_for_pool, transfers_for_transaction
+        )
