@@ -61,7 +61,7 @@ class ExportDexTradesJob(BaseJob):
             for log in self.logs_iterable
             if log['event_name'] in PARSABLE_TRADE_EVENTS
         )
-        self.batch_work_executor.execute(logs, self._export_trades, len(self.logs_iterable))
+        self.batch_work_executor.execute(logs, self._export_trades)
 
     def _end(self):
         self.batch_work_executor.shutdown()

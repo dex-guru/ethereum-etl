@@ -45,6 +45,7 @@ from ethereumetl.streaming.enrich import (
     enrich_token_transfers_priced,
     enrich_traces,
     enrich_transactions,
+    enrich_transfers_for_trades,
 )
 from ethereumetl.streaming.eth_item_id_calculator import EthItemIdCalculator
 from ethereumetl.streaming.eth_item_timestamp_calculator import EthItemTimestampCalculator
@@ -71,6 +72,7 @@ DEX_POOL = EntityType.DEX_POOL
 DEX_TRADE = EntityType.DEX_TRADE
 PARSED_LOG = EntityType.PARSED_LOG
 ENRICHED_DEX_TRADE = EntityType.ENRICHED_DEX_TRADE
+ENRICHED_TRANSFER = EntityType.ENRICHED_TRANSFER
 
 
 class EthStreamerAdapter:
@@ -95,6 +97,7 @@ class EthStreamerAdapter:
         DEX_POOL: ('address',),
         DEX_TRADE: ('block_number', 'log_index'),
         ENRICHED_DEX_TRADE: ('block_number', 'transaction_hash', 'log_index'),
+        ENRICHED_TRANSFER: ('block_number', 'transaction_hash', 'log_index'),
     }
 
     ENRICH = {
@@ -111,6 +114,7 @@ class EthStreamerAdapter:
         TRANSACTION: (RECEIPT, lambda r, t: enrich_transactions(t, r)),
         TOKEN_TRANSFER_PRICED: (BLOCK, enrich_token_transfers_priced),
         ENRICHED_DEX_TRADE: (BLOCK, enrich_dex_trades),
+        ENRICHED_TRANSFER: (TRANSACTION, enrich_transfers_for_trades),
         PARSED_LOG: (BLOCK, enrich_parsed_logs),
     }
 
@@ -139,6 +143,7 @@ class EthStreamerAdapter:
             INTERNAL_TRANSFER,
             TRANSACTION,
         ),
+        ENRICHED_TRANSFER: (ENRICHED_DEX_TRADE,),
     }
 
     def __init__(
@@ -223,7 +228,7 @@ class EthStreamerAdapter:
                     export(PARSED_LOG), export(TOKEN), export(DEX_POOL), export(TOKEN_TRANSFER)
                 ),
                 (PARSED_LOG,): lambda: self.parse_logs(export(LOG)),
-                (ENRICHED_DEX_TRADE,): lambda: self.export_enriched_dex_trades(
+                (ENRICHED_DEX_TRADE, ENRICHED_TRANSFER): lambda: self.export_enriched_dex_trades(
                     export(DEX_TRADE),
                     export(DEX_POOL),
                     self.import_base_token_prices([t['address'] for t in export(TOKEN)]),
@@ -608,8 +613,8 @@ class EthStreamerAdapter:
         token_transfers: list,
         internal_transfers: list,
         transactions: list,
-    ):
-        item_exporter = InMemoryItemExporter([ENRICHED_DEX_TRADE])
+    ) -> tuple[list[dict], list[dict]]:
+        item_exporter = InMemoryItemExporter([ENRICHED_DEX_TRADE, ENRICHED_TRANSFER])
         stablecoin_addresses = self.chain_config['stablecoin_addresses']
         native_token = self.chain_config['native_token']
         job = EnrichDexTradeJob(
@@ -626,7 +631,8 @@ class EthStreamerAdapter:
         )
         job.run()
         enriched_dex_trades = item_exporter.get_items(ENRICHED_DEX_TRADE)
-        return enriched_dex_trades
+        enriched_transfers = item_exporter.get_items(ENRICHED_TRANSFER)
+        return enriched_dex_trades, enriched_transfers
 
     def import_base_token_prices(
         self,

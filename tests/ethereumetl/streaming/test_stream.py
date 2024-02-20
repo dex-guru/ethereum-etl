@@ -226,6 +226,7 @@ def test_stream_clickhouse(
         EntityType.PARSED_LOG,
         EntityType.DEX_TRADE,
         EntityType.ENRICHED_DEX_TRADE,
+        EntityType.ENRICHED_TRANSFER,
         EntityType.DEX_POOL,
     }
 

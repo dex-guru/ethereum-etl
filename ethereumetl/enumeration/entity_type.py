@@ -23,6 +23,7 @@ class EntityType(str, Enum):
     DEX_TRADE = 'dex_trade'
     PARSED_LOG = 'parsed_log'
     ENRICHED_DEX_TRADE = 'enriched_dex_trade'
+    ENRICHED_TRANSFER = 'enriched_transfer'
 
     def __str__(self):
         return self.value
@@ -47,6 +48,7 @@ ALL_FOR_STREAMING = (
     EntityType.DEX_POOL,
     EntityType.DEX_TRADE,
     EntityType.ENRICHED_DEX_TRADE,
+    EntityType.ENRICHED_TRANSFER,
 )
 ALL_FOR_INFURA = (
     EntityType.BLOCK,

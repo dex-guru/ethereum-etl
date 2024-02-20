@@ -13,15 +13,15 @@ from ethereumetl.service.price_service import PriceService
 class EnrichDexTradeJob(BaseJob):
     def __init__(
         self,
-        dex_pools,
-        base_tokens_prices,
-        tokens,
-        token_transfers,
-        internal_transfers,
-        transactions,
-        dex_trades,
-        stablecoin_addresses,
-        native_token,
+        dex_pools: list[dict],
+        base_tokens_prices: list[dict],
+        tokens: list[dict],
+        token_transfers: list[dict],
+        internal_transfers: list[dict],
+        transactions: list[dict],
+        dex_trades: list[dict],
+        stablecoin_addresses: list[str],
+        native_token: dict,
         item_exporter,
     ):
         self._detect_owner_service = SwapOwnerDetectionService()
@@ -35,20 +35,17 @@ class EnrichDexTradeJob(BaseJob):
         self.item_exporter = item_exporter
         self._native_token_address = native_token['address']
         self._dex_pools_by_address = {dex_pool['address']: dex_pool for dex_pool in dex_pools}
-        self._lp_addresses_by_pool_address = {
-            dex_pool['address']: dex_pool['lp_token_addresses'] for dex_pool in dex_pools
-        }
-        self._tokens_by_address = {token['address']: token for token in tokens}
-        self._token_transfers_by_hash = defaultdict(list)
-        self.enriched_dex_trades: list[dict] = []
-        self._dex_trades_by_hash = defaultdict(list)
 
-        self._build_token_transfers_by_hash(token_transfers)
-        self._build_token_transfers_from_internal_transfers(internal_transfers)
-        self._build_token_transfers_from_transactions(transactions)
+        self._tokens_by_address = {token['address']: token for token in tokens}
+        self._token_transfers_by_hash: dict[str, list] = defaultdict(list)
+        self._dex_trades_by_hash = defaultdict(list)
 
         for dex_trade in dex_trades:
             self._dex_trades_by_hash[dex_trade['transaction_hash']].append(dex_trade)
+
+        self._build_token_transfers_by_hash(token_transfers)
+        self._build_token_transfers_by_hash_from_internal_transfers(internal_transfers)
+        self._build_token_transfers_by_hash_from_transactions(transactions)
 
     def _start(self):
         self.item_exporter.open()
@@ -60,20 +57,30 @@ class EnrichDexTradeJob(BaseJob):
         self.item_exporter.close()
 
     def _enrich_all(self):
-        for _dex_trades_by_hash in self._dex_trades_by_hash.values():
+        for tx_hash, _dex_trades_by_hash in self._dex_trades_by_hash.items():
             try:
-                self._enrich(_dex_trades_by_hash)
+                self._enrich_trades(_dex_trades_by_hash)
             except Exception as e:
                 # TODO
-                logging.error(f'Failed to enrich dex trades: {e}')
+                logging.error(f'Failed to enrich dex trades: {e.with_traceback(None)}')
+            try:
+                self._enrich_transfers(self._token_transfers_by_hash[tx_hash])
+            except Exception as e:
+                # TODO
+                logging.error(f'Failed to enrich transfers: {e.with_traceback(None)}')
+
+    def _enrich_transfers(self, transfers):
+        for transfer in transfers:
+            self._enrich_transfer(transfer)
 
     def _build_token_transfers_by_hash(self, token_transfers):
         token_transfers_ = deepcopy(token_transfers)
         for transfer in token_transfers_:
             self._token_transfers_by_hash[transfer['transaction_hash']].append(transfer)
 
-    def _build_token_transfers_from_internal_transfers(self, internal_transfers):
-        for transfer in internal_transfers:
+    def _build_token_transfers_by_hash_from_internal_transfers(self, internal_transfers):
+        internal_transfers_copy = deepcopy(internal_transfers)
+        for transfer in internal_transfers_copy:
             if transfer['value'] == 0:
                 continue
             if not self._token_transfers_by_hash.get(transfer['transaction_hash']):
@@ -89,8 +96,9 @@ class EnrichDexTradeJob(BaseJob):
             transfer['log_index'] = max_log_index + 1
             self._token_transfers_by_hash[transfer['transaction_hash']].append(transfer)
 
-    def _build_token_transfers_from_transactions(self, transactions):
-        for tx in transactions:
+    def _build_token_transfers_by_hash_from_transactions(self, transactions):
+        transactions_copy = deepcopy(transactions)
+        for tx in transactions_copy:
             if tx['value'] == 0:
                 continue
             if not self._token_transfers_by_hash.get(tx['hash']):
@@ -105,12 +113,12 @@ class EnrichDexTradeJob(BaseJob):
                 'to_address': tx['to_address'],
                 'transaction_hash': tx['hash'],
                 'block_number': tx['block_number'],
-                'token_address': '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+                'token_address': copy(self._native_token_address),
                 'log_index': max_log_index + 1,
             }
             self._token_transfers_by_hash[transfer['transaction_hash']].append(transfer)
 
-    def _enrich(self, dex_trades):
+    def _enrich_trades(self, dex_trades):
         liquidity_events_by_event_type: dict[str, list[dict]] = {
             'burn': [],
             'mint': [],
@@ -221,7 +229,6 @@ class EnrichDexTradeJob(BaseJob):
                     ],
                     'wallet_address': transfer['to_address'],
                     'amounts': amounts,
-                    'prices': merged_event['token_prices'],
                     'amount_stable': sum_amount_stable,
                     'amount_native': sum_amount_native,
                     'prices_stable': merged_event['prices_stable'],
@@ -282,7 +289,6 @@ class EnrichDexTradeJob(BaseJob):
             ],
             'wallet_address': swap_owner,
             'amounts': swap_event['amounts'],
-            'prices': swap_event['token_prices'],
             'amount_stable': swap_event['amount_stable'],
             'amount_native': swap_event['amount_native'],
             'prices_stable': swap_event['prices_stable'],
@@ -297,6 +303,70 @@ class EnrichDexTradeJob(BaseJob):
         }
 
         self.item_exporter.export_item(event)
+
+    def _enrich_transfer(self, transfer):
+
+        def make_copies_with_filter_columns(transfer_):
+            copies = []
+            filter_columns = [
+                'token_addresses',
+                'transaction_hash',
+                'wallet_addresses',
+            ]
+            mapping = {
+                'token_addresses': 'token',
+                'wallet_addresses': 'wallet',
+                'transaction_hash': 'transaction',
+            }
+            for column in filter_columns:
+                mapped_column = mapping[column]
+                if isinstance(transfer_[column], list):
+                    for value in transfer_[column]:
+                        copy_ = deepcopy(transfer_)
+                        copy_['filter_column'] = f'{mapped_column}_{value}'
+                        copies.append(copy_)
+                else:
+                    copy_ = deepcopy(transfer_)
+                    copy_['filter_column'] = f'{mapped_column}_{transfer_[column]}'
+                    copies.append(copy_)
+            return copies
+
+        amount = (
+            transfer['value']
+            / 10 ** self._tokens_by_address[transfer['token_address']]['decimals']
+        )
+        price_stable = self._price_service.base_tokens_prices.get(
+            transfer['token_address'], {'price_stable': 0}
+        )['price_stable']
+        price_native = self._price_service.base_tokens_prices.get(
+            transfer['token_address'], {'price_native': 0}
+        )['price_native']
+
+        enriched_transfer = {
+            'log_index': transfer['log_index'],
+            'transaction_hash': transfer['transaction_hash'],
+            'transaction_type': transfer.get('token_standard', 'native_transfer')
+            .lower()
+            .replace('-', ''),
+            'token_addresses': [transfer['token_address']],
+            'symbols': [self._tokens_by_address[transfer['token_address']]['symbol']],
+            'wallet_addresses': [transfer['from_address'], transfer['to_address']],
+            'amounts': [amount],
+            'amount_stable': price_stable * amount,
+            'amount_native': price_native * amount,
+            'prices_stable': [price_stable],
+            'prices_native': [price_native],
+            'pool_address': '',
+            'lp_token_address': '',
+            'reserves': [],
+            'reserves_stable': [],
+            'reserves_native': [],
+            'type': 'enriched_transfer',
+            'factory_address': '',
+        }
+
+        copies = make_copies_with_filter_columns(enriched_transfer)
+        self.item_exporter.export_items(copies)
 
     def _get_target_transfer(
         self,

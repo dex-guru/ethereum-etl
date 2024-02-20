@@ -379,6 +379,19 @@ def enrich_dex_trades(blocks, dex_trades):
     )
 
 
+def enrich_transfers_for_trades(transactions, transfers_for_trades):
+    return list(
+        join(
+            transfers_for_trades,
+            transactions,
+            ('transaction_hash', 'hash'),
+            ['type', 'filter_column', 'wallet_addresses']
+            + [f.name for f in dataclasses.fields(EnrichedDexTrade)],
+            ('block_timestamp', 'block_number', 'block_hash'),
+        )
+    )
+
+
 def enrich_parsed_logs(blocks, parsed_logs):
     return list(
         join(

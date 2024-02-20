@@ -39,6 +39,7 @@ DEX_POOL = EntityType.DEX_POOL
 DEX_TRADE = EntityType.DEX_TRADE
 PARSED_LOG = EntityType.PARSED_LOG
 ENRICHED_DEX_TRADE = EntityType.ENRICHED_DEX_TRADE
+ENRICHED_TRANSFER = EntityType.ENRICHED_TRANSFER
 
 
 # noinspection PyProtectedMember
@@ -668,7 +669,7 @@ class ClickhouseEthStreamerAdapter:
             return base_token_prices
 
         @cache
-        def export_enriched_dex_trades():
+        def export_enriched_dex_trades() -> tuple[list, list, bool]:
             assert self.clickhouse, "Clickhouse client is not initialized"
             from_ch_ = False
             logger.info("enriching DEX_TRADES...")
@@ -686,7 +687,7 @@ class ClickhouseEthStreamerAdapter:
             internal_transfers = extract_internal_transfers()[0]
             transactions = export_blocks_and_transactions()[1]
             base_tokens_prices = import_base_tokens_prices()
-            enriched_dex_trades = self.eth_streamer.export_enriched_dex_trades(
+            enriched_dex_trades, enriched_transfers = self.eth_streamer.export_enriched_dex_trades(
                 dex_trades=dex_trades,
                 dex_pools=dex_pools,
                 base_tokens_prices=base_tokens_prices,
@@ -695,7 +696,7 @@ class ClickhouseEthStreamerAdapter:
                 internal_transfers=internal_transfers,
                 transactions=transactions,
             )
-            return enriched_dex_trades, from_ch_
+            return enriched_dex_trades, enriched_transfers, from_ch_
 
         exported: dict[EntityType, list] = {ERROR: []}
         from_ch: dict[EntityType, bool] = {}
@@ -720,7 +721,7 @@ class ClickhouseEthStreamerAdapter:
             ((DEX_POOL,), export_dex_pools),
             ((PARSED_LOG,), parse_logs),
             ((DEX_TRADE,), export_dex_trades),
-            ((ENRICHED_DEX_TRADE,), export_enriched_dex_trades),
+            ((ENRICHED_DEX_TRADE, ENRICHED_TRANSFER), export_enriched_dex_trades),
         ):
             for entity_type in entity_types:
                 if entity_type not in self.eth_streamer.should_export:
