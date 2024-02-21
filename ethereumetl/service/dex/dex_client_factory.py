@@ -17,6 +17,7 @@ from ethereumetl.service.dex.quickswap_v3.quickswap_v3 import QuickswapV3Amm
 from ethereumetl.service.dex.sushiswap_bento.sushiswap_bento import SushiSwapBentoAmm
 from ethereumetl.service.dex.uniswap_v2.uniswap_v2 import UniswapV2Amm
 from ethereumetl.service.dex.uniswap_v3.uniswap_v3 import UniswapV3Amm
+from ethereumetl.utils import Singleton
 
 ABI = Sequence[Mapping[str, Any]]
 EventABI = dict[str, Any]
@@ -24,7 +25,7 @@ FilePath = str
 to_checksum = Web3.to_checksum_address
 
 
-class ContractAdaptersFactory:
+class ContractAdaptersFactory(metaclass=Singleton):
     """Creates an instance of an AMM client based on the AMM type."""
 
     METADATA_FILE_NAME = 'metadata.json'
