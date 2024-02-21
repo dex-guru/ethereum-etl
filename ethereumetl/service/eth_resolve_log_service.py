@@ -38,6 +38,7 @@ from ethereumetl.domain.receipt_log import EthReceiptLog, ParsedReceiptLog
 from ethereumetl.domain.token import EthToken
 from ethereumetl.domain.token_transfer import EthTokenTransfer
 from ethereumetl.service.dex.dex_client_factory import ContractAdaptersFactory
+from ethereumetl.utils import Singleton
 
 logger = logging.getLogger('eth_pool_service')
 
@@ -47,7 +48,7 @@ FilePath = str
 to_checksum = Web3.to_checksum_address
 
 
-class EthResolveLogService:
+class EthResolveLogService(metaclass=Singleton):
     def __init__(self, web3, chain_id):
         self._web3: Web3 = web3
         self._chain_id = chain_id

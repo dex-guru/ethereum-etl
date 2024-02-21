@@ -15,7 +15,9 @@ TDexClient = TypeVar("TDexClient", bound="DexClientInterface")
 
 class DexClientInterface(ABC, Generic[TDexClient]):
     @abstractmethod
-    def __init__(self, web3: Web3, chain_id: int | None = None, file_path: str | None = None): ...
+    def __init__(
+        self, web3: Web3, chain_id: int | None = None, file_path: str | None = __file__
+    ): ...
 
     @abstractmethod
     def resolve_asset_from_log(self, parsed_log: ParsedReceiptLog) -> EthDexPool | None: ...

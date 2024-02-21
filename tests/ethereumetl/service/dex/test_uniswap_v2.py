@@ -34,12 +34,15 @@ log = EthReceiptLog(
 @pytest.fixture
 def dex_pool():
     return EthDexPool(
-        address='0xe4d96c90d2608a9e8efe2d7feee5a1feb8eead29',
+        address='0x68e4af213c49f320175116bff189c9ca452ce29c',
         factory_address='0x5c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f',
-        token_addresses=['0x1', '0x2'],
+        token_addresses=[
+            '0x0000000000ca73a6df4c58b84c5b4b847fe8ff39',
+            '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+        ],
         fee=3000,
-        lp_token_addresses=['0xe4d96c90d2608a9e8efe2d7feee5a1feb8eead29'],
-        underlying_token_addresses=[],
+        lp_token_addresses=['0x68e4af213c49f320175116bff189c9ca452ce29c'],
+        underlying_token_addresses=(),
     )
 
 
@@ -47,14 +50,14 @@ def dex_pool():
 def tokens_for_pool():
     return [
         EthToken(
-            address='0x1',
+            address='0x0000000000ca73a6df4c58b84c5b4b847fe8ff39',
             symbol='T1',
             decimals=18,
             name='Token 1',
             total_supply=100000000000000000000000000,
         ),
         EthToken(
-            address='0x2',
+            address='0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
             symbol='T2',
             decimals=18,
             name='Token 2',
@@ -79,3 +82,9 @@ def test_resolve_receipt_log(
     assert res.token_amounts == [-3.847636519008312, 1.6]
     assert res.token_reserves == [1, 1]
     assert res.token_prices == [[1.0, 1.0], [1.0, 1.0]]
+
+
+def test_resolve_asset_from_log(eth_resolve_log_service, dex_pool):
+    parsed_log = eth_resolve_log_service.parse_log(log)
+    res = eth_resolve_log_service.resolve_asset_from_log(parsed_log)
+    assert res == dex_pool

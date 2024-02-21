@@ -83,17 +83,8 @@ class EnrichDexTradeJob(BaseJob):
         for transfer in internal_transfers_copy:
             if transfer['value'] == 0:
                 continue
-            if not self._token_transfers_by_hash.get(transfer['transaction_hash']):
-                max_log_index = 0
-            else:
-                max_log_index = max(
-                    [
-                        i['log_index']
-                        for i in self._token_transfers_by_hash[transfer['transaction_hash']]
-                    ]
-                )
             transfer['token_address'] = copy(self._native_token_address)
-            transfer['log_index'] = max_log_index + 1
+            transfer['log_index'] = hash(transfer['transaction_hash'] + transfer['id']) % 10000
             self._token_transfers_by_hash[transfer['transaction_hash']].append(transfer)
 
     def _build_token_transfers_by_hash_from_transactions(self, transactions):
@@ -101,12 +92,6 @@ class EnrichDexTradeJob(BaseJob):
         for tx in transactions_copy:
             if tx['value'] == 0:
                 continue
-            if not self._token_transfers_by_hash.get(tx['hash']):
-                max_log_index = 0
-            else:
-                max_log_index = max(
-                    [i['log_index'] for i in self._token_transfers_by_hash[tx['hash']]]
-                )
             transfer = {
                 'value': tx['value'],
                 'from_address': tx['from_address'],
@@ -114,7 +99,7 @@ class EnrichDexTradeJob(BaseJob):
                 'transaction_hash': tx['hash'],
                 'block_number': tx['block_number'],
                 'token_address': copy(self._native_token_address),
-                'log_index': max_log_index + 1,
+                'log_index': hash(tx['hash']) % 10000,
             }
             self._token_transfers_by_hash[transfer['transaction_hash']].append(transfer)
 

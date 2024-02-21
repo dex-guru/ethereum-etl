@@ -1,4 +1,5 @@
 import json
+from functools import cache
 from pathlib import Path
 
 NULL_ADDRESSES = {
@@ -68,6 +69,7 @@ PARSABLE_TRADE_EVENTS = [
 INFINITE_PRICE_THRESHOLD = 9.999999999999999e45
 
 
+@cache
 def get_chain_config(chain_id) -> dict:
     def all_addresses_to_lower(item: dict):
         for key in item:
@@ -81,8 +83,8 @@ def get_chain_config(chain_id) -> dict:
     with open(Path(__file__).parent.parent / 'chains_config.json') as file:
         data = json.load(file)
         # Search for the dictionary with the matching chain_id
-    for item in data:
-        if item.get("id") == chain_id:
-            all_addresses_to_lower(item)
-            return item
+    for chain in data:
+        if chain.get("id") == chain_id:
+            all_addresses_to_lower(chain)
+            return chain
     raise ValueError(f'Chain id {chain_id} not found in chains_config.json')

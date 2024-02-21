@@ -37,10 +37,11 @@ class DODOAmm(DexClientInterface):
 
     _amm_clients: list
 
-    def __init__(self, web3: Web3, chain_id: int, path_to_file: str | None = None):
+    def __init__(self, web3: Web3, chain_id: int, path_to_file: str = __file__):
+        super().__init__(web3, chain_id)
         self._init_amm_clients(web3, chain_id, path_to_file)
 
-    def _init_amm_clients(self, web3: Web3, chain_id: int, path_to_file: str | None = None):
+    def _init_amm_clients(self, web3: Web3, chain_id: int, path_to_file: str):
         self._amm_clients = [
             DODOv1Amm(web3, chain_id, path_to_file),
             DODOv2Amm(web3, chain_id, path_to_file),
@@ -68,6 +69,7 @@ class DODOAmm(DexClientInterface):
         transfers_for_transaction: list[EthTokenTransfer],
     ) -> EthDexTrade | None:
         client = self._choose_amm_client(dex_pool.address)
+
         return client.resolve_receipt_log(
             parsed_receipt_log, dex_pool, tokens_for_pool, transfers_for_transaction
         )

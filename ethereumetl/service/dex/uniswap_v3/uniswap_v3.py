@@ -12,7 +12,7 @@ from ethereumetl.domain.dex_trade import EthDexTrade
 from ethereumetl.domain.receipt_log import ParsedReceiptLog
 from ethereumetl.domain.token import EthToken
 from ethereumetl.domain.token_transfer import EthTokenTransfer
-from ethereumetl.service.dex.base.interface import DexClientInterface
+from ethereumetl.service.dex.base.base_dex_client import BaseDexClient
 from ethereumetl.service.dex.enums import DexPoolFeeAmount
 from ethereumetl.utils import get_prices_for_two_pool
 
@@ -26,17 +26,12 @@ MIN_SQRT_RATIO = 4295128739
 MAX_SQRT_RATIO = 1461446703485210103287273052203988822378723970342
 
 
-class UniswapV3Amm(DexClientInterface):
+class UniswapV3Amm(BaseDexClient):
 
-    def __init__(self, web3: Web3, chain_id: int | None = None, file_path: str | None = None):
+    def __init__(self, web3: Web3, chain_id: int | None = None, file_path: str = __file__):
+        super().__init__(web3, chain_id, file_path)
         self.web3 = web3
-        if not file_path:
-            file_path = __file__
         pool_abi_path = Path(file_path).parent / "Pool.json"
-        erc20_abi_path = Path(file_path).parent.parent / "base" / "ERC20.json"
-        self.erc20_contract_abi = self.web3.eth.contract(
-            abi=json.loads(erc20_abi_path.read_text())
-        )
         self.pool_contract_abi = self.web3.eth.contract(abi=json.loads(pool_abi_path.read_text()))
 
     @property
@@ -47,9 +42,6 @@ class UniswapV3Amm(DexClientInterface):
             'Mint': self.get_mint_from_event,
             'Collect': self.get_burn_from_event,
         }
-
-    def get_event_abi(self, event_name: str):
-        return self.pool_contract_abi.events[event_name]().abi
 
     def resolve_asset_from_log(self, parsed_log: ParsedReceiptLog) -> EthDexPool | None:
         pool_address = parsed_log.address
@@ -87,7 +79,7 @@ class UniswapV3Amm(DexClientInterface):
         token_scalars = self._get_token_scalars(tokens_for_pool, dex_pool)
         resolve_func: Callable = self.event_resolver[event_name]
         parsed_receipt_log.parsed_event = self.normalize_event(
-            self.get_event_abi(event_name)['inputs'],
+            self._get_events_abi(self.pool_contract_abi, event_name)['inputs'],
             parsed_receipt_log.parsed_event,
         )
         try:
@@ -129,13 +121,13 @@ class UniswapV3Amm(DexClientInterface):
 
         reserves = []
         for idx, token in enumerate(dex_pool.token_addresses):
-            reserves.append(
-                self.erc20_contract_abi.functions.balanceOf(to_checksum(dex_pool.address)).call(
-                    {"to": to_checksum(token)},
-                    parsed_receipt_log.block_number,
-                )
-                / token_scalars[idx]
+            reserve = self._get_balance_of(
+                token, dex_pool.address, parsed_receipt_log.block_number
             )
+            if reserve:
+                reserves.append(reserve / token_scalars[idx])
+            else:
+                reserves.append(0)
         finance_info = {
             'reserve_0': reserves[0] / token_scalars[0],
             'reserve_1': reserves[1] / token_scalars[1],
