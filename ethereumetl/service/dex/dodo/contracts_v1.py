@@ -9,7 +9,6 @@ from ethereumetl.domain.dex_trade import EthDexTrade
 from ethereumetl.domain.receipt_log import ParsedReceiptLog
 from ethereumetl.domain.token import EthToken
 from ethereumetl.domain.token_transfer import EthTokenTransfer
-from ethereumetl.service.dex.base.interface import DexClientInterface
 from ethereumetl.service.dex.dodo.base import BaseDODOAmmClient
 from ethereumetl.utils import get_prices_for_two_pool
 
@@ -30,7 +29,7 @@ class DODOTransactionType(Enum):
         return [cls.buy_base_token.value, cls.sell_base_token.value]
 
 
-class DODOv1Amm(BaseDODOAmmClient, DexClientInterface):
+class DODOv1Amm(BaseDODOAmmClient):
     """
     DODO V1 AMM client.
 
@@ -74,13 +73,12 @@ class DODOv1Amm(BaseDODOAmmClient, DexClientInterface):
 
     pool_contract_name = "DODO.json"
     amm_type = "dodo"
-    pool_contract_names = [pool_contract_name]
     pool_contracts_events_enum = DODOTransactionType
 
     _get_lp_token_methods = ["_BASE_CAPITAL_TOKEN_", "_QUOTE_CAPITAL_TOKEN_"]
 
-    def __init__(self, web3: Web3, chain_id: int, path_to_file: str | None = None):
-        super().__init__(web3, chain_id)
+    def __init__(self, web3: Web3, chain_id: int, path_to_file: str = __file__):
+        super().__init__(web3, chain_id, path_to_file)
 
     def is_pool_address_for_amm(self, pool_address: str) -> bool:
         try:
@@ -98,10 +96,12 @@ class DODOv1Amm(BaseDODOAmmClient, DexClientInterface):
         tokens_for_pool: list[EthToken],
         transfers_for_transaction: list[EthTokenTransfer],
     ) -> EthDexTrade | None:
-
+        parsed_event = self._get_normalized_event(
+            parsed_receipt_log.event_name, parsed_receipt_log.parsed_event
+        )
         tokens_scalars = self._get_scalars_for_tokens(tokens_for_pool, dex_pool)
 
-        parsed_event, event_name = parsed_receipt_log.parsed_event, parsed_receipt_log.event_name
+        event_name = parsed_receipt_log.event_name
         if not (parsed_event and event_name):
             return None
         block_number = parsed_receipt_log.block_number

@@ -7,31 +7,29 @@ from web3 import Web3
 from web3.exceptions import BadFunctionCallOutput, ContractLogicError
 
 from ethereumetl.domain.dex_pool import EthDexPool
+from ethereumetl.domain.dex_trade import EthDexTrade
 from ethereumetl.domain.receipt_log import ParsedReceiptLog
 from ethereumetl.domain.token import EthToken
+from ethereumetl.domain.token_transfer import EthTokenTransfer
 from ethereumetl.misc.info import INFINITE_PRICE_THRESHOLD
-from ethereumetl.service.dex.base.interface import DexClientInterface
+from ethereumetl.service.dex.base.base_dex_client import BaseDexClient
 from ethereumetl.service.dex.enums import DexPoolFeeAmount
 
 logs = logging.getLogger(__name__)
 to_checksum = Web3.toChecksumAddress
 
 
-class BaseDODOAmmClient(DexClientInterface):
+class BaseDODOAmmClient(BaseDexClient):
     """Base class for DODO AMM clients."""
 
     pool_contract_name = ''
 
-    def __init__(self, web3: Web3, chain_id: int | None = None, file_path: str | None = None):
-        if not file_path:
-            file_path = __file__
+    def __init__(self, web3: Web3, chain_id: int | None = None, file_path: str = __file__):
+        super().__init__(web3, chain_id, file_path)
         assert self.pool_contract_name, "pool_contract_name is not set"
         pool_abi_path = Path(file_path).parent / self.pool_contract_name
         abi = json.loads(pool_abi_path.read_text())
-        self._w3: Web3 = web3
         self.pool_contract = self._w3.eth.contract(abi=abi)
-        erc20_abi_path = Path(file_path).parent.parent / "base" / "ERC20.json"
-        self.erc20_contract_abi = self._w3.eth.contract(abi=json.loads(erc20_abi_path.read_text()))
 
     def _get_factory_address(self, pool_address: ChecksumAddress) -> str | None:
         try:
@@ -65,6 +63,21 @@ class BaseDODOAmmClient(DexClientInterface):
             return None
 
         return tokens_addresses
+
+    def resolve_receipt_log(
+        self,
+        parsed_receipt_log: ParsedReceiptLog,
+        dex_pool: EthDexPool,
+        tokens_for_pool: list[EthToken],
+        transfers_for_transaction: list[EthTokenTransfer],
+    ) -> EthDexTrade | None:
+        raise NotImplementedError()
+
+    def _get_normalized_event(self, event_name: str, parsed_event: dict) -> dict:
+        return self.normalize_event(
+            self._get_events_abi(self.pool_contract, event_name),
+            parsed_event,
+        )
 
     def resolve_asset_from_log(self, parsed_log: ParsedReceiptLog) -> EthDexPool | None:
         address = to_checksum(parsed_log.address)

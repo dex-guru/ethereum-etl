@@ -4,7 +4,6 @@ from collections.abc import Generator
 from datetime import datetime
 from random import randint
 from unittest import mock
-from unittest.mock import MagicMock
 from urllib.parse import urlunparse
 
 import clickhouse_connect
@@ -16,6 +15,7 @@ from web3 import Web3
 from ethereumetl.clickhouse import migrate_up
 from ethereumetl.service.eth_resolve_log_service import EthResolveLogService
 from ethereumetl.utils import parse_clickhouse_url
+from tests.ethereumetl.job.helpers import get_web3_provider
 
 pytest.register_assert_rewrite("tests.helpers")
 
@@ -162,9 +162,9 @@ def clickhouse_migrated(clickhouse_migrated_url, clickhouse) -> clickhouse_conne
 
 @pytest.fixture(scope="function")
 def web3():
-    return Web3(MagicMock())
+    return Web3(get_web3_provider('infura', batch=True))
 
 
 @pytest.fixture()
 def eth_resolve_log_service(web3):
-    return EthResolveLogService(web3, 1)
+    yield EthResolveLogService(web3, 1)

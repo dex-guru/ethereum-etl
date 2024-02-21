@@ -13,27 +13,23 @@ from ethereumetl.domain.receipt_log import ParsedReceiptLog
 from ethereumetl.domain.token import EthToken
 from ethereumetl.domain.token_transfer import EthTokenTransfer
 from ethereumetl.misc.info import INFINITE_PRICE_THRESHOLD
-from ethereumetl.service.dex.base.interface import DexClientInterface
+from ethereumetl.service.dex.base.base_dex_client import BaseDexClient
 from ethereumetl.service.dex.enums import DexPoolFeeAmount
 from ethereumetl.utils import get_prices_for_two_pool
 
 to_checksum = Web3.toChecksumAddress
 
 
-class UniswapV2Amm(DexClientInterface):
+class UniswapV2Amm(BaseDexClient):
 
     POOL_ABI_PATH = "Pool.json"
 
-    def __init__(self, web3: Web3, chain_id: int | None = None, file_path: str | None = None):
-        if not file_path:
-            file_path = __file__
+    def __init__(self, web3: Web3, chain_id: int | None = None, file_path: str = __file__):
+        super().__init__(web3, chain_id, file_path)
         pool_abi_path = Path(file_path).parent / self.POOL_ABI_PATH
         abi = json.loads(pool_abi_path.read_text())
         self._w3: Web3 = web3
         self.pool_contract = self._w3.eth.contract(abi=abi)
-
-    def get_event_abi(self, event_name: str):
-        return self.pool_contract.events[event_name]().abi
 
     @property
     def event_resolver(self) -> dict[str, Callable]:
@@ -47,7 +43,7 @@ class UniswapV2Amm(DexClientInterface):
     def resolve_asset_from_log(self, parsed_log: ParsedReceiptLog) -> EthDexPool | None:
         address = parsed_log.address
         logging.debug(f"Resolving pool addresses for {address}")
-        factory_address = self.get_factory_address(to_checksum(address))
+        factory_address = self.get_factory_address(address)
         if not factory_address:
             logging.debug(f"Factory address not found for {address}, resolving {parsed_log}")
             return None
@@ -90,17 +86,6 @@ class UniswapV2Amm(DexClientInterface):
             logging.debug(f"Cant resolve tokens_addresses for pair {pool_address}, {e}")
         return None
 
-    @staticmethod
-    def _get_scalars_for_tokens(tokens: list[EthToken], dex_pool: EthDexPool) -> list[int]:
-        token_scalars = []
-        for token_address in dex_pool.token_addresses:
-            token = next((token for token in tokens if token.address == token_address), None)
-            if not token:
-                logging.debug(f"Token {token_address} not found in tokens")
-                return []
-            token_scalars.append(10**token.decimals)
-        return token_scalars
-
     def resolve_receipt_log(
         self,
         parsed_receipt_log: ParsedReceiptLog,
@@ -117,7 +102,7 @@ class UniswapV2Amm(DexClientInterface):
             logging.debug(f"Pool or tokens not found for {parsed_receipt_log}")
             return None
         parsed_receipt_log.parsed_event = self.normalize_event(
-            self.get_event_abi(event_name)['inputs'],
+            self._get_events_abi(self.pool_contract, event_name)['inputs'],
             parsed_receipt_log.parsed_event,
         )
         token_scalars = self._get_scalars_for_tokens(tokens_for_pool, dex_pool)

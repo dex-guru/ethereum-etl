@@ -83,7 +83,9 @@ class DODOv2Amm(BaseDODOAmmClient):
         transfers_for_transaction: list[EthTokenTransfer],
     ) -> EthDexTrade | None:
         tokens_scalars = self._get_scalars_for_tokens(tokens_for_pool, dex_pool)
-
+        parsed_receipt_log.parsed_event = self._get_normalized_event(
+            parsed_receipt_log.event_name, parsed_receipt_log.parsed_event
+        )
         parsed_event, event_name = parsed_receipt_log.parsed_event, parsed_receipt_log.event_name
         if not (parsed_event and event_name):
             return None

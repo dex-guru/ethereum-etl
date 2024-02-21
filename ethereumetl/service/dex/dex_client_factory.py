@@ -12,6 +12,7 @@ from ethereumetl.service.dex.canto_dex.canto_dex import CantoDexAmm
 from ethereumetl.service.dex.dmm.dmm import DMMAmm
 from ethereumetl.service.dex.dodo.proxy import DODOAmm
 from ethereumetl.service.dex.meshswap.meshswap import MeshswapAmm
+from ethereumetl.service.dex.one_inch.oneinch import OneInchAmm
 from ethereumetl.service.dex.quickswap_v3.quickswap_v3 import QuickswapV3Amm
 from ethereumetl.service.dex.sushiswap_bento.sushiswap_bento import SushiSwapBentoAmm
 from ethereumetl.service.dex.uniswap_v2.uniswap_v2 import UniswapV2Amm
@@ -37,7 +38,7 @@ class ContractAdaptersFactory:
         "dmm": DMMAmm,
         "dodo": DODOAmm,
         "dodo_v2": DODOAmm,
-        # "1inch": OneInchAmm,
+        "1inch": OneInchAmm,
         # "curve": CurveAmm,
         # "bancor_v2": BancorV2Amm,
         # "ellipsis": EllipsisAmm,

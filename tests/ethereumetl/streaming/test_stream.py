@@ -611,6 +611,7 @@ def test_eth_streamer_with_clickhouse_exporter(
         assert_table_not_empty(EntityType.TOKEN)
         assert_table_not_empty(EntityType.DEX_POOL)
         assert_table_not_empty(EntityType.ENRICHED_DEX_TRADE)
+        assert_table_not_empty(EntityType.ENRICHED_TRANSFER)
 
 
 def test_clickhouse_exporter_export_items(tmp_path, clickhouse_migrated_url):
