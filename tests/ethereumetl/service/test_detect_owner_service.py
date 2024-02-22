@@ -134,6 +134,10 @@ def detect_owner_service():
 
 
 def test_detect_swap_owner(detect_owner_service):
-    owner = detect_owner_service.get_swap_owner(transfers, dex_pool, all_pool_addresses)
-    # assert owner == '0xbf54079c9Bc879Ae4dD6BC79bCe11d3988fD9C2b'.lower() # TODO will be fixed after connect univ3
+    owner, owner_type = detect_owner_service.get_swap_owner_and_owner_type(
+        transfers, dex_pool, all_pool_addresses
+    )
+    # assert (
+    #     owner == '0xA7d2550Cc823721edc6641Da8cde8DD7AD369523'.lower()
+    # )  # TODO will be fixed after connect univ3
     assert owner

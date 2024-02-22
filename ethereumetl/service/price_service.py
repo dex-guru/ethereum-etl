@@ -20,6 +20,26 @@ class PriceService:
             for base_token_price in base_tokens_prices
         }
 
+    def set_base_prices_for_trade(self, dex_trade: dict):
+        prices = {}
+        self._ensure_base_prices(dex_trade)
+        base_token = self._get_base_token(dex_trade)
+        for token_address in dex_trade['token_addresses']:
+            prices[token_address] = self.base_tokens_prices.get(token_address, {})
+        dex_trade['prices_stable'] = [
+            prices[token_address]['price_stable'] for token_address in dex_trade['token_addresses']
+        ]
+        dex_trade['prices_native'] = [
+            prices[token_address]['price_native'] for token_address in dex_trade['token_addresses']
+        ]
+        dex_trade['amount_stable'] = prices[base_token]['price_stable'] * abs(
+            dex_trade['amounts'][dex_trade['token_addresses'].index(base_token)]
+        )
+        dex_trade['amount_native'] = prices[base_token]['price_native'] * abs(
+            dex_trade['amounts'][dex_trade['token_addresses'].index(base_token)]
+        )
+        return dex_trade
+
     def resolve_price_for_trade(self, dex_trade: dict):
         """Resolves the prices of tokens in a DEX trade."""
         self._initialize_prices(dex_trade)
