@@ -1,86 +1,135 @@
-from clients.blockchain.models.pool import PoolFinances
-from clients.blockchain.models.protocol_transaction import (
-    MintBurn,
-    Swap,
-)
-from utils.logger import get_logger
-from utils.prices import get_prices_for_two_pool
+import logging
+from typing import Literal
 
-from .uniswap_v3 import UniswapV3Amm
+from ethereumetl.domain.dex_pool import EthDexPool
+from ethereumetl.domain.dex_trade import EthDexTrade
+from ethereumetl.domain.receipt_log import ParsedReceiptLog
+from ethereumetl.service.dex.uniswap_v3.uniswap_v3 import UniswapV3Amm
+from ethereumetl.utils import get_prices_for_two_pool
 
-logs = get_logger(__name__)
-
-POOL_CONTRACT = "Pool"
+logs = logging.getLogger(__name__)
 
 
 class KyberSwapElasticAmm(UniswapV3Amm):
-    def get_ticks_spacing(self, pool_address, block_identifier: str | int = "latest"):
-        return (
-            self.abi[POOL_CONTRACT]
-            .contract.functions.tickDistance()
-            .call({"to": pool_address}, block_identifier)
+
+    def __init__(self, web3, chain_id: int | None = None, file_path: str = __file__):
+        super().__init__(web3, chain_id, file_path)
+
+    def get_ticks_spacing(
+        self, pool_address, block_identifier: int | Literal['latest'] = "latest"
+    ):
+        return self.pool_contract_abi.functions.tickDistance().call(
+            {"to": pool_address}, block_identifier
         )
 
     @staticmethod
-    def get_mint_burn_from_events(base_pool, parsed_event, tokens_scalars):
-        mint_burn = MintBurn(
+    def get_burn_from_event(
+        parsed_receipt_log: ParsedReceiptLog,
+        base_pool: EthDexPool,
+        finance_info: dict,
+        token_scalars: list[int],
+    ):
+        parsed_event = parsed_receipt_log.parsed_event
+        burn = EthDexTrade(
             pool_address=base_pool.address,
-            sender=parsed_event["sender"] if parsed_event.get("sender") else parsed_event["owner"],
-            owner=parsed_event["owner"] if parsed_event.get("owner") else parsed_event["sender"],
-            amounts=[
-                parsed_event["qty0"] / tokens_scalars[0],
-                parsed_event["qty1"] / tokens_scalars[1],
+            token_amounts=[
+                parsed_event["qty0"] / token_scalars[0],
+                parsed_event["qty1"] / token_scalars[1],
             ],
+            transaction_hash=parsed_receipt_log.transaction_hash,
+            log_index=parsed_receipt_log.log_index,
+            block_number=parsed_receipt_log.block_number,
+            event_type='burn',
+            token_reserves=[finance_info['reserve_0'], finance_info['reserve_1']],
+            token_prices=get_prices_for_two_pool(finance_info['price_0'], finance_info['price_1']),
+            token_addresses=base_pool.token_addresses,
+            lp_token_address=base_pool.lp_token_addresses[0],
         )
-        return mint_burn
+        return burn
 
     @staticmethod
-    def get_swap_from_swap_event(base_pool, parsed_event, tokens_scalars):
-        amount0 = parsed_event["deltaQty0"] / tokens_scalars[0]
-        amount1 = parsed_event["deltaQty1"] / tokens_scalars[1]
-
-        swap = Swap(
+    def get_mint_from_event(
+        parsed_receipt_log: ParsedReceiptLog,
+        base_pool: EthDexPool,
+        finance_info: dict,
+        token_scalars: list[int],
+    ):
+        parsed_event = parsed_receipt_log.parsed_event
+        mint = EthDexTrade(
             pool_address=base_pool.address,
-            sender=parsed_event["sender"],
-            to=parsed_event["recipient"],
-            amounts=[amount0, amount1],
+            token_amounts=[
+                parsed_event["qty0"] / token_scalars[0],
+                parsed_event["qty1"] / token_scalars[1],
+            ],
+            transaction_hash=parsed_receipt_log.transaction_hash,
+            log_index=parsed_receipt_log.log_index,
+            block_number=parsed_receipt_log.block_number,
+            event_type='mint',
+            token_reserves=[finance_info['reserve_0'], finance_info['reserve_1']],
+            token_prices=get_prices_for_two_pool(finance_info['price_0'], finance_info['price_1']),
+            token_addresses=base_pool.token_addresses,
+            lp_token_address=base_pool.lp_token_addresses[0],
+        )
+        return mint
+
+    @staticmethod
+    def get_swap_from_swap_event(
+        parsed_receipt_log: ParsedReceiptLog,
+        base_pool: EthDexPool,
+        finance_info: dict,
+        token_scalars: list[int],
+    ):
+        parsed_event = parsed_receipt_log.parsed_event
+        amount0 = parsed_event["deltaQty0"] / token_scalars[0]
+        amount1 = parsed_event["deltaQty1"] / token_scalars[1]
+        swap = EthDexTrade(
+            pool_address=base_pool.address,
+            token_amounts=[amount0, amount1],
+            transaction_hash=parsed_receipt_log.transaction_hash,
+            log_index=parsed_receipt_log.log_index,
+            block_number=parsed_receipt_log.block_number,
+            event_type='swap',
+            token_reserves=[finance_info['reserve_0'], finance_info['reserve_1']],
+            token_prices=get_prices_for_two_pool(finance_info['price_0'], finance_info['price_1']),
+            token_addresses=base_pool.token_addresses,
         )
         return swap
 
-    def get_pool_details(self, pool_address, block_identifier: str | int = "latest"):
-        values = (
-            self.abi[POOL_CONTRACT]
-            .contract.functions.getPoolState()
-            .call({"to": pool_address}, block_identifier)
+    def get_pool_details(self, pool_address, block_identifier: int | Literal['latest'] = "latest"):
+        values = self.pool_contract_abi.functions.getPoolState().call(
+            {"to": pool_address}, block_identifier
         )
         names = ["sqrtP", "currentTick", "nearestCurrentTick", "locked"]
         return dict(zip(names, values))
 
-    def get_pool_finances(
+    def _resolve_finance_info(
         self,
-        base_pool,
-        parsed_event,
-        tokens_scalars,
-        block_identifier: str | int = "latest",
+        parsed_receipt_log: ParsedReceiptLog,
+        dex_pool: EthDexPool,
+        token_scalars: list[int],
     ):
+        parsed_event = parsed_receipt_log.parsed_event
         sqrt_price_x96 = parsed_event.get("sqrtP")
         if not sqrt_price_x96:
-            pool_details = self.get_pool_details(base_pool.address)
+            pool_details = self.get_pool_details(dex_pool.address)
             sqrt_price_x96 = pool_details["sqrtP"]
 
         token0_price = self.calculate_token0_price_from_sqrt_price_x96(
-            sqrt_price_x96, tokens_scalars
+            sqrt_price_x96, token_scalars
         )
         token1_price = 1 / token0_price
 
         reserves = []
-        for idx, token in enumerate(base_pool.tokens_addresses):
+        for idx, token in enumerate(dex_pool.token_addresses):
             reserves.append(
-                self.get_contract_reserve(base_pool.address, token, block_identifier)
-                / tokens_scalars[idx]
+                self._get_balance_of(token, dex_pool.address, parsed_receipt_log.block_number - 1)
+                / token_scalars[idx]
             )
 
-        pool = PoolFinances(**base_pool.dict())
-        pool.reserves = [reserves[0], reserves[1]]
-        pool.prices = get_prices_for_two_pool(token0_price, token1_price)
-        return pool
+        finance_info = {
+            'reserve_0': reserves[0] / token_scalars[0],
+            'reserve_1': reserves[1] / token_scalars[1],
+            'price_0': token0_price,
+            'price_1': token1_price,
+        }
+        return finance_info

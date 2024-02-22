@@ -1,5 +1,6 @@
 import json
 import logging
+from copy import deepcopy
 from enum import Enum
 from pathlib import Path
 
@@ -148,13 +149,13 @@ class OneInchAmm(BaseDexClient):
         receipt_log: ParsedReceiptLog,
     ) -> EthDexTrade:
         logger.debug("resolving swap from swap event")
-        parsed_event = receipt_log.parsed_event
+        parsed_event = deepcopy(receipt_log.parsed_event)
         if base_pool.token_addresses[1].lower() == parsed_event["dst"]:
-            amount0 = parsed_event["amount"] / tokens_scalars[0]
+            amount0 = -parsed_event["amount"] / tokens_scalars[0]
             amount1 = parsed_event["amount1"] = parsed_event["result"] / tokens_scalars[1]
         else:
             amount0 = parsed_event["result"] / tokens_scalars[0]
-            amount1 = parsed_event["amount1"] = parsed_event["amount"] / tokens_scalars[1]
+            amount1 = parsed_event["amount1"] = -parsed_event["amount"] / tokens_scalars[1]
 
         finance_info = self._get_finance_info(parsed_event)
 

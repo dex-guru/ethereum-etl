@@ -499,9 +499,7 @@ class UniswapV3Amm(BaseDexClient):
     def get_ticks_spacing(
         self,
         pool_address,
-        block_identifier: (
-            Literal['latest', 'earliest', 'pending', 'safe', 'finalized'] | int
-        ) = "latest",
+        block_identifier: Literal['latest'] | int = "latest",
     ):
         return self.pool_contract_abi.functions.tickSpacing().call(
             {"to": pool_address}, block_identifier
