@@ -75,7 +75,7 @@ class BaseDODOAmmClient(BaseDexClient):
 
     def _get_normalized_event(self, event_name: str, parsed_event: dict) -> dict:
         return self.normalize_event(
-            self._get_events_abi(self.pool_contract, event_name),
+            self._get_events_abi(self.pool_contract, event_name)['inputs'],
             parsed_event,
         )
 

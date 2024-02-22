@@ -140,23 +140,15 @@ class DODOv2Amm(BaseDODOAmmClient):
         )
         return base_token_address
 
+    @staticmethod
     def get_swap_from_event(
-        self, base_pool: EthDexPool, parsed_event: dict, tokens_scalars: list[int]
+        base_pool: EthDexPool, parsed_event: dict, tokens_scalars: list[int]
     ) -> list[float]:
         amounts = [0.0, 0.0]
-
-        is_from_base_token = (
-            self._get_base_token_address(base_pool.address).lower() == parsed_event["fromToken"]
-        )
-        from_token_position = 0 if is_from_base_token else 1
-
-        for position in range(len(amounts)):
-            value = (
-                parsed_event["fromAmount"]
-                if position == from_token_position
-                else -parsed_event["toAmount"]
-            )
-            amounts[position] = value / tokens_scalars[position]
+        token_0_index = int(base_pool.token_addresses[0] == parsed_event["fromToken"])
+        token_1_index = 1 - token_0_index
+        amounts[token_0_index] = parsed_event["fromAmount"] / tokens_scalars[token_0_index]
+        amounts[token_1_index] = -parsed_event["toAmount"] / tokens_scalars[token_1_index]
 
         return amounts
 
