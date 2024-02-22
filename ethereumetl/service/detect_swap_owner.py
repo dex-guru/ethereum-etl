@@ -10,12 +10,12 @@ class SwapOwnerDetectionService:
     def __init__(self):
         self._all_pool_addresses = []
 
-    def get_swap_owner(
+    def get_swap_owner_and_owner_type(
         self,
         transfers_for_transaction: list[dict],
         pool: dict,
         all_pool_addresses: list[str] | None = None,
-    ) -> str:
+    ) -> tuple[str, str]:
         """
         Get swap owner by emitted transfers from transaction.
 
@@ -28,16 +28,14 @@ class SwapOwnerDetectionService:
             self._all_pool_addresses = [pool['address']]
 
         potential_arbitrage = self.get_arbitrage_bot_owner(transfers_for_transaction)
-        if potential_arbitrage in self._all_pool_addresses:
-            potential_arbitrage = None
+        if potential_arbitrage and potential_arbitrage not in self._all_pool_addresses:
+            return potential_arbitrage, "arbitrage_bot"
 
         potential_regular_swap_owner = self.get_regular_swap_owner(transfers_for_transaction, pool)
         if potential_regular_swap_owner:
-            return potential_regular_swap_owner
-        elif potential_arbitrage:
-            return potential_arbitrage
-        else:
-            return pool['address'].lower()
+            return potential_regular_swap_owner, "wallet"
+
+        return pool['address'].lower(), "pool"
 
     @staticmethod
     def get_arbitrage_bot_owner(

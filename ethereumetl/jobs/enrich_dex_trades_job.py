@@ -69,10 +69,6 @@ class EnrichDexTradeJob(BaseJob):
                 # TODO
                 logging.error(f'Failed to enrich transfers: {e.with_traceback(None)}')
 
-    def _enrich_transfers(self, transfers):
-        for transfer in transfers:
-            self._enrich_transfer(transfer)
-
     def _build_token_transfers_by_hash(self, token_transfers):
         token_transfers_ = deepcopy(token_transfers)
         for transfer in token_transfers_:
@@ -103,6 +99,10 @@ class EnrichDexTradeJob(BaseJob):
             }
             self._token_transfers_by_hash[transfer['transaction_hash']].append(transfer)
 
+    def _enrich_transfers(self, transfers):
+        for transfer in transfers:
+            self._enrich_transfer(transfer)
+
     def _enrich_trades(self, dex_trades):
         liquidity_events_by_event_type: dict[str, list[dict]] = {
             'burn': [],
@@ -117,11 +117,11 @@ class EnrichDexTradeJob(BaseJob):
             dex_trade['amounts'] = copy(dex_trade['token_amounts'])
             dex_trade['factory_address'] = dex_pool['factory_address']
             dex_trade['log_index'] = int(dex_trade['log_index'])
-            dex_trade = self._price_service.resolve_price_for_trade(dex_trade)
             if not dex_trade:
                 continue
 
             if dex_trade['event_type'] in ('burn', 'mint'):
+                dex_trade = self._price_service.resolve_price_for_trade(dex_trade)
                 liquidity_events_by_event_type[dex_trade['event_type']].append(dex_trade)
             else:
                 self._enrich_swap_event(dex_trade)
@@ -251,11 +251,15 @@ class EnrichDexTradeJob(BaseJob):
 
     def _enrich_swap_event(self, swap_event):
         pool_address = swap_event['pool_address']
-        swap_owner = self._detect_owner_service.get_swap_owner(
+        swap_owner, owner_type = self._detect_owner_service.get_swap_owner_and_owner_type(
             self._token_transfers_by_hash[swap_event['transaction_hash']],
             pool=self._dex_pools_by_address[pool_address],
             all_pool_addresses=list(self._dex_pools_by_address.keys()),
         )
+        if owner_type == 'arbitrage_bot':
+            swap_event = self._price_service.set_base_prices_for_trade(swap_event)
+        else:
+            swap_event = self._price_service.resolve_price_for_trade(swap_event)
         reserves_stable = [
             r * p for r, p in zip(swap_event['token_reserves'], swap_event['prices_stable'])
         ]
