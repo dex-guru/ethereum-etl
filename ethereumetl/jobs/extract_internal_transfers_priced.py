@@ -107,13 +107,15 @@ class ExtractInternalTransfersPricedJob(BaseJob):
         self.chain_id = chain_id
         self.transfer_priced_mapper = InternalTransferPricedMapper()
         self.elastic_client = elastic_client
-        self.wrapped_token: dict = self.WRAPPED_TOKENS_BY_CHAIN[self.chain_id]
+        self.wrapped_token: dict = self.WRAPPED_TOKENS_BY_CHAIN.get(self.chain_id)
         self.candles_interval = 600
 
     def _start(self):
         self.item_exporter.open()
 
     def _export(self):
+        if not self.wrapped_token:
+            return
         self._extract_transfers_priced(self.internal_transfers)
 
     def _extract_transfers_priced(self, token_transfers):
