@@ -9,6 +9,7 @@ from web3 import Web3
 from ethereumetl.service.dex.base.base_dex_client import BaseDexClient
 from ethereumetl.service.dex.base.interface import DexClientInterface
 from ethereumetl.service.dex.canto_dex.canto_dex import CantoDexAmm
+from ethereumetl.service.dex.curve.curve import CurveAmm
 from ethereumetl.service.dex.dmm.dmm import DMMAmm
 from ethereumetl.service.dex.dodo.proxy import DODOAmm
 from ethereumetl.service.dex.kyberswap_elastic.kyberswap_elastic import KyberSwapElasticAmm
@@ -41,7 +42,7 @@ class ContractAdaptersFactory(metaclass=Singleton):
         "dodo": DODOAmm,
         "dodo_v2": DODOAmm,
         "1inch": OneInchAmm,
-        # "curve": CurveAmm,
+        "curve": CurveAmm,
         # "bancor_v2": BancorV2Amm,
         # "ellipsis": EllipsisAmm,
         # "balancer": BalancerAmm,
@@ -61,7 +62,7 @@ class ContractAdaptersFactory(metaclass=Singleton):
         self.web3 = web3
         self.chain_id = chain_id
         self._namespace_by_factory_address: dict[str, str] = {}
-        self.__initiate_adapters()
+        self._initiate_adapters()
         self._init_metadata()
 
     def get_namespace_by_factory(self, factory_address: str) -> str | None:
@@ -70,14 +71,14 @@ class ContractAdaptersFactory(metaclass=Singleton):
     def get(self, amm_type: str) -> DexClientInterface | None:
         return self.initiated_adapters.get(amm_type)
 
-    def __initiate_adapters(self):
+    def _initiate_adapters(self):
         for contract_type, contract_instance in self.default_adapters.items():
             try:
                 self.initiated_adapters[contract_type] = contract_instance(
                     web3=self.web3, chain_id=self.chain_id
                 )
             except ValueError as e:
-                logging.info(f"Failed to initiate adapter for {contract_type}: {e}")
+                logging.error(f"Failed to initiate adapter for {contract_type}: {e}")
 
     def _init_metadata(self):
         path = Path(__file__).parent

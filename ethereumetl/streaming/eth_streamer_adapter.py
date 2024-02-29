@@ -420,6 +420,7 @@ class EthStreamerAdapter:
             item_exporter=exporter,
             chain_id=self.chain_id,
             elastic_client=self.elastic_client,
+            native_token=self.chain_config['native_token'],
         )
         job.run()
         internal_transfers_priced = exporter.get_items(EntityType.INTERNAL_TRANSFER_PRICED)

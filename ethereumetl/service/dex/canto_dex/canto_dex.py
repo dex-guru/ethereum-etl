@@ -20,17 +20,16 @@ to_checksum = Web3.toChecksumAddress
 
 class CantoDexAmm(UniswapV2Amm):
 
-    def __init__(self, web3: Web3, chain_id: int | None = None):
-        super().__init__(web3, chain_id)
-        pool_abi_path = Path(__file__).parent / 'BaseV1Pair.json'
+    POOL_ABI_PATH = 'BaseV1Pair.json'
+
+    def __init__(self, web3: Web3, chain_id: int | None = None, file_path: str = __file__):
+        super().__init__(web3, chain_id, file_path)
         factory_abi_path = Path(__file__).parent / 'BaseV1Factory.json'
-        pool_abi = json.loads(pool_abi_path.read_text())
         factory_abi = json.loads(factory_abi_path.read_text())
 
-        self._w3: Web3 = web3
-        self.pool_contract = self._w3.eth.contract(abi=pool_abi)
         self.factory_contract = self._w3.eth.contract(abi=factory_abi)
         self.chain_id = chain_id
+        self._init_metadata()
 
     def _init_metadata(self):
         if not self.chain_id:

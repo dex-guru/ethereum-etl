@@ -200,7 +200,7 @@ class EthResolveLogService(metaclass=Singleton):
             try:
                 asset = dex_client.resolve_asset_from_log(parsed_log)
             except Exception as e:
-                logging.debug(f"Failed to resolve asset from log: {e}")
+                logging.error(f"Failed to resolve asset from log: {e}")
                 continue
             if asset:
                 return asset

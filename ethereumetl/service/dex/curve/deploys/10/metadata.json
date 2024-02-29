@@ -4,7 +4,8 @@
     "type": "curve",
     "enabled": true,
     "contracts": {
-      "AddressProvider": "0x0000000022D53366457F9d5E68Ec105046FC4383"
+      "AddressProvider": "0x0000000022D53366457F9d5E68Ec105046FC4383",
+      "StableswapNGFactory": "0x5eeE3091f747E60a045a2E715a4c71e600e31F6E"
     }
   }
 ]

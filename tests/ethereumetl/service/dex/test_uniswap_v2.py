@@ -42,7 +42,7 @@ def dex_pool():
         ],
         fee=3000,
         lp_token_addresses=['0x68e4af213c49f320175116bff189c9ca452ce29c'],
-        underlying_token_addresses=(),
+        underlying_token_addresses=[],
     )
 
 

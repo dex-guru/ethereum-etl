@@ -1,3 +1,4 @@
+from collections.abc import Collection
 from dataclasses import dataclass
 from typing import Literal
 
@@ -12,7 +13,7 @@ class EthDexTrade:
     event_type: Literal["swap", "burn", "mint"]
     token_reserves: list[float | int]
     token_prices: list[float]
-    token_addresses: list[str]
+    token_addresses: Collection[str]
     lp_token_address: str | None = None
 
 
