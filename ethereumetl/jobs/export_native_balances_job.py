@@ -83,6 +83,9 @@ class ExportNativeBalancesJob(BaseJob):
         transaction_by_hash = {t['hash']: t for t in transactions}
         block_address_pairs: set[BlockAddress] = set()
         for transfer in internal_transfers:
+            # Skip transfers with zero value
+            if transfer['value'] == 0:
+                continue
             transaction = transaction_by_hash.get(transfer['transaction_hash'])
             if transaction is None:
                 continue
