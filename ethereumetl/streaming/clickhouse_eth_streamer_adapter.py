@@ -428,6 +428,8 @@ class ClickhouseEthStreamerAdapter:
                 internal_transfers_ch = self.select_distinct(
                     INTERNAL_TRANSFER, start_block, end_block, 'transaction_hash'
                 )
+                if internal_transfers_ch:
+                    return internal_transfers_ch, True
             else:
                 internal_transfers_ch = ()
             geth_traces, geth_traces_from_ch = export_geth_traces()
