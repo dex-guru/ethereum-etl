@@ -51,6 +51,7 @@ raw-data-streamer:
       xfitest-4157: 'http://rpc-gw-stage.dexguru.biz/full/4157'
       taikotest-167008: 'http://rpc-gw-stage.dexguru.biz/public/167008'
       bitfinitytest-355113: 'http://rpc-gw-stage.dexguru.biz/public/355113'
+      telcotest-2017: 'http://rpc-gw-stage.dexguru.biz/public/2017'
     LAST_SYNCED_BLOCK_PROVIDER:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum?table_name=last_synced_block'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto?table_name=last_synced_block'
@@ -76,6 +77,7 @@ raw-data-streamer:
       xfitest-4157: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/xfi_test?table_name=last_synced_block'
       taikotest-167008: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/taiko_test?table_name=last_synced_block'
       bitfinitytest-355113: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bitfinity_test?table_name=last_synced_block'
+      telcotest-2017: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/telco_test?table_name=last_synced_block'
     OUTPUT:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
@@ -101,6 +103,7 @@ raw-data-streamer:
       xfitest-4157: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/xfi_test,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
       taikotest-167008: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/taiko_test,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
       bitfinitytest-355113: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bitfinity_test,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
+      telcotest-2017: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/telco_test,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
     EXPORT_FROM_CLICKHOUSE:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -126,6 +129,7 @@ raw-data-streamer:
       xfitest-4157: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/xfi_test'
       taikotest-167008: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/taiko_test'
       bitfinitytest-355113: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bitfinity_test'
+      telcotest-2017: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/telco_test'
     BLOCK_BATCH_SIZE:
       default: '30'
     SKIP_NONE_RECEIPTS:
@@ -336,6 +340,7 @@ raw-verify-data-trigger:
       xfitest-4157: 'http://rpc-gw-stage.dexguru.biz/full/4157'
       taikotest-167008: 'http://rpc-gw-stage.dexguru.biz/public/167008'
       bitfinitytest-355113: 'http://rpc-gw-stage.dexguru.biz/public/355113'
+      telcotest-2017: 'http://rpc-gw-stage.dexguru.biz/public/2017'
     LAST_SYNCED_BLOCK_PROVIDER:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum?table_name=last_synced_block_verify'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto?table_name=last_synced_block_verify'
@@ -361,6 +366,7 @@ raw-verify-data-trigger:
       xfitest-4157: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/xfi_test?table_name=last_synced_block_verify'
       taikotest-167008: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/taiko_test?table_name=last_synced_block_verify'
       bitfinitytest-355113: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bitfinity_test?table_name=last_synced_block_verify'
+      telcotest-2017: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/telco_test?table_name=last_synced_block_verify'
     OUTPUT:
       default:             'amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
     EXPORT_FROM_CLICKHOUSE:
@@ -388,6 +394,7 @@ raw-verify-data-trigger:
       xfitest-4157: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/xfi_test'
       taikotest-167008: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/taiko_test'
       bitfinitytest-355113: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bitfinity_test'
+      telcotest-2017: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/telco_test'
     BLOCK_BATCH_SIZE:
       default: '10'
     MAX_WORKERS:
@@ -451,6 +458,7 @@ raw-data-streamer-transfers-preevents:
       xfitest-4157: 'http://rpc-gw-stage.dexguru.biz/full/4157'
       taikotest-167008: 'http://rpc-gw-stage.dexguru.biz/public/167008'
       bitfinitytest-355113: 'http://rpc-gw-stage.dexguru.biz/public/355113'
+      telcotest-2017: 'http://rpc-gw-stage.dexguru.biz/public/2017'
     OUTPUT:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
@@ -476,6 +484,7 @@ raw-data-streamer-transfers-preevents:
       xfitest-4157: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/xfi_test,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
       taikotest-167008: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/taiko_test,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
       bitfinitytest-355113: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bitfinity_test,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
+      telcotest-2017: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/telco_test,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
     EXPORT_FROM_CLICKHOUSE:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -501,6 +510,7 @@ raw-data-streamer-transfers-preevents:
       xfitest-4157: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/xfi_test'
       taikotest-167008: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/taiko_test'
       bitfinitytest-355113: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bitfinity_test'
+      telcotest-2017: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/telco_test'
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
@@ -571,6 +581,7 @@ raw-data-streamer-gethtrace:
       xfitest-4157: 'http://rpc-gw-stage.dexguru.biz/full/4157'
       taikotest-167008: 'http://rpc-gw-stage.dexguru.biz/public/167008'
       bitfinitytest-355113: 'http://rpc-gw-stage.dexguru.biz/public/355113'
+      telcotest-2017: 'http://rpc-gw-stage.dexguru.biz/public/2017'
     OUTPUT:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum,http://10.0.200.184:9200,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto,http://10.0.200.184:9200,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
@@ -596,6 +607,7 @@ raw-data-streamer-gethtrace:
       xfitest-4157: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/xfi_test,http://10.0.200.184:9200,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
       taikotest-167008: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/taiko_test,http://10.0.200.184:9200,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
       bitfinitytest-355113: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bitfinity_test,http://10.0.200.184:9200,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
+      telcotest-2017: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/telco_test,http://10.0.200.184:9200,amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
     EXPORT_FROM_CLICKHOUSE:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -621,6 +633,7 @@ raw-data-streamer-gethtrace:
       xfitest-4157: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/xfi_test'
       taikotest-167008: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/taiko_test'
       bitfinitytest-355113: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bitfinity_test'
+      telcotest-2017: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/telco_test'
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
@@ -688,6 +701,7 @@ raw-data-streamer-balance:
       xfitest-4157: 'http://rpc-gw-stage.dexguru.biz/full/4157'
       taikotest-167008: 'http://rpc-gw-stage.dexguru.biz/public/167008'
       bitfinitytest-355113: 'http://rpc-gw-stage.dexguru.biz/public/355113'
+      telcotest-2017: 'http://rpc-gw-stage.dexguru.biz/public/2017'
     OUTPUT:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -713,6 +727,7 @@ raw-data-streamer-balance:
       xfitest-4157: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/xfi_test'
       taikotest-167008: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/taiko_test'
       bitfinitytest-355113: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bitfinity_test'
+      telcotest-2017: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/telco_test'
     EXPORT_FROM_CLICKHOUSE:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -738,6 +753,7 @@ raw-data-streamer-balance:
       xfitest-4157: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/xfi_test'
       taikotest-167008: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/taiko_test'
       bitfinitytest-355113: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bitfinity_test'
+      telcotest-2017: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/telco_test'
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
@@ -806,6 +822,7 @@ raw-data-streamer-token-tokentransferpriced:
       xfitest-4157: 'http://rpc-gw-stage.dexguru.biz/full/4157'
       taikotest-167008: 'http://rpc-gw-stage.dexguru.biz/public/167008'
       bitfinitytest-355113: 'http://rpc-gw-stage.dexguru.biz/public/355113'
+      telcotest-2017: 'http://rpc-gw-stage.dexguru.biz/public/2017'
     OUTPUT:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum,http://10.0.200.184:9200'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto,http://10.0.200.184:9200'
@@ -831,6 +848,7 @@ raw-data-streamer-token-tokentransferpriced:
       xfitest-4157: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/xfi_test,http://10.0.200.184:9200'
       taikotest-167008: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/taiko_test,http://10.0.200.184:9200'
       bitfinitytest-355113: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bitfinity_test,http://10.0.200.184:9200'
+      telcotest-2017: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/telco_test,http://10.0.200.184:9200'
     EXPORT_FROM_CLICKHOUSE:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -856,6 +874,7 @@ raw-data-streamer-token-tokentransferpriced:
       xfitest-4157: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/xfi_test'
       taikotest-167008: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/taiko_test'
       bitfinitytest-355113: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bitfinity_test'
+      telcotest-2017: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/telco_test'
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
@@ -920,6 +939,7 @@ raw-data-streamer-nativebalance:
       xfitest-4157: 'http://rpc-gw-stage.dexguru.biz/full/4157'
       taikotest-167008: 'http://rpc-gw-stage.dexguru.biz/public/167008'
       bitfinitytest-355113: 'http://rpc-gw-stage.dexguru.biz/public/355113'
+      telcotest-2017: 'http://rpc-gw-stage.dexguru.biz/public/2017'
     OUTPUT:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -941,6 +961,7 @@ raw-data-streamer-nativebalance:
       x1test-195: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/x1_test'
       beratest-80085: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bera_test'
       blasttest-168587773: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/blast_test'
+      telcotest-2017: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/telco_test'
     EXPORT_FROM_CLICKHOUSE:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -966,6 +987,7 @@ raw-data-streamer-nativebalance:
       xfitest-4157: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/xfi_test'
       taikotest-167008: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/taiko_test'
       bitfinitytest-355113: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bitfinity_test'
+      telcotest-2017: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/telco_test'
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
@@ -1030,6 +1052,7 @@ raw-data-streamer-contract-token:
       xfitest-4157: 'http://rpc-gw-stage.dexguru.biz/full/4157'
       taikotest-167008: 'http://rpc-gw-stage.dexguru.biz/public/167008'
       bitfinitytest-355113: 'http://rpc-gw-stage.dexguru.biz/public/355113'
+      telcotest-2017: 'http://rpc-gw-stage.dexguru.biz/public/2017'
     OUTPUT:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -1055,6 +1078,7 @@ raw-data-streamer-contract-token:
       xfitest-4157: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/xfi_test'
       taikotest-167008: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/taiko_test'
       bitfinitytest-355113: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bitfinity_test'
+      telcotest-2017: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/telco_test'
     EXPORT_FROM_CLICKHOUSE:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -1080,6 +1104,7 @@ raw-data-streamer-contract-token:
       xfitest-4157: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/xfi_test'
       taikotest-167008: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/taiko_test'
       bitfinitytest-355113: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bitfinity_test'
+      telcotest-2017: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/telco_test'
     BLOCK_BATCH_SIZE:
       default: '100'
     MAX_WORKERS:
@@ -1157,6 +1182,7 @@ raw-verify-data-streamer:
       xfitest-4157: 'http://rpc-gw-stage.dexguru.biz/full/4157'
       taikotest-167008: 'http://rpc-gw-stage.dexguru.biz/public/167008'
       bitfinitytest-355113: 'http://rpc-gw-stage.dexguru.biz/public/355113'
+      telcotest-2017: 'http://rpc-gw-stage.dexguru.biz/public/2017'
     OUTPUT:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -1182,6 +1208,7 @@ raw-verify-data-streamer:
       xfitest-4157: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/xfi_test'
       taikotest-167008: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/taiko_test'
       bitfinitytest-355113: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bitfinity_test'
+      telcotest-2017: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/telco_test'
     EXPORT_FROM_CLICKHOUSE:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -1207,6 +1234,7 @@ raw-verify-data-streamer:
       xfitest-4157: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/xfi_test'
       taikotest-167008: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/taiko_test'
       bitfinitytest-355113: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bitfinity_test'
+      telcotest-2017: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/telco_test'
     BLOCK_BATCH_SIZE:
       default: '10'
     MAX_WORKERS:
@@ -1278,6 +1306,7 @@ raw-data-streamer-dexpool:
       xfitest-4157: 'http://rpc-gw-stage.dexguru.biz/full/4157'
       taikotest-167008: 'http://rpc-gw-stage.dexguru.biz/public/167008'
       bitfinitytest-355113: 'http://rpc-gw-stage.dexguru.biz/public/355113'
+      telcotest-2017: 'http://rpc-gw-stage.dexguru.biz/public/2017'
     OUTPUT:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -1303,6 +1332,7 @@ raw-data-streamer-dexpool:
       xfitest-4157: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/xfi_test'
       taikotest-167008: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/taiko_test'
       bitfinitytest-355113: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bitfinity_test'
+      telcotest-2017: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/telco_test'
     EXPORT_FROM_CLICKHOUSE:
       eth-1: 'clickhouse+http://testuser3:testplpassword@10.0.100.170/ethereum'
       canto-7700: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/canto'
@@ -1328,3 +1358,4 @@ raw-data-streamer-dexpool:
       xfitest-4157: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/xfi_test'
       taikotest-167008: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/taiko_test'
       bitfinitytest-355113: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/bitfinity_test'
+      telcotest-2017: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/telco_test'
