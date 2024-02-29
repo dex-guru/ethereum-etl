@@ -48,6 +48,7 @@ variables:
     stage-indexation-base-8453
     stage-indexation-bsc-56
   KUBE_NAMESPACE_PROD_TRACE: >-
+    prod-indexation-telcotest-2017
     prod-indexation-eth-1
     prod-indexation-bsc-56
     prod-indexation-polygon-137
@@ -65,6 +66,7 @@ variables:
     prod-indexation-xfitest-4157
     prod-indexation-zeta-7000
   KUBE_NAMESPACE_PROD: >-
+    prod-indexation-telcotest-2017
     prod-indexation-eth-1
     prod-indexation-gnosis-100
     prod-indexation-fantom-250

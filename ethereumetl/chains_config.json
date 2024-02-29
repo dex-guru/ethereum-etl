@@ -461,5 +461,20 @@
         },
         "stablecoin_addresses": [
         ]
+    },
+    {
+        "id": 2017,
+        "name": "telco",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x0000028a2eB8346cd5c0267856aB7594B7a55308-telco",
+            "address": "0x0000028a2eB8346cd5c0267856aB7594B7a55308",
+            "name": "TELCO",
+            "symbol": "TELCO",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+        ]
     }
 ]
