@@ -254,6 +254,11 @@ def get_default_prices(token_count: int) -> list[list[float]]:
     return prices
 
 
+def get_default_zero_prices(token_count: int) -> list[list[float]]:
+    prices = [[0.0] * token_count for _ in range(token_count)]
+    return prices
+
+
 def get_prices_for_two_pool(token0_price: float, token1_price: float):
     prices = get_default_prices(2)
     prices[0][1] = token1_price

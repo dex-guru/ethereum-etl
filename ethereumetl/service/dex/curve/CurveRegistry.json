@@ -121,7 +121,7 @@
     "outputs": [
       {
         "name": "",
-        "type": "address[8]"
+        "type": "address[]"
       }
     ],
     "gas": 12102
