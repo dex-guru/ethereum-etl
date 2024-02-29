@@ -1,3 +1,4 @@
+import json
 from collections.abc import Collection, Iterable
 from typing import Any
 
@@ -10,7 +11,7 @@ from ethereumetl.executors.batch_work_executor import BatchWorkExecutor
 from ethereumetl.json_rpc_requests import generate_get_native_balance_json_rpc
 from ethereumetl.mappers.native_balance_mapper import NativeBalanceMapper
 from ethereumetl.misc.info import NULL_ADDRESSES
-from ethereumetl.utils import execute_in_batches, rpc_response_to_result
+from ethereumetl.utils import rpc_response_to_result
 
 InternalTransferItem = dict[str, Any]
 TransactionItem = dict[str, Any]
@@ -49,14 +50,13 @@ class ExportNativeBalancesJob(BaseJob):
             self.item_exporter.close()
 
     def _export(self):
-        block_address_pairs = self.get_block_address_pairs(
-            self.transactions, self.internal_transfers
-        )
+        self.batch_work_executor.execute(self.transactions, self._export_native_balances)
+
+    def _export_native_balances(self, transactions):
+        block_address_pairs = self.get_block_address_pairs(transactions, self.internal_transfers)
         rpc_requests = tuple(self.generate_rpc_requests(block_address_pairs))
 
-        rpc_responses = execute_in_batches(  # i/o
-            self.batch_web3_provider, self.batch_work_executor, rpc_requests
-        )
+        rpc_responses = self.batch_web3_provider.make_batch_request(json.dumps(rpc_requests))
 
         native_balance_items = []
         for rpc_response, block_address_pair in zip(rpc_responses, block_address_pairs):
@@ -83,11 +83,11 @@ class ExportNativeBalancesJob(BaseJob):
         transaction_by_hash = {t['hash']: t for t in transactions}
         block_address_pairs: set[BlockAddress] = set()
         for transfer in internal_transfers:
-            # Skip transfers with zero value
-            if transfer['value'] == 0:
-                continue
             transaction = transaction_by_hash.get(transfer['transaction_hash'])
             if transaction is None:
+                continue
+            # Skip transfers with zero value
+            if transfer['value'] == 0:
                 continue
             block_number = transaction['block_number']
             for address in (transfer['from_address'], transfer['to_address']):
