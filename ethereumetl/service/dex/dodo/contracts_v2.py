@@ -145,10 +145,10 @@ class DODOv2Amm(BaseDODOAmmClient):
         base_pool: EthDexPool, parsed_event: dict, tokens_scalars: list[int]
     ) -> list[float]:
         amounts = [0.0, 0.0]
-        token_0_index = int(base_pool.token_addresses[0] == parsed_event["fromToken"])
-        token_1_index = 1 - token_0_index
-        amounts[token_0_index] = parsed_event["fromAmount"] / tokens_scalars[token_0_index]
-        amounts[token_1_index] = -parsed_event["toAmount"] / tokens_scalars[token_1_index]
+        from_token_index = int(base_pool.token_addresses[0] != parsed_event["fromToken"].lower())
+        to_token_index = 1 - from_token_index
+        amounts[from_token_index] = parsed_event["fromAmount"] / tokens_scalars[from_token_index]
+        amounts[to_token_index] = -parsed_event["toAmount"] / tokens_scalars[to_token_index]
 
         return amounts
 
