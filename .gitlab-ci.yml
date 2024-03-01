@@ -66,6 +66,7 @@ variables:
     prod-indexation-xfitest-4157
     prod-indexation-zeta-7000
   KUBE_NAMESPACE_PROD: >-
+    prod-indexation-blast-238
     prod-indexation-telcotest-2017
     prod-indexation-eth-1
     prod-indexation-gnosis-100

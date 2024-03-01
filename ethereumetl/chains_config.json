@@ -476,5 +476,20 @@
         },
         "stablecoin_addresses": [
         ]
+    },
+    {
+        "id": 81457,
+        "name": "blast",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x0000028a2eB8346cd5c0267856aB7594B7a55308-blast",
+            "address": "0x0000028a2eB8346cd5c0267856aB7594B7a55308",
+            "name": "BLAST",
+            "symbol": "BLAST",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+        ]
     }
 ]
