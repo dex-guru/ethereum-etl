@@ -359,13 +359,14 @@
         "type": "evm",
         "enabled": true,
         "native_token": {
-            "id": "0xa37f751177ad228a434f3e7829615c6124902178-blast_testnet",
-            "address": "0xa37f751177ad228a434f3e7829615c6124902178",
+            "id": "0x4200000000000000000000000000000000000023-blast_testnet",
+            "address": "0x4200000000000000000000000000000000000023",
             "name": "Wrapped Ether",
             "symbol": "WETH",
             "decimals": 18
         },
         "stablecoin_addresses": [
+            "0x4200000000000000000000000000000000000022"
         ]
     },
     {
@@ -483,13 +484,14 @@
         "type": "evm",
         "enabled": true,
         "native_token": {
-            "id": "0x0000028a2eB8346cd5c0267856aB7594B7a55308-blast",
-            "address": "0x0000028a2eB8346cd5c0267856aB7594B7a55308",
-            "name": "BLAST",
-            "symbol": "BLAST",
+            "id": "0x4300000000000000000000000000000000000004-blast",
+            "address": "0x4300000000000000000000000000000000000004",
+            "name": "WETH",
+            "symbol": "WETH",
             "decimals": 18
         },
         "stablecoin_addresses": [
+            "0x4300000000000000000000000000000000000003"
         ]
     }
 ]
