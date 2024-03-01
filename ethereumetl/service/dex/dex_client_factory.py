@@ -77,7 +77,7 @@ class ContractAdaptersFactory(metaclass=Singleton):
                 self.initiated_adapters[contract_type] = contract_instance(
                     web3=self.web3, chain_id=self.chain_id
                 )
-            except ValueError as e:
+            except (ValueError, OSError) as e:
                 logging.error(f"Failed to initiate adapter for {contract_type}: {e}")
 
     def _init_metadata(self):
