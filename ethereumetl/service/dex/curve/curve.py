@@ -805,7 +805,8 @@ class CurveAmm(BaseDexClient):
         ):
             try:
                 return self.normalize_event(
-                    self._get_events_abi(self.abi['CurvePoolv5'], event_name), parsed_event
+                    self._get_events_abi(self.abi['CurvePoolv5'], event_name)['inputs'],
+                    parsed_event,
                 )
             except Exception:
                 return None
