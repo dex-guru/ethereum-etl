@@ -17,6 +17,7 @@ from ethereumetl.service.dex.meshswap.meshswap import MeshswapAmm
 from ethereumetl.service.dex.one_inch.oneinch import OneInchAmm
 from ethereumetl.service.dex.quickswap_v3.quickswap_v3 import QuickswapV3Amm
 from ethereumetl.service.dex.sushiswap_bento.sushiswap_bento import SushiSwapBentoAmm
+from ethereumetl.service.dex.traderjoe_v2_1.traderjoe_v2_1 import TraderJoeV21Amm
 from ethereumetl.service.dex.uniswap_v2.uniswap_v2 import UniswapV2Amm
 from ethereumetl.service.dex.uniswap_v3.uniswap_v3 import UniswapV3Amm
 from ethereumetl.utils import Singleton
@@ -54,7 +55,7 @@ class ContractAdaptersFactory(metaclass=Singleton):
         "canto_dex": CantoDexAmm,
         "pancakeswap_v3": UniswapV3Amm,
         "quickswap_v3": QuickswapV3Amm,
-        # "traderjoe_v2_1": TraderJoeV21Amm,
+        "traderjoe_v2_1": TraderJoeV21Amm,
     }
 
     def __init__(self, web3: Web3, chain_id: int | None = None):
