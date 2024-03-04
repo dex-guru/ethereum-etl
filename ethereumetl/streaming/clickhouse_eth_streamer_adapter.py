@@ -118,6 +118,8 @@ class ClickhouseEthStreamerAdapter:
         def _get_where_clause(kwargs):
             where_clause = []
             for key, value in kwargs.items():
+                if value is not None and not value:
+                    continue
                 if isinstance(value, str):
                     where_clause.append(f"{key} = '{value}'")
                 elif isinstance(value, Iterable):
@@ -129,7 +131,7 @@ class ClickhouseEthStreamerAdapter:
                     where_clause.append(f"{key} = {int(value)}")
                 else:
                     where_clause.append(f"{key} = {value}")
-
+            assert where_clause, "No where clause"
             return ' and '.join(where_clause)
 
         table_name = self.item_type_to_table_mapping.get(entity_type)
@@ -143,7 +145,9 @@ class ClickhouseEthStreamerAdapter:
         try:
             where_clause = _get_where_clause(kwargs)
         except AssertionError as e:
-            logger.warning("Cannot export %s items from clickhouse: %s", entity_type, e)
+            logger.warning(
+                "Cannot make where clause for %s items from clickhouse: %s", entity_type, e
+            )
             return ()
         query = f"select {distinct_clause} * from `{table_name}`" f" where {where_clause}"
         try:
@@ -383,6 +387,8 @@ class ClickhouseEthStreamerAdapter:
             logger.info("exporting TOKENS...")
             transfers = extract_token_transfers()[0]
             token_addresses = {t['token_address'] for t in transfers}
+            if not token_addresses:
+                return (), False
             tokens_ch = self.select_where_with_type_assignment(
                 entity_type=TOKEN, distinct_on='address', address=token_addresses
             )
