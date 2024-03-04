@@ -652,6 +652,8 @@ class ClickhouseEthStreamerAdapter:
             stablecoin_addresses = self.eth_streamer.chain_config["stablecoin_addresses"]
             native_token_address = self.eth_streamer.chain_config["native_token"]["address"]
 
+            # max score for native token
+            token_address_to_score[native_token_address] = 9999999999
             base_token_prices = []
             try:
                 latest_trades_prices = get_latest_prices_from_trades_for_tokens(

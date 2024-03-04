@@ -145,14 +145,14 @@ class PriceService:
     def _update_trade_prices(
         self,
         dex_trade,
-        idx,
+        idx_base,
         opposite_idx,
         base_price,
         opposite_token_ratio,
     ):
         """Updates the trade prices based on the base and opposite token prices."""
         if base_price['price_stable']:
-            dex_trade['prices_stable'][idx] = copy(base_price['price_stable'])
+            dex_trade['prices_stable'][idx_base] = copy(base_price['price_stable'])
             try:
                 dex_trade['prices_stable'][opposite_idx] = (
                     base_price['price_stable'] / opposite_token_ratio
@@ -164,10 +164,10 @@ class PriceService:
                     ]
                 )
             dex_trade['amount_stable'] = base_price['price_stable'] * abs(
-                dex_trade['amounts'][idx]
+                dex_trade['amounts'][idx_base]
             )
         if base_price['price_native']:
-            dex_trade['prices_native'][idx] = copy(base_price['price_native'])
+            dex_trade['prices_native'][idx_base] = copy(base_price['price_native'])
             try:
                 dex_trade['prices_native'][opposite_idx] = (
                     base_price['price_native'] / opposite_token_ratio
@@ -179,7 +179,7 @@ class PriceService:
                     ]
                 )
             dex_trade['amount_native'] = base_price['price_native'] * abs(
-                dex_trade['amounts'][idx]
+                dex_trade['amounts'][idx_base]
             )
 
     def _resolve_prices_for_pools_with_stablecoin(self, dex_trade):
