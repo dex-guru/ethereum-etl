@@ -118,8 +118,6 @@ class ClickhouseEthStreamerAdapter:
         def _get_where_clause(kwargs):
             where_clause = []
             for key, value in kwargs.items():
-                if value is not None and not value:
-                    continue
                 if isinstance(value, str):
                     where_clause.append(f"{key} = '{value}'")
                 elif isinstance(value, Iterable):
