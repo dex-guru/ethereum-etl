@@ -1639,6 +1639,35 @@ SELECT
 FROM transactions
 WHERE to_address IS NOT NULL;
 
+CREATE TABLE transactions_count
+(
+    `date` Date,
+    `transactions_count` Int256
+)
+ENGINE = SummingMergeTree
+ORDER BY date
+SETTINGS index_granularity = 8192;
+
+CREATE MATERIALIZED VIEW transactions_count_mv TO transactions_count
+(
+    `date` Date,
+    `transactions_count` Int256
+) AS
+SELECT
+    date AS date,
+    sum(count) AS transactions_count
+FROM
+(
+    SELECT
+        if(is_reorged > 0, sum(toInt256(-transaction_count)), sum(toInt256(transaction_count))) AS count,
+        toDate(toStartOfDay(FROM_UNIXTIME(timestamp))) AS date
+    FROM blocks
+    GROUP BY
+        is_reorged,
+        date
+)
+GROUP BY date;
+
 CREATE TABLE transactions_hash
 (
     `hash` String CODEC(ZSTD(1)),
