@@ -311,7 +311,7 @@ class CurveAmm(BaseDexClient):
                         except Exception:
                             pass
                 if exchange_rate:
-                    prices[coin_index_for_swap][coin_index] = exchange_rate / exchange_precision
+                    prices[coin_index][coin_index_for_swap] = exchange_rate / exchange_precision
                 else:
                     logger.error(
                         f"Can not detect price for token in curve pool: {curve_pool.address} {coin_index} "
@@ -380,7 +380,7 @@ class CurveAmm(BaseDexClient):
                 except Exception:
                     pass
                 if exchange_rate:
-                    u_prices[coin_index_for_swap][coin_index] = exchange_rate / exchange_precision
+                    u_prices[coin_index][coin_index_for_swap] = exchange_rate / exchange_precision
                 else:
                     logger.error(
                         f"Can not detect price for token in curve pool: {curve_pool.address}"
