@@ -110,7 +110,7 @@ def test_resolve_receipt_log(
     )
     assert res
     assert res.token_amounts == [4.15154111492e-07, -183835849160.0057]
-    assert res.token_reserves == [1e-18, 1.0]
+    assert res.token_reserves == [1.0, 1.0 * 10**9]
     assert res.token_prices == [[1.0, 2.2576218982992146e-18], [4.4294396716888365e17, 1.0]]
     assert res.event_type == 'swap'
     assert res.block_number
