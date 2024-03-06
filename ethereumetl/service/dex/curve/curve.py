@@ -161,7 +161,7 @@ class CurveAmm(BaseDexClient):
     def _get_factory_address(self, address: ChecksumAddress) -> str | None:
         try:
             return self.abi[POOL_CONTRACT_V7].functions.factory().call({"to": address}, "latest")
-        except (ValueError, TypeError, BadFunctionCallOutput, ContractLogicError):
+        except (ValueError, TypeError, BadFunctionCallOutput, ContractLogicError, OverflowError):
             pass
         for contract_name in self.registry_contract_names:
             contract = self.abi[contract_name]
@@ -173,6 +173,7 @@ class CurveAmm(BaseDexClient):
                 BadFunctionCallOutput,
                 ContractLogicError,
                 ABIFunctionNotFound,
+                OverflowError,
             ):
                 continue
             coins = [coin for coin in coins if coin not in NULL_ADDRESSES]
@@ -182,7 +183,7 @@ class CurveAmm(BaseDexClient):
             admin = self.abi[POOL_CONTRACT_V8].functions.admin().call({"to": address}, "latest")
             if admin:
                 return self.abi[POOL_CONTRACT_V7].functions.factory().call({"to": admin}, "latest")
-        except (ValueError, TypeError, BadFunctionCallOutput, ContractLogicError):
+        except (ValueError, TypeError, BadFunctionCallOutput, ContractLogicError, OverflowError):
             return None
 
     def resolve_receipt_log(
@@ -657,6 +658,7 @@ class CurveAmm(BaseDexClient):
         ]
         return token_addresses_cleared
 
+    @cache
     def _get_tokens_addresses_for_pool(
         self, pool_address: ChecksumAddress
     ) -> tuple[list[str], list[str]]:
@@ -763,6 +765,7 @@ class CurveAmm(BaseDexClient):
 
         return token_addresses, underlying_addresses
 
+    @cache
     def _get_lp_token_address_for_pool(self, pool_address: ChecksumAddress) -> list[str]:
 
         def get_lp_from_registry():
