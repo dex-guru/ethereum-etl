@@ -23,6 +23,12 @@ class BaseDexClient(DexClientInterface):
         erc20_abi_path = Path(__file__).parent / "ERC20.json"
         self.erc20_contract_abi = self._w3.eth.contract(abi=json.loads(erc20_abi_path.read_text()))
 
+    def _initiate_contract(
+        self, abi_path: Path, address: str | None = None
+    ) -> Contract | type[Contract]:
+        address_ = to_checksum(address) if address else None
+        return self._w3.eth.contract(address=address_, abi=json.loads(abi_path.read_text()))
+
     def resolve_asset_from_log(self, parsed_log: ParsedReceiptLog) -> EthDexPool | None:
         raise NotImplementedError()
 

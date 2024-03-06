@@ -20,6 +20,7 @@ from ethereumetl.service.dex.sushiswap_bento.sushiswap_bento import SushiSwapBen
 from ethereumetl.service.dex.traderjoe_v2_1.traderjoe_v2_1 import TraderJoeV21Amm
 from ethereumetl.service.dex.uniswap_v2.uniswap_v2 import UniswapV2Amm
 from ethereumetl.service.dex.uniswap_v3.uniswap_v3 import UniswapV3Amm
+from ethereumetl.service.dex.wombat.wombat import WombatAmm
 from ethereumetl.utils import Singleton
 
 ABI = Sequence[Mapping[str, Any]]
@@ -51,7 +52,7 @@ class ContractAdaptersFactory(metaclass=Singleton):
         # "saddle": SaddleAmm,
         # "platypus": PlatypusAmm,
         "kyberswap_elastic": KyberSwapElasticAmm,
-        # "wombat": WombatAmm,
+        "wombat": WombatAmm,
         "canto_dex": CantoDexAmm,
         "pancakeswap_v3": UniswapV3Amm,
         "quickswap_v3": QuickswapV3Amm,
