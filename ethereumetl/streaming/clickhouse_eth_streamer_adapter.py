@@ -570,24 +570,8 @@ class ClickhouseEthStreamerAdapter:
             if not parsed_logs:
                 return (), _from_ch
             token_transfers = extract_token_transfers()[0]
-            tokens = export_tokens()[0]
+            tokens = export_tokens_from_pools()
             dex_pools = export_dex_pools()[0]
-            token_addresses_from_pools = set()
-            for pool in dex_pools:
-                token_addresses_from_pools.update(pool['token_addresses'])
-                token_addresses_from_pools.update(pool['underlying_token_addresses'])
-                token_addresses_from_pools.update(pool['lp_token_addresses'])
-            absent_tokens = token_addresses_from_pools - {t['address'] for t in tokens}
-            if absent_tokens:
-                tokens_from_pools = self.select_where_with_type_assignment(
-                    entity_type=TOKEN, distinct_on='address', address=absent_tokens
-                )
-                tokens_from_pools = list(tokens_from_pools)
-                if len(tokens_from_pools) != len(absent_tokens):
-                    absent_tokens = absent_tokens - {t['address'] for t in tokens_from_pools}
-                    tokens_from_pools.extend(self.eth_streamer.export_tokens(absent_tokens))
-                tokens = list(tokens) + tokens_from_pools
-
             dex_trades = self.eth_streamer.export_dex_trades(
                 parsed_logs=parsed_logs,
                 token_transfers=token_transfers,
@@ -679,6 +663,28 @@ class ClickhouseEthStreamerAdapter:
             return base_token_prices
 
         @cache
+        def export_tokens_from_pools() -> list:
+            tokens = export_tokens()[0]
+            dex_pools = export_dex_pools()[0]
+
+            token_addresses_from_pools = set()
+            for pool in dex_pools:
+                token_addresses_from_pools.update(pool['token_addresses'])
+                token_addresses_from_pools.update(pool['underlying_token_addresses'])
+                token_addresses_from_pools.update(pool['lp_token_addresses'])
+            absent_tokens = token_addresses_from_pools - {t['address'] for t in tokens}
+            if absent_tokens:
+                tokens_from_pools = self.select_where_with_type_assignment(
+                    entity_type=TOKEN, distinct_on='address', address=absent_tokens
+                )
+                tokens_from_pools = list(tokens_from_pools)
+                if len(tokens_from_pools) != len(absent_tokens):
+                    absent_tokens = absent_tokens - {t['address'] for t in tokens_from_pools}
+                    tokens_from_pools.extend(self.eth_streamer.export_tokens(absent_tokens))
+                tokens = list(tokens) + tokens_from_pools
+            return tokens
+
+        @cache
         def export_enriched_dex_trades() -> tuple[list, list, bool]:
             assert self.clickhouse, "Clickhouse client is not initialized"
             from_ch_ = False
@@ -692,7 +698,7 @@ class ClickhouseEthStreamerAdapter:
             #     return enriched_dex_trades, from_ch_
             dex_trades = export_dex_trades()[0]
             dex_pools = export_dex_pools()[0]
-            tokens = export_tokens()[0]
+            tokens = export_tokens_from_pools()
             token_transfers = extract_token_transfers()[0]
             internal_transfers = extract_internal_transfers()[0]
             transactions = export_blocks_and_transactions()[1]

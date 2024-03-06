@@ -151,8 +151,10 @@ class PriceService:
         opposite_token_ratio,
     ):
         """Updates the trade prices based on the base and opposite token prices."""
-
-        if not dex_trade['prices_stable'][idx_base] and dex_trade['prices_stable'][opposite_idx]:
+        if (
+            not dex_trade['prices_stable'][idx_base]
+            and not dex_trade['prices_stable'][opposite_idx]
+        ):
             if base_price['price_stable']:
                 dex_trade['prices_stable'][idx_base] = copy(base_price['price_stable'])
                 try:
@@ -169,7 +171,10 @@ class PriceService:
                     dex_trade['amounts'][idx_base]
                 )
 
-        if not dex_trade['prices_native'][idx_base] and dex_trade['prices_native'][opposite_idx]:
+        if (
+            not dex_trade['prices_native'][idx_base]
+            and not dex_trade['prices_native'][opposite_idx]
+        ):
             if base_price['price_native']:
                 dex_trade['prices_native'][idx_base] = copy(base_price['price_native'])
                 try:
