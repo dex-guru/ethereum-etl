@@ -129,6 +129,12 @@ class UniswapV2Amm(BaseDexClient):
                 'price_0': 0,
                 'price_1': 0,
             }
+        if not reserves[2] and parsed_receipt_log.parsed_event.get("amount0"):
+            # probably first mint
+            reserves = [
+                parsed_receipt_log.parsed_event["amount0"],
+                parsed_receipt_log.parsed_event["amount1"],
+            ]
         reserve_0 = reserves[0] / token_scalars[0]
         reserve_1 = reserves[1] / token_scalars[1]
         price_0 = float(reserve_1 / reserve_0)

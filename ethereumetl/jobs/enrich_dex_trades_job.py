@@ -62,12 +62,12 @@ class EnrichDexTradeJob(BaseJob):
                 self._enrich_trades(_dex_trades_by_hash)
             except Exception as e:
                 # TODO
-                logging.error(f'Failed to enrich dex trades: {e.with_traceback(None)}')
+                logging.error(f'Failed to enrich dex trades: {e}', exc_info=True)
             try:
                 self._enrich_transfers(self._token_transfers_by_hash[tx_hash])
             except Exception as e:
                 # TODO
-                logging.error(f'Failed to enrich transfers: {e.with_traceback(None)}')
+                logging.error(f'Failed to enrich transfers: {e}', exc_info=True)
 
     def _build_token_transfers_by_hash(self, token_transfers):
         token_transfers_ = deepcopy(token_transfers)
@@ -395,7 +395,7 @@ class EnrichDexTradeJob(BaseJob):
                 try:
                     transfers = [t for t in transfers if t['log_index'] != _transfer['log_index']]
                 except KeyError:
-                    print(_transfer)
+                    continue
                 return self._get_target_transfer(
                     current_transfer,
                     _tokens,

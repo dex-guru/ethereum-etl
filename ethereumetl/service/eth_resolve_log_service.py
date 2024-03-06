@@ -186,7 +186,7 @@ class EthResolveLogService(metaclass=Singleton):
                     transfers_for_transaction=transfers_for_transaction,
                 )
             except Exception as e:
-                logging.info(f"Failed to resolve log: {e}")
+                logging.info(f"Failed to resolve log: {e}", exc_info=True)
                 continue
             if resolved_log:
                 return resolved_log
@@ -200,7 +200,7 @@ class EthResolveLogService(metaclass=Singleton):
             try:
                 asset = dex_client.resolve_asset_from_log(parsed_log)
             except Exception as e:
-                logging.error(f"Failed to resolve asset from log: {e}")
+                logging.error(f"Failed to resolve asset from log: {e}", exc_info=True)
                 continue
             if asset:
                 return asset
