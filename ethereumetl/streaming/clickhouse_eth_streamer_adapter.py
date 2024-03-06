@@ -575,6 +575,8 @@ class ClickhouseEthStreamerAdapter:
             token_addresses_from_pools = set()
             for pool in dex_pools:
                 token_addresses_from_pools.update(pool['token_addresses'])
+                token_addresses_from_pools.update(pool['underlying_token_addresses'])
+                token_addresses_from_pools.update(pool['lp_token_addresses'])
             absent_tokens = token_addresses_from_pools - {t['address'] for t in tokens}
             if absent_tokens:
                 tokens_from_pools = self.select_where_with_type_assignment(
