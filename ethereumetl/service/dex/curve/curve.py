@@ -313,7 +313,7 @@ class CurveAmm(BaseDexClient):
                 if exchange_rate:
                     prices[coin_index][coin_index_for_swap] = exchange_rate / exchange_precision
                 else:
-                    logger.error(
+                    logger.debug(
                         f"Can not detect price for token in curve pool: {curve_pool.address} {coin_index} "
                         f"{coin_index_for_swap}"
                     )
@@ -382,7 +382,7 @@ class CurveAmm(BaseDexClient):
                 if exchange_rate:
                     u_prices[coin_index][coin_index_for_swap] = exchange_rate / exchange_precision
                 else:
-                    logger.error(
+                    logger.debug(
                         f"Can not detect price for token in curve pool: {curve_pool.address}"
                     )
                     return default_finance
@@ -425,7 +425,7 @@ class CurveAmm(BaseDexClient):
             )
 
             if coin_index is None:
-                logger.error(
+                logger.debug(
                     f"Can not detect coin_index while resolving event remove_liquidity_one event"
                     f" pool_index: {curve_pool.address}"
                     f" in block: {block_identifier}"
@@ -612,7 +612,7 @@ class CurveAmm(BaseDexClient):
                     .call(block_identifier="latest")
                 )
             except Exception:
-                logger.error(
+                logger.debug(
                     f"Can't get token_addresses for metapool: {curve_pool.address} from "
                     f"contract v_{registry_id}"
                 )
@@ -637,7 +637,7 @@ class CurveAmm(BaseDexClient):
                     .call(block_identifier="latest")
                 )
             except Exception:
-                logger.error(
+                logger.debug(
                     f"Can't get decimals for coins in metapool: {curve_pool.address} from"
                     f"contract v_{registry_id}"
                 )
