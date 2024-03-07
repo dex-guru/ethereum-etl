@@ -219,7 +219,7 @@ class PriceService:
             dex_trade['prices_stable'][1 - stablecoin_index]
         )
         dex_trade['token_prices'][1 - stablecoin_index][stablecoin_index] = abs(
-            dex_trade['prices_stable'][stablecoin_index - 1]
+            dex_trade['prices_stable'][1 - stablecoin_index]
         )
 
         return dex_trade
