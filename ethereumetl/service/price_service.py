@@ -44,6 +44,8 @@ class PriceService:
         """Resolves the prices of tokens in a DEX trade."""
         self._initialize_prices(dex_trade)
         self._ensure_base_prices(dex_trade)
+        if len(dex_trade['token_addresses']) > 2:
+            return self.set_base_prices_for_trade(dex_trade)
         if self._trade_involves_stablecoin(dex_trade):
             dex_trade = self._resolve_prices_for_pools_with_stablecoin(dex_trade)
         if self._trade_involves_native_token(dex_trade):
@@ -207,16 +209,16 @@ class PriceService:
         dex_trade['prices_stable'][stablecoin_index] = 1.0
         dex_trade['prices_stable'][1 - stablecoin_index] = dex_trade['token_prices'][
             stablecoin_index
-        ][abs(stablecoin_index - 1)]
+        ][1 - stablecoin_index]
         return dex_trade
 
     def _resolve_prices_for_pools_with_native_token(self, dex_trade: dict):
         native_token_index = dex_trade['token_addresses'].index(self.native_token['address'])
         dex_trade['amount_native'] = abs(dex_trade['amounts'][native_token_index])
         dex_trade['prices_native'][native_token_index] = 1.0
-        dex_trade['prices_native'][abs(native_token_index - 1)] = dex_trade['token_prices'][
+        dex_trade['prices_native'][1 - native_token_index] = dex_trade['token_prices'][
             native_token_index
-        ][abs(native_token_index - 1)]
+        ][1 - native_token_index]
         return dex_trade
 
     @staticmethod
