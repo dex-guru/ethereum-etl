@@ -1279,7 +1279,7 @@ raw-verify-data-streamer:
 raw-data-streamer-dexpool:
   replicas:
     default: 1
-  limitsCpu: 1
+  limitsCpu: 0.3
   limitsMemory: 9000Mi
   requestsCpu: 100m
   requestsMemory: 1000Mi
@@ -1398,6 +1398,8 @@ raw-data-streamer-dextrade:
     base-8453: 2
     bsc-56: 5
     polygon-137: 3
+  limitsCpu: 1
+  limitsMemory: 9000Mi
   requestsCpu: 100m
   requestsMemory: 1000Mi
   strategyType: 'Recreate'
