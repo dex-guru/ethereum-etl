@@ -60,7 +60,6 @@ variables:
     prod-indexation-fantom-250
     prod-indexation-base-8453
     prod-indexation-avalanche-43114
-    prod-indexation-celo-42220
     prod-indexation-manta-169
     prod-indexation-neonevm-245022934
     prod-indexation-xfitest-4157
@@ -81,7 +80,6 @@ variables:
     prod-indexation-polygon-137
     prod-indexation-base-8453
     prod-indexation-avalanche-43114
-    prod-indexation-celo-42220
     prod-indexation-zetatestnet-7001
     prod-indexation-zeta-7000
     prod-indexation-manta-169
@@ -718,3 +716,31 @@ raw-data-streamer-dextrade-stage:
         - helm/lax_stage_deploy.sh
     only:
         - master
+
+raw-data-streamer-dexpool-prod:
+  stage: deploy-prod
+  image:
+    name: ${IMAGE_HELM_KUBECTL}
+    entrypoint: [""]
+    variables:
+        SERVICE_NAME: "raw-data-streamer-dexpool"
+        KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD}
+        HELM_CHART: ${HELM_CHART_PROD_LAX}
+  script:
+    - helm/lax_prod_deploy.sh
+  only:
+    - tags
+
+raw-data-streamer-dextrade-prod:
+    stage: deploy-prod
+    image:
+        name: ${IMAGE_HELM_KUBECTL}
+        entrypoint: [""]
+    variables:
+        SERVICE_NAME: "raw-data-streamer-dextrade"
+        KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD_TRACE}
+        HELM_CHART: ${HELM_CHART_PROD_LAX}
+    script:
+        - helm/lax_prod_deploy.sh
+    only:
+        - tags
