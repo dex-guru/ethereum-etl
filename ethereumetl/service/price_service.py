@@ -205,45 +205,18 @@ class PriceService:
         ][0]
         dex_trade['amount_stable'] = abs(dex_trade['amounts'][stablecoin_index])
         dex_trade['prices_stable'][stablecoin_index] = 1.0
-        if not all(dex_trade['amounts']):
-            return dex_trade
-
-        dex_trade['prices_stable'][1 - stablecoin_index] = dex_trade['amounts'][
-            1 - stablecoin_index
-        ] / abs(dex_trade['amounts'][stablecoin_index])
-
-        dex_trade['token_prices'][stablecoin_index] = [1.0, 1.0]
-        dex_trade['token_prices'][1 - stablecoin_index] = [1.0, 1.0]
-
-        dex_trade['token_prices'][stablecoin_index][1 - stablecoin_index] = 1.0 / abs(
-            dex_trade['prices_stable'][1 - stablecoin_index]
-        )
-        dex_trade['token_prices'][1 - stablecoin_index][stablecoin_index] = abs(
-            dex_trade['prices_stable'][stablecoin_index - 1]
-        )
-
+        dex_trade['prices_stable'][1 - stablecoin_index] = dex_trade['token_prices'][
+            stablecoin_index
+        ][abs(stablecoin_index - 1)]
         return dex_trade
 
     def _resolve_prices_for_pools_with_native_token(self, dex_trade: dict):
         native_token_index = dex_trade['token_addresses'].index(self.native_token['address'])
         dex_trade['amount_native'] = abs(dex_trade['amounts'][native_token_index])
         dex_trade['prices_native'][native_token_index] = 1.0
-        if not all(dex_trade['amounts']):
-            return dex_trade
-        dex_trade['prices_native'][1 - native_token_index] = dex_trade['amounts'][
-            1 - native_token_index
-        ] / abs(dex_trade['amounts'][native_token_index])
-
-        dex_trade['token_prices'][native_token_index] = [1.0, 1.0]
-        dex_trade['token_prices'][1 - native_token_index] = [1.0, 1.0]
-
-        dex_trade['token_prices'][native_token_index][1 - native_token_index] = 1.0 / abs(
-            dex_trade['prices_native'][1 - native_token_index]
-        )
-        dex_trade['token_prices'][1 - native_token_index][native_token_index] = abs(
-            dex_trade['prices_native'][native_token_index]
-        )
-
+        dex_trade['prices_native'][abs(native_token_index - 1)] = dex_trade['token_prices'][
+            native_token_index
+        ][abs(native_token_index - 1)]
         return dex_trade
 
     @staticmethod
