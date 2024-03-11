@@ -1446,6 +1446,22 @@ PARTITION BY toYYYYMMDD(FROM_UNIXTIME(block_timestamp))
 ORDER BY trace_id
 SETTINGS index_granularity = 8192;
 
+CREATE TABLE traders_categories
+(
+    `wallet_address` String,
+    `day` Date,
+    `volume` Float64,
+    `swaps_count` UInt64,
+    `liquidity` Float64,
+    `mints_count` UInt64,
+    `volume_category` LowCardinality(String),
+    `lp_category` LowCardinality(String)
+)
+ENGINE = MergeTree
+PARTITION BY day
+ORDER BY wallet_address
+SETTINGS index_granularity = 512;
+
 CREATE TABLE transactions_address
 (
     `address` String CODEC(ZSTD(1)),
