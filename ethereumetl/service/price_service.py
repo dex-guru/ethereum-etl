@@ -87,7 +87,7 @@ class PriceService:
     def _ensure_base_prices(self, dex_trade):
         """Ensures that the base token prices are present in the trade."""
         for token_address in dex_trade['token_addresses']:
-            if token_address not in self.base_tokens_prices.keys():
+            if token_address not in self.base_tokens_prices:
                 self.base_tokens_prices[token_address] = {
                     'price_stable': 0.0,
                     'price_native': 0.0,
@@ -145,53 +145,60 @@ class PriceService:
         )
 
     def _update_trade_prices(
-        self,
-        dex_trade,
-        idx_base,
-        opposite_idx,
-        base_price,
-        opposite_token_ratio,
+        self, dex_trade, idx_base, opposite_idx, base_price, opposite_token_ratio
     ):
-        """Updates the trade prices based on the base and opposite token prices."""
-        if (
-            not dex_trade['prices_stable'][idx_base]
-            or not dex_trade['prices_stable'][opposite_idx]
-        ):
-            if base_price['price_stable']:
-                dex_trade['prices_stable'][idx_base] = copy(base_price['price_stable'])
-                try:
-                    dex_trade['prices_stable'][opposite_idx] = (
-                        base_price['price_stable'] / opposite_token_ratio
-                    )
-                except ZeroDivisionError:
-                    dex_trade['prices_stable'][opposite_idx] = copy(
-                        self.base_tokens_prices[dex_trade['token_addresses'][opposite_idx]][
-                            'price_stable'
-                        ]
-                    )
-                dex_trade['amount_stable'] = base_price['price_stable'] * abs(
-                    dex_trade['amounts'][idx_base]
-                )
+        """
+        Updates the trade prices based on the base and opposite token prices.
 
-        if (
-            not dex_trade['prices_native'][idx_base]
-            or not dex_trade['prices_native'][opposite_idx]
-        ):
-            if base_price['price_native']:
-                dex_trade['prices_native'][idx_base] = copy(base_price['price_native'])
+        This method iterates over two price types: 'stable' and 'native'. For each price type, it checks if the prices
+        for the base and opposite tokens are not set in the dex_trade dictionary. If they are not set and the base price
+        for the current price type is available, it sets the base price and calculates the opposite price based on the
+        opposite token ratio. If a ZeroDivisionError occurs during this calculation, it tries to calculate the opposite
+        price based on the amounts of the base and opposite tokens. If another ZeroDivisionError occurs, it sets the
+        opposite price to the base token price from the base_tokens_prices dictionary. Finally, it calculates the amount
+        for the current price type based on the base price and the absolute value of the base token amount.
+
+        Parameters:
+        dex_trade (dict): The dictionary containing the trade data.
+        idx_base (int): The index of the base token in the dex_trade dictionary.
+        opposite_idx (int): The index of the opposite token in the dex_trade dictionary.
+        base_price (dict): The dictionary containing the base prices for the 'stable' and 'native' price types.
+        opposite_token_ratio (float): The ratio of the opposite token to the base token.
+
+        Returns:
+        None
+        """
+        for price_type in ('stable', 'native'):
+            if all(dex_trade[f'prices_{price_type}']):
+                continue
+            if not base_price[f'price_{price_type}']:
+                continue
+
+            dex_trade[f'prices_{price_type}'][idx_base] = copy(base_price[f'price_{price_type}'])
+            try:
+                dex_trade[f'prices_{price_type}'][opposite_idx] = (
+                    base_price[f'price_{price_type}'] / opposite_token_ratio
+                )
+            except ZeroDivisionError:
+                # If the opposite token ratio is 0, calculate the opposite price based on the amounts of the base and
+                # opposite tokens
                 try:
-                    dex_trade['prices_native'][opposite_idx] = (
-                        base_price['price_native'] / opposite_token_ratio
+                    dex_trade[f'prices_{price_type}'][opposite_idx] = abs(
+                        dex_trade['amounts'][idx_base]
+                        / dex_trade['amounts'][opposite_idx]
+                        * base_price[f'price_{price_type}']
                     )
                 except ZeroDivisionError:
-                    dex_trade['prices_native'][opposite_idx] = copy(
+                    # If the amount of the opposite token is 0, set the opposite price to the base token price from the
+                    # base_tokens_prices
+                    dex_trade[f'prices_{price_type}'][opposite_idx] = copy(
                         self.base_tokens_prices[dex_trade['token_addresses'][opposite_idx]][
-                            'price_native'
+                            f'price_{price_type}'
                         ]
                     )
-                dex_trade['amount_native'] = base_price['price_native'] * abs(
-                    dex_trade['amounts'][idx_base]
-                )
+            dex_trade[f'amount_{price_type}'] = base_price[f'price_{price_type}'] * abs(
+                dex_trade['amounts'][idx_base]
+            )
 
     def _resolve_prices_for_pools_with_stablecoin(self, dex_trade):
         if all(

@@ -19,6 +19,8 @@ to_checksum = Web3.toChecksumAddress
 
 class MeshswapAmm(UniswapV2Amm):
 
+    MINT_EVENTS = ("AddLiquidity",)
+
     def __init__(self, web3: Web3, chain_id: int | None = None):
         super().__init__(web3, chain_id, __file__)
 

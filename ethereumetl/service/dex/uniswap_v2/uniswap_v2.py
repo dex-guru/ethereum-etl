@@ -1,6 +1,7 @@
 import json
 import logging
 from collections.abc import Callable
+from functools import cache
 from pathlib import Path
 
 from eth_typing import ChecksumAddress
@@ -23,6 +24,7 @@ to_checksum = Web3.toChecksumAddress
 class UniswapV2Amm(BaseDexClient):
 
     POOL_ABI_PATH = "Pool.json"
+    MINT_EVENTS = ("Mint",)
 
     def __init__(self, web3: Web3, chain_id: int | None = None, file_path: str = __file__):
         super().__init__(web3, chain_id, file_path)
@@ -59,6 +61,7 @@ class UniswapV2Amm(BaseDexClient):
             factory_address=factory_address.lower(),
         )
 
+    @cache
     def get_factory_address(self, pool_address: str) -> str | None:
         try:
             factory_address = self.pool_contract.functions.factory().call(
@@ -71,6 +74,7 @@ class UniswapV2Amm(BaseDexClient):
             logging.debug(f"Not found factory, fallback to maintainer. Error: {e}")
         return None
 
+    @cache
     def get_tokens_addresses_for_pool(self, pool_address: ChecksumAddress) -> list | None:
         logging.debug(f"Resolving tokens addresses for {pool_address}")
         try:
@@ -129,7 +133,12 @@ class UniswapV2Amm(BaseDexClient):
                 'price_0': 0,
                 'price_1': 0,
             }
-        if not reserves[2] and parsed_receipt_log.parsed_event.get("amount0"):
+        if (
+            not all(reserves)
+            and parsed_receipt_log.parsed_event.get("amount0")
+            and parsed_receipt_log.parsed_event.get("amount1")
+            and parsed_receipt_log.event_name in self.MINT_EVENTS
+        ):
             # probably first mint
             reserves = [
                 parsed_receipt_log.parsed_event["amount0"],
