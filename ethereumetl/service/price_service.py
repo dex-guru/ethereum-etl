@@ -70,9 +70,14 @@ class PriceService:
                     'score': 1,
                 }
                 continue
-            if price_stable:
+            prev_price_stable = self.base_tokens_prices[token_address]['price_stable']
+            prev_price_native = self.base_tokens_prices[token_address]['price_native']
+
+            # check spikes
+            if price_stable and 0.9 < price_stable / prev_price_stable < 1.1:
                 self.base_tokens_prices[token_address]['price_stable'] = copy(price_stable)
-            if price_native:
+
+            if price_native and 0.9 < price_native / prev_price_native < 1.1:
                 self.base_tokens_prices[token_address]['price_native'] = copy(price_native)
 
     @staticmethod
@@ -158,15 +163,19 @@ class PriceService:
         opposite price to the base token price from the base_tokens_prices dictionary. Finally, it calculates the amount
         for the current price type based on the base price and the absolute value of the base token amount.
 
-        Parameters:
-        dex_trade (dict): The dictionary containing the trade data.
-        idx_base (int): The index of the base token in the dex_trade dictionary.
-        opposite_idx (int): The index of the opposite token in the dex_trade dictionary.
-        base_price (dict): The dictionary containing the base prices for the 'stable' and 'native' price types.
-        opposite_token_ratio (float): The ratio of the opposite token to the base token.
+        Args:
+        ----
+            dex_trade (dict): The dictionary containing the trade data.
+            idx_base (int): The index of the base token in the dex_trade dictionary.
+            opposite_idx (int): The index of the opposite token in the dex_trade dictionary.
+            base_price (dict): The dictionary containing the base prices for the 'stable' and 'native' price types.
+            opposite_token_ratio (float): The ratio of the opposite token to the base token.
+
 
         Returns:
-        None
+        -------
+            None
+        
         """
         for price_type in ('stable', 'native'):
             if all(dex_trade[f'prices_{price_type}']):

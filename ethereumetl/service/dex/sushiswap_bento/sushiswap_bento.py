@@ -1,3 +1,5 @@
+from functools import cache
+
 from web3.exceptions import BadFunctionCallOutput, ContractLogicError
 
 from ethereumetl.domain.dex_trade import EthDexTrade
@@ -37,6 +39,7 @@ class SushiSwapBentoAmm(UniswapV2Amm):
             token_addresses=[dex_pool.token_addresses[0], dex_pool.token_addresses[1]],
         )
 
+    @cache
     def get_factory_address(self, pool_address: str) -> str | None:
         try:
             return self.pool_contract.functions.bento().call({"to": pool_address})
