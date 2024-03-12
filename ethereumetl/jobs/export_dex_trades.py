@@ -91,6 +91,6 @@ class ExportDexTradesJob(BaseJob):
         if not dex_pool:
             # Try to get pool for balancer
             dex_pool = self.dex_pools_by_address.get(
-                f"0x{parsed_log.parsed_event.get('poolId', '').lower()[:40]}"
+                f"0x{parsed_log.parsed_event.get('poolId', b'').hex().lower()[:40]}"
             )
         return dex_pool

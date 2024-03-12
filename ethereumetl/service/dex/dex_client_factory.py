@@ -6,6 +6,7 @@ from typing import Any
 
 from web3 import Web3
 
+from ethereumetl.service.dex.balancer.balancer import BalancerAmm
 from ethereumetl.service.dex.base.base_dex_client import BaseDexClient
 from ethereumetl.service.dex.base.interface import DexClientInterface
 from ethereumetl.service.dex.canto_dex.canto_dex import CantoDexAmm
@@ -47,7 +48,7 @@ class ContractAdaptersFactory(metaclass=Singleton):
         "curve": CurveAmm,
         # "bancor_v2": BancorV2Amm,
         # "ellipsis": EllipsisAmm,
-        # "balancer": BalancerAmm,
+        "balancer": BalancerAmm,
         "sushiswap_bento": SushiSwapBentoAmm,
         # "saddle": SaddleAmm,
         # "platypus": PlatypusAmm,

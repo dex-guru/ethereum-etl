@@ -549,7 +549,7 @@ class ClickhouseEthStreamerAdapter:
                 if (log['address'] not in existing_dex_pool_addresses)
                 or (
                     log['parsed_event'].get('poolId')
-                    and f"0x{log['parsed_event']['poolId'][:40]}".lower()
+                    and f"0x{log['parsed_event']['poolId'].hex()[:40].lower()}"
                     not in existing_dex_pool_addresses
                 )
             ]
