@@ -1,5 +1,5 @@
 import logging
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from copy import copy, deepcopy
 from typing import Literal
 
@@ -38,9 +38,11 @@ class EnrichDexTradeJob(BaseJob):
 
         self._tokens_by_address = {token['address']: token for token in tokens}
         self._token_transfers_by_hash: dict[str, list] = defaultdict(list)
-        self._dex_trades_by_hash = defaultdict(list)
+        self._dex_trades_by_hash = OrderedDict()
 
         for dex_trade in dex_trades:
+            if dex_trade['transaction_hash'] not in self._dex_trades_by_hash:
+                self._dex_trades_by_hash[dex_trade['transaction_hash']] = []
             self._dex_trades_by_hash[dex_trade['transaction_hash']].append(dex_trade)
 
         self._build_token_transfers_by_hash(token_transfers)
