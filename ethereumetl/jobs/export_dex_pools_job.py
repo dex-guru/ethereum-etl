@@ -59,7 +59,7 @@ class ExportPoolsJob(BaseJob):
 
         for log in parsed_logs_iterable:
             # Balancer vault address is always in the log address
-            pool_address = f"0x{log['parsed_event'].get('poolId', '')[:40].lower()}"
+            pool_address = f"0x{log['parsed_event'].get('poolId', b'0x').hex().lower()[:40]}"
             if pool_address and pool_address not in added_addresses:
                 added_addresses.add(pool_address)
                 logs_with_unique_addresses.append(log)

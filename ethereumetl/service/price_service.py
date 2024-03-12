@@ -74,10 +74,14 @@ class PriceService:
             prev_price_native = self.base_tokens_prices[token_address]['price_native']
 
             # check spikes
-            if price_stable and 0.9 < price_stable / prev_price_stable < 1.1:
+            if price_stable and prev_price_stable and 0.9 < price_stable / prev_price_stable < 1.1:
+                self.base_tokens_prices[token_address]['price_stable'] = copy(price_stable)
+            elif price_stable and not prev_price_stable:
                 self.base_tokens_prices[token_address]['price_stable'] = copy(price_stable)
 
-            if price_native and 0.9 < price_native / prev_price_native < 1.1:
+            if price_native and prev_price_native and 0.9 < price_native / prev_price_native < 1.1:
+                self.base_tokens_prices[token_address]['price_native'] = copy(price_native)
+            elif price_native and not prev_price_native:
                 self.base_tokens_prices[token_address]['price_native'] = copy(price_native)
 
     @staticmethod
@@ -223,18 +227,26 @@ class PriceService:
         ][0]
         dex_trade['amount_stable'] = abs(dex_trade['amounts'][stablecoin_index])
         dex_trade['prices_stable'][stablecoin_index] = 1.0
-        dex_trade['prices_stable'][1 - stablecoin_index] = dex_trade['token_prices'][
-            stablecoin_index
-        ][1 - stablecoin_index]
+        opposite_price = dex_trade['token_prices'][stablecoin_index][1 - stablecoin_index]
+        if not opposite_price:
+            opposite_price = (
+                dex_trade['amounts'][stablecoin_index] / dex_trade['amounts'][1 - stablecoin_index]
+            )
+
+        dex_trade['prices_stable'][1 - stablecoin_index] = opposite_price
         return dex_trade
 
     def _resolve_prices_for_pools_with_native_token(self, dex_trade: dict):
         native_token_index = dex_trade['token_addresses'].index(self.native_token['address'])
         dex_trade['amount_native'] = abs(dex_trade['amounts'][native_token_index])
         dex_trade['prices_native'][native_token_index] = 1.0
-        dex_trade['prices_native'][1 - native_token_index] = dex_trade['token_prices'][
-            native_token_index
-        ][1 - native_token_index]
+        opposite_price = dex_trade['token_prices'][native_token_index][1 - native_token_index]
+        if not opposite_price:
+            opposite_price = (
+                dex_trade['amounts'][native_token_index]
+                / dex_trade['amounts'][1 - native_token_index]
+            )
+        dex_trade['prices_native'][1 - native_token_index] = opposite_price
         return dex_trade
 
     @staticmethod
