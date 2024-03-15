@@ -94,7 +94,6 @@ class EthResolveLogService(metaclass=Singleton):
             if events_inventory.get(sighash_topic_count):
                 events_inventory[sighash_topic_count]['namespaces'].add(str(parent_path))
                 events_inventory[sighash_topic_count]['contract_name'].add(str(file_name[:-5]))
-                events_inventory[sighash_topic_count]['event_abi_json_list'].append(event_abi)
                 events_inventory[sighash_topic_count]['event_abi_by_namespace'][
                     str(parent_path)
                 ] = event_abi
@@ -106,7 +105,6 @@ class EthResolveLogService(metaclass=Singleton):
                 'namespaces': {str(parent_path)},
                 'contract_name': {file_name[:-5]},
                 'event_abi_json': event_abi,
-                'event_abi_json_list': [event_abi],
                 'event_abi_by_namespace': {str(parent_path): event_abi},
                 'contract': self._web3.eth.contract(abi=[event_abi]),
             }
@@ -119,9 +117,13 @@ class EthResolveLogService(metaclass=Singleton):
         event: dict | None = self.events_inventory.get(sighash_with_topics_count, None)
         return event
 
-    def parse_log(self, log: EthReceiptLog) -> ParsedReceiptLog | None:
+    def parse_log(
+        self, log: EthReceiptLog, filter_for_events: list[str] = None
+    ) -> ParsedReceiptLog | None:
         event = self._get_event_inventory_for_log(log)
         if not event:
+            return None
+        if filter_for_events and event['event_name'] not in filter_for_events:
             return None
         contract = event['contract']
         event_abi = getattr(contract.events, event['event_name'], None)
