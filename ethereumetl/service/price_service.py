@@ -228,7 +228,7 @@ class PriceService:
         dex_trade['amount_stable'] = abs(dex_trade['amounts'][stablecoin_index])
         dex_trade['prices_stable'][stablecoin_index] = 1.0
         opposite_price = dex_trade['token_prices'][stablecoin_index][1 - stablecoin_index]
-        if not opposite_price:
+        if not opposite_price and dex_trade['amounts'][1 - stablecoin_index] != 0:
             opposite_price = (
                 dex_trade['amounts'][stablecoin_index] / dex_trade['amounts'][1 - stablecoin_index]
             )
@@ -241,7 +241,7 @@ class PriceService:
         dex_trade['amount_native'] = abs(dex_trade['amounts'][native_token_index])
         dex_trade['prices_native'][native_token_index] = 1.0
         opposite_price = dex_trade['token_prices'][native_token_index][1 - native_token_index]
-        if not opposite_price:
+        if not opposite_price and dex_trade['amounts'][1 - native_token_index] != 0:
             opposite_price = (
                 dex_trade['amounts'][native_token_index]
                 / dex_trade['amounts'][1 - native_token_index]

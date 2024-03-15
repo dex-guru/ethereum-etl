@@ -9,6 +9,12 @@ class EthDexTradeMapper:
     def dict_from_dex_trade(dex_trade: EthDexTrade):
         trade = asdict(dex_trade)
         trade['type'] = EntityType.DEX_TRADE.value
+        trade['token_addresses'] = [
+            token_address.lower() for token_address in trade['token_addresses']
+        ]
+        trade['pool_address'] = trade['pool_address'].lower()
+        trade['lp_token_address'] = trade['lp_token_address'].lower()
+        trade['transaction_hash'] = trade['transaction_hash'].lower()
         return trade
 
     @staticmethod
@@ -43,7 +49,9 @@ class EnrichedDexTradeMapper:
             log_index=trade_dict['log_index'],
             transaction_hash=trade_dict['transaction_hash'].lower(),
             transaction_type=trade_dict['transaction_type'].lower(),
-            token_addresses=trade_dict['token_addresses'],
+            token_addresses=[
+                token_address.lower() for token_address in trade_dict['token_addresses']
+            ],
             symbols=trade_dict['symbols'],
             amounts=trade_dict['amounts'],
             amount_stable=trade_dict['amount_stable'],
@@ -58,4 +66,5 @@ class EnrichedDexTradeMapper:
             reserves_stable=trade_dict['reserves_stable'],
             reserves_native=trade_dict['reserves_native'],
             factory_address=trade_dict['factory_address'].lower(),
+            lp_token_address=trade_dict['lp_token_address'].lower(),
         )

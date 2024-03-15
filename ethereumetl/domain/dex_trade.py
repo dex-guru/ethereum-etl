@@ -14,7 +14,7 @@ class EthDexTrade:
     token_reserves: list[float | int]
     token_prices: list[float]
     token_addresses: Collection[str]
-    lp_token_address: str | None = None
+    lp_token_address: str = ''
 
 
 @dataclass(slots=True)
