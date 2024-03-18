@@ -700,7 +700,7 @@ class ClickhouseEthStreamerAdapter:
             dex_pools = export_dex_pools()[0]
             tokens = export_tokens_from_pools()
             token_transfers = extract_token_transfers()[0]
-            internal_transfers = extract_internal_transfers()[0]
+            # internal_transfers = extract_internal_transfers()[0]
             transactions = export_blocks_and_transactions()[1]
             base_tokens_prices = import_base_tokens_prices()
             enriched_dex_trades, enriched_transfers = self.eth_streamer.export_enriched_dex_trades(
@@ -709,7 +709,7 @@ class ClickhouseEthStreamerAdapter:
                 base_tokens_prices=base_tokens_prices,
                 tokens=tokens,
                 token_transfers=token_transfers,
-                internal_transfers=internal_transfers,
+                # internal_transfers=[],
                 transactions=transactions,
             )
             return enriched_dex_trades, enriched_transfers, from_ch_

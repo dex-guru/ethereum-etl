@@ -118,7 +118,7 @@ class EthResolveLogService(metaclass=Singleton):
         return event
 
     def parse_log(
-        self, log: EthReceiptLog, filter_for_events: list[str] = None
+        self, log: EthReceiptLog, filter_for_events: list[str] | None = None
     ) -> ParsedReceiptLog | None:
         event = self._get_event_inventory_for_log(log)
         if not event:

@@ -140,7 +140,6 @@ class EthStreamerAdapter:
             PARSED_LOG,
             TOKEN,
             TOKEN_TRANSFER,
-            INTERNAL_TRANSFER,
             TRANSACTION,
         ),
         ENRICHED_TRANSFER: (ENRICHED_DEX_TRADE,),
@@ -234,7 +233,7 @@ class EthStreamerAdapter:
                     self.import_base_token_prices([t['address'] for t in export(TOKEN)]),
                     export(TOKEN),
                     export(TOKEN_TRANSFER),
-                    export(INTERNAL_TRANSFER),
+                    # export(INTERNAL_TRANSFER),
                     export(TRANSACTION),
                 ),
             }.items()
@@ -612,7 +611,7 @@ class EthStreamerAdapter:
         base_tokens_prices: list,
         tokens: list,
         token_transfers: list,
-        internal_transfers: list,
+        # internal_transfers: list,
         transactions: list,
     ) -> tuple[list[dict], list[dict]]:
         item_exporter = InMemoryItemExporter([ENRICHED_DEX_TRADE, ENRICHED_TRANSFER])
@@ -623,7 +622,7 @@ class EthStreamerAdapter:
             base_tokens_prices=base_tokens_prices,
             tokens=tokens,
             token_transfers=token_transfers,
-            internal_transfers=internal_transfers,
+            internal_transfers=[],
             transactions=transactions,
             dex_trades=dex_trades,
             item_exporter=item_exporter,
