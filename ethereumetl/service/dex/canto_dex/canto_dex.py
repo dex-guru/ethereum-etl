@@ -22,7 +22,7 @@ class CantoDexAmm(UniswapV2Amm):
 
     POOL_ABI_PATH = 'BaseV1Pair.json'
 
-    def __init__(self, web3: Web3, chain_id: int | None = None, file_path: str = __file__):
+    def __init__(self, web3: Web3, chain_id: int, file_path: str = __file__):
         super().__init__(web3, chain_id, file_path)
         factory_abi_path = Path(__file__).parent / 'BaseV1Factory.json'
         factory_abi = json.loads(factory_abi_path.read_text())
