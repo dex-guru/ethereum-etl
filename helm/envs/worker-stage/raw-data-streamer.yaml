@@ -1,0 +1,22 @@
+worker:
+  replicas:
+    default: 1
+  limitsCpu: 1
+  limitsMemory: 9000Mi
+  requestsCpu: 0.1
+  requestsMemory: 1000Mi
+  command: '[ "ethereumetl", "stream" ]'
+  ## Following wars are rendered using tpl separately in template into Envs
+  providerURL: '{{ .Values.worker.fullProviderURL }}'
+  output: '{{ .Values.worker.chainDB }},amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
+  lastSyncBlockProvider: '{{ .Values.worker.chainDB }}?table_name=last_synced_block'
+  lag: '0'
+  entityTypes: 'block,transaction,log'
+  ##
+  env:
+    POLLING_PERIOD: '2'
+    BATCH_SIZE: '5'
+    SERVICE_NAME: 'raw-data-streamer'
+    MAX_WORKERS: '20'
+    BLOCK_BATCH_SIZE: '30'
+    MIN_INSERT_BATCH_SIZE: '1'

@@ -1,0 +1,29 @@
+worker:
+  replicas:
+    default: 1
+    arbitrum-42161: 3
+    bsc-56: 2
+    nova-42170: 2
+  limitsCpu: 1
+  limitsMemory: 9000Mi
+  requestsCpu: 0.1
+  requestsMemory: 1000Mi
+  command: '[ "ethereumetl", "amqp_stream" ]'
+  ## Following wars are rendered using tpl separately in template into Envs
+  providerURL: '{{ .Values.worker.fullProviderURL }}'
+  output: '{{ .Values.worker.chainDB }}'
+  lag: '0'
+  entityTypes: 'dex_pool'
+  ##
+  env:
+    ROUTING_KEY: 'block'
+    POLLING_PERIOD: '2'
+    BATCH_SIZE: '5'
+    SERVICE_NAME: 'raw-data-streamer-dexpool'
+    IS_VERIFIER: 'True'
+    EXCHANGE_NAME: 'verifier_etl'
+    QUEUE_NAME: 'verify_all'
+    REWRITE_CLICKHOUSE: ''
+    MAX_WORKERS: '20'
+    BLOCK_BATCH_SIZE: '100'
+    MIN_INSERT_BATCH_SIZE: '1'
