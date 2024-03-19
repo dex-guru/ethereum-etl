@@ -1,9 +1,11 @@
 import json
 import logging
 from collections.abc import Callable
+from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
+from eth_typing import ChecksumAddress
 from web3 import Web3
 from web3.exceptions import BadFunctionCallOutput, ContractLogicError
 
@@ -221,7 +223,10 @@ class UniswapV3Amm(BaseDexClient):
         )
         return mint
 
-    def get_slot0(self, pool_address, block_identifier: Literal['latest'] | int = "latest"):
+    @lru_cache(maxsize=128)
+    def get_slot0(
+        self, pool_address: ChecksumAddress, block_identifier: Literal['latest'] | int = "latest"
+    ):
         values = self.pool_contract_abi.functions.slot0().call(
             {"to": pool_address}, block_identifier
         )
@@ -236,11 +241,13 @@ class UniswapV3Amm(BaseDexClient):
         ]
         return dict(zip(names, values))
 
+    @lru_cache(maxsize=128)
     def get_liquidity(self, pool_address, block_identifier: Literal['latest'] | int = "latest"):
         return self.pool_contract_abi.functions.liquidity().call(
             {"to": pool_address}, block_identifier
         )
 
+    @lru_cache(maxsize=128)
     def get_factory_address(self, pool_address: str) -> str | None:
         try:
             factory_address = self.pool_contract_abi.functions.factory().call(
@@ -286,6 +293,7 @@ class UniswapV3Amm(BaseDexClient):
         price = ((sqrt_price_x96**2) / (2**192)) / token_scalars_diff
         return price
 
+    @lru_cache(maxsize=128)
     def get_ticks_spacing(
         self,
         pool_address,

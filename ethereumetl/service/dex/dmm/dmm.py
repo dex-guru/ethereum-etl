@@ -14,5 +14,5 @@ class DMMAmm(UniswapV2Amm):
 
     POOL_ABI_PATH = "IDMMPool.json"
 
-    def __init__(self, web3: Web3, chain_id: int | None = None):
-        super().__init__(web3, chain_id, __file__)
+    def __init__(self, web3: Web3, chain_id: int | None = None, file_path: str = __file__):
+        super().__init__(web3, chain_id, file_path)

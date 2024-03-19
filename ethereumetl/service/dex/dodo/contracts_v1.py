@@ -108,22 +108,11 @@ class DODOv1Amm(BaseDODOAmmClient):
         if event_name == self.pool_contracts_events_enum.burn.value:
             block_number -= 1
 
-        reserves = []
-        for idx, token in enumerate(dex_pool.token_addresses):
-            reserves.append(
-                self.erc20_contract_abi.functions.balanceOf(to_checksum(dex_pool.address)).call(
-                    {"to": to_checksum(token)},
-                    parsed_receipt_log.block_number,
-                )
-                / tokens_scalars[idx]
-            )
-
-        parsed_event["reserve0"] = reserves[0]
-        parsed_event["reserve1"] = reserves[1]
-
         finance_info = self.get_pool_finances_from_event(
             dex_pool, parsed_receipt_log, tokens_scalars
         )
+        parsed_event["reserve0"] = finance_info["reserve_0"]
+        parsed_event["reserve1"] = finance_info["reserve_1"]
 
         if event_name in self.pool_contracts_events_enum.swap_events():
             logs.debug(f"resolving swap from swap event ({event_name})")
@@ -138,7 +127,7 @@ class DODOv1Amm(BaseDODOAmmClient):
                 log_index=parsed_receipt_log.log_index,
                 block_number=parsed_receipt_log.block_number,
                 event_type='swap',
-                token_reserves=reserves,
+                token_reserves=[finance_info['reserve_0'], finance_info['reserve_1']],
                 token_prices=get_prices_for_two_pool(
                     finance_info['price_0'], finance_info['price_1']
                 ),

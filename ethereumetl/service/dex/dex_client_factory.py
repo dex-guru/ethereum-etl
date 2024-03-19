@@ -17,6 +17,7 @@ from ethereumetl.service.dex.kyberswap_elastic.kyberswap_elastic import KyberSwa
 from ethereumetl.service.dex.meshswap.meshswap import MeshswapAmm
 from ethereumetl.service.dex.one_inch.oneinch import OneInchAmm
 from ethereumetl.service.dex.quickswap_v3.quickswap_v3 import QuickswapV3Amm
+from ethereumetl.service.dex.solidly.solidly import SolidlyAmm
 from ethereumetl.service.dex.sushiswap_bento.sushiswap_bento import SushiSwapBentoAmm
 from ethereumetl.service.dex.traderjoe_v2_1.traderjoe_v2_1 import TraderJoeV21Amm
 from ethereumetl.service.dex.uniswap_v2.uniswap_v2 import UniswapV2Amm
@@ -35,12 +36,13 @@ class ContractAdaptersFactory(metaclass=Singleton):
 
     METADATA_FILE_NAME = 'metadata.json'
 
+    # Mapping of namespace to the corresponding adapter class.
     default_adapters: dict[str, type[DexClientInterface]] = {
         'base': BaseDexClient,
         "uniswap_v2": UniswapV2Amm,
         "uniswap_v3": UniswapV3Amm,
         "meshswap": MeshswapAmm,
-        "solidly": UniswapV2Amm,
+        "solidly": SolidlyAmm,
         "dmm": DMMAmm,
         "dodo": DODOAmm,
         "dodo_v2": DODOAmm,
