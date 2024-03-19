@@ -403,7 +403,7 @@ lint-helm:
     - echo "Deploying stage:"
     - /bin/sh helm/deploy.sh
   only:
-    - main
+    - master
 
 raw-data-streamer-stage:
   extends: .base-stage-config
