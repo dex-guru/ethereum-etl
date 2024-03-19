@@ -1,5 +1,6 @@
 import json
 import logging
+from functools import lru_cache
 from pathlib import Path
 
 from eth_typing import ChecksumAddress
@@ -110,15 +111,18 @@ class BaseDODOAmmClient(BaseDexClient):
         reserves = []
         for idx, token in enumerate(base_pool.token_addresses):
             reserves.append(
-                self.erc20_contract_abi.functions.balanceOf(to_checksum(base_pool.address)).call(
-                    {"to": to_checksum(token)},
-                    parsed_receipt_log.block_number - 1,
-                )
+                self._get_balance_of(token, base_pool.address, parsed_receipt_log.block_number - 1)
             )
         reserve0, reserve1 = reserves
-        pool_version = self.pool_contract.functions.version().call(
-            {"to": to_checksum(base_pool.address)}, "latest"
-        )
+
+        @lru_cache(maxsize=128)
+        def get_pool_version(pool_address):
+            return self.pool_contract.functions.version().call(
+                {"to": to_checksum(pool_address)}, "latest"
+            )
+
+        pool_version = get_pool_version(base_pool.address)
+
         if isinstance(pool_version, str) and "DSP" in pool_version:
             # In case its DSP (fixed pool, DODO Stable Pool), we can't relly on the reserves, only on 1-1 swapping
             token0_price = token1_price = 1.0

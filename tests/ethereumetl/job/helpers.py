@@ -24,7 +24,7 @@ def get_web3_provider(
         else:
             provider = MockWeb3Provider(read_resource_lambda)
     elif provider_type == 'infura':
-        provider_url = os.environ.get('PROVIDER_URL', 'http://rpc-gw-stage.dexguru.biz/archive/1')
+        provider_url = os.environ.get('PROVIDER_URL', 'http://rpc-gw-stage.dexguru.biz/full/1')
         if batch:
             provider = BatchHTTPProvider(provider_url)
         else:
@@ -39,7 +39,7 @@ def get_web3_provider(
                 f"write_resource_lambda must not be None for provider type {provider_type}"
             )
 
-        provider_url = os.environ.get('PROVIDER_URL', 'http://rpc-gw-stage.dexguru.biz/archive/1')
+        provider_url = os.environ.get('PROVIDER_URL', 'http://rpc-gw-stage.dexguru.biz/full/1')
         if batch:
             real_provider: Any = BatchHTTPProvider(provider_url)
             provider = MockBatchWeb3OrWeb3Provider(

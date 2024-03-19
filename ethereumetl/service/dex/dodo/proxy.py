@@ -47,18 +47,20 @@ class DODOAmm(DexClientInterface):
             DODOv2Amm(web3, chain_id, path_to_file),
         ]
 
-    @lru_cache(maxsize=50)
-    def _choose_amm_client(self, pool_address: str) -> DODOv1Amm | DODOv2Amm:
+    @lru_cache(maxsize=128)
+    def _choose_amm_client(self, pool_address: str) -> DODOv1Amm | DODOv2Amm | None:
         logs.debug(f"Choosing amm client for pool {pool_address}")
         for amm_client in self._amm_clients:
             if amm_client.is_pool_address_for_amm(pool_address):
                 logs.debug(f"Found amm client {amm_client}")
                 return amm_client
 
-        raise ValueError(f"No amm client for pool {pool_address}")
+        return None
 
     def resolve_asset_from_log(self, parsed_log: ParsedReceiptLog) -> EthDexPool | None:
         client = self._choose_amm_client(parsed_log.address)
+        if not client:
+            return None
         return client.resolve_asset_from_log(parsed_log)
 
     def resolve_receipt_log(
@@ -69,7 +71,8 @@ class DODOAmm(DexClientInterface):
         transfers_for_transaction: list[EthTokenTransfer],
     ) -> EthDexTrade | None:
         client = self._choose_amm_client(dex_pool.address)
-
+        if not client:
+            return None
         return client.resolve_receipt_log(
             parsed_receipt_log, dex_pool, tokens_for_pool, transfers_for_transaction
         )

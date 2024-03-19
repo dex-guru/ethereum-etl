@@ -1,7 +1,7 @@
 import json
 import logging
 from collections.abc import Callable
-from functools import cache
+from functools import cache, lru_cache
 from pathlib import Path
 
 from eth_typing import ChecksumAddress
@@ -120,19 +120,19 @@ class UniswapV2Amm(BaseDexClient):
     def resolve_finance_info(
         self, parsed_receipt_log: ParsedReceiptLog, token_scalars: list[int]
     ) -> dict | None:
-        try:
-            reserves = self.pool_contract.functions.getReserves().call(
-                {"to": to_checksum(parsed_receipt_log.address)},
-                block_identifier=parsed_receipt_log.block_number - 1,
-            )
-        except (TypeError, ContractLogicError, ValueError, BadFunctionCallOutput) as e:
-            logging.debug(f"Not found reserves for {parsed_receipt_log.address}. Error: {e}")
-            return {
-                'reserve_0': 0,
-                'reserve_1': 0,
-                'price_0': 0,
-                'price_1': 0,
-            }
+
+        @lru_cache(maxsize=128)
+        def get_reserves(address, block_number) -> list[int]:
+            try:
+                return self.pool_contract.functions.getReserves().call(
+                    {"to": to_checksum(address)},
+                    block_identifier=block_number,
+                )
+            except (TypeError, ContractLogicError, ValueError, BadFunctionCallOutput) as e:
+                logging.debug(f"Not found reserves for {parsed_receipt_log.address}. Error: {e}")
+                return [0, 0]
+
+        reserves = get_reserves(parsed_receipt_log.address, parsed_receipt_log.block_number - 1)
         if (
             not all(reserves)
             and parsed_receipt_log.parsed_event.get("amount0")

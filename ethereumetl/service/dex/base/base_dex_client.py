@@ -1,4 +1,5 @@
 import json
+from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
@@ -73,10 +74,11 @@ class BaseDexClient(DexClientInterface):
             topic_types,
         )
 
+    @lru_cache(maxsize=128)
     def _get_balance_of(
         self,
         token_address: str,
-        address_to_check_balance,
+        address_to_check_balance: str,
         block_number: int | Literal["latest"] = "latest",
     ) -> int:
         try:

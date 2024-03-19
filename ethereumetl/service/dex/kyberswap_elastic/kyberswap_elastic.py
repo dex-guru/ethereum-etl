@@ -1,4 +1,5 @@
 import logging
+from functools import lru_cache
 from typing import Literal
 
 from ethereumetl.domain.dex_pool import EthDexPool
@@ -15,6 +16,7 @@ class KyberSwapElasticAmm(UniswapV3Amm):
     def __init__(self, web3, chain_id: int | None = None, file_path: str = __file__):
         super().__init__(web3, chain_id, file_path)
 
+    @lru_cache(maxsize=128)
     def get_ticks_spacing(
         self, pool_address, block_identifier: int | Literal['latest'] = "latest"
     ):
