@@ -31,12 +31,8 @@ variables:
   IMAGE_DIND:         ${CI_HARBOR_REGISTRY_HOST}/dex.guru/utils/docker:23.0.6-dind
   IMAGE_APP:          ${CI_HARBOR_REGISTRY_HOST}/dex.guru/${CI_PROJECT_TITLE}/${CI_PROJECT_TITLE}
   IMAGE_ELASTIC:      ${CI_HARBOR_REGISTRY_HOST}/dex.guru/utils/elasticsearch:7.17.3
-
-  HELM_CHART_STAGE_LAX: 'helm/charts/backend-stage-lax'
-  HELM_CHART_PROD_LAX: 'helm/charts/backend-prod-lax'
   GIT_SUBMODULE_STRATEGY: recursive
-  LAX_STAGE_CLUSTER_NAME: stage-k8s
-  LAX_PROD_CLUSTER_NAME: prod-k8s
+
   KUBE_NAMESPACE_STAGE: >-
     stage-indexation-eth-1
     stage-indexation-canto-7700
@@ -89,6 +85,7 @@ variables:
     prod-indexation-xfitest-4157
     prod-indexation-taikotest-167008
     prod-indexation-bitfinitytest-355113
+
 build:
   stage: build
   before_script:
@@ -315,8 +312,18 @@ lint-helm:
     name: ${IMAGE_HELM_KUBECTL}
     entrypoint: [""]
   script:
-    - helm lint helm/charts/backend-stage-lax --set appName=raw-data-streamer --set imageTag=${CI_COMMIT_SHORT_SHA}
-#    - helm lint helm/charts/backend-prod-lax --set appName=raw-data-streamer --set imageTag=${CI_COMMIT_SHORT_SHA}
+    - helm lint helm/charts/worker --set appName=worker -f helm/envs/worker-stage/eth-1.yaml -f helm/envs/worker-stage/raw-data-streamer.yaml --set imageTag=${CI_COMMIT_SHORT_SHA}
+    - helm lint helm/charts/worker --set appName=worker -f helm/envs/worker-stage/eth-1.yaml -f helm/envs/worker-stage/raw-data-streamer-balance.yaml --set imageTag=${CI_COMMIT_SHORT_SHA}
+    - helm lint helm/charts/worker --set appName=worker -f helm/envs/worker-stage/eth-1.yaml -f helm/envs/worker-stage/raw-data-streamer-contract-token.yaml --set imageTag=${CI_COMMIT_SHORT_SHA}
+    - helm lint helm/charts/worker --set appName=worker -f helm/envs/worker-stage/eth-1.yaml -f helm/envs/worker-stage/raw-data-streamer-gethtrace.yaml --set imageTag=${CI_COMMIT_SHORT_SHA}
+    - helm lint helm/charts/worker --set appName=worker -f helm/envs/worker-stage/eth-1.yaml -f helm/envs/worker-stage/raw-data-streamer-nativebalance.yaml --set imageTag=${CI_COMMIT_SHORT_SHA}
+    - helm lint helm/charts/worker --set appName=worker -f helm/envs/worker-stage/eth-1.yaml -f helm/envs/worker-stage/raw-data-streamer-resync.yaml --set imageTag=${CI_COMMIT_SHORT_SHA}
+    - helm lint helm/charts/worker --set appName=worker -f helm/envs/worker-stage/eth-1.yaml -f helm/envs/worker-stage/raw-data-streamer-token-tokentransferpriced.yaml --set imageTag=${CI_COMMIT_SHORT_SHA}
+    - helm lint helm/charts/worker --set appName=worker -f helm/envs/worker-stage/eth-1.yaml -f helm/envs/worker-stage/raw-data-streamer-transfers-preevents.yaml --set imageTag=${CI_COMMIT_SHORT_SHA}
+    - helm lint helm/charts/worker --set appName=worker -f helm/envs/worker-stage/eth-1.yaml -f helm/envs/worker-stage/raw-verify-data-streamer.yaml --set imageTag=${CI_COMMIT_SHORT_SHA}
+    - helm lint helm/charts/worker --set appName=worker -f helm/envs/worker-stage/eth-1.yaml -f helm/envs/worker-stage/raw-data-streamer-dextrade.yaml --set imageTag=${CI_COMMIT_SHORT_SHA}
+    - helm lint helm/charts/worker --set appName=worker -f helm/envs/worker-stage/eth-1.yaml -f helm/envs/worker-stage/raw-data-streamer-dexpool.yaml --set imageTag=${CI_COMMIT_SHORT_SHA}
+    - helm lint helm/charts/worker --set appName=worker -f helm/envs/worker-stage/eth-1.yaml -f helm/envs/worker-stage/raw-verify-data-trigger.yaml --set imageTag=${CI_COMMIT_SHORT_SHA}
   only:
     - master
     - merge_requests
@@ -378,369 +385,217 @@ lint-helm:
 #  only:
 #    - tags
 
-raw-data-streamer-stage:
+
+# Stage Env
+.base-stage-config:
   stage: deploy-stage
   image:
     name: ${IMAGE_HELM_KUBECTL}
     entrypoint: [""]
   variables:
-    SERVICE_NAME: "raw-data-streamer"
-    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
-    HELM_CHART: ${HELM_CHART_STAGE_LAX}
+    CLUSTER_NAME: "stage-k8s"
+    K8S_API: ${DG_STAGE_LAX_K8S_API}
+    CI_TOKEN: ${DG_STAGE_LAX_CI_TOKEN}
+    IMAGE_TAG: ${CI_COMMIT_SHORT_SHA}
+    ENVIRONMENT: "stage"
+    HELM_CHART: "helm/charts/worker"
   script:
-    - helm/lax_stage_deploy.sh
+    - echo "Deploying stage:"
+    - /bin/sh helm/deploy.sh
   only:
-    - master
+    - main
 
-#raw-data-streamer-resync-stage:
-#  stage: deploy-stage
-#  image:
-#    name: ${IMAGE_HELM_KUBECTL}
-#    entrypoint: [""]
-#  variables:
-#    SERVICE_NAME: "raw-data-streamer-resync"
-#    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
-#    HELM_CHART: ${HELM_CHART_STAGE_LAX}
-#  script:
-#    - helm/lax_stage_deploy.sh
-#  only:
-#    - master
-
-raw-data-streamer-prod:
-  stage: deploy-prod
-  image:
-    name: ${IMAGE_HELM_KUBECTL}
-    entrypoint: [""]
+raw-data-streamer-stage:
+  extends: .base-stage-config
   variables:
-    SERVICE_NAME: "raw-data-streamer"
-    KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD}
-    HELM_CHART: ${HELM_CHART_PROD_LAX}
-  script:
-    - helm/lax_prod_deploy.sh
-  only:
-    - tags
-
-#raw-data-streamer-resync-prod:
-#  stage: deploy-prod
-#  image:
-#    name: ${IMAGE_HELM_KUBECTL}
-#    entrypoint: [""]
-#  variables:
-#    SERVICE_NAME: "raw-data-streamer-resync"
-#    KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD}
-#    HELM_CHART: ${HELM_CHART_PROD_LAX}
-#  script:
-#    - helm/lax_prod_deploy.sh
-#  only:
-#    - tags
-
-#raw-traces-data-streamer-stage:
-#  stage: deploy-stage
-#  image:
-#    name: ${IMAGE_HELM_KUBECTL}
-#    entrypoint: [""]
-#  variables:
-#    SERVICE_NAME: "raw-traces-data-streamer"
-#    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE_TRACE}
-#    HELM_CHART: ${HELM_CHART_STAGE_LAX}
-#  script:
-#    - helm/lax_stage_deploy.sh
-#  only:
-#    - master
-#
-#raw-traces-data-streamer-prod:
-#  stage: deploy-prod
-#  image:
-#    name: ${IMAGE_HELM_KUBECTL}
-#    entrypoint: [""]
-#  variables:
-#    SERVICE_NAME: "raw-traces-data-streamer"
-#    KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD_TRACE}
-#    HELM_CHART: ${HELM_CHART_PROD_LAX}
-#  script:
-#    - helm/lax_prod_deploy.sh
-#  only:
-#    - tags
+    SERVICE_NAME: "worker"
+    APP_NAME: "raw-data-streamer"
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+    SERVICE_ENV_VALUE: "helm/envs/worker-stage/raw-data-streamer.yaml"
 
 raw-verify-data-streamer-stage:
-  stage: deploy-stage
-  image:
-    name: ${IMAGE_HELM_KUBECTL}
-    entrypoint: [""]
+  extends: .base-stage-config
   variables:
-    SERVICE_NAME: "raw-verify-data-streamer"
+    SERVICE_NAME: "worker"
+    APP_NAME: "raw-verify-data-streamer"
     KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
-    HELM_CHART: ${HELM_CHART_STAGE_LAX}
-  script:
-    - helm/lax_stage_deploy.sh
-  only:
-    - master
+    SERVICE_ENV_VALUE: "helm/envs/worker-stage/raw-verify-data-streamer.yaml"
 
 raw-verify-data-trigger-stage:
-  stage: deploy-stage
-  image:
-    name: ${IMAGE_HELM_KUBECTL}
-    entrypoint: [""]
+  extends: .base-stage-config
   variables:
-    SERVICE_NAME: "raw-verify-data-trigger"
+    SERVICE_NAME: "worker"
+    APP_NAME: "raw-verify-data-trigger"
     KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
-    HELM_CHART: ${HELM_CHART_STAGE_LAX}
-  script:
-    - helm/lax_stage_deploy.sh
-  only:
-    - master
-
-
-raw-verify-data-trigger-prod:
-  stage: deploy-prod
-  image:
-    name: ${IMAGE_HELM_KUBECTL}
-    entrypoint: [""]
-  variables:
-    SERVICE_NAME: "raw-verify-data-trigger"
-    KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD}
-    HELM_CHART: ${HELM_CHART_PROD_LAX}
-  script:
-    - helm/lax_prod_deploy.sh
-  only:
-    - tags
-
-raw-verify-data-streamer-prod:
-  stage: deploy-prod
-  image:
-      name: ${IMAGE_HELM_KUBECTL}
-      entrypoint: [""]
-  variables:
-      SERVICE_NAME: "raw-verify-data-streamer"
-      KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD}
-      HELM_CHART: ${HELM_CHART_PROD_LAX}
-  script:
-      - helm/lax_prod_deploy.sh
-  only:
-      - tags
+    SERVICE_ENV_VALUE: "helm/envs/worker-stage/raw-verify-data-trigger.yaml"
 
 raw-data-streamer-transfers-preevents-stage:
-  stage: deploy-stage
-  image:
-    name: ${IMAGE_HELM_KUBECTL}
-    entrypoint: [""]
+  extends: .base-stage-config
   variables:
-    SERVICE_NAME: "raw-data-streamer-transfers-preevents"
+    SERVICE_NAME: "worker"
+    APP_NAME: "raw-data-streamer-transfers-preevents"
     KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
-    HELM_CHART: ${HELM_CHART_STAGE_LAX}
-  script:
-    - helm/lax_stage_deploy.sh
-  only:
-    - master
-
-raw-data-streamer-transfers-preevents-prod:
-  stage: deploy-prod
-  image:
-    name: ${IMAGE_HELM_KUBECTL}
-    entrypoint: [""]
-  variables:
-    SERVICE_NAME: "raw-data-streamer-transfers-preevents"
-    KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD}
-    HELM_CHART: ${HELM_CHART_PROD_LAX}
-  script:
-    - helm/lax_prod_deploy.sh
-  only:
-    - tags
-
+    SERVICE_ENV_VALUE: "helm/envs/worker-stage/raw-data-streamer-transfers-preevents.yaml"
 
 raw-data-streamer-gethtrace-stage:
-  stage: deploy-stage
-  image:
-    name: ${IMAGE_HELM_KUBECTL}
-    entrypoint: [""]
+  extends: .base-stage-config
   variables:
-    SERVICE_NAME: "raw-data-streamer-gethtrace"
-    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE_TRACE}
-    HELM_CHART: ${HELM_CHART_STAGE_LAX}
-  script:
-    - helm/lax_stage_deploy.sh
-  only:
-    - master
-
-
-raw-data-streamer-gethtrace-prod:
-  stage: deploy-prod
-  image:
-    name: ${IMAGE_HELM_KUBECTL}
-    entrypoint: [""]
-  variables:
-    SERVICE_NAME: "raw-data-streamer-gethtrace"
-    KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD_TRACE}
-    HELM_CHART: ${HELM_CHART_PROD_LAX}
-  script:
-    - helm/lax_prod_deploy.sh
-  only:
-    - tags
+    SERVICE_NAME: "worker"
+    APP_NAME: "raw-data-streamer-gethtrace"
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+    SERVICE_ENV_VALUE: "helm/envs/worker-stage/raw-data-streamer-gethtrace.yaml"
 
 raw-data-streamer-balance-stage:
-  stage: deploy-stage
-  image:
-    name: ${IMAGE_HELM_KUBECTL}
-    entrypoint: [""]
+  extends: .base-stage-config
   variables:
-    SERVICE_NAME: "raw-data-streamer-balance"
+    SERVICE_NAME: "worker"
+    APP_NAME: "raw-data-streamer-balance"
     KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
-    HELM_CHART: ${HELM_CHART_STAGE_LAX}
-  script:
-    - helm/lax_stage_deploy.sh
-  only:
-    - master
-
-raw-data-streamer-balance-prod:
-  stage: deploy-prod
-  image:
-    name: ${IMAGE_HELM_KUBECTL}
-    entrypoint: [""]
-  variables:
-    SERVICE_NAME: "raw-data-streamer-balance"
-    KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD}
-    HELM_CHART: ${HELM_CHART_PROD_LAX}
-  script:
-    - helm/lax_prod_deploy.sh
-  only:
-    - tags
+    SERVICE_ENV_VALUE: "helm/envs/worker-stage/raw-data-streamer-balance.yaml"
 
 raw-data-streamer-token-tokentransferpriced-stage:
-  stage: deploy-stage
-  image:
-    name: ${IMAGE_HELM_KUBECTL}
-    entrypoint: [""]
+  extends: .base-stage-config
   variables:
-    SERVICE_NAME: "raw-data-streamer-token-tokentransferpriced"
+    SERVICE_NAME: "worker"
+    APP_NAME: "raw-data-streamer-token-tokentransferpriced"
     KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
-    HELM_CHART: ${HELM_CHART_STAGE_LAX}
-  script:
-    - helm/lax_stage_deploy.sh
-  only:
-    - master
-
-raw-data-streamer-token-tokentransferpriced-prod:
-  stage: deploy-prod
-  image:
-    name: ${IMAGE_HELM_KUBECTL}
-    entrypoint: [""]
-  variables:
-    SERVICE_NAME: "raw-data-streamer-token-tokentransferpriced"
-    KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD}
-    HELM_CHART: ${HELM_CHART_PROD_LAX}
-  script:
-    - helm/lax_prod_deploy.sh
-  only:
-    - tags
+    SERVICE_ENV_VALUE: "helm/envs/worker-stage/raw-data-streamer-token-tokentransferpriced.yaml"
 
 raw-data-streamer-nativebalance-stage:
-  stage: deploy-stage
-  image:
-    name: ${IMAGE_HELM_KUBECTL}
-    entrypoint: [""]
+  extends: .base-stage-config
   variables:
-    SERVICE_NAME: "raw-data-streamer-nativebalance"
-    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE_TRACE}
-    HELM_CHART: ${HELM_CHART_STAGE_LAX}
-  script:
-    - helm/lax_stage_deploy.sh
-  only:
-    - master
+    SERVICE_NAME: "worker"
+    APP_NAME: "raw-data-streamer-nativebalance"
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+    SERVICE_ENV_VALUE: "helm/envs/worker-stage/raw-data-streamer-nativebalance.yaml"
 
-raw-data-streamer-nativebalance-prod:
+raw-data-streamer-contract-token-stage:
+  extends: .base-stage-config
+  variables:
+    SERVICE_NAME: "worker"
+    APP_NAME: "raw-data-streamer-contract-token"
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+    SERVICE_ENV_VALUE: "helm/envs/worker-stage/raw-data-streamer-contract-token.yaml"
+
+raw-data-streamer-dexpool-stage:
+  extends: .base-stage-config
+  variables:
+    SERVICE_NAME: "worker"
+    APP_NAME: "raw-data-streamer-dexpool"
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+    SERVICE_ENV_VALUE: "helm/envs/worker-stage/raw-data-streamer-dexpool.yaml"
+
+raw-data-streamer-dextrade-stage:
+  extends: .base-stage-config
+  variables:
+    SERVICE_NAME: "worker"
+    APP_NAME: "raw-data-streamer-dextrade"
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+    SERVICE_ENV_VALUE: "helm/envs/worker-stage/raw-data-streamer-dextrade.yaml"
+
+# Prod Env
+.base-prod-config:
   stage: deploy-prod
   image:
     name: ${IMAGE_HELM_KUBECTL}
     entrypoint: [""]
   variables:
-    SERVICE_NAME: "raw-data-streamer-nativebalance"
-    KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD_TRACE}
-    HELM_CHART: ${HELM_CHART_PROD_LAX}
+    CLUSTER_NAME: "prod"
+    K8S_API: ${DG_PROD_K8S_API}
+    CI_TOKEN: ${DG_PROD_CI_TOKEN}
+    IMAGE_TAG: ${CI_COMMIT_SHORT_SHA}
+    ENVIRONMENT: "prod"
+    HELM_CHART: "helm/charts/worker"
   script:
-    - helm/lax_prod_deploy.sh
+    - echo "Deploying stage:"
+    - /bin/sh helm/deploy.sh
   only:
     - tags
 
-raw-data-streamer-contract-token-stage:
-  stage: deploy-stage
-  image:
-    name: ${IMAGE_HELM_KUBECTL}
-    entrypoint: [""]
+raw-data-streamer-prod:
+  extends: .base-prod-config
   variables:
-    SERVICE_NAME: "raw-data-streamer-contract-token"
-    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE_TRACE}
-    HELM_CHART: ${HELM_CHART_STAGE_LAX}
-  script:
-    - helm/lax_stage_deploy.sh
-  only:
-    - master
+    SERVICE_NAME: "worker"
+    APP_NAME: "raw-data-streamer"
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+    SERVICE_ENV_VALUE: "helm/envs/worker-prod/raw-data-streamer.yaml"
+
+raw-verify-data-streamer-prod:
+  extends: .base-prod-config
+  variables:
+    SERVICE_NAME: "worker"
+    APP_NAME: "raw-verify-data-streamer"
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+    SERVICE_ENV_VALUE: "helm/envs/worker-prod/raw-verify-data-streamer.yaml"
+
+raw-verify-data-trigger-prod:
+  extends: .base-prod-config
+  variables:
+    SERVICE_NAME: "worker"
+    APP_NAME: "raw-verify-data-trigger"
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+    SERVICE_ENV_VALUE: "helm/envs/worker-prod/raw-verify-data-trigger.yaml"
+
+raw-data-streamer-transfers-preevents-prod:
+  extends: .base-prod-config
+  variables:
+    SERVICE_NAME: "worker"
+    APP_NAME: "raw-data-streamer-transfers-preevents"
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+    SERVICE_ENV_VALUE: "helm/envs/worker-prod/raw-data-streamer-transfers-preevents.yaml"
+
+raw-data-streamer-gethtrace-prod:
+  extends: .base-prod-config
+  variables:
+    SERVICE_NAME: "worker"
+    APP_NAME: "raw-data-streamer-gethtrace"
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+    SERVICE_ENV_VALUE: "helm/envs/worker-prod/raw-data-streamer-gethtrace.yaml"
+
+raw-data-streamer-balance-prod:
+  extends: .base-prod-config
+  variables:
+    SERVICE_NAME: "worker"
+    APP_NAME: "raw-data-streamer-balance"
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+    SERVICE_ENV_VALUE: "helm/envs/worker-prod/raw-data-streamer-balance.yaml"
+
+raw-data-streamer-token-tokentransferpriced-prod:
+  extends: .base-prod-config
+  variables:
+    SERVICE_NAME: "worker"
+    APP_NAME: "raw-data-streamer-token-tokentransferpriced"
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+    SERVICE_ENV_VALUE: "helm/envs/worker-prod/raw-data-streamer-token-tokentransferpriced.yaml"
+
+raw-data-streamer-nativebalance-prod:
+  extends: .base-prod-config
+  variables:
+    SERVICE_NAME: "worker"
+    APP_NAME: "raw-data-streamer-nativebalance"
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+    SERVICE_ENV_VALUE: "helm/envs/worker-prod/raw-data-streamer-nativebalance.yaml"
 
 raw-data-streamer-contract-token-prod:
-    stage: deploy-prod
-    image:
-        name: ${IMAGE_HELM_KUBECTL}
-        entrypoint: [""]
-    variables:
-        SERVICE_NAME: "raw-data-streamer-contract-token"
-        KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD_TRACE}
-        HELM_CHART: ${HELM_CHART_PROD_LAX}
-    script:
-        - helm/lax_prod_deploy.sh
-    only:
-        - tags
-
-raw-data-streamer-dexpool-stage:
-  stage: deploy-stage
-  image:
-    name: ${IMAGE_HELM_KUBECTL}
-    entrypoint: [""]
+  extends: .base-prod-config
   variables:
-    SERVICE_NAME: "raw-data-streamer-dexpool"
+    SERVICE_NAME: "worker"
+    APP_NAME: "raw-data-streamer-contract-token"
     KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
-    HELM_CHART: ${HELM_CHART_STAGE_LAX}
-  script:
-    - helm/lax_stage_deploy.sh
-  only:
-    - master
-
-raw-data-streamer-dextrade-stage:
-    stage: deploy-stage
-    image:
-        name: ${IMAGE_HELM_KUBECTL}
-        entrypoint: [""]
-    variables:
-        SERVICE_NAME: "raw-data-streamer-dextrade"
-        KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE_TRACE}
-        HELM_CHART: ${HELM_CHART_STAGE_LAX}
-    script:
-        - helm/lax_stage_deploy.sh
-    only:
-        - master
+    SERVICE_ENV_VALUE: "helm/envs/worker-prod/raw-data-streamer-contract-token.yaml"
 
 raw-data-streamer-dexpool-prod:
-    stage: deploy-prod
-    image:
-        name: ${IMAGE_HELM_KUBECTL}
-        entrypoint: [""]
-    variables:
-        SERVICE_NAME: "raw-data-streamer-dexpool"
-        KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD}
-        HELM_CHART: ${HELM_CHART_PROD_LAX}
-    script:
-        - helm/lax_prod_deploy.sh
-    only:
-        - tags
+  extends: .base-prod-config
+  variables:
+    SERVICE_NAME: "worker"
+    APP_NAME: "raw-data-streamer-dexpool"
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+    SERVICE_ENV_VALUE: "helm/envs/worker-prod/raw-data-streamer-dexpool.yaml"
 
 raw-data-streamer-dextrade-prod:
-    stage: deploy-prod
-    image:
-        name: ${IMAGE_HELM_KUBECTL}
-        entrypoint: [""]
-    variables:
-        SERVICE_NAME: "raw-data-streamer-dextrade"
-        KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD}
-        HELM_CHART: ${HELM_CHART_PROD_LAX}
-    script:
-        - helm/lax_prod_deploy.sh
-    only:
-        - tags
+  extends: .base-prod-config
+  variables:
+    SERVICE_NAME: "worker"
+    APP_NAME: "raw-data-streamer-dextrade"
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+    SERVICE_ENV_VALUE: "helm/envs/worker-prod/raw-data-streamer-dextrade.yaml"

@@ -1,0 +1,23 @@
+worker:
+  replicas:
+    default: 1
+  limitsCpu: 0.1
+  limitsMemory: 9000Mi
+  requestsCpu: 0.1
+  requestsMemory: 1000Mi
+  command: '[ "ethereumetl", "amqp_stream" ]'
+  ## Following wars are rendered using tpl separately in template into Envs
+  providerURL: '{{ .Values.worker.fullProviderURL }}'
+  output: '{{ .Values.worker.chainDB }}'
+  lag: '0'
+  entityTypes: 'contract,token'
+  ##
+  env:
+    ROUTING_KEY: 'internal_transfer'
+    POLLING_PERIOD: '2'
+    BATCH_SIZE: '5'
+    SERVICE_NAME: 'raw-data-streamer-nativebalance'
+    REWRITE_CLICKHOUSE: ''
+    MAX_WORKERS: '20'
+    BLOCK_BATCH_SIZE: '100'
+    MIN_INSERT_BATCH_SIZE: '1'

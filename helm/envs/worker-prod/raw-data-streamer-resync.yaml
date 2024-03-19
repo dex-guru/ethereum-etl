@@ -1,0 +1,25 @@
+worker:
+  replicas:
+    default: 1
+  limitsCpu: 1
+  limitsMemory: 9000Mi
+  requestsCpu: 0.5
+  requestsMemory: 500Mi
+  command: '[ "ethereumetl", "stream" ]'
+  ## Following wars are rendered using tpl separately in template into Envs
+  providerURL: '{{ .Values.worker.archiveProviderURL }}'
+  output: '{{ .Values.worker.chainDB }}'
+  lastSyncBlockProvider: '{{ .Values.worker.chainDB }}?table_name=resync_blocks'
+  lag: '0'
+  entityTypes: 'block,transaction,log,token_transfer,internal_transfer,geth_trace'
+  ##
+  env:
+    START_BLOCK: '1'
+    END_BLOCK: '0'
+    REWRITE_CLICKHOUSE: 'block,transaction,receipt,log,token_transfer,trace,geth_trace,contract,token,internal_transfer,token_balance,error'
+    POLLING_PERIOD: '2'
+    BATCH_SIZE: '10'
+    SERVICE_NAME: 'raw-resync-data-streamer'
+    MAX_WORKERS: '20'
+    BLOCK_BATCH_SIZE: '100'
+    MIN_INSERT_BATCH_SIZE: '1000'

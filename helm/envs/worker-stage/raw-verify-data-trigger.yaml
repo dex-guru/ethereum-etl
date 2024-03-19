@@ -1,0 +1,23 @@
+worker:
+  replicas:
+    default: 1
+  limitsCpu: 1
+  limitsMemory: 1000Mi
+  requestsCpu: 0.1
+  requestsMemory: 500Mi
+  strategyType: 'Recreate'
+  command: '[ "ethereumetl", "stream" ]'
+  ## Following wars are rendered using tpl separately in template into Envs
+  providerURL: '{{ .Values.worker.fullProviderURL }}'
+  output: 'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
+  lastSyncBlockProvider: '{{ .Values.worker.chainDB }}?table_name=last_synced_block_verify'
+  lag: '{{ .Values.worker.blocksToFinal }}'
+  entityTypes: 'block'
+  ##
+  env:
+    POLLING_PERIOD: '60'
+    SERVICE_NAME: 'raw-verify-data-trigger'
+    BLOCK_BATCH_SIZE: '10'
+    MAX_WORKERS: '20'
+    BATCH_SIZE: '5'
+    MIN_INSERT_BATCH_SIZE: '1'

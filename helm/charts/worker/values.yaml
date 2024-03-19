@@ -1,0 +1,41 @@
+---
+image: docker-registry.dexguru.biz/dex.guru/indexation-etl/indexation-etl
+imageTag: ''
+registrySecretName: registry-harbor
+
+worker:
+  replicas:
+    default: 1
+  limitsCpu: 1
+  limitsMemory: 9000Mi
+  requestsCpu: 0.1
+  requestsMemory: 1000Mi
+  command: '[ "ethereumetl", "amqp_stream" ]'
+  strategyType: 'Recreate'
+  chainDB: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum'
+  fullProviderURL: 'http://rpc-gw-stage.dexguru.biz/full/1'
+  archiveProviderURL: 'http://rpc-gw-stage.dexguru.biz/archive/1'
+  traceProviderURL: 'http://rpc-gw-stage.dexguru.biz/full/1'
+  blocksToFinal: '64'
+  verifyEntityTypes: 'block,transaction,log,token_transfer,token_balance,error,geth_trace,internal_transfer,native_balance,contract,token'
+  ## Following wars are rendered using tpl separately in template into Envs
+  providerURL: '{{ .Values.fullProviderURL }}'
+  output: '{{ .Values.chainDB }}'
+  lag: '0'
+  entityTypes: 'enriched_dex_trade,enriched_transfer'
+  ##
+  env:
+    ROUTING_KEY: 'token_transfer'
+    POLLING_PERIOD: '2'
+    BATCH_SIZE: '5'
+    SERVICE_NAME: 'raw-data-streamer-dextrade'
+    MAX_WORKERS: '10'
+    BLOCK_BATCH_SIZE: '100'
+    MIN_INSERT_BATCH_SIZE: '1'
+  baseEnv:
+    EXPORT_FROM_CLICKHOUSE: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum'
+    SKIP_NONE_RECEIPTS: 'False'
+    LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
+    LOG_HANDLERS: '["console","logstash"]'
+    ELASTIC_URL: 'http://10.0.100.34:9200'
+    AMQP_URL: 'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'

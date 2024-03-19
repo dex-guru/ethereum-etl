@@ -1,0 +1,15 @@
+worker:
+  strategyType: 'Recreate'
+  chainDB: 'clickhouse+http://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/base'
+  fullProviderURL: 'http://rpc-gw-prod.dexguru.biz/full/8453'
+  archiveProviderURL: 'http://rpc-gw-prod.dexguru.biz/archive/8453'
+  traceProviderURL: 'http://rpc-gw-prod.dexguru.biz/full/8453'
+  blocksToFinal: '100'
+  verifyEntityTypes: 'block,transaction,log,token_transfer,token_balance,error,geth_trace,internal_transfer,native_balance,contract,token'
+  baseEnv:
+    EXPORT_FROM_CLICKHOUSE: 'clickhouse+http://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/base'
+    SKIP_NONE_RECEIPTS: 'False'
+    LOGSTASH: "logstash-logstash.logging.svc.prod.dexguru.biz"
+    LOG_HANDLERS: '["console","logstash"]'
+    ELASTIC_URL: 'http://10.0.200.184:9200'
+    AMQP_URL: 'amqp://admin:irPT6oNUT83ekQ@10.0.200.46:5672/dex'
