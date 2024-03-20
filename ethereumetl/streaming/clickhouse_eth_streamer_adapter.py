@@ -570,7 +570,7 @@ class ClickhouseEthStreamerAdapter:
             if not parsed_logs:
                 return (), _from_ch
             token_transfers = extract_token_transfers()[0]
-            tokens = export_tokens_from_pools()
+            tokens = export_tokens_from_pools()[0]
             dex_pools = export_dex_pools()[0]
             dex_trades = self.eth_streamer.export_dex_trades(
                 parsed_logs=parsed_logs,
@@ -663,10 +663,10 @@ class ClickhouseEthStreamerAdapter:
             return base_token_prices
 
         @cache
-        def export_tokens_from_pools() -> list:
+        def export_tokens_from_pools() -> tuple[list, bool]:
             tokens = export_tokens()[0]
             dex_pools = export_dex_pools()[0]
-
+            _from_ch = False
             token_addresses_from_pools = set()
             for pool in dex_pools:
                 token_addresses_from_pools.update(pool['token_addresses'])
@@ -679,10 +679,11 @@ class ClickhouseEthStreamerAdapter:
                 )
                 tokens_from_pools = list(tokens_from_pools)
                 if len(tokens_from_pools) != len(absent_tokens):
+                    _from_ch = False
                     absent_tokens = absent_tokens - {t['address'] for t in tokens_from_pools}
                     tokens_from_pools.extend(self.eth_streamer.export_tokens(absent_tokens))
                 tokens = list(tokens) + tokens_from_pools
-            return tokens
+            return tokens, _from_ch
 
         @cache
         def export_enriched_dex_trades() -> tuple[list, list, bool]:
@@ -698,7 +699,7 @@ class ClickhouseEthStreamerAdapter:
             #     return enriched_dex_trades, from_ch_
             dex_trades = export_dex_trades()[0]
             dex_pools = export_dex_pools()[0]
-            tokens = export_tokens_from_pools()
+            tokens = export_tokens_from_pools()[0]
             token_transfers = extract_token_transfers()[0]
             # internal_transfers = extract_internal_transfers()[0]
             transactions = export_blocks_and_transactions()[1]
@@ -716,7 +717,12 @@ class ClickhouseEthStreamerAdapter:
 
         exported: dict[EntityType, list] = {ERROR: []}
         from_ch: dict[EntityType, bool] = {}
-
+        if CONTRACT in self.entity_types:
+            export_tokens_job = export_tokens
+        elif DEX_POOL in self.entity_types:
+            export_tokens_job = export_tokens_from_pools
+        else:
+            export_tokens_job = export_tokens
         for entity_types, export_func in (
             ((BLOCK, TRANSACTION), export_blocks_and_transactions),
             ((RECEIPT, ERROR), export_receipts),
@@ -730,7 +736,7 @@ class ClickhouseEthStreamerAdapter:
             ((NATIVE_BALANCE,), export_native_balances),
             # if contract export is enabled, export tokens based on CREATE action from traces (indexing on create)
             # otherwise, export tokens based on token transfers (indexing on event)
-            ((TOKEN,), extract_tokens if CONTRACT in self.entity_types else export_tokens),
+            ((TOKEN,), export_tokens_job),
             ((TOKEN_TRANSFER_PRICED,), extract_token_transfers_priced),
             ((INTERNAL_TRANSFER_PRICED,), extract_internal_transfers_priced),
             ((PRE_EVENT,), prepare_events),

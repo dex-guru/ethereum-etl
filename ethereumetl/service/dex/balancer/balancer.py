@@ -394,7 +394,7 @@ class BalancerAmm(BaseDexClient):
         )
 
         coin_count = len(pool.token_addresses)
-        finance_info['prices'] = get_default_prices(coin_count)
+        finance_info['prices'] = get_default_zero_prices(coin_count)
 
         if finance_info['weights']:
             # In case we have pool weights we can calculate spot proces mathematically
@@ -471,8 +471,8 @@ class BalancerAmm(BaseDexClient):
                 finance_info['reserves'][token_out_idx],
             ],
             token_prices=get_prices_for_two_pool(
-                finance_info['prices'][token_in_idx][token_out_idx],
                 finance_info['prices'][token_out_idx][token_in_idx],
+                finance_info['prices'][token_in_idx][token_out_idx],
             ),
             token_addresses=[token_in, token_out],
         )
