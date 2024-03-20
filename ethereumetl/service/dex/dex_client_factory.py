@@ -67,6 +67,8 @@ class ContractAdaptersFactory(metaclass=Singleton):
         self.web3 = web3
         self.chain_id = chain_id
         self._namespace_by_factory_address: dict[str, str] = {}
+        self._factory_address_to_dex_name: dict[str, str] = {}
+
         self._initiate_adapters()
         self._init_metadata()
 
@@ -92,18 +94,12 @@ class ContractAdaptersFactory(metaclass=Singleton):
                 data = json.load(f)
                 for metadata in data:
                     for address in metadata['contracts'].values():
-                        self._namespace_by_factory_address[address.lower()] = metadata['type']
+                        _address = address.lower()
+                        self._namespace_by_factory_address[_address] = metadata['type']
+                        self._factory_address_to_dex_name[_address] = metadata['name'].lower()
 
-    # @staticmethod
-    # def get_dex_by_factory_address(factory_address: str) -> str | None:
-    #     path = Path(__file__).parent
-    #     for file_path in path.rglob('metadata.json'):
-    #         with file_path.open() as f:
-    #             data = json.load(f)
-    #             for metadata in data:
-    #                 for address in metadata['contracts'].values():
-    #                     if address.lower() == factory_address.lower():
-    #                         return metadata['name']
+    def get_dex_name_by_factory_address(self, factory_address: str):
+        return self._factory_address_to_dex_name.get(factory_address.lower(), 'unknown')
 
     def get_dex_client(self, amm_type: str) -> DexClientInterface:
         adapter_instance = self.initiated_adapters.get(amm_type)

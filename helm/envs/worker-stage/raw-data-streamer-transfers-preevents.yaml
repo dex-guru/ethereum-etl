@@ -8,7 +8,7 @@ worker:
   command: '[ "ethereumetl", "amqp_stream" ]'
   ## Following wars are rendered using tpl separately in template into Envs
   providerURL: '{{ .Values.worker.fullProviderURL }}'
-  output: '{{ .Values.worker.chainDB }},amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
+  output: '{{ .Values.worker.chainDB }},{{ .Values.worker.amqpURL }}'
   lag: '0'
   entityTypes: 'token_transfer,pre_event'
   ##

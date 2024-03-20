@@ -139,6 +139,7 @@ def create_item_exporter(output, chain_id) -> BaseItemExporter:
             EntityType.BLOCK.value: 'block',
             EntityType.TOKEN_TRANSFER.value: 'token_transfer',
             EntityType.INTERNAL_TRANSFER.value: 'internal_transfer',
+            EntityType.ENRICHED_DEX_TRADE.value: 'enriched_dex_trade',
         }
         item_exporter = AMQPItemExporter(
             amqp_url=output,

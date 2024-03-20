@@ -6,6 +6,7 @@ worker:
   traceProviderURL: 'http://rpc-gw-stage.dexguru.biz/trace/56'
   blocksToFinal: '32'
   verifyEntityTypes: 'block,transaction,log,token_transfer,token_balance,error,token'
+  amqpURL: 'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
   baseEnv:
     EXPORT_FROM_CLICKHOUSE: 'clickhouse+http://testuser3:testplpassword@stage-ch-bsc-01.dexguru.biz/bsc'
     SKIP_NONE_RECEIPTS: 'False'

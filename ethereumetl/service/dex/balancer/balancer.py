@@ -184,7 +184,7 @@ class BalancerAmm(BaseDexClient):
         parsed_event = parsed_receipt_log.parsed_event
         mint_burn_amounts = {}
         for idx, token_address in enumerate(parsed_event["tokens"]):
-            tokens_scalar = tokens_scalars[token_address]
+            tokens_scalar = tokens_scalars[token_address.lower()]
             mint_burn_amounts[token_address] = parsed_event["deltas"][idx] / tokens_scalar
 
         amounts = []

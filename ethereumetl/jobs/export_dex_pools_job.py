@@ -41,7 +41,9 @@ class ExportPoolsJob(BaseJob):
     ):
         self.chain_id = chain_id
         self.item_exporter = item_exporter
-        self.batch_work_executor = BatchWorkExecutor(1, max_workers)
+        self.batch_work_executor = BatchWorkExecutor(
+            batch_size, max_workers, job_name='Export Pools Job'
+        )
         self.batch_web3_provider = batch_web3_provider
         self.pool_service = EthResolveLogService(batch_web3_provider, chain_id)
         self.dex_pool_mapper = EthDexPoolMapper()

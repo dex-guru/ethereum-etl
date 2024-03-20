@@ -18,7 +18,9 @@ class ParseLogsJob(BaseJob):
     ):
         self.logs_iterable = logs_iterable
         self.item_exporter = item_exporter
-        self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers)
+        self.batch_work_executor = BatchWorkExecutor(
+            batch_size, max_workers, job_name='Parse Logs Job'
+        )
         self.batch_web3_provider = batch_web3_provider
         self.resolve_logs_service = EthResolveLogService(batch_web3_provider, chain_id)
         self.parsed_log_mapper = EthParsedReceiptLogMapper()

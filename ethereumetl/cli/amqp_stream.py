@@ -130,7 +130,7 @@ class AmqpStreamerAdapter:
             self._eth_streamer.export_all(start_block, end_block)
         except Exception as e:
             # send to dead letter queue
-            logging.error('Failed to process message: %s', e)
+            logging.error('Failed to process message: %s', e, exc_info=True)
             self._send_to_dlq(body)
 
     def _send_to_dlq(self, body: list[dict[str, Any]]) -> None:

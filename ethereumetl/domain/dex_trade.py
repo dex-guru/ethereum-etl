@@ -15,6 +15,7 @@ class EthDexTrade:
     token_prices: list[float]
     token_addresses: Collection[str]
     lp_token_address: str = ''
+    amm: str = ''
 
 
 @dataclass(slots=True)
@@ -39,3 +40,4 @@ class EnrichedDexTrade:
     reserves_native: list[float]
     factory_address: str
     lp_token_address: str = ''
+    amm: str = ''
