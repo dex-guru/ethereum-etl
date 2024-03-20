@@ -32,6 +32,7 @@ class EthDexTradeMapper:
             token_addresses=[
                 token_address.lower() for token_address in trade_dict['token_addresses']
             ],
+            amm=trade_dict['amm'],
         )
 
 
@@ -67,4 +68,5 @@ class EnrichedDexTradeMapper:
             reserves_native=trade_dict['reserves_native'],
             factory_address=trade_dict['factory_address'].lower(),
             lp_token_address=trade_dict['lp_token_address'].lower(),
+            amm=trade_dict['amm'],
         )

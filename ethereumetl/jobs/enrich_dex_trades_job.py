@@ -227,27 +227,32 @@ class EnrichDexTradeJob(BaseJob):
                     'reserves_stable': reserves_stable,
                     'reserves_native': reserves_native,
                     'factory_address': merged_event['factory_address'],
+                    'amm': merged_event['amm'],
                 }
 
                 lp_token = self._tokens_by_address[merged_event['lp_token_address']]
                 if lp_token['decimals']:
-                    event['amounts'].append(transfer['value'] / 10 ** lp_token['decimals'])
-                    event['token_addresses'].append(merged_event['lp_token_address'])
-                    event['symbols'].append(lp_token['symbol'])
-                    event['amounts'].append(transfer['value'] / 10 ** lp_token['decimals'])
-                    event['reserves'].append(lp_token['total_supply'])
-                    event['prices_stable'].append(
+                    lp_price_stable = (
                         sum(reserves_stable)
                         / (lp_token['total_supply'] / 10 ** lp_token['decimals'])
                         if lp_token['total_supply']
                         else 0
                     )
-                    event['prices_native'].append(
+                    lp_price_native = (
                         sum(reserves_native)
                         / (lp_token['total_supply'] / 10 ** lp_token['decimals'])
                         if lp_token['total_supply']
                         else 0
                     )
+                    event['amounts'].append(transfer['value'] / 10 ** lp_token['decimals'])
+                    event['token_addresses'].append(merged_event['lp_token_address'])
+                    event['symbols'].append(lp_token['symbol'])
+                    event['amounts'].append(transfer['value'] / 10 ** lp_token['decimals'])
+                    event['reserves'].append(lp_token['total_supply'])
+                    event['reserves_stable'].append(lp_token['total_supply'] * lp_price_stable)
+                    event['reserves_native'].append(lp_token['total_supply'] * lp_price_native)
+                    event['prices_stable'].append(lp_price_stable)
+                    event['prices_native'].append(lp_price_native)
 
                 self.item_exporter.export_item(event)
 
@@ -291,6 +296,7 @@ class EnrichDexTradeJob(BaseJob):
             'reserves_native': reserves_native,
             'type': 'enriched_dex_trade',
             'factory_address': swap_event['factory_address'],
+            'amm': swap_event['amm'],
         }
 
         self.item_exporter.export_item(event)

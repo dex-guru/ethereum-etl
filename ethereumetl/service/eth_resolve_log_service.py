@@ -191,6 +191,9 @@ class EthResolveLogService(metaclass=Singleton):
                 logging.info(f"Failed to resolve log: {e}", exc_info=True)
                 continue
             if resolved_log:
+                resolved_log.amm = self._dex_client_factory.get_dex_name_by_factory_address(
+                    dex_pool.factory_address
+                )
                 return resolved_log
 
     def resolve_asset_from_log(self, parsed_log: ParsedReceiptLog) -> EthDexPool | None:

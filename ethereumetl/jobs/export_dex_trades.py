@@ -31,7 +31,9 @@ class ExportDexTradesJob(BaseJob):
         self.item_exporter = item_exporter
         self.logs_iterable = logs_iterable
 
-        self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers)
+        self.batch_work_executor = BatchWorkExecutor(
+            batch_size, max_workers, job_name='Export Dex Trades Job'
+        )
         self.log_resolve_service = EthResolveLogService(batch_web3_provider, chain_id)
 
         self.dex_trade_mapper = EthDexTradeMapper()
@@ -61,7 +63,7 @@ class ExportDexTradesJob(BaseJob):
             for log in self.logs_iterable
             if log['event_name'] in PARSABLE_TRADE_EVENTS
         )
-        self.batch_work_executor.execute(logs, self._export_trades)
+        self.batch_work_executor.execute(logs, self._export_trades, len(self.logs_iterable))
 
     def _end(self):
         self.batch_work_executor.shutdown()
