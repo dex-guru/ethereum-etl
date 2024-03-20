@@ -130,7 +130,7 @@ class CurveAmm(BaseDexClient):
     def resolve_asset_from_log(self, parsed_log: ParsedReceiptLog) -> EthDexPool | None:
         address = parsed_log.address
         checksum_address = to_checksum(address)
-        factory_address = self._get_factory_address(checksum_address)
+        factory_address = self.address_provider_contract.address
         if not factory_address:
             return None
         token_addresses, underlying_addresses = self._get_tokens_addresses_for_pool(
