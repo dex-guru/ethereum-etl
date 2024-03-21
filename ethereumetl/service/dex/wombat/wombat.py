@@ -292,7 +292,7 @@ class WombatAmm(BaseDexClient):
             transaction_hash=parsed_receipt_log.transaction_hash,
             log_index=parsed_receipt_log.log_index,
             block_number=parsed_receipt_log.block_number,
-            event_type=parsed_event["event_type"],
+            event_type=parsed_event["event_type"].lower(),
             token_reserves=finance_info["reserves"],
             token_prices=finance_info["prices"],
             lp_token_address=lp_address

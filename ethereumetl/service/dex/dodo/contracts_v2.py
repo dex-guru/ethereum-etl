@@ -189,7 +189,7 @@ class DODOv2Amm(BaseDODOAmmClient):
             token_reserves=[finance_info['reserve_0'], finance_info['reserve_1']],
             token_prices=get_prices_for_two_pool(finance_info['price_0'], finance_info['price_1']),
             token_addresses=base_pool.token_addresses,
-            lp_token_address=lp_token_address,
+            lp_token_address=lp_token_address[0] if lp_token_address else base_pool.address,
         )
         return mint_burn
 
