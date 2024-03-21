@@ -146,8 +146,8 @@ class UniswapV2Amm(BaseDexClient):
             ]
         reserve_0 = reserves[0] / token_scalars[0]
         reserve_1 = reserves[1] / token_scalars[1]
-        price_0 = float(reserve_1 / reserve_0)
-        price_1 = float(reserve_0 / reserve_1)
+        price_0 = float(reserve_1 / reserve_0) if reserve_0 else 0
+        price_1 = float(reserve_0 / reserve_1) if reserve_1 else 0
         if price_0 >= INFINITE_PRICE_THRESHOLD:
             logging.debug(f"Price is infinite for {parsed_receipt_log.address}")
             price_0 = 0

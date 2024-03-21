@@ -185,11 +185,11 @@ class BalancerAmm(BaseDexClient):
         mint_burn_amounts = {}
         for idx, token_address in enumerate(parsed_event["tokens"]):
             tokens_scalar = tokens_scalars[token_address.lower()]
-            mint_burn_amounts[token_address] = parsed_event["deltas"][idx] / tokens_scalar
+            mint_burn_amounts[token_address.lower()] = parsed_event["deltas"][idx] / tokens_scalar
 
         amounts = []
         for idx, token_address in enumerate(base_pool.token_addresses):
-            if mint_burn_amounts.get(token_address.lower()):
+            if mint_burn_amounts.get(token_address):
                 amounts.append(abs(mint_burn_amounts.get(token_address.lower(), 0.0)))
             else:
                 amounts.append(0.0)
@@ -206,6 +206,7 @@ class BalancerAmm(BaseDexClient):
             token_reserves=finance_info['reserves'],
             token_prices=finance_info['prices'],
             token_addresses=base_pool.token_addresses,
+            lp_token_address=base_pool.address.lower(),
         )
         return mint_burn
 

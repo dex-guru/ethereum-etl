@@ -525,7 +525,7 @@ class ClickhouseEthStreamerAdapter:
                 # check if balancer Vault is in the logs
                 pool_id = log['parsed_event'].get('poolId')
                 if pool_id:
-                    log_address = f'0x{pool_id.hex()[:40].lower()}'
+                    log_address = f'0x{pool_id.hex().lower()[:40]}'
                 else:
                     log_address = log['address'].lower()
                 if not is_address(log_address):
@@ -613,7 +613,7 @@ class ClickhouseEthStreamerAdapter:
                     'price_stable': d['latest_price_stable'],
                     'price_native': d['latest_price_native'],
                 }
-                for d in self.clickhouse.query(query).named_results()
+                for d in self.ch_local.query(query).named_results()
             }
 
         @cache
