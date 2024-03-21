@@ -230,27 +230,25 @@ class EnrichDexTradeJob(BaseJob):
                     'amm': merged_event['amm'],
                 }
 
-                lp_token = self._tokens_by_address[merged_event['lp_token_address']]
-                if lp_token['decimals']:
-                    lp_price_stable = (
-                        sum(reserves_stable)
-                        / (lp_token['total_supply'] / 10 ** lp_token['decimals'])
+                lp_token = self._tokens_by_address.get(merged_event['lp_token_address'])
+                if lp_token and lp_token['decimals']:
+                    lp_total_supply = (
+                        lp_token['total_supply'] / 10 ** lp_token['decimals']
                         if lp_token['total_supply']
                         else 0
+                    )
+                    lp_price_stable = (
+                        sum(reserves_stable) / lp_total_supply if lp_total_supply else 0
                     )
                     lp_price_native = (
-                        sum(reserves_native)
-                        / (lp_token['total_supply'] / 10 ** lp_token['decimals'])
-                        if lp_token['total_supply']
-                        else 0
+                        sum(reserves_native) / lp_total_supply if lp_total_supply else 0
                     )
-                    event['amounts'].append(transfer['value'] / 10 ** lp_token['decimals'])
                     event['token_addresses'].append(merged_event['lp_token_address'])
                     event['symbols'].append(lp_token['symbol'])
                     event['amounts'].append(transfer['value'] / 10 ** lp_token['decimals'])
-                    event['reserves'].append(lp_token['total_supply'])
-                    event['reserves_stable'].append(lp_token['total_supply'] * lp_price_stable)
-                    event['reserves_native'].append(lp_token['total_supply'] * lp_price_native)
+                    event['reserves'].append(lp_total_supply)
+                    event['reserves_stable'].append(lp_total_supply * lp_price_stable)
+                    event['reserves_native'].append(lp_total_supply * lp_price_native)
                     event['prices_stable'].append(lp_price_stable)
                     event['prices_native'].append(lp_price_native)
 

@@ -10,7 +10,6 @@ from ethereumetl.service.dex.balancer.balancer import BalancerAmm
 from ethereumetl.service.dex.base.base_dex_client import BaseDexClient
 from ethereumetl.service.dex.base.interface import DexClientInterface
 from ethereumetl.service.dex.canto_dex.canto_dex import CantoDexAmm
-from ethereumetl.service.dex.curve.curve import CurveAmm
 from ethereumetl.service.dex.dmm.dmm import DMMAmm
 from ethereumetl.service.dex.dodo.proxy import DODOAmm
 from ethereumetl.service.dex.kyberswap_elastic.kyberswap_elastic import KyberSwapElasticAmm
@@ -47,7 +46,7 @@ class ContractAdaptersFactory(metaclass=Singleton):
         "dodo": DODOAmm,
         "dodo_v2": DODOAmm,
         "1inch": OneInchAmm,
-        "curve": CurveAmm,
+        # "curve": CurveAmm,
         # "bancor_v2": BancorV2Amm,
         # "ellipsis": EllipsisAmm,
         "balancer": BalancerAmm,
