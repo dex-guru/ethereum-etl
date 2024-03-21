@@ -613,7 +613,7 @@ class ClickhouseEthStreamerAdapter:
                     'price_stable': d['latest_price_stable'],
                     'price_native': d['latest_price_native'],
                 }
-                for d in self.ch_local.query(query).named_results()
+                for d in self.clickhouse.query(query).named_results()
             }
 
         @cache
