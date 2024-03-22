@@ -55,7 +55,27 @@ class PriceService:
             return dex_trade
 
         dex_trade = self._resolve_prices_for_generic_trade(dex_trade)
+        self._validate_prices(dex_trade)
         self._update_base_prices(dex_trade)
+        return dex_trade
+
+    @staticmethod
+    def _validate_prices(dex_trade):
+
+        try:
+            if (
+                0.8
+                > (dex_trade['prices_stable'][0] * dex_trade['amounts'][0])
+                / (dex_trade['prices_stable'][1] * dex_trade['amounts'][1])
+                > 1.2
+            ):
+                return dex_trade
+        except ZeroDivisionError:
+            pass
+        dex_trade['prices_stable'] = [0.0] * len(dex_trade['token_addresses'])
+        dex_trade['prices_native'] = [0.0] * len(dex_trade['token_addresses'])
+        dex_trade['amount_stable'] = 0.0
+        dex_trade['amount_native'] = 0.0
         return dex_trade
 
     def _update_base_prices(self, dex_trade):
