@@ -245,7 +245,7 @@ class PriceService:
         )
         validated_price = self._choose_valid_price(opposite_price, prev_opposite_price)
         if not validated_price and all(dex_trade['amounts']):
-            validated_price = (
+            validated_price = abs(
                 dex_trade['amounts'][stablecoin_index] / dex_trade['amounts'][1 - stablecoin_index]
             )
         dex_trade['prices_stable'][1 - stablecoin_index] = validated_price
@@ -263,7 +263,7 @@ class PriceService:
         )
         validated_price = self._choose_valid_price(opposite_price, prev_opposite_price)
         if not validated_price and all(dex_trade['amounts']):
-            validated_price = (
+            validated_price = abs(
                 dex_trade['amounts'][native_token_index]
                 / dex_trade['amounts'][1 - native_token_index]
             )
