@@ -153,15 +153,6 @@ class PriceService:
             opposite_token_ratio,
         )
 
-    @staticmethod
-    def _choose_valid_price(current_price, prev_price):
-        """Returns the valid price."""
-        if current_price and prev_price:
-            return current_price if 0.9 < current_price / prev_price < 1.1 else prev_price
-        if current_price and not prev_price:
-            return current_price
-        return prev_price
-
     def _update_trade_prices(
         self, dex_trade, idx_base, opposite_idx, base_price, opposite_token_ratio
     ):
@@ -195,19 +186,17 @@ class PriceService:
                 continue
             if not base_price[f'price_{price_type}']:
                 continue
-            prev_opposite_price = copy(
-                self.base_tokens_prices[dex_trade['token_addresses'][opposite_idx]][
-                    f'price_{price_type}'
-                ]
-            )
+
             dex_trade[f'prices_{price_type}'][idx_base] = copy(base_price[f'price_{price_type}'])
             try:
-                opposite_price = base_price[f'price_{price_type}'] / opposite_token_ratio
+                dex_trade[f'prices_{price_type}'][opposite_idx] = (
+                    base_price[f'price_{price_type}'] / opposite_token_ratio
+                )
             except ZeroDivisionError:
                 # If the opposite token ratio is 0, calculate the opposite price based on the amounts of the base and
                 # opposite tokens
                 try:
-                    opposite_price = abs(
+                    dex_trade[f'prices_{price_type}'][opposite_idx] = abs(
                         dex_trade['amounts'][idx_base]
                         / dex_trade['amounts'][opposite_idx]
                         * base_price[f'price_{price_type}']
@@ -215,10 +204,11 @@ class PriceService:
                 except ZeroDivisionError:
                     # If the amount of the opposite token is 0, set the opposite price to the base token price from the
                     # base_tokens_prices
-                    opposite_price = prev_opposite_price
-            validated_price = self._choose_valid_price(opposite_price, prev_opposite_price)
-            dex_trade[f'prices_{price_type}'][opposite_idx] = validated_price
-
+                    dex_trade[f'prices_{price_type}'][opposite_idx] = copy(
+                        self.base_tokens_prices[dex_trade['token_addresses'][opposite_idx]][
+                            f'price_{price_type}'
+                        ]
+                    )
             dex_trade[f'amount_{price_type}'] = base_price[f'price_{price_type}'] * abs(
                 dex_trade['amounts'][idx_base]
             )
@@ -238,17 +228,12 @@ class PriceService:
         dex_trade['amount_stable'] = abs(dex_trade['amounts'][stablecoin_index])
         dex_trade['prices_stable'][stablecoin_index] = 1.0
         opposite_price = dex_trade['token_prices'][stablecoin_index][1 - stablecoin_index]
-        prev_opposite_price = copy(
-            self.base_tokens_prices[dex_trade['token_addresses'][1 - stablecoin_index]][
-                'price_stable'
-            ]
-        )
-        validated_price = self._choose_valid_price(opposite_price, prev_opposite_price)
-        if not validated_price and all(dex_trade['amounts']):
-            validated_price = abs(
+        if not opposite_price and all(dex_trade['amounts']):
+            opposite_price = (
                 dex_trade['amounts'][stablecoin_index] / dex_trade['amounts'][1 - stablecoin_index]
             )
-        dex_trade['prices_stable'][1 - stablecoin_index] = validated_price
+
+        dex_trade['prices_stable'][1 - stablecoin_index] = opposite_price
         return dex_trade
 
     def _resolve_prices_for_pools_with_native_token(self, dex_trade: dict):
@@ -256,18 +241,12 @@ class PriceService:
         dex_trade['amount_native'] = abs(dex_trade['amounts'][native_token_index])
         dex_trade['prices_native'][native_token_index] = 1.0
         opposite_price = dex_trade['token_prices'][native_token_index][1 - native_token_index]
-        prev_opposite_price = copy(
-            self.base_tokens_prices[dex_trade['token_addresses'][1 - native_token_index]][
-                'price_native'
-            ]
-        )
-        validated_price = self._choose_valid_price(opposite_price, prev_opposite_price)
-        if not validated_price and all(dex_trade['amounts']):
-            validated_price = abs(
+        if not opposite_price and all(dex_trade['amounts']):
+            opposite_price = (
                 dex_trade['amounts'][native_token_index]
                 / dex_trade['amounts'][1 - native_token_index]
             )
-        dex_trade['prices_native'][1 - native_token_index] = validated_price
+        dex_trade['prices_native'][1 - native_token_index] = opposite_price
         return dex_trade
 
     @staticmethod
