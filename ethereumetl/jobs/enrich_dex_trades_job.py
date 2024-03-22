@@ -123,7 +123,7 @@ class EnrichDexTradeJob(BaseJob):
                 continue
 
             if dex_trade['event_type'] in ('burn', 'mint'):
-                dex_trade = self._price_service.resolve_price_for_trade(dex_trade)
+                dex_trade = self._price_service.set_base_prices_for_trade(dex_trade)
                 liquidity_events_by_event_type[dex_trade['event_type']].append(dex_trade)
             else:
                 self._enrich_swap_event(dex_trade)
