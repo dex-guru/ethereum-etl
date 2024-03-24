@@ -248,7 +248,7 @@ class PriceService:
                 dex_trade['amounts'][stablecoin_index] / dex_trade['amounts'][1 - stablecoin_index]
             )
 
-        dex_trade['prices_stable'][1 - stablecoin_index] = opposite_price
+        dex_trade['prices_stable'][1 - stablecoin_index] = abs(opposite_price)
         return dex_trade
 
     def _resolve_prices_for_pools_with_native_token(self, dex_trade: dict):
@@ -261,7 +261,7 @@ class PriceService:
                 dex_trade['amounts'][native_token_index]
                 / dex_trade['amounts'][1 - native_token_index]
             )
-        dex_trade['prices_native'][1 - native_token_index] = opposite_price
+        dex_trade['prices_native'][1 - native_token_index] = abs(opposite_price)
         return dex_trade
 
     @staticmethod
