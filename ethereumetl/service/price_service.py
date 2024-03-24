@@ -65,11 +65,11 @@ class PriceService:
         try:
             if (
                 0.8
-                > abs(
+                < abs(
                     (dex_trade['prices_stable'][0] * dex_trade['amounts'][0])
                     / (dex_trade['prices_stable'][1] * dex_trade['amounts'][1])
                 )
-                > 1.2
+                < 1.2
             ):
                 return dex_trade
         except ZeroDivisionError:
