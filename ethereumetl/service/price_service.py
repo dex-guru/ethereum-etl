@@ -38,6 +38,7 @@ class PriceService:
         dex_trade['amount_native'] = prices[base_token]['price_native'] * abs(
             dex_trade['amounts'][dex_trade['token_addresses'].index(base_token)]
         )
+        self._validate_prices(dex_trade)
         return dex_trade
 
     def resolve_price_for_trade(self, dex_trade: dict):
@@ -61,19 +62,12 @@ class PriceService:
 
     @staticmethod
     def _validate_prices(dex_trade):
-
-        try:
-            if (
-                0.8
-                < abs(
-                    (dex_trade['prices_stable'][0] * dex_trade['amounts'][0])
-                    / (dex_trade['prices_stable'][1] * dex_trade['amounts'][1])
-                )
-                < 1.2
-            ):
-                return dex_trade
-        except ZeroDivisionError:
-            pass
+        price_ratio = abs(
+            (dex_trade['prices_stable'][0] * dex_trade['amounts'][0])
+            / (dex_trade['prices_stable'][1] * dex_trade['amounts'][1])
+        )
+        if 0.8 < price_ratio < 1.2:
+            return dex_trade
         dex_trade['prices_stable'] = [0.0] * len(dex_trade['token_addresses'])
         dex_trade['prices_native'] = [0.0] * len(dex_trade['token_addresses'])
         dex_trade['amount_stable'] = 0.0
