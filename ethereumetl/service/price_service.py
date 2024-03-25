@@ -63,10 +63,13 @@ class PriceService:
 
     @staticmethod
     def _validate_prices(dex_trade):
-        price_ratio = abs(
-            (dex_trade['prices_stable'][0] * dex_trade['amounts'][0])
-            / (dex_trade['prices_stable'][1] * dex_trade['amounts'][1])
-        )
+        try:
+            price_ratio = abs(
+                (dex_trade['prices_stable'][0] * dex_trade['amounts'][0])
+                / (dex_trade['prices_stable'][1] * dex_trade['amounts'][1])
+            )
+        except ZeroDivisionError:
+            price_ratio = 0.0
         if 0.8 < price_ratio < 1.2:
             return dex_trade
         dex_trade['prices_stable'] = [0.0] * len(dex_trade['token_addresses'])
