@@ -8,7 +8,7 @@ worker:
   verifyEntityTypes: 'block,transaction,log,token_transfer,token_balance,error,geth_trace,internal_transfer,native_balance,contract,token'
   amqpURL: 'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
   baseEnv:
-    EXPORT_FROM_CLICKHOUSE: 'clickhouse+http://testuser3:testplpassword@stage-ch-base-01.dexguru.biz/base'
+    EXPORT_FROM_CLICKHOUSE: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/base'
     SKIP_NONE_RECEIPTS: 'False'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
