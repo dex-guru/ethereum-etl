@@ -501,13 +501,13 @@ raw-data-streamer-dextrade-stage:
     entrypoint: [""]
   variables:
     CLUSTER_NAME: "prod"
-    K8S_API: ${DG_PROD_K8S_API}
-    CI_TOKEN: ${DG_PROD_CI_TOKEN}
+    K8S_API: ${DG_PROD_LAX_K8S_API}
+    CI_TOKEN: ${DG_PROD_LAX_CI_TOKEN}
     IMAGE_TAG: ${CI_COMMIT_SHORT_SHA}
     ENVIRONMENT: "prod"
     HELM_CHART: "helm/charts/worker"
   script:
-    - echo "Deploying stage:"
+    - echo "Deploying prod:"
     - /bin/sh helm/deploy.sh
   only:
     - tags
@@ -517,7 +517,7 @@ raw-data-streamer-prod:
   variables:
     SERVICE_NAME: "worker"
     APP_NAME: "raw-data-streamer"
-    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD}
     SERVICE_ENV_VALUE: "helm/envs/worker-prod/raw-data-streamer.yaml"
 
 raw-verify-data-streamer-prod:
@@ -525,7 +525,7 @@ raw-verify-data-streamer-prod:
   variables:
     SERVICE_NAME: "worker"
     APP_NAME: "raw-verify-data-streamer"
-    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD}
     SERVICE_ENV_VALUE: "helm/envs/worker-prod/raw-verify-data-streamer.yaml"
 
 raw-verify-data-trigger-prod:
@@ -533,7 +533,7 @@ raw-verify-data-trigger-prod:
   variables:
     SERVICE_NAME: "worker"
     APP_NAME: "raw-verify-data-trigger"
-    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD}
     SERVICE_ENV_VALUE: "helm/envs/worker-prod/raw-verify-data-trigger.yaml"
 
 raw-data-streamer-transfers-preevents-prod:
@@ -541,7 +541,7 @@ raw-data-streamer-transfers-preevents-prod:
   variables:
     SERVICE_NAME: "worker"
     APP_NAME: "raw-data-streamer-transfers-preevents"
-    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD}
     SERVICE_ENV_VALUE: "helm/envs/worker-prod/raw-data-streamer-transfers-preevents.yaml"
 
 raw-data-streamer-gethtrace-prod:
@@ -549,7 +549,7 @@ raw-data-streamer-gethtrace-prod:
   variables:
     SERVICE_NAME: "worker"
     APP_NAME: "raw-data-streamer-gethtrace"
-    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD_TRACE}
     SERVICE_ENV_VALUE: "helm/envs/worker-prod/raw-data-streamer-gethtrace.yaml"
 
 raw-data-streamer-balance-prod:
@@ -557,7 +557,7 @@ raw-data-streamer-balance-prod:
   variables:
     SERVICE_NAME: "worker"
     APP_NAME: "raw-data-streamer-balance"
-    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD}
     SERVICE_ENV_VALUE: "helm/envs/worker-prod/raw-data-streamer-balance.yaml"
 
 raw-data-streamer-token-tokentransferpriced-prod:
@@ -565,7 +565,7 @@ raw-data-streamer-token-tokentransferpriced-prod:
   variables:
     SERVICE_NAME: "worker"
     APP_NAME: "raw-data-streamer-token-tokentransferpriced"
-    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD}
     SERVICE_ENV_VALUE: "helm/envs/worker-prod/raw-data-streamer-token-tokentransferpriced.yaml"
 
 raw-data-streamer-nativebalance-prod:
@@ -573,7 +573,7 @@ raw-data-streamer-nativebalance-prod:
   variables:
     SERVICE_NAME: "worker"
     APP_NAME: "raw-data-streamer-nativebalance"
-    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD_TRACE}
     SERVICE_ENV_VALUE: "helm/envs/worker-prod/raw-data-streamer-nativebalance.yaml"
 
 raw-data-streamer-contract-token-prod:
@@ -581,7 +581,7 @@ raw-data-streamer-contract-token-prod:
   variables:
     SERVICE_NAME: "worker"
     APP_NAME: "raw-data-streamer-contract-token"
-    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD_TRACE}
     SERVICE_ENV_VALUE: "helm/envs/worker-prod/raw-data-streamer-contract-token.yaml"
 
 raw-data-streamer-dextrade-prod:
@@ -589,5 +589,5 @@ raw-data-streamer-dextrade-prod:
   variables:
     SERVICE_NAME: "worker"
     APP_NAME: "raw-data-streamer-dextrade"
-    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
+    KUBE_NAMESPACE: ${KUBE_NAMESPACE_PROD}
     SERVICE_ENV_VALUE: "helm/envs/worker-prod/raw-data-streamer-dextrade.yaml"
