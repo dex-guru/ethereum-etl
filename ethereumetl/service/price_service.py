@@ -52,6 +52,7 @@ class PriceService:
         if self._trade_involves_native_token(dex_trade):
             dex_trade = self._resolve_prices_for_pools_with_native_token(dex_trade)
         if all(dex_trade['prices_stable']) and all(dex_trade['prices_native']):
+            self._validate_prices(dex_trade)
             self._update_base_prices(dex_trade)
             return dex_trade
 

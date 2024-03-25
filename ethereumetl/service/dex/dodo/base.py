@@ -114,6 +114,8 @@ class BaseDODOAmmClient(BaseDexClient):
                 self._get_balance_of(token, base_pool.address, parsed_receipt_log.block_number - 1)
             )
         reserve0, reserve1 = reserves
+        reserve0 = reserve0 / tokens_scalars[0]
+        reserve1 = reserve1 / tokens_scalars[1]
 
         @lru_cache(maxsize=128)
         def get_pool_version(pool_address):
@@ -147,8 +149,8 @@ class BaseDODOAmmClient(BaseDexClient):
                 token1_price = 0
 
         finance_info = {
-            'reserve_0': reserve0 / tokens_scalars[0],
-            'reserve_1': reserve1 / tokens_scalars[1],
+            'reserve_0': reserve0,
+            'reserve_1': reserve1,
             'price_0': token0_price,
             'price_1': token1_price,
         }
