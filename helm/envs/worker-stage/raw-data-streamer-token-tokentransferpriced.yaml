@@ -25,3 +25,4 @@ worker:
     MAX_WORKERS: '20'
     BLOCK_BATCH_SIZE: '100'
     MIN_INSERT_BATCH_SIZE: '1'
+    EXPORT_FROM_CLICKHOUSE: '{{ .Values.worker.baseEnv.chainDB }}'
