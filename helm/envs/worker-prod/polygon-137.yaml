@@ -1,9 +1,9 @@
 worker:
   strategyType: 'Recreate'
   chainDB: 'clickhouse+http://testuser3:testplpassword@stage-ch-polygon-01.dexguru.biz/polygon'
-  fullProviderURL: 'http://rpc-gw-prod.dexguru.biz/full/137'
-  archiveProviderURL: 'http://rpc-gw-prod.dexguru.biz/archive/137'
-  traceProviderURL: 'http://rpc-gw-prod.dexguru.biz/trace/137'
+  fullProviderURL: 'http://rpc-gw-stage.dexguru.biz/full/137'
+  archiveProviderURL: 'http://rpc-gw-stage.dexguru.biz/archive/137'
+  traceProviderURL: 'http://rpc-gw-stage.dexguru.biz/trace/137'
   blocksToFinal: '32'
   verifyEntityTypes: 'block,transaction,log,token_transfer,token_balance,error,token'
   baseEnv:

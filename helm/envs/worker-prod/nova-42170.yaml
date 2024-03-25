@@ -1,13 +1,13 @@
 worker:
   strategyType: 'Recreate'
-  chainDB: 'clickhouse+http://testuser3:testplpassword@stage-ch-eth-01.dexguru.biz/ethereum'
-  fullProviderURL: 'http://rpc-gw-stage.dexguru.biz/full/1'
-  archiveProviderURL: 'http://rpc-gw-stage.dexguru.biz/archive/1'
-  traceProviderURL: 'http://rpc-gw-stage.dexguru.biz/full/1'
+  chainDB: 'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
+  fullProviderURL: 'http://rpc-gw-stage.dexguru.biz/full/42170'
+  archiveProviderURL: 'http://rpc-gw-stage.dexguru.biz/archive/42170'
+  traceProviderURL: 'http://rpc-gw-stage.dexguru.biz/full/42170'
   blocksToFinal: '64'
   verifyEntityTypes: 'block,transaction,log,token_transfer,token_balance,error,geth_trace,internal_transfer,native_balance,contract,token'
   baseEnv:
-    EXPORT_FROM_CLICKHOUSE: 'clickhouse+http://testuser3:testplpassword@stage-ch-eth-01.dexguru.biz/ethereum'
+    EXPORT_FROM_CLICKHOUSE: 'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
     SKIP_NONE_RECEIPTS: 'False'
     LOGSTASH: "logstash-logstash.logging.svc.prod.dexguru.biz"
     LOG_HANDLERS: '["console","logstash"]'

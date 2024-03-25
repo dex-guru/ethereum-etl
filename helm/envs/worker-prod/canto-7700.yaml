@@ -1,11 +1,11 @@
 worker:
   strategyType: 'Recreate'
   chainDB: 'clickhouse+http://testuser3:testplpassword@stage-ch-canto-01.dexguru.biz/canto'
-  fullProviderURL: 'http://rpc-gw-prod.dexguru.biz/full/7700'
-  archiveProviderURL: 'http://rpc-gw-prod.dexguru.biz/archive/7700'
-  traceProviderURL: 'http://rpc-gw-prod.dexguru.biz/full/7700'
+  fullProviderURL: 'http://rpc-gw-stage.dexguru.biz/full/7700'
+  archiveProviderURL: 'http://rpc-gw-stage.dexguru.biz/archive/7700'
+  traceProviderURL: 'http://rpc-gw-stage.dexguru.biz/full/7700'
   blocksToFinal: '100'
-  verifyEntityTypes: 'block,transaction,log,token_transfer,token_balance,error,geth_trace,internal_transfer,native_balance,contract,token'
+  verifyEntityTypes: 'block,transaction,log,token_transfer,token_balance'
   baseEnv:
     EXPORT_FROM_CLICKHOUSE: 'clickhouse+http://testuser3:testplpassword@stage-ch-canto-01.dexguru.biz/canto'
     SKIP_NONE_RECEIPTS: 'False'

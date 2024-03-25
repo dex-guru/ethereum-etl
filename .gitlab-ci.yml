@@ -584,14 +584,6 @@ raw-data-streamer-contract-token-prod:
     KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
     SERVICE_ENV_VALUE: "helm/envs/worker-prod/raw-data-streamer-contract-token.yaml"
 
-raw-data-streamer-dexpool-prod:
-  extends: .base-prod-config
-  variables:
-    SERVICE_NAME: "worker"
-    APP_NAME: "raw-data-streamer-dexpool"
-    KUBE_NAMESPACE: ${KUBE_NAMESPACE_STAGE}
-    SERVICE_ENV_VALUE: "helm/envs/worker-prod/raw-data-streamer-dexpool.yaml"
-
 raw-data-streamer-dextrade-prod:
   extends: .base-prod-config
   variables:
