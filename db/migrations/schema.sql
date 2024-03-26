@@ -1190,6 +1190,20 @@ ENGINE = ReplacingMergeTree
 ORDER BY (block_number, address, block_hash)
 SETTINGS allow_nullable_key = 1, index_granularity = 8192;
 
+CREATE TABLE snapshot_liquidity
+(
+    `timestamp` UInt32,
+    `factory_address` String CODEC(ZSTD(1)),
+    `pool_address` String CODEC(ZSTD(1)),
+    `token_address` String CODEC(ZSTD(1)),
+    `liquidity_stable` Float64,
+    `liquidity_native` Float64
+)
+ENGINE = MergeTree
+PARTITION BY toDate(FROM_UNIXTIME(timestamp))
+ORDER BY (token_address, factory_address, pool_address)
+SETTINGS index_granularity = 8192;
+
 CREATE TABLE token_balances
 (
     `token_address` String CODEC(ZSTD(1)),
