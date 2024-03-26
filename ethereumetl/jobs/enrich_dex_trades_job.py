@@ -418,7 +418,7 @@ class EnrichDexTradeJob(BaseJob):
         event_type: Literal['burn', 'mint'],
         lp_token_addresses: list[str],
     ) -> dict[str, list[dict]]:
-        if not transfers:
+        if not transfers or len(transfers) > 500:
             return {}
         is_reverse = event_type == "burn"
 
