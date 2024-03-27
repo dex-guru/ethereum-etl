@@ -1,4 +1,5 @@
 import logging
+from cProfile import Profile
 from collections.abc import Iterable, Sequence
 from functools import cache, cached_property
 from itertools import groupby
@@ -184,14 +185,12 @@ class ClickhouseEthStreamerAdapter:
             return {}
         table_name = self.item_type_to_table_mapping[EntityType.DEX_POOL]
         query = f"""
-        SELECT
-            token_address,
-            count() AS pool_count
-        FROM {table_name}
-        ARRAY JOIN arrayMap(token_address -> if(has(token_addresses, token_address), token_address, NULL), {tokens})
-         AS token_address
-        WHERE token_address IS NOT NULL
-        GROUP BY token_address
+            SELECT 
+                token_address, 
+                uniqMerge(pools_count) as pool_count
+            FROM pools_counts
+            WHERE token_address IN {tuple(tokens)}
+            GROUP BY token_address
         """
         return {
             d['token_address']: d['pool_count']
@@ -586,26 +585,13 @@ class ClickhouseEthStreamerAdapter:
             # along dex_trade or we would be able to calculate closest path to stable based on
             # pools route
             assert self.clickhouse, "Clickhouse client is not initialized"
-            table_name = self.item_type_to_table_mapping[EntityType.ENRICHED_DEX_TRADE]
             query = f"""
-                    SELECT
-                        token_address,
-                        argMax(price_stable, block_number) as latest_price_stable,
-                        argMax(price_native, block_number) as latest_price_native
-                    FROM
-                        {table_name}
-                    ARRAY JOIN
-                        token_addresses as token_address,
-                        prices_stable as price_stable,
-                        prices_native as price_native
-                    WHERE
-                        token_address IN {tuple(base_tokens_addresses)}
-                        AND amount_stable > 0
-                    GROUP BY
-                        token_address
-                    ORDER BY
-                        token_address
-
+                        SELECT max(c_s).2 AS latest_price_stable,
+                                 max(c_n).2 AS latest_price_native,
+                                 token_address
+                        FROM candles_5m
+                        WHERE token_address IN {tuple(base_tokens_addresses)}
+                        GROUP BY token_address
                     """
             return {
                 d['token_address']: {
