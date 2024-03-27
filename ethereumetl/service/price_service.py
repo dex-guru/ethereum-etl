@@ -1,6 +1,3 @@
-from copy import copy
-
-
 class PriceService:
     def __init__(
         self,
@@ -8,7 +5,7 @@ class PriceService:
         stablecoin_addresses: list[str],
         native_token: dict,
     ):
-        self.stablecoin_addresses = [address.lower() for address in stablecoin_addresses]
+        self.stablecoin_addresses = {address.lower() for address in stablecoin_addresses}
         self.native_token = native_token
         self.native_token['address'] = self.native_token['address'].lower()
         self.base_tokens_prices = {
@@ -21,11 +18,11 @@ class PriceService:
         }
 
     def set_base_prices_for_trade(self, dex_trade: dict):
-        prices = {}
-        self._ensure_base_prices(dex_trade)
         base_token = self._get_base_token(dex_trade)
-        for token_address in dex_trade['token_addresses']:
-            prices[token_address] = self.base_tokens_prices.get(token_address, {})
+        prices = {
+            token_address: self.base_tokens_prices.get(token_address, {})
+            for token_address in dex_trade['token_addresses']
+        }
         dex_trade['prices_stable'] = [
             prices[token_address]['price_stable'] for token_address in dex_trade['token_addresses']
         ]
@@ -72,10 +69,16 @@ class PriceService:
             price_ratio = 0.0
         if 0.8 < price_ratio < 1.2:
             return dex_trade
-        dex_trade['prices_stable'] = [0.0] * len(dex_trade['token_addresses'])
-        dex_trade['prices_native'] = [0.0] * len(dex_trade['token_addresses'])
-        dex_trade['amount_stable'] = 0.0
-        dex_trade['amount_native'] = 0.0
+
+        token_count = len(dex_trade['token_addresses'])
+        dex_trade.update(
+            {
+                'prices_stable': [0.0] * token_count,
+                'prices_native': [0.0] * token_count,
+                'amount_stable': 0.0,
+                'amount_native': 0.0,
+            }
+        )
         return dex_trade
 
     def _update_base_prices(self, dex_trade):
@@ -83,19 +86,14 @@ class PriceService:
         for idx, token_address in enumerate(dex_trade['token_addresses']):
             price_stable = dex_trade['prices_stable'][idx]
             price_native = dex_trade['prices_native'][idx]
-            if token_address not in self.base_tokens_prices.keys():
-                self.base_tokens_prices[token_address] = {
-                    'price_stable': dex_trade['prices_stable'][idx],
-                    'price_native': dex_trade['prices_native'][idx],
-                    'score': 1,
-                }
-                continue
-
+            self.base_tokens_prices.setdefault(
+                token_address,
+                {'price_stable': price_stable, 'price_native': price_native, 'score': 1},
+            )
             if price_stable:
-                self.base_tokens_prices[token_address]['price_stable'] = copy(price_stable)
-
+                self.base_tokens_prices[token_address]['price_stable'] = price_stable
             if price_native:
-                self.base_tokens_prices[token_address]['price_native'] = copy(price_native)
+                self.base_tokens_prices[token_address]['price_native'] = price_native
 
     @staticmethod
     def _initialize_prices(dex_trade):
@@ -109,12 +107,9 @@ class PriceService:
     def _ensure_base_prices(self, dex_trade):
         """Ensures that the base token prices are present in the trade."""
         for token_address in dex_trade['token_addresses']:
-            if token_address not in self.base_tokens_prices:
-                self.base_tokens_prices[token_address] = {
-                    'price_stable': 0.0,
-                    'price_native': 0.0,
-                    'score': 0,
-                }
+            self.base_tokens_prices.setdefault(
+                token_address, {'price_stable': 0.0, 'price_native': 0.0, 'score': 0}
+            )
 
     def _trade_involves_stablecoin(self, dex_trade):
         """Checks if the trade involves a stablecoin."""
@@ -128,46 +123,27 @@ class PriceService:
         return self.native_token['address'] in dex_trade['token_addresses']
 
     def _get_base_token(self, dex_trade):
-        """Gets the base token for the trade."""
-        _score = -1
-        _token_address = None
-        for token_address in dex_trade['token_addresses']:
-            if self.base_tokens_prices[token_address]['score'] > _score:
-                _score = self.base_tokens_prices[token_address]['score']
-                _token_address = token_address
-        return _token_address
+        return max(
+            dex_trade['token_addresses'],
+            key=lambda token_address: self.base_tokens_prices[token_address]['score'],
+        )
 
     def _resolve_prices_for_generic_trade(self, dex_trade):
-        """Resolves prices for trades without stablecoins."""
-        if len(dex_trade['token_addresses']) != 2:
-            # Handling for trades with more than two tokens can be added here
-            return dex_trade
-
-        base_token_address = self._get_base_token(dex_trade)
-
-        for idx, token_address in enumerate(dex_trade['token_addresses']):
-            if token_address == base_token_address:
-                base_price = self.base_tokens_prices.get(token_address, {})
-                self._calculate_token_prices(dex_trade, idx, base_price)
-                break
-
+        if len(dex_trade['token_addresses']) == 2:
+            base_token_address = self._get_base_token(dex_trade)
+            idx = dex_trade['token_addresses'].index(base_token_address)
+            base_price = self.base_tokens_prices.get(base_token_address, {})
+            self._calculate_token_prices(dex_trade, idx, base_price)
         return dex_trade
 
     def _calculate_token_prices(self, dex_trade, idx, base_price):
         """Calculates and updates the token prices in the trade."""
         opposite_idx = 1 - idx
         opposite_token_ratio = dex_trade['token_prices'][opposite_idx][idx]
-
-        self._update_trade_prices(
-            dex_trade,
-            idx,
-            opposite_idx,
-            base_price,
-            opposite_token_ratio,
-        )
+        self._update_trade_prices(dex_trade, idx, opposite_idx, base_price, opposite_token_ratio)
 
     def _update_trade_prices(
-        self, dex_trade, idx_base, opposite_idx, base_price, opposite_token_ratio
+        self, dex_trade, idx_base, opposite_idx, base_prices_dict, opposite_token_ratio
     ):
         """
         Updates the trade prices based on the base and opposite token prices.
@@ -197,69 +173,63 @@ class PriceService:
         for price_type in ('stable', 'native'):
             if all(dex_trade[f'prices_{price_type}']):
                 continue
-            if not base_price[f'price_{price_type}']:
+            if not base_prices_dict[f'price_{price_type}']:
                 continue
-
-            dex_trade[f'prices_{price_type}'][idx_base] = copy(base_price[f'price_{price_type}'])
+            base_price = base_prices_dict[f'price_{price_type}']
+            dex_trade[f'prices_{price_type}'][idx_base] = base_price
             try:
-                dex_trade[f'prices_{price_type}'][opposite_idx] = (
-                    base_price[f'price_{price_type}'] / opposite_token_ratio
-                )
+                dex_trade[f'prices_{price_type}'][opposite_idx] = base_price / opposite_token_ratio
             except ZeroDivisionError:
-                # If the opposite token ratio is 0, calculate the opposite price based on the amounts of the base and
-                # opposite tokens
                 try:
                     dex_trade[f'prices_{price_type}'][opposite_idx] = abs(
                         dex_trade['amounts'][idx_base]
                         / dex_trade['amounts'][opposite_idx]
-                        * base_price[f'price_{price_type}']
+                        * base_price
                     )
                 except ZeroDivisionError:
-                    # If the amount of the opposite token is 0, set the opposite price to the base token price from the
-                    # base_tokens_prices
-                    dex_trade[f'prices_{price_type}'][opposite_idx] = copy(
-                        self.base_tokens_prices[dex_trade['token_addresses'][opposite_idx]][
-                            f'price_{price_type}'
-                        ]
-                    )
-            dex_trade[f'amount_{price_type}'] = base_price[f'price_{price_type}'] * abs(
-                dex_trade['amounts'][idx_base]
-            )
+                    dex_trade[f'prices_{price_type}'][opposite_idx] = self.base_tokens_prices[
+                        dex_trade['token_addresses'][opposite_idx]
+                    ][f'price_{price_type}']
+            dex_trade[f'amount_{price_type}'] = base_price * abs(dex_trade['amounts'][idx_base])
 
     def _resolve_prices_for_pools_with_stablecoin(self, dex_trade):
-        if all(
-            token_address in self.stablecoin_addresses
-            for token_address in dex_trade['token_addresses']
-        ):
+        if all(token in self.stablecoin_addresses for token in dex_trade['token_addresses']):
             return self._resolve_prices_for_pools_with_only_stablecoin(dex_trade)
 
-        stablecoin_index = [
-            i
-            for i, token_address in enumerate(dex_trade['token_addresses'])
-            if token_address in self.stablecoin_addresses
-        ][0]
+        stablecoin_index = next(
+            (
+                i
+                for i, token in enumerate(dex_trade['token_addresses'])
+                if token in self.stablecoin_addresses
+            ),
+            None,
+        )
         dex_trade['amount_stable'] = abs(dex_trade['amounts'][stablecoin_index])
         dex_trade['prices_stable'][stablecoin_index] = 1.0
-        opposite_price = dex_trade['token_prices'][stablecoin_index][1 - stablecoin_index]
-        if not opposite_price and all(dex_trade['amounts']):
-            opposite_price = (
-                dex_trade['amounts'][stablecoin_index] / dex_trade['amounts'][1 - stablecoin_index]
-            )
 
-        dex_trade['prices_stable'][1 - stablecoin_index] = abs(opposite_price)
+        opposite_index = 1 - stablecoin_index
+        opposite_price = dex_trade['token_prices'][stablecoin_index][opposite_index] or (
+            dex_trade['amounts'][stablecoin_index] / dex_trade['amounts'][opposite_index]
+            if dex_trade['amounts'][opposite_index]
+            else 0.0
+        )
+
+        dex_trade['prices_stable'][opposite_index] = abs(opposite_price)
         return dex_trade
 
     def _resolve_prices_for_pools_with_native_token(self, dex_trade: dict):
         native_token_index = dex_trade['token_addresses'].index(self.native_token['address'])
         dex_trade['amount_native'] = abs(dex_trade['amounts'][native_token_index])
         dex_trade['prices_native'][native_token_index] = 1.0
-        opposite_price = dex_trade['token_prices'][native_token_index][1 - native_token_index]
-        if not opposite_price and all(dex_trade['amounts']):
-            opposite_price = (
-                dex_trade['amounts'][native_token_index]
-                / dex_trade['amounts'][1 - native_token_index]
-            )
-        dex_trade['prices_native'][1 - native_token_index] = abs(opposite_price)
+
+        opposite_index = 1 - native_token_index
+        opposite_price = dex_trade['token_prices'][native_token_index][opposite_index] or (
+            dex_trade['amounts'][native_token_index] / dex_trade['amounts'][opposite_index]
+            if dex_trade['amounts'][opposite_index]
+            else 0.0
+        )
+
+        dex_trade['prices_native'][opposite_index] = abs(opposite_price)
         return dex_trade
 
     @staticmethod

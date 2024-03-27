@@ -317,13 +317,11 @@ class EnrichDexTradeJob(BaseJob):
                 mapped_column = mapping[column]
                 if isinstance(transfer_[column], list):
                     for value in transfer_[column]:
-                        copy_ = deepcopy(transfer_)
-                        copy_['filter_column'] = f'{mapped_column}_{value}'
-                        copies.append(copy_)
+                        transfer_['filter_column'] = f'{mapped_column}_{value}'
+                        copies.append(transfer_)
                 else:
-                    copy_ = deepcopy(transfer_)
-                    copy_['filter_column'] = f'{mapped_column}_{transfer_[column]}'
-                    copies.append(copy_)
+                    transfer_['filter_column'] = f'{mapped_column}_{transfer_[column]}'
+                    copies.append(transfer_)
             return copies
 
         amount = (
