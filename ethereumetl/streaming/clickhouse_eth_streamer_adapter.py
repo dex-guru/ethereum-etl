@@ -1,5 +1,4 @@
 import logging
-from cProfile import Profile
 from collections.abc import Iterable, Sequence
 from functools import cache, cached_property
 from itertools import groupby
@@ -183,7 +182,6 @@ class ClickhouseEthStreamerAdapter:
         assert self.clickhouse, "Clickhouse client is not initialized"
         if not tokens:
             return {}
-        table_name = self.item_type_to_table_mapping[EntityType.DEX_POOL]
         query = f"""
             SELECT 
                 token_address, 

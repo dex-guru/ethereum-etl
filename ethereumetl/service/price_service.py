@@ -161,7 +161,7 @@ class PriceService:
             dex_trade (dict): The dictionary containing the trade data.
             idx_base (int): The index of the base token in the dex_trade dictionary.
             opposite_idx (int): The index of the opposite token in the dex_trade dictionary.
-            base_price (dict): The dictionary containing the base prices for the 'stable' and 'native' price types.
+            base_prices_dict (dict): The dictionary containing the base prices for the 'stable' and 'native' price types.
             opposite_token_ratio (float): The ratio of the opposite token to the base token.
 
 
@@ -204,6 +204,9 @@ class PriceService:
             ),
             None,
         )
+        if stablecoin_index is None:
+            raise ValueError('No stablecoin found in token addresses')
+
         dex_trade['amount_stable'] = abs(dex_trade['amounts'][stablecoin_index])
         dex_trade['prices_stable'][stablecoin_index] = 1.0
 

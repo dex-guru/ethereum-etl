@@ -501,8 +501,8 @@ raw-data-streamer-dextrade-stage:
     entrypoint: [""]
   variables:
     CLUSTER_NAME: "prod"
-    K8S_API: ${DG_PROD_LAX_K8S_API}
-    CI_TOKEN: ${DG_PROD_LAX_CI_TOKEN}
+    K8S_API: ${DG_PROD_K8S_API}
+    CI_TOKEN: ${DG_PROD_CI_TOKEN}
     IMAGE_TAG: ${CI_COMMIT_SHORT_SHA}
     ENVIRONMENT: "prod"
     HELM_CHART: "helm/charts/worker"
