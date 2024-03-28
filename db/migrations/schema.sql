@@ -1190,6 +1190,33 @@ ENGINE = ReplacingMergeTree
 ORDER BY (block_number, address, block_hash)
 SETTINGS allow_nullable_key = 1, index_granularity = 8192;
 
+CREATE TABLE pools_counts
+(
+    `token_address` String,
+    `pools_count` AggregateFunction(uniq, Nullable(String))
+)
+ENGINE = AggregatingMergeTree
+ORDER BY token_address
+SETTINGS index_granularity = 8192;
+
+CREATE MATERIALIZED VIEW pools_counts_mv TO pools_counts
+(
+    `token_address` String,
+    `pools_count` AggregateFunction(uniq, Nullable(String))
+) AS
+SELECT
+ token_address,
+ uniqState(toNullable(concat(pool_address, token_address))) AS
+pools_count
+FROM
+(
+ SELECT
+     address AS pool_address,
+     arrayJoin(token_addresses) AS token_address
+ FROM dex_pools
+)
+GROUP BY token_address;
+
 CREATE TABLE snapshot_liquidity
 (
     `timestamp` UInt32,
