@@ -2,7 +2,7 @@ worker:
   replicas:
     default: 1
   limitsCpu: 0.3
-  limitsMemory: 1000Mi
+  limitsMemory: 2000Mi
   requestsCpu: 0.2
   requestsMemory: 500Mi
   command: '[ "ethereumetl", "amqp_stream" ]'

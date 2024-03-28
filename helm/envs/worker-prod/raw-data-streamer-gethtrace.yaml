@@ -8,9 +8,9 @@ worker:
     nova-42170: 5
     optimism-10: 3
   limitsCpu: 0.1
-  limitsMemory: 9000Mi
+  limitsMemory: 2000Mi
   requestsCpu: 0.1
-  requestsMemory: 1000Mi
+  requestsMemory: 500Mi
   command: '[ "ethereumetl", "amqp_stream" ]'
   ## Following wars are rendered using tpl separately in template into Envs
   providerURL: '{{ .Values.worker.traceProviderURL }}'

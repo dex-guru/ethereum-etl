@@ -2,7 +2,7 @@ worker:
   replicas:
     default: 1
   limitsCpu: 1
-  limitsMemory: 9000Mi
+  limitsMemory: 2000Mi
   requestsCpu: 0.5
   requestsMemory: 500Mi
   command: '[ "ethereumetl", "stream" ]'

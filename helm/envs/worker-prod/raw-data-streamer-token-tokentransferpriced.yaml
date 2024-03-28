@@ -6,7 +6,7 @@ worker:
     arbitrum-42161: 5
     nova-42170: 5
   limitsCpu: 0.1
-  limitsMemory: 9000Mi
+  limitsMemory: 2000Mi
   requestsCpu: 0.1
   requestsMemory: 1000Mi
   command: '[ "ethereumetl", "amqp_stream" ]'
