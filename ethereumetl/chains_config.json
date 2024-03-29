@@ -386,7 +386,9 @@
             "decimals": 18
         },
         "stablecoin_addresses": [
-            "0xae1446ddcf8daaaf42b659d33bfa1c9b8d337947"
+            "0x83e9a41c38d71f7a06632de275877fca48827870",
+            "0xc692e6ede21ec911d9e35c6a52bdd31b2d4b4425"
+
         ]
     },
     {
