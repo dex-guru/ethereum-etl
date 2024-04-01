@@ -58,8 +58,36 @@ class PriceService:
         self._update_base_prices(dex_trade)
         return dex_trade
 
-    @staticmethod
-    def _validate_prices(dex_trade):
+    def _validate_prices(self, dex_trade):
+
+        def is_valid_with_previous_price(_token_address, price, _price_type):
+            previous_price = self.base_tokens_prices[_token_address][f'price_{_price_type}']
+            if (
+                previous_price and abs(price - previous_price) / previous_price > 1000
+            ):  # 100000% change
+                return False
+            return True
+
+        def reset_prices():
+            token_count = len(dex_trade['token_addresses'])
+            dex_trade.update(
+                {
+                    'prices_stable': [0.0] * token_count,
+                    'prices_native': [0.0] * token_count,
+                    'amount_stable': 0.0,
+                    'amount_native': 0.0,
+                }
+            )
+            return dex_trade
+
+        for token_address, current_price in zip(
+            dex_trade['token_addresses'], dex_trade['prices_stable']
+        ):
+            for price_type in ('stable', 'native'):
+                if not is_valid_with_previous_price(token_address, current_price, price_type):
+                    reset_prices()
+                    return dex_trade
+
         try:
             price_ratio = abs(
                 (dex_trade['prices_stable'][0] * dex_trade['amounts'][0])
@@ -67,18 +95,10 @@ class PriceService:
             )
         except ZeroDivisionError:
             price_ratio = 0.0
-        if 0.8 < price_ratio < 1.2:
-            return dex_trade
 
-        token_count = len(dex_trade['token_addresses'])
-        dex_trade.update(
-            {
-                'prices_stable': [0.0] * token_count,
-                'prices_native': [0.0] * token_count,
-                'amount_stable': 0.0,
-                'amount_native': 0.0,
-            }
-        )
+        if 0.8 > price_ratio > 1.2:
+            dex_trade = reset_prices()
+
         return dex_trade
 
     def _update_base_prices(self, dex_trade):
