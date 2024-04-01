@@ -209,7 +209,7 @@ class EnrichDexTradeJob(BaseJob):
                     'log_index': merged_event['log_index'],
                     'transaction_hash': transfer['transaction_hash'],
                     'transaction_type': merged_event['event_type'],
-                    'token_addresses': merged_event['token_addresses'],
+                    'token_addresses': copy(merged_event['token_addresses']),
                     'symbols': [
                         self._tokens_by_address[token_address]['symbol']
                         for token_address in merged_event['token_addresses']
@@ -218,12 +218,12 @@ class EnrichDexTradeJob(BaseJob):
                     'amounts': amounts,
                     'amount_stable': sum_amount_stable,
                     'amount_native': sum_amount_native,
-                    'prices_stable': merged_event['prices_stable'],
-                    'prices_native': merged_event['prices_native'],
+                    'prices_stable': copy(merged_event['prices_stable']),
+                    'prices_native': copy(merged_event['prices_native']),
                     'pool_address': pool_address,
                     'type': 'enriched_dex_trade',
                     'lp_token_address': merged_event['lp_token_address'],
-                    'reserves': merged_event['token_reserves'],
+                    'reserves': copy(merged_event['token_reserves']),
                     'reserves_stable': reserves_stable,
                     'reserves_native': reserves_native,
                     'factory_address': merged_event['factory_address'],
