@@ -1,3 +1,6 @@
+import logging
+
+
 class PriceService:
     def __init__(
         self,
@@ -16,6 +19,7 @@ class PriceService:
             }
             for base_token_price in base_tokens_prices
         }
+        self.logger = logging.getLogger('PriceService')
 
     def set_base_prices_for_trade(self, dex_trade: dict):
         base_token = self._get_base_token(dex_trade)
@@ -69,6 +73,9 @@ class PriceService:
             return True
 
         def reset_prices():
+            self.logger.warning(
+                f'Prices are invalid for trade. Resetting. "transaction_hash": {dex_trade["transaction_hash"]}'
+            )
             token_count = len(dex_trade['token_addresses'])
             dex_trade.update(
                 {
