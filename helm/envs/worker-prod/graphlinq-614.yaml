@@ -1,13 +1,13 @@
 worker:
   strategyType: 'Recreate'
-  chainDB: 'clickhouse+http://testuser3:testplpassword@stage-ch-graphlinq-01.dexguru.biz/graphlinq'
+  chainDB: 'clickhouse+http://default:@stage-ch-graphlinq-01.dexguru.biz/graphlinq'
   fullProviderURL: 'https://glq-dataseed.graphlinq.io'
   archiveProviderURL: 'https://glq-dataseed.graphlinq.io'
   traceProviderURL: 'https://glq-dataseed.graphlinq.io'
   blocksToFinal: '64'
   verifyEntityTypes: 'block,transaction,log,token_transfer,token_balance,error,geth_trace,internal_transfer,native_balance,contract,token'
   baseEnv:
-    EXPORT_FROM_CLICKHOUSE: 'clickhouse+http://testuser3:testplpassword@stage-ch-graphlinq-01.dexguru.biz/graphlinq'
+    EXPORT_FROM_CLICKHOUSE: 'clickhouse+http://default:@stage-ch-graphlinq-01.dexguru.biz/graphlinq'
     SKIP_NONE_RECEIPTS: 'False'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
