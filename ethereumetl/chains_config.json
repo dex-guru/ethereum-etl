@@ -482,5 +482,20 @@
         "stablecoin_addresses": [
             "0x4300000000000000000000000000000000000003"
         ]
+    },
+    {
+        "id": 614,
+        "name": "graphlinq",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0xeb567ec41738c2bab2599a1070fc5b727721b3b6-graphlinq",
+            "address": "0xeb567ec41738c2bab2599a1070fc5b727721b3b6",
+            "name": "Wrapped Graphlinq GLQ",
+            "symbol": "WGLQ",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+        ]
     }
 ]

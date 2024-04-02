@@ -60,6 +60,7 @@ variables:
     prod-indexation-neonevm-245022934
     prod-indexation-xfitest-4157
     prod-indexation-zeta-7000
+    prod-indexation-graphlinq-614
   KUBE_NAMESPACE_PROD: >-
     prod-indexation-blast-81457
     prod-indexation-telcotest-2017
@@ -85,6 +86,7 @@ variables:
     prod-indexation-xfitest-4157
     prod-indexation-taikotest-167008
     prod-indexation-bitfinitytest-355113
+    prod-indexation-graphlinq-614
 
 build:
   stage: build
