@@ -12,7 +12,7 @@ class EthDexTrade:
     block_number: int
     event_type: Literal["swap", "burn", "mint"]
     token_reserves: list[float | int]
-    token_prices: list[float]
+    token_prices: list[list[float]]
     token_addresses: Collection[str]
     lp_token_address: str = ''
     amm: str = ''
