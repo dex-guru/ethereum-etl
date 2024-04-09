@@ -40,7 +40,6 @@ lint.extend-select = [
     "I",        # sort imports
     "PERF101",  # unnecessary-list-cast
     "PERF102",  # incorrect-dict-iterator
-    "Q",        # quotes
     "RUF100",   # unused-noqa
     "UP",       # pyupgrade
 ]

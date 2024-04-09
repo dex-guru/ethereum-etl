@@ -103,7 +103,7 @@ class PriceService:
         except ZeroDivisionError:
             price_ratio = 0.0
 
-        if 0.8 > price_ratio > 1.2:
+        if not price_ratio or 0.8 > price_ratio > 1.2:
             dex_trade = reset_prices()
 
         return dex_trade

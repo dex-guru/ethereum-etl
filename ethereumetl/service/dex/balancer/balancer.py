@@ -460,6 +460,10 @@ class BalancerAmm(BaseDexClient):
         tokens_addresses = [t_a.lower() for t_a in base_pool.token_addresses.copy()]
         token_in_idx = tokens_addresses.index(token_in.lower())
         token_out_idx = tokens_addresses.index(token_out.lower())
+        prices = [
+            abs(amount_out / amount_in),
+            abs(amount_in / amount_out),
+        ]
         swap = EthDexTrade(
             token_amounts=[amount_in, -amount_out],
             pool_address=base_pool.address.lower(),
@@ -471,10 +475,7 @@ class BalancerAmm(BaseDexClient):
                 finance_info['reserves'][token_in_idx],
                 finance_info['reserves'][token_out_idx],
             ],
-            token_prices=get_prices_for_two_pool(
-                finance_info['prices'][token_out_idx][token_in_idx],
-                finance_info['prices'][token_in_idx][token_out_idx],
-            ),
+            token_prices=get_prices_for_two_pool(prices[0], prices[1]),
             token_addresses=[token_in, token_out],
         )
         return swap

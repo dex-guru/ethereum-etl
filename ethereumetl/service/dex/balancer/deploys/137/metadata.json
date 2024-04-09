@@ -9,7 +9,7 @@
       "Gyro3PoolFactory": "0x90f08B3705208E41DbEEB37A42Fb628dD483AdDa",
       "GyroEPoolFactory": "0xD4204551BC5397455f8897745d50Ac4F6beE0EF6",
       "StablePoolFactory": "0xcA96C4f198d343E251b1a01F3EBA061ef3DA73C1",
-      "StablePoolV2Factory": "0xcA96C4f198d343E251b1a01F3EBA061ef3DA73C1",
+      "StablePoolFactoryV2": "0xcA96C4f198d343E251b1a01F3EBA061ef3DA73C1",
       "WeightedPoolFactory": "0x8E9aa87E45e92bad84D5F8DD1bff34Fb92637dE9",
       "AaveLinearPoolFactory": "0xf302f9F50958c5593770FDf4d4812309fF77414f",
       "InvestmentPoolFactory": "0x0f7bb7ce7b6ed9366F9b6B910AdeFE72dC538193",

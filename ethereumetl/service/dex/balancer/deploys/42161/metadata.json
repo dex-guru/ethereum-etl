@@ -6,7 +6,7 @@
     "contracts": {
       "Vault": "0xBA12222222228d8Ba445958a75a0704d566BF2C8",
       "StablePoolFactory": "0xEF44D6786b2b4d544b7850Fe67CE6381626Bf2D6",
-      "StablePoolV2Factory": "0xEF44D6786b2b4d544b7850Fe67CE6381626Bf2D6",
+      "StablePoolFactoryV2": "0xEF44D6786b2b4d544b7850Fe67CE6381626Bf2D6",
       "WeightedPoolFactory": "0x7dFdEF5f355096603419239CE743BfaF1120312B",
       "AaveLinearPoolFactory": "0xdcdbf71A870cc60C6F9B621E28a7D3Ffd6Dd4965",
       "InvestmentPoolFactory": "0xaCd615B3705B9c880E4E7293f1030B34e57B4c1c",
