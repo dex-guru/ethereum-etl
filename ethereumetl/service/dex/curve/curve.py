@@ -535,8 +535,8 @@ class CurveAmm(BaseDexClient):
         )
 
         prices_for_two_involved_tokens = [
-            abs(amounts[first_coin_index] / amounts[second_coin_index]),
-            abs(amounts[second_coin_index] / amounts[first_coin_index]),
+            abs(amounts[1] / amounts[0]),
+            abs(amounts[0] / amounts[1]),
         ]
 
         return EthDexTrade(
@@ -583,8 +583,8 @@ class CurveAmm(BaseDexClient):
         )
 
         prices_for_two_involved_tokens = [
-            abs(amounts[first_coin_index] / amounts[second_coin_index]),
-            abs(amounts[second_coin_index] / amounts[first_coin_index]),
+            abs(amounts[1] / amounts[0]),
+            abs(amounts[0] / amounts[1]),
         ]
 
         return EthDexTrade(
