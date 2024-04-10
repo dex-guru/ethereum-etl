@@ -9,7 +9,6 @@ worker:
   ## Following wars are rendered using tpl separately in template into Envs
   providerURL: '{{ .Values.worker.fullProviderURL }}'
   output: '{{ .Values.worker.chainDB }},{{ .Values.worker.amqpURL }}'
-  exportFromClickhouse: '{{ .Values.worker.chainDB }}'
   lag: '0'
   entityTypes: 'token_transfer,pre_event'
   ##

@@ -13,7 +13,6 @@ worker:
   command: '[ "ethereumetl", "amqp_stream" ]'
   strategyType: 'Recreate'
   chainDB: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum'
-  exportDB: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum'
   fullProviderURL: 'http://rpc-gw-stage.dexguru.biz/full/1'
   archiveProviderURL: 'http://rpc-gw-stage.dexguru.biz/archive/1'
   traceProviderURL: 'http://rpc-gw-stage.dexguru.biz/full/1'
@@ -22,7 +21,6 @@ worker:
   ## Following wars are rendered using tpl separately in template into Envs
   providerURL: '{{ .Values.fullProviderURL }}'
   output: '{{ .Values.chainDB }}'
-  exportFromClickhouse: '{{ .Values.exportDB }}'
   lag: '0'
   entityTypes: 'enriched_dex_trade,enriched_transfer'
   ##

@@ -1,7 +1,6 @@
 worker:
   strategyType: 'Recreate'
   chainDB: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum'
-  exportDB: 'clickhouse+http://testuser3:testplpassword@stage-ch-eth-01.dexguru.biz/ethereum'
   fullProviderURL: 'http://rpc-gw-stage.dexguru.biz/full/1'
   archiveProviderURL: 'http://rpc-gw-stage.dexguru.biz/archive/1'
   traceProviderURL: 'http://rpc-gw-stage.dexguru.biz/full/1'
@@ -15,4 +14,3 @@ worker:
     LOG_HANDLERS: '["console","logstash"]'
     ELASTIC_URL: 'http://10.0.100.34:9200'
     AMQP_URL: 'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
-    LAG: '3'
