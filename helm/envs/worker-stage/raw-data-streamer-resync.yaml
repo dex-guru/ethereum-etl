@@ -9,6 +9,7 @@ worker:
   ## Following wars are rendered using tpl separately in template into Envs
   providerURL: '{{ .Values.worker.archiveProviderURL }}'
   output: '{{ .Values.worker.chainDB }}'
+  exportFromClickhouse: '{{ .Values.worker.chainDB }}'
   lastSyncBlockProvider: '{{ .Values.worker.chainDB }}?table_name=resync_blocks'
   lag: '0'
   entityTypes: 'block,transaction,log,token_transfer,internal_transfer,geth_trace'

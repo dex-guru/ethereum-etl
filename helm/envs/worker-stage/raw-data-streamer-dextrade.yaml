@@ -13,6 +13,7 @@ worker:
   ## Following wars are rendered using tpl separately in template into Envs
   providerURL: '{{ .Values.worker.fullProviderURL }}'
   output: '{{ .Values.worker.chainDB }},{{ .Values.worker.amqpURL }}'
+  exportFromClickhouse: '{{ .Values.worker.chainDB }}'
   lag: '0'
   entityTypes: 'enriched_dex_trade,enriched_transfer,dex_pool,token'
   ##
@@ -25,5 +26,4 @@ worker:
     MAX_WORKERS: '10'
     BLOCK_BATCH_SIZE: '100'
     MIN_INSERT_BATCH_SIZE: '1'
-    EXPORT_FROM_CLICKHOUSE: '{{ .Values.worker.baseEnv.chainDB }}'
     QUEUE_NAME: 'enriched_dex_trade,enriched_transfer'
