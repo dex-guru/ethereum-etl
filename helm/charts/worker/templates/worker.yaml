@@ -66,6 +66,10 @@ spec:
           - name: OUTPUT
             value: {{ tpl .Values.worker.output . | quote }}
           {{- end }}
+          {{- if index .Values .Values.appName "exportFromClickhouse" }}
+          - name: EXPORT_FROM_CLICKHOUSE
+            value: {{ tpl .Values.worker.exportFromClickhouse . | quote }}
+          {{- end }}
           {{- if index .Values .Values.appName "lastSyncBlockProvider" }}
           - name: LAST_SYNCED_BLOCK_PROVIDER
             value: {{ tpl .Values.worker.lastSyncBlockProvider . | quote }}
