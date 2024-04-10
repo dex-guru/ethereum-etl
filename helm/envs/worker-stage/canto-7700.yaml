@@ -15,3 +15,4 @@ worker:
     LOG_HANDLERS: '["console","logstash"]'
     ELASTIC_URL: 'http://10.0.100.34:9200'
     AMQP_URL: 'amqp://admin:irPT6oNUT83ekQ@10.0.100.25:5672/dex'
+    LAG: '6'
