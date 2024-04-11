@@ -2,9 +2,9 @@ worker:
   replicas:
     default: 1
   limitsCpu: 1
-  limitsMemory: 1000Mi
+  limitsMemory: 500Mi
   requestsCpu: 0.1
-  requestsMemory: 500Mi
+  requestsMemory: 300Mi
   strategyType: 'Recreate'
   command: '[ "ethereumetl", "stream" ]'
   ## Following wars are rendered using tpl separately in template into Envs

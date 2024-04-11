@@ -1,7 +1,7 @@
 worker:
   replicas:
     default: 1
-  limitsCpu: 1
+  limitsCpu: 0.5
   limitsMemory: 2000Mi
   requestsCpu: 0.1
   requestsMemory: 500Mi

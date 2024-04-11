@@ -1,10 +1,10 @@
 worker:
   replicas:
     default: 1
-  limitsCpu: 1
-  limitsMemory: 9000Mi
+  limitsCpu: 0.3
+  limitsMemory: 700Mi
   requestsCpu: 0.1
-  requestsMemory: 1000Mi
+  requestsMemory: 500Mi
   command: '[ "ethereumetl", "stream" ]'
   ## Following wars are rendered using tpl separately in template into Envs
   providerURL: '{{ .Values.worker.fullProviderURL }}'

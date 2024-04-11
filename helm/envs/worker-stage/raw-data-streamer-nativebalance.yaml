@@ -2,9 +2,9 @@ worker:
   replicas:
     default: 1
   limitsCpu: 0.1
-  limitsMemory: 9000Mi
+  limitsMemory: 600Mi
   requestsCpu: 0.1
-  requestsMemory: 1000Mi
+  requestsMemory: 400Mi
   command: '[ "ethereumetl", "amqp_stream" ]'
   ## Following wars are rendered using tpl separately in template into Envs
   providerURL: '{{ .Values.worker.fullProviderURL }}'

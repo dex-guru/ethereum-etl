@@ -5,9 +5,9 @@ worker:
     bsc-56: 2
     arbitrum-42161: 2
   limitsCpu: 0.7
-  limitsMemory: 9000Mi
+  limitsMemory: 800Mi
   requestsCpu: 0.1
-  requestsMemory: 1000Mi
+  requestsMemory: 300Mi
   command: '[ "ethereumetl", "amqp_stream" ]'
   ## Following wars are rendered using tpl separately in template into Envs
   providerURL: '{{ .Values.worker.fullProviderURL }}'
