@@ -50,7 +50,7 @@ class AmqpStreamerAdapter:
         """
         self._eth_streamer.open()
 
-        if not self._connection:
+        if self._connection not in (None, ...):
             raise RuntimeError('already opened')
 
         self._connection = Connection(

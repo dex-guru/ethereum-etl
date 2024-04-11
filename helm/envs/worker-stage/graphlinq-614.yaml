@@ -10,7 +10,6 @@ worker:
   verifyEntityTypes: 'block,transaction,log,token_transfer,token_balance,error,geth_trace,internal_transfer,native_balance,contract,token'
   lag: '3'
   baseEnv:
-    EXPORT_FROM_CLICKHOUSE: 'clickhouse+http://default:@stage-ch-graphlinq-01.dexguru.biz/graphlinq'
     SKIP_NONE_RECEIPTS: 'False'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
