@@ -233,7 +233,8 @@ def stream(
     # TODO: Implement fallback mechanism for provider uris instead of picking randomly
     provider_uri = pick_random_provider_uri(provider_uri)
     logging.info('Using ' + provider_uri)
-
+    if not price_importer_url:
+        price_importer_url = export_from_clickhouse
     streamer_adapter: StreamerAdapterStub
     streamer_adapter = EthStreamerAdapter(
         batch_web3_provider=ThreadLocalProxy(
@@ -245,7 +246,7 @@ def stream(
         entity_types=entity_types,
         chain_id=chain_id,
         elastic_client=Elasticsearch(elastic_url) if elastic_url else None,
-        price_importer=create_price_importers(input_=price_importer_url, chain_id=chain_id),
+        price_importer=create_price_importers(sources=price_importer_url, chain_id=chain_id),
     )
     if export_from_clickhouse:
         rewrite_entity_types = [EntityType(x) for x in envs.REWRITE_CLICKHOUSE.split(',') if x]
