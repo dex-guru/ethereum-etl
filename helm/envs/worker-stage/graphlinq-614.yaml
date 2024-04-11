@@ -1,6 +1,6 @@
 worker:
   strategyType: 'Recreate'
-  chainDB: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/graphlinq'
+  chainDB: 'clickhouse+http://default:@10.0.100.175/graphlinq'
   exportDB: 'clickhouse+http://default:@stage-ch-graphlinq-01.dexguru.biz/graphlinq'
   fullProviderURL: 'https://glq-dataseed.graphlinq.io'
   archiveProviderURL: 'https://glq-dataseed.graphlinq.io'
