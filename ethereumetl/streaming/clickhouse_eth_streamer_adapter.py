@@ -5,7 +5,6 @@ from itertools import groupby
 from time import sleep
 from typing import Any
 
-import clickhouse_connect
 from clickhouse_connect.driver import Client
 from clickhouse_connect.driver.exceptions import DatabaseError
 from eth_utils import is_address
@@ -15,7 +14,7 @@ from blockchainetl.jobs.exporters.multi_item_exporter import MultiItemExporter
 from ethereumetl.clickhouse import ITEM_TYPE_TO_TABLE_MAPPING
 from ethereumetl.enumeration.entity_type import ALL, ALL_STATIC, EntityType
 from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter, sort_by
-from ethereumetl.utils import parse_clickhouse_url
+from ethereumetl.utils import clickhouse_client_from_url, parse_clickhouse_url
 
 logger = logging.getLogger(__name__)
 
@@ -62,16 +61,9 @@ class ClickhouseEthStreamerAdapter:
         if RECEIPT in self.entity_types:
             raise NotImplementedError("Receipt export is not implemented for ClickHouse")
 
-    @staticmethod
-    def clickhouse_client_from_url(url) -> Client:
-        connect_kwargs = parse_clickhouse_url(url)
-        return clickhouse_connect.create_client(
-            **connect_kwargs, compress=False, query_limit=0, send_receive_timeout=600
-        )
-
     def open(self):
         self.eth_streamer.open()
-        self.clickhouse = self.clickhouse_client_from_url(self.clickhouse_url)
+        self.clickhouse = clickhouse_client_from_url(self.clickhouse_url)
 
     def get_current_block_number(self) -> int:
         return self.eth_streamer.get_current_block_number()
@@ -613,38 +605,8 @@ class ClickhouseEthStreamerAdapter:
             for pool in dex_pools:
                 all_token_addresses.update(pool['token_addresses'])
 
-            token_address_to_score: dict[str, int | float] = (
-                self._calculate_pools_count_for_tokens(list(set(all_token_addresses)))
-            )
-
-            stablecoin_addresses = self.eth_streamer.chain_config["stablecoin_addresses"]
-            native_token_address = self.eth_streamer.chain_config["native_token"]["address"]
-
-            # max score for native token
-            token_address_to_score[native_token_address] = 9999999999
-            base_token_prices = []
-            try:
-                latest_trades_prices = get_latest_prices_from_trades_for_tokens(
-                    all_token_addresses
-                )
-            except Exception as e:
-                logger.warning(f"Failed to get latest prices from trades for tokens: {e}.")
-                latest_trades_prices = {}
-            for token_address in all_token_addresses:
-                prices_ = latest_trades_prices.get(
-                    token_address,
-                    {'price_stable': 0, 'price_native': 0, 'token_address': token_address},
-                )
-                if token_address in stablecoin_addresses:
-                    # Assigning all stablecoins to be equal to 1 for now, we can complicate the logic here in future
-                    # not setting the $1 price only to stable which is most trustable at that point
-                    # (most liquidity/volume) or resolving the prices against CEXes here for stables
-                    prices_['price_stable'] = 1
-                elif token_address == native_token_address:
-                    prices_['price_native'] = 1
-                prices_['score'] = token_address_to_score.get(token_address, 0)
-                base_token_prices.append(prices_)
-            return base_token_prices
+            prices = self.eth_streamer.import_base_token_prices(list(all_token_addresses))
+            return prices
 
         @cache
         def export_tokens_from_pools() -> tuple[list, bool]:

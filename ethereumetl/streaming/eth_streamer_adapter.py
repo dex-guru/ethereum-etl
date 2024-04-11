@@ -10,6 +10,7 @@ from elasticsearch import Elasticsearch
 from blockchainetl.exporters import BaseItemExporter
 from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExporter
 from blockchainetl.jobs.exporters.in_memory_item_exporter import InMemoryItemExporter
+from blockchainetl.jobs.importers.price_importers.base_price_importer import BasePriceImporter
 from blockchainetl.jobs.importers.price_importers.interface import PriceImporterInterface
 from ethereumetl.enumeration.entity_type import ALL_FOR_STREAMING, EntityType
 from ethereumetl.jobs.enrich_dex_trades_job import EnrichDexTradeJob
@@ -167,7 +168,7 @@ class EthStreamerAdapter:
         self.item_timestamp_calculator = EthItemTimestampCalculator()
         self.chain_id = chain_id
         self.elastic_client = elastic_client
-        self.price_importer = price_importer
+        self.price_importer = price_importer or BasePriceImporter(chain_id)
         if CONTRACT in self.entity_types:
             self.EXPORT_DEPENDENCIES[TOKEN] = (CONTRACT,)
         self.chain_config: dict[str, Any] = {}
@@ -175,6 +176,7 @@ class EthStreamerAdapter:
     def open(self):
         self.chain_config = get_chain_config(self.chain_id)
         self.item_exporter.open()
+        self.price_importer.open()
 
     def get_current_block_number(self):
         return int(self.w3.eth.getBlock("latest").number)
@@ -645,14 +647,12 @@ class EthStreamerAdapter:
         job = ExportPricesForTokensJob(
             token_addresses_iterable=token_addresses,
             item_exporter=item_exporter,
-            max_workers=self.max_workers,
-            batch_size=self.batch_size,
             chain_id=self.chain_id,
             price_importer=self.price_importer,
         )
         job.run()
-        tokens = item_exporter.get_items('base_token_price')
-        return tokens
+        token_prices = item_exporter.get_items('base_token_price')
+        return token_prices
 
     def calculate_item_ids(self, items):
         for item in items:
@@ -664,6 +664,7 @@ class EthStreamerAdapter:
 
     def close(self):
         self.item_exporter.close()
+        self.price_importer.close()
 
 
 def sort_by(arr, fields):

@@ -28,11 +28,14 @@ import time
 import warnings
 from collections.abc import Collection
 from datetime import datetime
+from functools import cache
 from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
+import clickhouse_connect
 import pytz
+from clickhouse_connect.driver import Client
 
 from ethereumetl.config.envs import envs
 from ethereumetl.executors.batch_work_executor import BatchWorkExecutor
@@ -284,3 +287,11 @@ class Singleton(type):
         if cls not in cls._instances:
             cls._instances[cls] = super().__call__(*args, **kwargs)
         return cls._instances[cls]
+
+
+@cache
+def clickhouse_client_from_url(url) -> Client:
+    connect_kwargs = parse_clickhouse_url(url)
+    return clickhouse_connect.create_client(
+        **connect_kwargs, compress=False, query_limit=0, send_receive_timeout=600
+    )
