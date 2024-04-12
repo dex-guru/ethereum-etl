@@ -48,10 +48,7 @@ class QuickswapV3Amm(UniswapV3Amm):
         reserves = []
         for idx, token in enumerate(dex_pool.token_addresses):
             reserves.append(
-                self.erc20_contract_abi.functions.balanceOf(to_checksum(dex_pool.address)).call(
-                    {"to": to_checksum(token)},
-                    parsed_receipt_log.block_number,
-                )
+                self._get_balance_of(token, dex_pool.address, parsed_receipt_log.block_number)
                 / token_scalars[idx]
             )
         finance_info = {
