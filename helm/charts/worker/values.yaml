@@ -13,7 +13,7 @@ worker:
   command: '[ "ethereumetl", "amqp_stream" ]'
   strategyType: 'Recreate'
   chainDB: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum'
-  exportDB: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum'
+  exportDB: ' {{ .Values.chainDB }} '
   fullProviderURL: 'http://rpc-gw-stage.dexguru.biz/full/1'
   archiveProviderURL: 'http://rpc-gw-stage.dexguru.biz/archive/1'
   traceProviderURL: 'http://rpc-gw-stage.dexguru.biz/full/1'
