@@ -15,6 +15,7 @@ from ethereumetl.providers.auto import get_provider_from_uri
 from ethereumetl.streaming.clickhouse_eth_streamer_adapter import ClickhouseEthStreamerAdapter
 from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter
 from ethereumetl.streaming.item_exporter_creator import create_item_exporters
+from ethereumetl.streaming.price_importer_creator import create_price_importers
 from ethereumetl.thread_local_proxy import ThreadLocalProxy
 
 
@@ -253,6 +254,12 @@ class AmqpStreamerAdapter:
     show_default=True,
     type=str,
 )
+@click.option(
+    '--price-importer-url',
+    default=envs.PRICE_IMPORTER_URL,
+    show_default=True,
+    type=str,
+)
 def amqp_stream(
     chain_id,
     provider_uri,
@@ -266,6 +273,7 @@ def amqp_stream(
     routing_key,
     queue_name=None,
     exchange_name=None,
+    price_importer_url=None,
 ):
     """Streams data to AMQP broker."""
     sys.setrecursionlimit(3000)
@@ -283,6 +291,8 @@ def amqp_stream(
     if not entity_types:
         raise RuntimeError('Entity types are not specified')
     streamer_adapter: StreamerAdapterStub
+    if not price_importer_url:
+        price_importer_url = export_from_clickhouse
     streamer_adapter = EthStreamerAdapter(
         batch_web3_provider=ThreadLocalProxy(
             lambda: get_provider_from_uri(provider_uri, batch=True)
@@ -293,6 +303,7 @@ def amqp_stream(
         entity_types=entity_types,
         chain_id=chain_id,
         elastic_client=Elasticsearch(elastic_url) if elastic_url else None,
+        price_importer=create_price_importers(sources=price_importer_url, chain_id=chain_id),
     )
     if export_from_clickhouse:
         rewrite_entity_types = ALL_FOR_STREAMING
