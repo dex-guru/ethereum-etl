@@ -1,7 +1,7 @@
 worker:
   replicas:
     default: 1
-  limitsCpu: 1
+  limitsCpu: 0.1
   limitsMemory: 1000Mi
   requestsCpu: 0.1
   requestsMemory: 500Mi
@@ -21,3 +21,4 @@ worker:
     MAX_WORKERS: '20'
     BATCH_SIZE: '5'
     MIN_INSERT_BATCH_SIZE: '1'
+    IS_VERIFIER: 'True'

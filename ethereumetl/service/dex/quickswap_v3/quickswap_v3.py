@@ -52,8 +52,8 @@ class QuickswapV3Amm(UniswapV3Amm):
                 / token_scalars[idx]
             )
         finance_info = {
-            'reserve_0': reserves[0] / token_scalars[0],
-            'reserve_1': reserves[1] / token_scalars[1],
+            'reserve_0': reserves[0],
+            'reserve_1': reserves[1],
             'price_0': token0_price,
             'price_1': token1_price,
         }

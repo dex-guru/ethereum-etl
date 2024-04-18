@@ -632,17 +632,22 @@ class ClickhouseEthStreamerAdapter:
             return tokens, _from_ch
 
         @cache
-        def export_enriched_dex_trades() -> tuple[list, list, bool]:
+        def export_enriched_dex_trades() -> tuple[Iterable, Iterable, bool]:
             assert self.clickhouse, "Clickhouse client is not initialized"
             from_ch_ = False
             logger.info("enriching DEX_TRADES...")
-            # enriched_dex_trades = self.select_distinct(
-            #     ENRICHED_DEX_TRADE, start_block, end_block, 'transaction_hash,log_index'
-            # )
-            # if enriched_dex_trades:
-            #     for t in enriched_dex_trades:
-            #         t['type'] = ENRICHED_DEX_TRADE
-            #     return enriched_dex_trades, from_ch_
+            enriched_dex_trades = self.select_distinct(
+                ENRICHED_DEX_TRADE, start_block, end_block, 'transaction_hash,log_index'
+            )
+            enriched_transfers = self.select_distinct(
+                ENRICHED_TRANSFER, start_block, end_block, 'transaction_hash,log_index'
+            )
+            if enriched_dex_trades or enriched_transfers:
+                for t in enriched_dex_trades:
+                    t['type'] = ENRICHED_DEX_TRADE
+                for t in enriched_transfers:
+                    t['type'] = ENRICHED_TRANSFER
+                return enriched_dex_trades, enriched_transfers, from_ch_
             dex_trades = export_dex_trades()[0]
             dex_pools = export_dex_pools()[0]
             tokens = export_tokens_from_pools()[0]
