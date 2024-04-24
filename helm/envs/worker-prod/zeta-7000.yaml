@@ -1,9 +1,9 @@
 worker:
   strategyType: 'Recreate'
   chainDB: 'clickhouse+http://testuser3:testplpassword@10.0.100.171/zeta'
-  fullProviderURL: 'http://rpc-gw-stage.dexguru.biz/full/7000'
+  fullProviderURL: 'http://rpc-gw-stage.dexguru.biz/archive/7000'
   archiveProviderURL: 'http://rpc-gw-stage.dexguru.biz/archive/7000'
-  traceProviderURL: 'http://rpc-gw-stage.dexguru.biz/full/7000'
+  traceProviderURL: 'http://rpc-gw-stage.dexguru.biz/archive/7000'
   blocksToFinal: '64'
   verifyEntityTypes: 'block,transaction,log,token_transfer,token_balance'
   baseEnv:

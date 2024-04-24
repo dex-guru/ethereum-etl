@@ -48,7 +48,6 @@ variables:
     prod-indexation-telcotest-2017
     prod-indexation-eth-1
     prod-indexation-bsc-56
-    prod-indexation-polygon-137
     prod-indexation-arbitrum-42161
     prod-indexation-canto-7700
     prod-indexation-basetestnet-84531
