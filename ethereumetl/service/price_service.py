@@ -87,13 +87,13 @@ class PriceService:
             )
             return dex_trade
 
-        for price_type in ('stable', 'native'):
-            for token_address, current_price in zip(
-                dex_trade['token_addresses'], dex_trade[f'prices_{price_type}']
-            ):
-                if not is_valid_with_previous_price(token_address, current_price, price_type):
-                    reset_prices()
-                    return dex_trade
+        # for price_type in ('stable', 'native'):
+        #     for token_address, current_price in zip(
+        #         dex_trade['token_addresses'], dex_trade[f'prices_{price_type}']
+        #     ):
+        #         if not is_valid_with_previous_price(token_address, current_price, price_type):
+        #             reset_prices()
+        #             return dex_trade
 
         try:
             price_ratio = abs(
