@@ -5,8 +5,8 @@ worker:
     base-8453: 2
     bsc-56: 5
     polygon-137: 3
-  limitsCpu: 1
-  limitsMemory: 2000Mi
+  limitsCpu: 0.2
+  limitsMemory: 700Mi
   requestsCpu: 0.1
   requestsMemory: 500Mi
   command: '[ "ethereumetl", "amqp_stream" ]'

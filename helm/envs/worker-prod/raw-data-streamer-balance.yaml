@@ -4,8 +4,12 @@ worker:
     polygon-137: 2
     bsc-56: 2
     arbitrum-42161: 2
-  limitsCpu: 0.7
-  limitsMemory: 2000Mi
+  limitsCpu:
+    default: 0.1
+    gnosis-100: 0.5
+  limitsMemory:
+    default: 500Mi
+    gnosis-100: 1Gi
   requestsCpu: 0.1
   requestsMemory: 500Mi
   command: '[ "ethereumetl", "amqp_stream" ]'
