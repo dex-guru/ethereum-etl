@@ -38,7 +38,6 @@ class DODOAmm(DexClientInterface):
     _amm_clients: list
 
     def __init__(self, web3: Web3, chain_id: int, path_to_file: str = __file__):
-        super().__init__(web3, chain_id)
         self._init_amm_clients(web3, chain_id, path_to_file)
 
     def _init_amm_clients(self, web3: Web3, chain_id: int, path_to_file: str):

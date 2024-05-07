@@ -1,4 +1,5 @@
 worker:
+  chainId: '42170'
   strategyType: 'Recreate'
   chainDB: 'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
   fullProviderURL: 'http://rpc-gw-stage.dexguru.biz/full/42170'

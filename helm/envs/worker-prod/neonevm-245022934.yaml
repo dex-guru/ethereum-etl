@@ -1,4 +1,5 @@
 worker:
+  chainId: '245022934'
   strategyType: 'Recreate'
   chainDB: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/neonevm'
   fullProviderURL: 'http://rpc-gw-stage.dexguru.biz/public/245022934'

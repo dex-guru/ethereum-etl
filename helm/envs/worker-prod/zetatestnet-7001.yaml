@@ -1,4 +1,5 @@
 worker:
+  chainId: '7001'
   strategyType: 'Recreate'
   chainDB: 'clickhouse+http://testuser3:testplpassword@stage-ch-canto-01.dexguru.biz/zetatestnet'
   fullProviderURL: 'http://rpc-gw-prod.dexguru.biz/full/7001'

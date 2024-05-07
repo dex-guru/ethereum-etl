@@ -8,6 +8,15 @@ kubectl config set-credentials ${CLUSTER_NAME} --token=${CI_TOKEN}
 kubectl config set-context ${CLUSTER_NAME} --cluster=${CLUSTER_NAME} --user=${CLUSTER_NAME}
 kubectl config use-context ${CLUSTER_NAME}
 
+SECRET_NAME="registry-harbor"
+REGISTRY_HOST=${CI_HARBOR_REGISTRY_HOST}
+REGISTRY_USERNAME=${CI_HARBOR_REGISTRY_USER}
+REGISTRY_PASSWORD=${CI_HARBOR_REGISTRY_PASSWORD}
+ENCODED_AUTH=$(echo -n "${REGISTRY_USERNAME}:${REGISTRY_PASSWORD}" | base64)
+
+# Generate the desired .dockerconfigjson content
+NEW_DOCKERCONFIGJSON=$(echo -n "{\"auths\":{\"${REGISTRY_HOST}\":{\"username\":\"${REGISTRY_USERNAME}\",\"password\":\"${REGISTRY_PASSWORD}\",\"auth\":\"${ENCODED_AUTH}\"}}}" | base64 -w 0)
+
 for NAMESPACE in ${KUBE_NAMESPACE}; do
   # Check for the existence of the namespace
     if ! kubectl get namespace ${NAMESPACE} &> /dev/null; then
@@ -18,18 +27,31 @@ for NAMESPACE in ${KUBE_NAMESPACE}; do
         echo "Namespace ${NAMESPACE} already exists, skipping creation."
     fi
 
-   # Check for the existence of the 'registry-harbor' secret
-    if ! kubectl get secret registry-harbor -n ${NAMESPACE} &> /dev/null; then
-        echo "Secret 'registry-harbor' not found in ${NAMESPACE}, creating it..."
+    # Fetch the existing secret
+    CURRENT_DOCKERCONFIGJSON=$(kubectl get secret ${SECRET_NAME} -n ${NAMESPACE} -o jsonpath='{.data.\.dockerconfigjson}' 2>/dev/null || echo "")
+
+    # Determine if secret exist/needs updating
+    if [ "${NEW_DOCKERCONFIGJSON}" != "${CURRENT_DOCKERCONFIGJSON}" ]; then
+        kubectl delete secret ${SECRET_NAME} -n ${NAMESPACE} || true
         kubectl create secret docker-registry registry-harbor \
             --docker-server="${CI_HARBOR_REGISTRY_HOST}" \
             --docker-username="${CI_HARBOR_REGISTRY_USER}" \
             --docker-password="${CI_HARBOR_REGISTRY_PASSWORD}" \
             -n ${NAMESPACE}
-        echo "Secret 'registry-harbor' created."
-    else
-        echo "Secret 'registry-harbor' already exists in ${NAMESPACE}, skipping creation."
+        echo "Secret 'registry-harbor' re/created."
     fi
+#    # Check for the existence of the 'registry-harbor' secret
+#     if ! kubectl get secret registry-harbor -n ${NAMESPACE} &> /dev/null; then
+#         echo "Secret 'registry-harbor' not found in ${NAMESPACE}, creating it..."
+#         kubectl create secret docker-registry registry-harbor \
+#             --docker-server="${CI_HARBOR_REGISTRY_HOST}" \
+#             --docker-username="${CI_HARBOR_REGISTRY_USER}" \
+#             --docker-password="${CI_HARBOR_REGISTRY_PASSWORD}" \
+#             -n ${NAMESPACE}
+#         echo "Secret 'registry-harbor' created."
+#     else
+#         echo "Secret 'registry-harbor' already exists in ${NAMESPACE}, skipping creation."
+#     fi
     CHAIN=$(echo $NAMESPACE | sed -En "s/.*-indexation-//p")
     echo "...."
     echo "Service ${APP_NAME} deploy to ${NAMESPACE} namespace"

@@ -1,14 +1,20 @@
 worker:
   replicas:
     default: 1
-    arbitrum-42161: 3
-    base-8453: 2
-    bsc-56: 5
-    polygon-137: 3
+    horizontalpodautoscaler:
+      default:
+        host_ip: 10.0.200.46
+        port: 15692
+        metrics_path: '/metrics/per-object'
+        interval: 30s
+        metric_name: 'rabbitmq_queue_messages_ready'
+        label_name: '{{ .Values.worker.chainId }}_indexation_etl_enriched_dex_trade__enriched_transfer'
+        replicas_maximum: 10
+        threshold: 20
   limitsCpu: 0.2
-  limitsMemory: 700Mi
-  requestsCpu: 0.1
-  requestsMemory: 500Mi
+  limitsMemory: 600Mi
+  requestsCpu: 0.01
+  requestsMemory: 200Mi
   command: '[ "ethereumetl", "amqp_stream" ]'
   ## Following wars are rendered using tpl separately in template into Envs
   providerURL: '{{ .Values.worker.fullProviderURL }}'
@@ -25,4 +31,4 @@ worker:
     MAX_WORKERS: '20'
     BLOCK_BATCH_SIZE: '100'
     MIN_INSERT_BATCH_SIZE: '1'
-    QUEUE_NAME: 'enriched_dex_trade,enriched_transfer'
+    QUEUE_NAME: 'enriched_dex_trade__enriched_transfer'

@@ -142,3 +142,50 @@ spec:
       restartPolicy: Always
       securityContext: {}
       terminationGracePeriodSeconds: 30
+{{- if and (index .Values .Values.appName "replicas") (index .Values .Values.appName "replicas" "horizontalpodautoscaler") }}
+  {{- $hpaConfig := index .Values .Values.appName "replicas" "horizontalpodautoscaler" }}
+  {{- $defaultConfig := index $hpaConfig "default" }}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ .Release.Name | lower }}-{{ $defaultConfig.host_ip | replace "." "-" | lower }}-hpa
+  namespace: {{ .Release.Namespace }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ .Release.Name | lower }}
+  minReplicas: {{ (index .Values .Values.appName "replicas" .Values.chainName) | default (index .Values .Values.appName "replicas").default }}
+  maxReplicas: {{ $defaultConfig.replicas_maximum | int }}
+  metrics:
+    - type: Object
+      object:
+        metric:
+          name: {{ $defaultConfig.metric_name }}
+          selector:
+            matchLabels:
+              queue: {{ tpl $defaultConfig.label_name . | quote }}
+        describedObject:
+          apiVersion: v1
+          kind: Service
+          name: {{ printf "external-metrics-service-%s" $defaultConfig.host_ip | replace "." "-" | lower }}
+        target:
+          type: Value
+          value: {{ $defaultConfig.threshold | int }}
+  behavior:
+    scaleUp:
+      policies:
+        - type: Pods
+          value: 2
+          periodSeconds: 20
+      selectPolicy: Max
+      stabilizationWindowSeconds: 0
+    scaleDown:
+      policies:
+        - type: Pods
+          value: 2
+          periodSeconds: 20
+      selectPolicy: Max
+      stabilizationWindowSeconds: 0
+{{- end }}

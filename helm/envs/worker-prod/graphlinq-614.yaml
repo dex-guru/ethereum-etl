@@ -1,4 +1,5 @@
 worker:
+  chainId: '614'
   strategyType: 'Recreate'
   chainDB: 'clickhouse+http://default:@stage-ch-graphlinq-01.dexguru.biz/graphlinq'
   fullProviderURL: 'https://glq-dataseed.graphlinq.io'

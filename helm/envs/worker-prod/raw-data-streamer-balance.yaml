@@ -1,9 +1,16 @@
 worker:
   replicas:
     default: 1
-    polygon-137: 2
-    bsc-56: 2
-    arbitrum-42161: 2
+    horizontalpodautoscaler:
+      default:
+        host_ip: 10.0.200.46
+        port: 15692
+        metrics_path: /metrics/per-object
+        interval: 30s
+        metric_name: rabbitmq_queue_messages_ready
+        label_name: '{{ .Values.worker.chainId }}_indexation_etl_token_balance'
+        replicas_maximum: 10
+        threshold: 20
   limitsCpu: 0.3
   limitsMemory: 1024Mi
   requestsCpu: 0.1
