@@ -70,7 +70,6 @@ variables:
     prod-indexation-arbitrum-42161
     prod-indexation-optimism-10
     prod-indexation-canto-7700
-    prod-indexation-acanto-7701
     prod-indexation-nova-42170
     prod-indexation-basetestnet-84531
     prod-indexation-bsc-56
