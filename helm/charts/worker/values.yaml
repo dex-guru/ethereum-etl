@@ -2,14 +2,17 @@
 image: docker-registry.dexguru.biz/dex.guru/indexation-etl/indexation-etl
 imageTag: ''
 registrySecretName: registry-harbor
+registryCredentials:
+  username: ''
+  password: ''
 
 worker:
   replicas:
     default: 1
-  limitsCpu: 1
-  limitsMemory: 9000Mi
-  requestsCpu: 0.1
-  requestsMemory: 1000Mi
+  limitsCpu: 0.2
+  limitsMemory: 600Mi
+  requestsCpu: 0.01
+  requestsMemory: 200Mi
   command: '[ "ethereumetl", "amqp_stream" ]'
   strategyType: 'Recreate'
   chainDB: 'clickhouse+http://testuser3:testplpassword@10.0.100.175/ethereum'

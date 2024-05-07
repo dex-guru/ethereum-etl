@@ -1,4 +1,5 @@
 worker:
+  chainId: '42161'
   strategyType: 'Recreate'
   chainDB: 'clickhouse+http://testuser3:testplpassword@stage-ch-arbitrum-01.dexguru.biz/arbitrum'
   fullProviderURL: 'http://rpc-gw-stage.dexguru.biz/full/42161'

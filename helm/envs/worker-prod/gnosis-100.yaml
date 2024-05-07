@@ -1,4 +1,5 @@
 worker:
+  chainId: '100'
   strategyType: 'Recreate'
   chainDB: 'clickhouse+http://testuser3:testplpassword@stage-ch-gnosis-01.dexguru.biz/gnosis'
   fullProviderURL: 'http://rpc-gw-stage.dexguru.biz/full/100'

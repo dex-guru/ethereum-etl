@@ -56,7 +56,7 @@ class BaseItemExporter(ABC):
         self.export_empty_fields = options.pop('export_empty_fields', False)
         self.indent = options.pop('indent', None)
         if not dont_fail and options:
-            raise TypeError("Unexpected options: %s" % ', '.join(options.keys()))
+            raise TypeError(f"Unexpected options: {', '.join(options.keys())}")
 
     def open(self): ...
 
@@ -224,8 +224,7 @@ def to_unicode(text: str | bytes, encoding=None, errors='strict'):
         return text
     if not isinstance(text, (bytes, six.text_type)):
         raise TypeError(
-            'to_unicode must receive a bytes, str or unicode '
-            'object, got %s' % type(text).__name__
+            f'to_unicode must receive a bytes, str or unicode object, got {type(text).__name__}'
         )
     if encoding is None:
         encoding = 'utf-8'

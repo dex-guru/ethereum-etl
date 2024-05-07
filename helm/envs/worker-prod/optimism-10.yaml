@@ -1,4 +1,5 @@
 worker:
+  chainId: '10'
   strategyType: 'Recreate'
   chainDB: 'clickhouse+http://testuser3:testplpassword@stage-ch-optimism-01.dexguru.biz/optimism'
   fullProviderURL: 'http://rpc-gw-stage.dexguru.biz/full/10'
