@@ -151,10 +151,11 @@ class AmqpStreamerAdapter:
                     self._connection.drain_events()
                 except (KeyboardInterrupt, SystemExit):
                     self.close()
-                    break
+                    exit(0)
                 except Exception as e:
                     logging.error('Failed to consume message: %s', e)
-                    self._reopen()
+                    self.close()
+                    exit(1)
 
     def _reopen(self):
         self.close()
@@ -333,6 +334,7 @@ def amqp_stream(
         logging.error('Failed to consume: %s', e)
     finally:
         amqp_streamer_adapter.close()
+        exit(1)
 
 
 # amqp_stream.callback(
