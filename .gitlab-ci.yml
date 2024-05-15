@@ -53,7 +53,6 @@ variables:
     prod-indexation-basetestnet-84531
     prod-indexation-nova-42170
     prod-indexation-optimism-10
-    prod-indexation-fantom-250
     prod-indexation-base-8453
     prod-indexation-avalanche-43114
     prod-indexation-manta-169
@@ -66,7 +65,6 @@ variables:
     prod-indexation-telcotest-2017
     prod-indexation-eth-1
     prod-indexation-gnosis-100
-    prod-indexation-fantom-250
     prod-indexation-arbitrum-42161
     prod-indexation-optimism-10
     prod-indexation-canto-7700
