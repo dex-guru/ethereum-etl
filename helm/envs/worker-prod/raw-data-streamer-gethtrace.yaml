@@ -1,6 +1,9 @@
 worker:
   replicas:
     default: 1
+    bsc-56: 4
+    base-8453: 3
+    arbitrum-42161: 3
     horizontalpodautoscaler:
       default:
         host_ip: 10.0.200.46
@@ -9,7 +12,7 @@ worker:
         interval: 30s
         metric_name: rabbitmq_queue_messages_ready
         label_name: '{{ .Values.worker.chainId }}_indexation_etl_geth_trace__internal_transfer'
-        replicas_maximum: 10
+        replicas_maximum: 5
         threshold: 20
   limitsCpu: 0.1
   limitsMemory: 2000Mi
@@ -28,7 +31,7 @@ worker:
     BATCH_SIZE: '5'
     SERVICE_NAME: 'raw-data-streamer-gethtrace'
     REWRITE_CLICKHOUSE: ''
-    MAX_WORKERS: '20'
+    MAX_WORKERS: '40'
     BLOCK_BATCH_SIZE: '100'
     MIN_INSERT_BATCH_SIZE: '1'
     QUEUE_NAME: 'geth_trace__internal_transfer'

@@ -84,6 +84,7 @@ variables:
     prod-indexation-taikotest-167008
     prod-indexation-bitfinitytest-355113
     prod-indexation-graphlinq-614
+    prod-indexation-gurutest-261
 
 build:
   stage: build

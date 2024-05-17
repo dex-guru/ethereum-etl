@@ -498,5 +498,20 @@
         },
         "stablecoin_addresses": [
         ]
+    },
+        {
+        "id": 261,
+        "name": "gurutest",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0xA3e9BF36Ff51cE14A25a2cF4b4086CBcf1df781B-gurutest",
+            "address": "0xA3e9BF36Ff51cE14A25a2cF4b4086CBcf1df781B",
+            "name": "Wrapped testGURU",
+            "symbol": "WtGURU",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+        ]
     }
 ]
