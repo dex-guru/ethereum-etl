@@ -1,14 +1,14 @@
 worker:
   chainId: '261'
   strategyType: 'Recreate'
-  chainDB: 'clickhouse+http://testuser3:testplpassword@stage-ch-guru-test-01.dexguru.biz/gurutest'
+  chainDB: 'clickhouse+http://testuser3:testplpassword@stage-ch-guru-test-01.dexguru.biz/guru_test'
   fullProviderURL: 'http://new-rpc-gw-prod.dexguru.biz/archive/261'
   archiveProviderURL: 'http://new-rpc-gw-prod.dexguru.biz/archive/261'
   traceProviderURL: 'http://new-rpc-gw-prod.dexguru.biz/archive/261'
   blocksToFinal: '64'
   verifyEntityTypes: 'block,transaction,log,token_transfer,token_balance,error'
   baseEnv:
-    EXPORT_FROM_CLICKHOUSE: 'clickhouse+http://testuser3:testplpassword@stage-ch-guru-test-01.dexguru.biz/gurutest'
+    EXPORT_FROM_CLICKHOUSE: 'clickhouse+http://testuser3:testplpassword@stage-ch-guru-test-01.dexguru.biz/guru_test'
     SKIP_NONE_RECEIPTS: 'False'
     LOGSTASH: "logstash-logstash.logging.svc.cluster.local"
     LOG_HANDLERS: '["console","logstash"]'
