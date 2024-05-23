@@ -137,7 +137,7 @@ FROM
     FROM dex_trades
     WHERE transaction_type = 'swap'
 )
-WHERE ((tokens_data.2) > 0) AND ((tokens_data.3) > 0)
+WHERE (tokens_data.2) > 0
 GROUP BY
     token_address,
     pool_address,
@@ -218,7 +218,7 @@ FROM
     FROM dex_trades
     WHERE transaction_type = 'swap'
 )
-WHERE ((tokens_data.2) > 0) AND ((tokens_data.3) > 0)
+WHERE (tokens_data.2) > 0
 GROUP BY
     token_address,
     pool_address,
@@ -299,7 +299,7 @@ FROM
     FROM dex_trades
     WHERE transaction_type = 'swap'
 )
-WHERE ((tokens_data.2) > 0) AND ((tokens_data.3) > 0)
+WHERE (tokens_data.2) > 0
 GROUP BY
     token_address,
     pool_address,
@@ -380,7 +380,7 @@ FROM
     FROM dex_trades
     WHERE transaction_type = 'swap'
 )
-WHERE ((tokens_data.2) > 0) AND ((tokens_data.3) > 0)
+WHERE (tokens_data.2) > 0
 GROUP BY
     token_address,
     pool_address,
@@ -1205,15 +1205,14 @@ CREATE MATERIALIZED VIEW pools_counts_mv TO pools_counts
     `pools_count` AggregateFunction(uniq, Nullable(String))
 ) AS
 SELECT
- token_address,
- uniqState(toNullable(concat(pool_address, token_address))) AS
-pools_count
+    token_address,
+    uniqState(toNullable(concat(pool_address, token_address))) AS pools_count
 FROM
 (
- SELECT
-     address AS pool_address,
-     arrayJoin(token_addresses) AS token_address
- FROM dex_pools
+    SELECT
+        address AS pool_address,
+        arrayJoin(token_addresses) AS token_address
+    FROM dex_pools
 )
 GROUP BY token_address;
 
