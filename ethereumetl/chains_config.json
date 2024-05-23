@@ -458,8 +458,8 @@
         "type": "evm",
         "enabled": true,
         "native_token": {
-            "id": "0x0000028a2eB8346cd5c0267856aB7594B7a55308-telco",
-            "address": "0x0000028a2eB8346cd5c0267856aB7594B7a55308",
+            "id": "0x80d1f6dafc9c13e9d19aedf75e3c1e2586d4a2a5-telco",
+            "address": "0x80d1f6dafc9c13e9d19aedf75e3c1e2586d4a2a5",
             "name": "TELCO",
             "symbol": "TELCO",
             "decimals": 18
