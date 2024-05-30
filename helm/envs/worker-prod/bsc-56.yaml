@@ -2,7 +2,7 @@ worker:
   chainId: '56'
   strategyType: 'Recreate'
   chainDB: 'clickhouse+http://testuser3:testplpassword@stage-ch-bsc-01.dexguru.biz/bsc'
-  fullProviderURL: 'http://rpc-gw-stage.dexguru.biz/full/56'
+  fullProviderURL: 'https://bsc-mainnet.nodereal.io/v1/c703dece2679407b9439ce57b5389eb2'
   archiveProviderURL: 'http://rpc-gw-stage.dexguru.biz/archive/56'
   traceProviderURL: 'http://rpc-gw-stage.dexguru.biz/trace/56'
   blocksToFinal: '32'

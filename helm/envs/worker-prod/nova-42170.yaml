@@ -2,7 +2,7 @@ worker:
   chainId: '42170'
   strategyType: 'Recreate'
   chainDB: 'clickhouse+http://testuser3:testplpassword@stage-ch-nova-01.dexguru.biz/nova'
-  fullProviderURL: 'http://rpc-gw-stage.dexguru.biz/full/42170'
+  fullProviderURL: 'https://open-platform.nodereal.io/fca5f8f4ae584eda9c56cced26449dbe/arbitrum/'
   archiveProviderURL: 'http://rpc-gw-stage.dexguru.biz/archive/42170'
   traceProviderURL: 'http://rpc-gw-stage.dexguru.biz/full/42170'
   blocksToFinal: '64'
