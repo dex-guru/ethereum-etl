@@ -379,8 +379,8 @@
         "type": "evm",
         "enabled": true,
         "native_token": {
-            "id": "0xa37f751177ad228a434f3e7829615c6124902178-xfi_testnet",
-            "address": "0xa37f751177ad228a434f3e7829615c6124902178",
+            "id": "0x28cc5edd54b1e4565317c3e0cfab551926a4cd2a-xfi_testnet",
+            "address": "0x28cc5edd54b1e4565317c3e0cfab551926a4cd2a",
             "name": "XFI",
             "symbol": "XFI",
             "decimals": 18
