@@ -21,7 +21,7 @@ class ClickhousePriceImporter(BasePriceImporter):
     def open(self):
         super().open()
         self.clickhouse = clickhouse_client_from_url(self.clickhouse_url)
-        if self.chain_id == 614:
+        if self.chain_id in (614, 261):
             self.eth_ch = clickhouse_client_from_url(self.eth_ch_url)
 
     def close(self):
