@@ -103,7 +103,11 @@ class PriceService:
         except ZeroDivisionError:
             price_ratio = 0.0
 
-        if 0.8 > price_ratio or price_ratio > 1.2:
+        if (
+            0.8 > price_ratio
+            or price_ratio > 1.2
+            # while LBP
+        ) and '0x525574c899a7c877a11865339e57376092168258' not in dex_trade['token_addresses']:
             dex_trade = reset_prices()
 
         return dex_trade

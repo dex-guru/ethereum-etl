@@ -31,7 +31,7 @@ class ClickhousePriceImporter(BasePriceImporter):
             self.eth_ch.close()
         super().close()
 
-    def _get_price_from_another_chain(
+    def _get_price_from_eth_chain(
         self,
         src_address: str,
         dst_address: str,
@@ -67,7 +67,7 @@ class ClickhousePriceImporter(BasePriceImporter):
             '0xeb567ec41738c2bab2599a1070fc5b727721b3b6' in token_addresses
             and self.chain_id == 614
         ):
-            crosschain_price = self._get_price_from_another_chain(
+            crosschain_price = self._get_price_from_eth_chain(
                 '0x9f9c8ec3534c3ce16f928381372bfbfbfb9f4d24',
                 '0xeb567ec41738c2bab2599a1070fc5b727721b3b6',
                 block_number,
@@ -76,7 +76,7 @@ class ClickhousePriceImporter(BasePriceImporter):
             '0xa3e9bf36ff51ce14a25a2cf4b4086cbcf1df781b' in token_addresses
             and self.chain_id == 261
         ):
-            crosschain_price = self._get_price_from_another_chain(
+            crosschain_price = self._get_price_from_eth_chain(
                 '0x525574c899a7c877a11865339e57376092168258',
                 '0xa3e9bf36ff51ce14a25a2cf4b4086cbcf1df781b',
                 block_number,
