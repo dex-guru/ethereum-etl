@@ -64,6 +64,8 @@ PARSABLE_TRADE_EVENTS = [
     "RemoveLiquidity",
     "RemoveLiquidityOne",
     "RemoveLiquidityImbalance",
+    "Buy",
+    "Sell",
 ]
 
 INFINITE_PRICE_THRESHOLD = 9.999999999999999e45

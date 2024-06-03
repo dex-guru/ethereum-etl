@@ -31,8 +31,10 @@ class ClickhousePriceImporter(BasePriceImporter):
             self.eth_ch.close()
         super().close()
 
-    def _get_graphlinq_prices(
+    def _get_price_from_another_chain(
         self,
+        src_address: str,
+        dst_address: str,
         block_number: int | None = None,
     ) -> dict:
         assert self.eth_ch, 'Clickhouse client is not initialized'
@@ -42,12 +44,12 @@ class ClickhousePriceImporter(BasePriceImporter):
                     SELECT max(c_s).2 AS latest_price_stable,
                            max(c_n).2 AS latest_price_native
                     FROM candles_5m
-                    WHERE {block_number_condition} token_address = '0x9f9c8ec3534c3ce16f928381372bfbfbfb9f4d24'
+                    WHERE {block_number_condition} token_address = '{src_address}'
                     GROUP BY token_address
                 """
         return {
-            '0xeb567ec41738c2bab2599a1070fc5b727721b3b6': {
-                'token_address': '0xeb567ec41738c2bab2599a1070fc5b727721b3b6',
+            dst_address: {
+                'token_address': dst_address,
                 'price_stable': d['latest_price_stable'],
                 'price_native': d['latest_price_native'],
             }
@@ -60,19 +62,32 @@ class ClickhousePriceImporter(BasePriceImporter):
         timestamp: int | None = None,
         block_number: int | None = None,
     ) -> Collection[Price]:
-        graphlinq_price = {}
+        crosschain_price = {}
         if (
             '0xeb567ec41738c2bab2599a1070fc5b727721b3b6' in token_addresses
             and self.chain_id == 614
         ):
-            graphlinq_price = self._get_graphlinq_prices(block_number)
+            crosschain_price = self._get_price_from_another_chain(
+                '0x9f9c8ec3534c3ce16f928381372bfbfbfb9f4d24',
+                '0xeb567ec41738c2bab2599a1070fc5b727721b3b6',
+                block_number,
+            )
+        elif (
+            '0xa3e9bf36ff51ce14a25a2cf4b4086cbcf1df781b' in token_addresses
+            and self.chain_id == 261
+        ):
+            crosschain_price = self._get_price_from_another_chain(
+                '0x525574c899a7c877a11865339e57376092168258',
+                '0xa3e9bf36ff51ce14a25a2cf4b4086cbcf1df781b',
+                block_number,
+            )
         all_prices = []
         tokens_score = self._calculate_pools_count_for_tokens(token_addresses)
         tokens_score[self.native_token_address] = 9e10
         prices = self._get_prices_from_candles_for_tokens(
             base_tokens_addresses=token_addresses, block_number=block_number
         )
-        prices.update(graphlinq_price)
+        prices.update(crosschain_price)
         for token_address in token_addresses:
             prices_ = prices.get(
                 token_address,
