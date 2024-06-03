@@ -11,6 +11,7 @@ from ethereumetl.service.dex.base.interface import DexClientInterface
 from ethereumetl.service.dex.canto_dex.canto_dex import CantoDexAmm
 from ethereumetl.service.dex.dmm.dmm import DMMAmm
 from ethereumetl.service.dex.dodo.proxy import DODOAmm
+from ethereumetl.service.dex.fjord.fjord import FjordLBP
 from ethereumetl.service.dex.kyberswap_elastic.kyberswap_elastic import KyberSwapElasticAmm
 from ethereumetl.service.dex.meshswap.meshswap import MeshswapAmm
 from ethereumetl.service.dex.one_inch.oneinch import OneInchAmm
@@ -58,6 +59,7 @@ class ContractAdaptersFactory(metaclass=Singleton):
         "pancakeswap_v3": UniswapV3Amm,
         "quickswap_v3": QuickswapV3Amm,
         "traderjoe_v2_1": TraderJoeV21Amm,
+        "fjord": FjordLBP,
     }
 
     def __init__(self, web3: Web3, chain_id: int | None = None):

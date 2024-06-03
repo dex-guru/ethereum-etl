@@ -1,0 +1,10 @@
+[
+  {
+    "name": "fjord",
+    "type": "fjord",
+    "enabled": true,
+    "contracts": {
+      "Sablier": "0xB10daee1FCF62243aE27776D7a92D39dC8740f95"
+    }
+  }
+]
