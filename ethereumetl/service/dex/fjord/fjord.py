@@ -143,6 +143,7 @@ class FjordLBP(BaseDexClient):
             token_reserves=[finance_info['reserve_0'], finance_info['reserve_1']],
             token_prices=get_prices_for_two_pool(finance_info['price_0'], finance_info['price_1']),
             token_addresses=base_pool.token_addresses,
+            wallet_address=parsed_event.get('caller', '').lower(),
         )
         return swap
 
@@ -167,6 +168,7 @@ class FjordLBP(BaseDexClient):
             token_reserves=[finance_info['reserve_0'], finance_info['reserve_1']],
             token_prices=get_prices_for_two_pool(finance_info['price_0'], finance_info['price_1']),
             token_addresses=base_pool.token_addresses,
+            wallet_address=parsed_event.get('caller', '').lower(),
         )
         return swap
 

@@ -16,6 +16,7 @@ class EthDexTrade:
     token_addresses: Collection[str]
     lp_token_address: str = ''
     amm: str = ''
+    wallet_address: str = ''
 
 
 @dataclass(slots=True)

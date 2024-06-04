@@ -33,6 +33,7 @@ class EthDexTradeMapper:
                 token_address.lower() for token_address in trade_dict['token_addresses']
             ],
             amm=trade_dict['amm'],
+            wallet_address=trade_dict['wallet_address'].lower(),
         )
 
 

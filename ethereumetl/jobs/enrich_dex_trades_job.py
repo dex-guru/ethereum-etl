@@ -256,11 +256,15 @@ class EnrichDexTradeJob(BaseJob):
 
     def _enrich_swap_event(self, swap_event):
         pool_address = swap_event['pool_address']
-        swap_owner, owner_type = self._detect_owner_service.get_swap_owner_and_owner_type(
-            self._token_transfers_by_hash[swap_event['transaction_hash']],
-            pool=self._dex_pools_by_address[pool_address],
-            all_pool_addresses=list(self._dex_pools_by_address.keys()),
-        )
+        if swap_event['wallet_address']:
+            swap_owner = swap_event['wallet_address']
+            owner_type = 'wallet'
+        else:
+            swap_owner, owner_type = self._detect_owner_service.get_swap_owner_and_owner_type(
+                self._token_transfers_by_hash[swap_event['transaction_hash']],
+                pool=self._dex_pools_by_address[pool_address],
+                all_pool_addresses=list(self._dex_pools_by_address.keys()),
+            )
         if owner_type == 'arbitrage_bot':
             swap_event = self._price_service.set_base_prices_for_trade(swap_event)
         else:
