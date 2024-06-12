@@ -2,9 +2,9 @@ worker:
   chainId: '4157'
   strategyType: 'Recreate'
   chainDB: 'clickhouse+http://testuser3:testplpassword@stage-ch-testnets-01.dexguru.biz/xfi_test'
-  fullProviderURL: 'http://rpc-gw-stage.dexguru.biz/full/4157'
-  archiveProviderURL: 'http://rpc-gw-stage.dexguru.biz/full/4157'
-  traceProviderURL: 'http://rpc-gw-stage.dexguru.biz/full/4157'
+  fullProviderURL: 'http://new-rpc-gw-prod.dexguru.biz/full/4157'
+  archiveProviderURL: 'http://new-rpc-gw-prod.dexguru.biz/full/4157'
+  traceProviderURL: 'http://new-rpc-gw-prod.dexguru.biz/full/4157'
   blocksToFinal: '64'
   verifyEntityTypes: 'block,transaction,log,token_transfer,token_balance,error'
   baseEnv:
