@@ -31,6 +31,7 @@ def test_resolve_price_for_trade_with_two_tokens_neither_stablecoin_nor_native_t
         'token_addresses': ['0x3', '0x4'],
         'amounts': [1, 2],
         'token_prices': [[1, 0.5], [2, 1]],
+        'transaction_hash': '0x1234',
     }
     result = service.resolve_price_for_trade(trade)
     assert result['prices_stable'] == [0.0, 0.0]
@@ -45,6 +46,7 @@ def test_resolve_price_for_trade_with_more_than_two_tokens():
         'token_addresses': ['0x1', '0x2', '0x3'],
         'amounts': [1, 2, 3],
         'token_prices': [[1, 2, 3], [0.5, 1, 1.5], [0.33, 0.67, 1]],
+        'transaction_hash': '0x1234',
     }
     result = service.resolve_price_for_trade(trade)
     assert result['prices_stable'] == [0, 0, 0]

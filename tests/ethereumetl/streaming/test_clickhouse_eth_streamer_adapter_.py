@@ -13162,7 +13162,7 @@ def clickhouse_adapter_(clickhouse_migrated_url) -> ClickhouseEthStreamerAdapter
     eth_streamer_adapter = EthStreamerAdapter(
         # batch_web3_provider=lambda _: None,
         batch_web3_provider=ThreadLocalProxy(
-            lambda: get_provider_from_uri('http://rpc-gw-stage.dexguru.biz/full/1', batch=True)
+            lambda: get_provider_from_uri('http://rpc-gw-stage.dexguru.biz/archive/1', batch=True)
         ),
         batch_size=1,
         item_exporter=item_exporter,

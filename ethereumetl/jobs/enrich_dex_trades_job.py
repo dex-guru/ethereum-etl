@@ -4,7 +4,7 @@ from copy import copy, deepcopy
 from typing import Literal
 
 from blockchainetl.jobs.base_job import BaseJob
-from ethereumetl.mappers.dex_trade_mapper import EnrichedDexTradeMapper
+from ethereumetl.mappers.dex_trade_mapper import EnrichedDexTradeMapper, EthDexTradeMapper
 from ethereumetl.misc.info import NULL_ADDRESSES
 from ethereumetl.service.detect_swap_owner import SwapOwnerDetectionService
 from ethereumetl.service.price_service import PriceService
@@ -31,6 +31,7 @@ class EnrichDexTradeJob(BaseJob):
             stablecoin_addresses=stablecoin_addresses,
             native_token=native_token,
         )
+        self._dex_trade_mapper = EthDexTradeMapper()
 
         self.item_exporter = item_exporter
         self._native_token_address = native_token['address']
@@ -43,7 +44,12 @@ class EnrichDexTradeJob(BaseJob):
         for dex_trade in dex_trades:
             if dex_trade['transaction_hash'] not in self._dex_trades_by_hash:
                 self._dex_trades_by_hash[dex_trade['transaction_hash']] = []
-            self._dex_trades_by_hash[dex_trade['transaction_hash']].append(dex_trade)
+
+            self._dex_trades_by_hash[dex_trade['transaction_hash']].append(
+                self._dex_trade_mapper.dict_from_dex_trade(
+                    self._dex_trade_mapper.dex_trade_from_dict(dex_trade)
+                )
+            )
 
         self._build_token_transfers_by_hash(token_transfers)
         self._build_token_transfers_by_hash_from_internal_transfers(internal_transfers)

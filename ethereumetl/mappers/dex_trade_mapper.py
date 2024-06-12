@@ -15,6 +15,7 @@ class EthDexTradeMapper:
         trade['pool_address'] = trade['pool_address'].lower()
         trade['lp_token_address'] = trade['lp_token_address'].lower()
         trade['transaction_hash'] = trade['transaction_hash'].lower()
+        trade['wallet_address'] = trade['wallet_address'].lower()
         return trade
 
     @staticmethod
@@ -28,12 +29,18 @@ class EthDexTradeMapper:
             event_type=trade_dict['event_type'].lower(),
             token_reserves=trade_dict['token_reserves'],
             token_prices=trade_dict['token_prices'],
-            lp_token_address=trade_dict['lp_token_address'].lower(),
+            lp_token_address=(
+                trade_dict['lp_token_address'].lower()
+                if trade_dict.get('lp_token_address')
+                else ''
+            ),
             token_addresses=[
                 token_address.lower() for token_address in trade_dict['token_addresses']
             ],
-            amm=trade_dict['amm'],
-            wallet_address=trade_dict['wallet_address'].lower(),
+            amm=trade_dict['amm'] if trade_dict.get('amm') else '',
+            wallet_address=(
+                trade_dict['wallet_address'].lower() if trade_dict.get('wallet_address') else ''
+            ),
         )
 
 
