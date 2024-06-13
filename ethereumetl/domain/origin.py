@@ -1,32 +1,37 @@
-class OriginMarketplaceListing(object):
-    def __init__(self):
-        self.listing_id = None
-        self.ipfs_hash = None
-        self.listing_type = None
-        self.category = None
-        self.subcategory = None
-        self.language = None
-        self.title = None
-        self.description = None
-        self.price = None
-        self.currency = None
-        self.block_number = None
-        self.log_index = None
+from dataclasses import dataclass
+from typing import Any
 
-class OriginShopProduct(object):
-    def __init__(self):
-        self.listing_id = None
-        self.product_id = None
-        self.ipfs_path = None
-        self.external_id = None
-        self.parent_external_id = None
-        self.title = None
-        self.description = None
-        self.price = None
-        self.currency = None
-        self.image = None
-        self.option1 = None
-        self.option2 = None
-        self.option3 = None
-        self.block_number = None
-        self.log_index = None
+
+@dataclass(slots=True)
+class OriginMarketplaceListing:
+    listing_id: Any
+    ipfs_hash: Any
+    listing_type: Any
+    category: Any
+    subcategory: Any
+    language: Any
+    title: Any
+    description: Any
+    price: Any
+    currency: Any
+    block_number: Any
+    log_index: Any
+
+
+@dataclass(slots=True)
+class OriginShopProduct:
+    listing_id: Any
+    product_id: Any
+    ipfs_path: Any
+    external_id: Any
+    parent_external_id: Any
+    title: Any
+    description: Any
+    price: Any
+    currency: Any
+    image: Any
+    option1: Any
+    option2: Any
+    option3: Any
+    block_number: Any
+    log_index: Any

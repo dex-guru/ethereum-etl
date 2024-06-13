@@ -1,0 +1,62 @@
+[tool.black]
+line-length = 99
+target-version = ["py310"]
+exclude = '''
+    /(
+      db | venv | .venv
+    )/
+'''
+skip-string-normalization = true
+
+[tool.isort]
+profile = "black"
+line_length = 99
+known_first_party = ["blockchainetl", "ethereumetl", "schemas", "tests"]
+
+[tool.ruff]
+line-length = 150
+lint.ignore = [
+    "C90",    # line too long (handled by black)
+    "D100",   # missing docstring in public module
+    "D101",   # missing docstring in public class
+    "D102",   # missing docstring in public method
+    "D103",   # missing docstring in public function
+    "D104",   # missing docstring in public package
+    "D105",   # missing docstring in magic method
+    "D107",   # missing docstring in __init__
+    "D200",   # one-line docstring should fit on one line with quotes
+    "D203",   # 1 blank line required before class docstring
+    "D205",   # 1 blank line required between summary line and description
+    "D212",   # Multi-line docstring summary should start at the first line
+    "D401",   # First line should be in imperative mood
+    "D415",   # First line should end with a period
+    "E741",   # ambiguous variable name
+    "Q000",   # Double quotes found but single quotes preferred
+    "UP038",  # Use X | Y in {} call instead of (X, Y)
+]
+lint.extend-select = [
+    "C4",       # comprehensions
+    "D",        # pydocstyle
+    "I",        # sort imports
+    "PERF101",  # unnecessary-list-cast
+    "PERF102",  # incorrect-dict-iterator
+    "RUF100",   # unused-noqa
+    "UP",       # pyupgrade
+]
+lint.isort = { known-first-party = ["blockchainetl", "ethereumetl", "schemas", "tests"] }
+target-version = "py310"
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+allow_untyped_calls = true
+allow_untyped_defs = true
+check_untyped_defs = true
+strict_equality = true
+warn_no_return = false
+warn_redundant_casts = true
+warn_return_any = false
+warn_unreachable = true
+warn_unused_ignores = true
+namespace_packages = true
+exclude = ['venv', '.venv', 'tests', 'db']

@@ -22,18 +22,20 @@
 import logging
 
 from blockchainetl.atomic_counter import AtomicCounter
-from blockchainetl.exporters import CsvItemExporter, JsonLinesItemExporter
-from blockchainetl.file_utils import get_file_handle, close_silently
+from blockchainetl.exporters import BaseItemExporter, CsvItemExporter, JsonLinesItemExporter
+from blockchainetl.file_utils import close_silently, get_file_handle
 from blockchainetl.jobs.exporters.converters.composite_item_converter import CompositeItemConverter
+from ethereumetl.enumeration.entity_type import EntityType
 
 
-class CompositeItemExporter:
-    def __init__(self, filename_mapping, field_mapping=None, converters=()):
+class CompositeItemExporter(BaseItemExporter):
+    def __init__(self, filename_mapping, field_mapping=None, converters=(), **kwargs):
+        super().__init__(**kwargs)
         self.filename_mapping = filename_mapping
         self.field_mapping = field_mapping or {}
 
         self.file_mapping = {}
-        self.exporter_mapping = {}
+        self.exporter_mapping: dict[EntityType, BaseItemExporter] = {}
         self.counter_mapping = {}
 
         self.converter = CompositeItemConverter(converters)
@@ -46,7 +48,9 @@ class CompositeItemExporter:
             fields = self.field_mapping.get(item_type)
             self.file_mapping[item_type] = file
             if str(filename).endswith('.json'):
-                item_exporter = JsonLinesItemExporter(file, fields_to_export=fields)
+                item_exporter: BaseItemExporter = JsonLinesItemExporter(
+                    file, fields_to_export=fields
+                )
             else:
                 item_exporter = CsvItemExporter(file, fields_to_export=fields)
             self.exporter_mapping[item_type] = item_exporter
@@ -60,11 +64,11 @@ class CompositeItemExporter:
     def export_item(self, item):
         item_type = item.get('type')
         if item_type is None:
-            raise ValueError('"type" key is not found in item {}'.format(repr(item)))
+            raise ValueError(f'"type" key is not found in item {item!r}')
 
         exporter = self.exporter_mapping.get(item_type)
         if exporter is None:
-            raise ValueError('Exporter for item type {} not found'.format(item_type))
+            raise ValueError(f'Exporter for item type {item_type} not found')
         exporter.export_item(self.converter.convert_item(item))
 
         counter = self.counter_mapping.get(item_type)
@@ -76,4 +80,4 @@ class CompositeItemExporter:
             close_silently(file)
             counter = self.counter_mapping[item_type]
             if counter is not None:
-                self.logger.info('{} items exported: {}'.format(item_type, counter.increment() - 1))
+                self.logger.info(f'{item_type} items exported: {counter.increment() - 1}')

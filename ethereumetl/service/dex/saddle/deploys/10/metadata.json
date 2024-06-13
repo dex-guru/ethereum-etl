@@ -1,0 +1,10 @@
+[
+  {
+    "name": "saddle",
+    "type": "saddle",
+    "enabled": true,
+    "contracts": {
+      "PoolRegistry": "0x4e1484607760118ebe2ab07c0c71f1b4d9671e01"
+    }
+  }
+]

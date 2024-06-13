@@ -1,0 +1,115 @@
+[
+  {
+    "name": "uniswap",
+    "type": "uniswap_v2",
+    "enabled": true,
+    "contracts": {
+      "UniswapV2Router": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
+      "UniswapV2Factory": "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"
+    }
+  },
+  {
+    "name": "sushiswap",
+    "type": "uniswap_v2",
+    "enabled": true,
+    "contracts": {
+      "UniswapV2Router": "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F",
+      "UniswapV2Factory": "0xC0AEe478e3658e2610c5F7A4A2E1777cE9e4f2Ac"
+    }
+  },
+  {
+    "name": "cryptocom",
+    "type": "uniswap_v2",
+    "enabled": true,
+    "contracts": {
+      "UniswapV2Router": "0xceb90e4c17d626be0facd78b79c9c87d7ca181b3",
+      "UniswapV2Factory": "0x9DEB29c9a4c7A88a3C0257393b7f3335338D9A9D"
+    }
+  },
+  {
+    "name": "swapr",
+    "type": "uniswap_v2",
+    "enabled": true,
+    "contracts": {
+      "UniswapV2Router": "0xb9960d9bca016e9748be75dd52f02188b9d0829f",
+      "UniswapV2Factory": "0xd34971BaB6E5E356fd250715F5dE0492BB070452"
+    }
+  },
+  {
+    "name": "standard",
+    "type": "uniswap_v2",
+    "enabled": true,
+    "contracts": {
+      "UniswapV2Router": "0x6c78d71ce7300343e3633e0c45d6c7a79fee4650",
+      "UniswapV2Factory": "0x53AC1d1FA4F9F6c604B8B198cE29A50d28cbA893"
+    }
+  },
+  {
+    "name": "shibaswap",
+    "type": "uniswap_v2",
+    "enabled": true,
+    "contracts": {
+      "UniswapV2Router": "0x03f7724180aa6b939894b5ca4314783b0b36b329",
+      "UniswapV2Factory": "0x115934131916c8b277dd010ee02de363c09d037c"
+    }
+  },
+  {
+    "name": "fraxswap",
+    "type": "uniswap_v2",
+    "enabled": true,
+    "contracts": {
+      "UniswapV2Router": "0xC14d550632db8592D1243Edc8B95b0Ad06703867",
+      "UniswapV2Factory": "0x43eC799eAdd63848443E2347C49f5f52e8Fe0F6f"
+    }
+  },
+  {
+    "name": "stepn",
+    "type": "uniswap_v2",
+    "enabled": true,
+    "contracts": {
+      "UniswapV2Factory": "0x1e895bFe59E3A5103e8B7dA3897d1F2391476f3c"
+    }
+  },
+  {
+    "name": "pancakeswap",
+    "type": "uniswap_v2",
+    "enabled": true,
+    "contracts": {
+      "UniswapV2Factory": "0x1097053Fd2ea711dad45caCcc45EfF7548fCB362"
+    }
+  },
+  {
+    "name": "radioshack",
+    "type": "uniswap_v2",
+    "enabled": true,
+    "contracts": {
+      "UniswapV2Router": "0x3e445e3280C5747a188DB8d0aB7762838A50E4ff",
+      "UniswapV2Factory": "0x91fAe1bc94A9793708fbc66aDcb59087C46dEe10"
+    }
+  },
+  {
+    "name": "apeswap",
+    "type": "uniswap_v2",
+    "enabled": true,
+    "contracts": {
+      "UniswapV2Router": "0x5f509a3C3F16dF2Fba7bF84dEE1eFbce6BB85587",
+      "UniswapV2Factory": "0xBAe5dc9B19004883d0377419FeF3c2C8832d7d7B"
+    }
+  },
+  {
+    "name": "verse",
+    "type": "uniswap_v2",
+    "enabled": true,
+    "contracts": {
+      "UniswapV2Factory": "0xee3E9E46E34a27dC755a63e2849C9913Ee1A06E2"
+    }
+  },
+  {
+    "name": "elk_finance",
+    "type": "uniswap_v2",
+    "enabled": true,
+    "contracts": {
+      "UniswapV2Factory": "0x6511eBA915fC1b94b2364289CCa2b27AE5898d80"
+    }
+  }
+]

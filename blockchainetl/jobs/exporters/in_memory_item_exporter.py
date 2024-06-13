@@ -21,8 +21,12 @@
 # SOFTWARE.
 
 
-class InMemoryItemExporter:
+from blockchainetl.exporters import BaseItemExporter
+
+
+class InMemoryItemExporter(BaseItemExporter):
     def __init__(self, item_types):
+        super().__init__()
         self.item_types = item_types
         self.items = {}
 
@@ -33,9 +37,13 @@ class InMemoryItemExporter:
     def export_item(self, item):
         item_type = item.get('type', None)
         if item_type is None:
-            raise ValueError('type key is not found in item {}'.format(repr(item)))
+            raise ValueError(f'type key is not found in item {item!r}')
 
         self.items[item_type].append(item)
+
+    def export_items(self, items):
+        for item in items:
+            self.export_item(item)
 
     def close(self):
         pass

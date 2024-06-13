@@ -26,21 +26,26 @@ from datetime import datetime
 
 
 class EthItemTimestampCalculator:
-    def calculate(self, item):
+    @staticmethod
+    def calculate(item):
         if item is None or not isinstance(item, dict):
             return None
 
         item_type = item.get('type')
+        if item_type in ('token', 'contract', 'pre_event', 'dex_pool'):
+            return None
 
-        if item_type == 'block' and item.get('timestamp') is not None:
+        if item.get('timestamp') is not None:
             return epoch_seconds_to_rfc3339(item.get('timestamp'))
-        elif item.get('block_timestamp') is not None:
+        if item.get('block_timestamp') is not None:
             return epoch_seconds_to_rfc3339(item.get('block_timestamp'))
 
-        logging.warning('item_timestamp for item {} is None'.format(json.dumps(item)))
+        logging.warning(f'item_timestamp for item {json.dumps(item)} is None')
 
         return None
 
 
 def epoch_seconds_to_rfc3339(timestamp):
+    if isinstance(timestamp, datetime):
+        return timestamp.isoformat() + 'Z'
     return datetime.utcfromtimestamp(int(timestamp)).isoformat() + 'Z'

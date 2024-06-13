@@ -20,20 +20,23 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from typing import Any
 
 from ethereumetl.domain.contract import EthContract
 
 
-class EthContractMapper(object):
-
-    def rpc_result_to_contract(self, contract_address, rpc_result):
-        contract = EthContract()
-        contract.address = contract_address
-        contract.bytecode = rpc_result
+class EthContractMapper:
+    @staticmethod
+    def rpc_result_to_contract(contract_address, rpc_result) -> EthContract:
+        contract = EthContract(
+            address=contract_address,
+            bytecode=rpc_result,
+        )
 
         return contract
 
-    def contract_to_dict(self, contract):
+    @staticmethod
+    def contract_to_dict(contract: EthContract) -> dict[str, Any]:
         return {
             'type': 'contract',
             'address': contract.address,
@@ -41,5 +44,5 @@ class EthContractMapper(object):
             'function_sighashes': contract.function_sighashes,
             'is_erc20': contract.is_erc20,
             'is_erc721': contract.is_erc721,
-            'block_number': contract.block_number
+            'block_number': contract.block_number,
         }

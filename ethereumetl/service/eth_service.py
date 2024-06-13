@@ -26,7 +26,7 @@ from datetime import datetime, timezone
 from ethereumetl.service.graph_operations import GraphOperations, OutOfBoundsError, Point
 
 
-class EthService(object):
+class EthService:
     def __init__(self, web3):
         graph = BlockTimestampGraph(web3)
         self._graph_operations = GraphOperations(graph)
@@ -34,7 +34,9 @@ class EthService(object):
     def get_block_range_for_date(self, date):
         start_datetime = datetime.combine(date, datetime.min.time().replace(tzinfo=timezone.utc))
         end_datetime = datetime.combine(date, datetime.max.time().replace(tzinfo=timezone.utc))
-        return self.get_block_range_for_timestamps(start_datetime.timestamp(), end_datetime.timestamp())
+        return self.get_block_range_for_timestamps(
+            start_datetime.timestamp(), end_datetime.timestamp()
+        )
 
     def get_block_range_for_timestamps(self, start_timestamp, end_timestamp):
         start_timestamp = int(start_timestamp)
@@ -43,29 +45,36 @@ class EthService(object):
             raise ValueError('start_timestamp must be lesser than end_timestamp')
 
         try:
-            start_block_bounds = self._graph_operations.get_bounds_for_y_coordinate(start_timestamp)
+            start_block_bounds = self._graph_operations.get_bounds_for_y_coordinate(
+                start_timestamp
+            )
         except OutOfBoundsError:
             start_block_bounds = (0, 0)
 
         try:
             end_block_bounds = self._graph_operations.get_bounds_for_y_coordinate(end_timestamp)
         except OutOfBoundsError as e:
-            raise OutOfBoundsError('The existing blocks do not completely cover the given time range') from e
+            raise OutOfBoundsError(
+                'The existing blocks do not completely cover the given time range'
+            ) from e
 
-        if start_block_bounds == end_block_bounds and start_block_bounds[0] != start_block_bounds[1]:
+        if (
+            start_block_bounds == end_block_bounds
+            and start_block_bounds[0] != start_block_bounds[1]
+        ):
             raise ValueError('The given timestamp range does not cover any blocks')
 
         start_block = start_block_bounds[1]
         end_block = end_block_bounds[0]
 
-        # The genesis block has timestamp 0 but we include it with the 1st block.
+        # The genesis block has timestamp 0, but we include it with the 1st block.
         if start_block == 1:
             start_block = 0
 
         return start_block, end_block
 
 
-class BlockTimestampGraph(object):
+class BlockTimestampGraph:
     def __init__(self, web3):
         self._web3 = web3
 

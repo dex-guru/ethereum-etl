@@ -19,13 +19,13 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from dataclasses import dataclass
 
 
-class EthToken(object):
-    def __init__(self):
-        self.address = None
-        self.symbol = None
-        self.name = None
-        self.decimals = None
-        self.total_supply = None
-        self.block_number = None
+@dataclass(slots=True)
+class EthToken:
+    address: str
+    symbol: str
+    name: str
+    decimals: int
+    total_supply: int

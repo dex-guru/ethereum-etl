@@ -1,0 +1,10 @@
+[
+  {
+    "name": "sushiswap_bento",
+    "type": "sushiswap_bento",
+    "enabled": true,
+    "contracts": {
+      "BentoBox": "0x74c764D41B77DBbb4fe771daB1939B00b146894A"
+    }
+  }
+]

@@ -1,0 +1,10 @@
+[
+  {
+    "name": "sushiswap_v3",
+    "type": "uniswap_v3",
+    "enabled": true,
+    "contracts": {
+      "UniswapV3Factory": "0x7770978eED668a3ba661d51a773d3a992Fc9DDCB"
+    }
+  }
+]

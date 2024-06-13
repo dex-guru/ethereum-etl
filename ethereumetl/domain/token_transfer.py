@@ -19,14 +19,40 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from dataclasses import dataclass
+from enum import Enum
+from typing import Literal, TypedDict
 
 
-class EthTokenTransfer(object):
-    def __init__(self):
-        self.token_address = None
-        self.from_address = None
-        self.to_address = None
-        self.value = None
-        self.transaction_hash = None
-        self.log_index = None
-        self.block_number = None
+class TokenStandard(str, Enum):
+    ERC20 = 'ERC-20'
+    ERC721 = 'ERC-721'
+    ERC1155 = 'ERC-1155'
+
+
+@dataclass(slots=True)
+class EthTokenTransfer:
+    token_address: str
+    from_address: str
+    to_address: str
+    value: int
+    transaction_hash: str
+    log_index: int
+    block_number: int
+    token_standard: TokenStandard
+    token_id: int | None = None  # ERC-721, ERC-1155
+    operator_address: str | None = None
+
+
+class EthTokenTransferItem(TypedDict):
+    type: str
+    token_address: str
+    from_address: str
+    to_address: str
+    value: int
+    transaction_hash: str
+    log_index: int
+    block_number: int
+    token_standard: Literal['ERC-20', 'ERC-721', 'ERC-1155']
+    token_id: int | None
+    operator_address: str | None

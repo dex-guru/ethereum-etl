@@ -1,0 +1,14 @@
+[
+  {
+    "name": "kyberswap_elastic",
+    "type": "kyberswap_elastic",
+    "enabled": true,
+    "contracts": {
+      "Quoter": "0x0D125c15D54cA1F8a813C74A81aEe34ebB508C1f",
+      "Router": "0xC1e7dFE73E1598E3910EF4C7845B68A9Ab6F4c83",
+      "Factory": "0xC7a590291e07B9fe9E64b86c58fD8fC764308C4A",
+      "PositionManager": "0x2B1c7b41f6A8F2b2bc45C3233a5d5FB3cD6dC9A8",
+      "TicksFeesReader": "0xD7ab1699280980E756C446769B4c0F04550f88c9"
+    }
+  }
+]

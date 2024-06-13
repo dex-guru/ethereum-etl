@@ -1,0 +1,11 @@
+[
+  {
+    "name": "kyber",
+    "type": "dmm",
+    "enabled": true,
+    "contracts": {
+      "IDMMFactory": "0xD9bfE9979e9CA4b2fe84bA5d4Cf963bBcB376974",
+      "IDMMRouter02": "0xEaE47c5D99f7B31165a7f0c5f7E0D6afA25CFd55"
+    }
+  }
+]

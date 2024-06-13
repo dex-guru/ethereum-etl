@@ -1,0 +1,518 @@
+[
+    {
+        "id": 1,
+        "name": "eth",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2-eth",
+            "address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+            "name": "Wrapped Ether",
+            "symbol": "WETH",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0xdac17f958d2ee523a2206206994597c13d831ec7",
+            "0x853d955acef822db058eb8505911ed77f175b99e",
+            "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+        ]
+    },
+    {
+        "id": 10,
+        "name": "optimism",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x4200000000000000000000000000000000000006-optimism",
+            "address": "0x4200000000000000000000000000000000000006",
+            "name": "Wrapped Ether",
+            "symbol": "WETH",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0x94b008aa00579c1307b0ef2c499ad98a8ce58e58",
+            "0x8c6f28f2f1a3c87f0f938b96d27520d9751ec8d9",
+            "0x7f5c764cbc14f9669b88837ca1490cca17c31607"
+        ]
+    },
+    {
+        "id": 56,
+        "name": "bsc",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c-bsc",
+            "address": "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c",
+            "name": "Wrapped BNB",
+            "symbol": "WBNB",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0x55d398326f99059ff775485246999027b3197955",
+            "0xe9e7cea3dedca5984780bafc599bd69add087d56"
+        ]
+    },
+    {
+        "id": 100,
+        "name": "gnosis",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0xe91d153e0b41518a2ce8dd3d7944fa863463a97d-gnosis",
+            "address": "0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            "name": "Wrapped xDAI",
+            "symbol": "xDAI",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0x4ecaba5870353805a9f068101a40e0f32ed605c6",
+            "0xe91d153e0b41518a2ce8dd3d7944fa863463a97d"
+        ]
+    },
+    {
+        "id": 137,
+        "name": "polygon",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270-polygon",
+            "address": "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
+            "name": "WMATIC2",
+            "symbol": "WMATIC",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+            "0x45c32fa6df82ead1e2ef74d17b76547eddfaff89",
+            "0x60d55f02a771d515e077c9c2403a1ef324885cec",
+            "0x27f8d03b3a2196956ed754badc28d73be8830a6e",
+            "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359"
+        ]
+    },
+    {
+        "id": 250,
+        "name": "fantom",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83-fantom",
+            "address": "0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83",
+            "name": "Wrapped FTM",
+            "symbol": "WFTM",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0xdc301622e621166bd8e82f2ca0a26c13ad0be355",
+            "0x1b6382dbdea11d97f24495c9a90b7c88469134a4"
+        ]
+    },
+    {
+        "id": 42161,
+        "name": "arbitrum",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x82af49447d8a07e3bd95bd0d56f35241523fbab1-arbitrum",
+            "address": "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
+            "name": "WETH",
+            "symbol": "WETH",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
+            "0xaf88d065e77c8cc2239327c5edb3a432268e5831"
+        ]
+    },
+    {
+        "id": 42220,
+        "name": "celo",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x471ece3750da237f93b8e339c536989b8978a438-celo",
+            "address": "0x471ece3750da237f93b8e339c536989b8978a438",
+            "name": "Celo",
+            "symbol": "CELO",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0x64defa3544c695db8c535d289d843a189aa26b98",
+            "0x765de816845861e75a25fca122bb6898b8b1282a",
+            "0x2a3684e9dc20b857375ea04235f2f7edbe818fa7",
+            "0x37f750b7cc259a2f741af45294f6a16572cf5cad"
+        ]
+    },
+    {
+        "id": 43114,
+        "name": "avalanche",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7-avalanche",
+            "address": "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7",
+            "name": "Wrapped AVAX",
+            "symbol": "WAVAX",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0xc7198437980c041c805a1edcba50c1ce5db95118",
+            "0x9702230a8ea53601f5cd2dc00fdbc13d4df4a8c7",
+            "0xd24c2ad096400b6fbcd2ad8b24e7acbc21a1da64",
+            "0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e"
+        ]
+    },
+    {
+        "id": 42170,
+        "name": "nova",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x722e8bdd2ce80a4422e880164f2079488e115365-nova",
+            "address": "0x722e8bdd2ce80a4422e880164f2079488e115365",
+            "name": "Wrapped Ether",
+            "symbol": "WETH",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0x750ba8b76187092b0d1e87e28daaf484d1b5273b",
+            "0xda10009cbd5d07dd0cecc66161fc93d7c9000da1"
+        ]
+    },
+    {
+        "id": 7700,
+        "name": "canto",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x826551890dc65655a0aceca109ab11abdbd7a07b-canto",
+            "address": "0x826551890dc65655a0aceca109ab11abdbd7a07b",
+            "name": "WCANTO",
+            "symbol": "WCANTO",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0xd567b3d7b8fe3c79a1ad8da978812cfc4fa05e75",
+            "0x4e71a2e537b7f9d9413d3991d37958c0b5e1e503",
+            "0x80b5a32e4f032b2a058b4f29ec95eefeeb87adcd"
+        ]
+    },
+    {
+        "id": 7701,
+        "name": "canto testnet",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x826551890dc65655a0aceca109ab11abdbd7a07b-canto",
+            "address": "0x826551890dc65655a0aceca109ab11abdbd7a07b",
+            "name": "aCANTO",
+            "symbol": "aCANTO",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+        ]
+    },
+    {
+        "id": 324,
+        "name": "zksync",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x5aea5775959fbc2557cc8789bc1bf90a239d9a91-zksync",
+            "address": "0x5aea5775959fbc2557cc8789bc1bf90a239d9a91",
+            "name": "WETH",
+            "symbol": "WETH",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0x3355df6d4c9c3035724fd0e3914de96a5a83aaf4"
+        ]
+    },
+    {
+        "id": 321,
+        "name": "kcc",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x5aea5775959fbc2557cc8789bc1bf90a239d9a91-zksync",
+            "address": "0x5aea5775959fbc2557cc8789bc1bf90a239d9a91",
+            "name": "WETH",
+            "symbol": "WETH",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0x0039f574ee5cc39bdd162e9a88e3eb1f111baf48",
+            "0x980a5afef3d17ad98635f6c5aebcbaeded3c3430",
+            "0x05713def8f4379c17dcf50a0cfc538a675b4f79c"
+        ]
+    },
+    {
+        "id": 1101,
+        "name": "zkevm",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x4F9A0e7FD2Bf6067db6994CF12E4495Df938E6e9-zkevm",
+            "address": "0x4f9a0e7fd2bf6067db6994cf12e4495df938e6e9",
+            "name": "WETH",
+            "symbol": "WETH",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0xa8ce8aee21bc2a48a5ef670afcc9274c7bbbc035"
+        ]
+    },
+    {
+        "id": 8453,
+        "name": "base",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x4200000000000000000000000000000000000006-base",
+            "address": "0x4200000000000000000000000000000000000006",
+            "name": "ETH",
+            "symbol": "ETH",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0xeb466342c4d449bc9f53a865d5cb90586f405215",
+            "0xd9aaec86b65d86f6a7b5b1b0c42ffa531710b6ca"
+        ]
+    },
+    {
+        "id": 84531,
+        "name": "basetestnet",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x4200000000000000000000000000000000000006-base_testnet",
+            "address": "0x4200000000000000000000000000000000000006",
+            "name": "ETH",
+            "symbol": "ETH",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+        ]
+    },
+    {
+        "id": 169,
+        "name": "manta",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x0dc808adce2099a9f62aa87d9670745aba741746-manta",
+            "address": "0x0dc808adce2099a9f62aa87d9670745aba741746",
+            "name": "Wrapped Ether",
+            "symbol": "WETH",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0xb73603c5d87fa094b7314c74ace2e64d165016fb",
+            "0xf417f5a458ec102b90352f697d6e2ac3a3d2851f"
+        ]
+    },
+        {
+        "id": 195,
+        "name": "X1 testnet",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0xa2affd8301bfb3c5b815829f2f509f053556d21b-x1_testnet",
+            "address": "0xa2affd8301bfb3c5b815829f2f509f053556d21b",
+            "name": "OKB",
+            "symbol": "OKB",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+        ]
+    },
+        {
+        "id": 80085,
+        "name": "bera testnet",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x0dc808adce2099a9f62aa87d9670745aba741746-bera_testnet",
+            "address": "0x0dc808adce2099a9f62aa87d9670745aba741746",
+            "name": "Wrapped BERA",
+            "symbol": "WBERA",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+        ]
+    },
+        {
+        "id": 168587773,
+        "name": "blast testnet",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x4200000000000000000000000000000000000023-blast_testnet",
+            "address": "0x4200000000000000000000000000000000000023",
+            "name": "Wrapped Ether",
+            "symbol": "WETH",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0x4200000000000000000000000000000000000022"
+        ]
+    },
+    {
+        "id": 245022934,
+        "name": "neonevm",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x202c35e517fa803b537565c40f0a6965d7204609-neonevm",
+            "address": "0x202c35e517fa803b537565c40f0a6965d7204609",
+            "name": "Wrapped NEON",
+            "symbol": "wNEON",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0x202c35e517fa803b537565c40f0a6965d7204609",
+            "0x5f0155d08ef4aae2b500aefb64a3419da8bb611a"
+        ]
+    },
+    {
+        "id": 4157,
+        "name": "XFI testnet",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x28cc5edd54b1e4565317c3e0cfab551926a4cd2a-xfi_testnet",
+            "address": "0x28cc5edd54b1e4565317c3e0cfab551926a4cd2a",
+            "name": "XFI",
+            "symbol": "XFI",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0x83e9a41c38d71f7a06632de275877fca48827870",
+            "0xc692e6ede21ec911d9e35c6a52bdd31b2d4b4425"
+
+        ]
+    },
+    {
+        "id": 167008,
+        "name": "taiko testnet",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0xa37f751177ad228a434f3e7829615c6124902178-taiko_testnet",
+            "address": "0xa37f751177ad228a434f3e7829615c6124902178",
+            "name": "Wrapped Ether",
+            "symbol": "WETH",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0xae2c46ddb314b9ba743c6dee4878f151881333d9"
+        ]
+    },
+    {
+        "id": 355113,
+        "name": "bitfinity testnet",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0xa37f751177ad228a434f3e7829615c6124902178-blast_testnet",
+            "address": "0xa37f751177ad228a434f3e7829615c6124902178",
+            "name": "Wrapped Ether",
+            "symbol": "WETH",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+        ]
+    },
+     {
+        "id": 7001,
+        "name": "zeta testnet",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x5f0b1a82749cb4e2278ec87f8bf6b618dc71a8bf-zeta_testnet",
+            "address": "0x5f0b1a82749cb4e2278ec87f8bf6b618dc71a8bf",
+            "name": "aZETA",
+            "symbol": "aZETA",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+        ]
+    },
+    {
+        "id": 7000,
+        "name": "zeta",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x0000028a2eB8346cd5c0267856aB7594B7a55308-zeta",
+            "address": "0x0000028a2eB8346cd5c0267856aB7594B7a55308",
+            "name": "ZETA",
+            "symbol": "ZETA",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+        ]
+    },
+    {
+        "id": 2017,
+        "name": "telco",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x80d1f6dafc9c13e9d19aedf75e3c1e2586d4a2a5-telco",
+            "address": "0x80d1f6dafc9c13e9d19aedf75e3c1e2586d4a2a5",
+            "name": "TELCO",
+            "symbol": "TELCO",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0xA2C07C15173C183771FFAd40c2e972F97e0bCe64"
+        ]
+    },
+    {
+        "id": 81457,
+        "name": "blast",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0x4300000000000000000000000000000000000004-blast",
+            "address": "0x4300000000000000000000000000000000000004",
+            "name": "WETH",
+            "symbol": "WETH",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0x4300000000000000000000000000000000000003"
+        ]
+    },
+    {
+        "id": 614,
+        "name": "graphlinq",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0xeb567ec41738c2bab2599a1070fc5b727721b3b6-graphlinq",
+            "address": "0xeb567ec41738c2bab2599a1070fc5b727721b3b6",
+            "name": "Wrapped Graphlinq GLQ",
+            "symbol": "WGLQ",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+        ]
+    },
+        {
+        "id": 261,
+        "name": "gurutest",
+        "type": "evm",
+        "enabled": true,
+        "native_token": {
+            "id": "0xA3e9BF36Ff51cE14A25a2cF4b4086CBcf1df781B-gurutest",
+            "address": "0xA3e9BF36Ff51cE14A25a2cF4b4086CBcf1df781B",
+            "name": "Wrapped testGURU",
+            "symbol": "WtGURU",
+            "decimals": 18
+        },
+        "stablecoin_addresses": [
+            "0xD0dD0148b424Faf47904A31913Dcf1e9d978c51f"
+        ]
+    }
+]

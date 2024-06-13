@@ -57,10 +57,8 @@ def get_file_handle(filename, mode='w', binary=False, create_parent_dirs=True):
 def close_silently(file_handle):
     if file_handle is None:
         pass
-    try:
+    with contextlib.suppress(OSError):
         file_handle.close()
-    except OSError:
-        pass
 
 
 class NoopFile:

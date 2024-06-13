@@ -19,26 +19,28 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from dataclasses import dataclass
+from typing import Any
 
 
-class EthTrace(object):
-    def __init__(self):
-        self.block_number = None
-        self.transaction_hash = None
-        self.transaction_index = None
-        self.from_address = None
-        self.to_address = None
-        self.value = None
-        self.input = None
-        self.output = None
-        self.trace_type = None
-        self.call_type = None
-        self.reward_type = None
-        self.gas = None
-        self.gas_used = None
-        self.subtraces = 0
-        self.trace_address = None
-        self.error = None
-        self.status = None
-        self.trace_id = None
-        self.trace_index = None
+@dataclass(slots=True)
+class EthTrace:
+    block_number: int | None = None
+    transaction_hash: str | None = None
+    transaction_index: int | None = None
+    from_address: str | None = None
+    to_address: str | None = None
+    value: int | None = None
+    input: Any | None = None
+    output: Any | None = None
+    trace_type: str | None = None
+    call_type: Any | None = None
+    reward_type: Any | None = None
+    trace_address: str | None = None
+    status: int | None = None
+    trace_id: str | None = None
+    trace_index: int | None = None
+    gas: int | None = None
+    gas_used: int | None = None
+    subtraces: Any = 0
+    error: Any = None

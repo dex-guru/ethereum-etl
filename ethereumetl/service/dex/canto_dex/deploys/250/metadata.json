@@ -1,0 +1,10 @@
+[
+  {
+    "name": "spartacus",
+    "type": "canto_dex",
+    "enabled": true,
+    "contracts": {
+      "BaseV1Factory": "0x535646cf57e4155df723bb24625f356d98ae9d2f"
+    }
+  }
+]

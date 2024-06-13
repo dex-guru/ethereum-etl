@@ -1,0 +1,269 @@
+[
+  {
+    "name": "NewAddressIdentifier",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "indexed": true
+      },
+      {
+        "name": "addr",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "AddressModified",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "indexed": true
+      },
+      {
+        "name": "new_address",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "version",
+        "type": "uint256",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "CommitNewOwner",
+    "inputs": [
+      {
+        "name": "new_owner",
+        "type": "address",
+        "indexed": true
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "NewOwner",
+    "inputs": [
+      {
+        "name": "owner",
+        "type": "address",
+        "indexed": true
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "constructor",
+    "inputs": [],
+    "outputs": []
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "get_registry",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "gas": 2460
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "max_id",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "gas": 2645
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "get_address",
+    "inputs": [
+      {
+        "name": "_id",
+        "type": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "gas": 2635
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "add_new_id",
+    "inputs": [
+      {
+        "name": "_address",
+        "type": "address"
+      },
+      {
+        "name": "_description",
+        "type": "string"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "gas": 301219
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "set_address",
+    "inputs": [
+      {
+        "name": "_id",
+        "type": "uint256"
+      },
+      {
+        "name": "_address",
+        "type": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "gas": 188551
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "unset_address",
+    "inputs": [
+      {
+        "name": "_id",
+        "type": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "gas": 105532
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "commit_transfer_ownership",
+    "inputs": [
+      {
+        "name": "_new_owner",
+        "type": "address"
+      }
+    ],
+    "outputs": [],
+    "gas": 40110
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "accept_transfer_ownership",
+    "inputs": [],
+    "outputs": [],
+    "gas": 62088
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "get_id_info",
+    "inputs": [
+      {
+        "name": "arg0",
+        "type": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "addr",
+            "type": "address"
+          },
+          {
+            "name": "is_active",
+            "type": "bool"
+          },
+          {
+            "name": "version",
+            "type": "uint256"
+          },
+          {
+            "name": "last_modified",
+            "type": "uint256"
+          },
+          {
+            "name": "description",
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "gas": 21917
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "owner",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "gas": 2730
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "future_owner",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "gas": 2760
+  }
+]

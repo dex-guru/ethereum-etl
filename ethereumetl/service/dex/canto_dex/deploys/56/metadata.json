@@ -1,0 +1,10 @@
+[
+  {
+    "name": "thena",
+    "type": "canto_dex",
+    "enabled": true,
+    "contracts": {
+      "BaseV1Factory": "0x20a304a7d126758dfe6b243d0fc515f83bca8431"
+    }
+  }
+]

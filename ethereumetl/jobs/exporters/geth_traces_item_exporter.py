@@ -19,22 +19,14 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
+import dataclasses
 
 from blockchainetl.jobs.exporters.composite_item_exporter import CompositeItemExporter
-
-FIELDS_TO_EXPORT = [
-    'block_number',
-    'transaction_traces',
-]
+from ethereumetl.domain.geth_trace import EthGethTrace
 
 
 def geth_traces_item_exporter(geth_traces_output):
     return CompositeItemExporter(
-        filename_mapping={
-            'geth_trace': geth_traces_output
-        },
-        field_mapping={
-            'geth_trace': FIELDS_TO_EXPORT
-        }
+        filename_mapping={'geth_trace': geth_traces_output},
+        field_mapping={'geth_trace': [field.name for field in dataclasses.fields(EthGethTrace)]},
     )

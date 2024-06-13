@@ -23,15 +23,23 @@
 import json
 import logging
 
-from google.cloud import pubsub_v1
+from google.cloud import pubsub_v1  # type: ignore[attr-defined]
 from timeout_decorator import timeout_decorator
 
+from blockchainetl.exporters import BaseItemExporter
 
-class GooglePubSubItemExporter:
 
-    def __init__(self, item_type_to_topic_mapping, message_attributes=(),
-            batch_max_bytes=1024 * 5, batch_max_latency=1, batch_max_messages=1000,
-            enable_message_ordering=False):
+class GooglePubSubItemExporter(BaseItemExporter):
+    def __init__(
+        self,
+        item_type_to_topic_mapping,
+        message_attributes=(),
+        batch_max_bytes=1024 * 5,
+        batch_max_latency=1,
+        batch_max_messages=1000,
+        enable_message_ordering=False,
+    ):
+        super().__init__()
         self.item_type_to_topic_mapping = item_type_to_topic_mapping
 
         self.batch_max_bytes = batch_max_bytes
@@ -77,10 +85,16 @@ class GooglePubSubItemExporter:
             data = json.dumps(item).encode('utf-8')
 
             ordering_key = 'all' if self.enable_message_ordering else ''
-            message_future = self.publisher.publish(topic_path, data=data, ordering_key=ordering_key, **self.get_message_attributes(item))
+            message_future = self.publisher.publish(
+                topic_path,
+                data=data,
+                ordering_key=ordering_key,
+                **self.get_message_attributes(item),
+            )
             return message_future
         else:
-            logging.warning('Topic for item type "{}" is not configured.'.format(item_type))
+            logging.warning(f'Topic for item type "{item_type}" is not configured.')
+            return None
 
     def get_message_attributes(self, item):
         attributes = {}
@@ -98,8 +112,12 @@ class GooglePubSubItemExporter:
             max_messages=self.batch_max_messages,
         )
 
-        publisher_options = pubsub_v1.types.PublisherOptions(enable_message_ordering=self.enable_message_ordering)
-        return pubsub_v1.PublisherClient(batch_settings=batch_settings, publisher_options=publisher_options)
+        publisher_options = pubsub_v1.types.PublisherOptions(
+            enable_message_ordering=self.enable_message_ordering
+        )
+        return pubsub_v1.PublisherClient(
+            batch_settings=batch_settings, publisher_options=publisher_options
+        )
 
     def close(self):
         pass

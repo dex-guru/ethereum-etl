@@ -1,0 +1,10 @@
+[
+  {
+    "name": "platypus",
+    "type": "platypus",
+    "enabled": true,
+    "contracts": {
+      "Asset": "0x416a7989a964C9ED60257B064Efc3a30FE6bF2eE"
+    }
+  }
+]

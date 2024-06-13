@@ -1,0 +1,14 @@
+[
+  {
+    "name": "beethoven",
+    "type": "balancer",
+    "enabled": true,
+    "contracts": {
+      "Vault": "0xBA12222222228d8Ba445958a75a0704d566BF2C8",
+      "StablePoolFactory": "0xeb151668006CD04DAdD098AFd0a82e78F77076c3",
+      "WeightedPoolFactory": "0xdAE7e32ADc5d490a43cCba1f0c736033F2b4eFca",
+      "MetaStablePoolFactory": "0xb08E16cFc07C684dAA2f93C70323BAdb2A6CBFd2",
+      "WeightedPool2TokensFactory": "0x0F3e0c4218b7b0108a3643cFe9D3ec0d4F57c54e"
+    }
+  }
+]

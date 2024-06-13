@@ -20,8 +20,19 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
 
-from sqlalchemy import Table, Column, Integer, BigInteger, Boolean, String, Numeric, \
-    MetaData, PrimaryKeyConstraint, VARCHAR, TIMESTAMP, Float
+from sqlalchemy import (
+    TIMESTAMP,
+    VARCHAR,
+    BigInteger,
+    Boolean,
+    Column,
+    Integer,
+    MetaData,
+    Numeric,
+    PrimaryKeyConstraint,
+    String,
+    Table,
+)
 from sqlalchemy.dialects.postgresql import ARRAY
 
 metadata = MetaData()
@@ -29,7 +40,8 @@ metadata = MetaData()
 # SQL schema is here https://github.com/blockchain-etl/ethereum-etl-postgres/tree/master/schema
 
 BLOCKS = Table(
-    'blocks', metadata,
+    'blocks',
+    metadata,
     Column('timestamp', TIMESTAMP),
     Column('number', BigInteger),
     Column('hash', String, primary_key=True),
@@ -49,13 +61,11 @@ BLOCKS = Table(
     Column('gas_used', BigInteger),
     Column('transaction_count', BigInteger),
     Column('base_fee_per_gas', BigInteger),
-    Column('withdrawals_root', String),
-    Column('blob_gas_used', BigInteger),
-    Column('excess_blob_gas', BigInteger),
 )
 
 TRANSACTIONS = Table(
-    'transactions', metadata,
+    'transactions',
+    metadata,
     Column('hash', String, primary_key=True),
     Column('nonce', BigInteger),
     Column('transaction_index', BigInteger),
@@ -77,18 +87,11 @@ TRANSACTIONS = Table(
     Column('max_priority_fee_per_gas', BigInteger),
     Column('transaction_type', BigInteger),
     Column('receipt_effective_gas_price', BigInteger),
-    Column('receipt_l1_fee', BigInteger),
-    Column('receipt_l1_gas_used', BigInteger),
-    Column('receipt_l1_gas_price', BigInteger),
-    Column('receipt_l1_fee_scalar', Float),
-    Column('max_fee_per_blob_gas', BigInteger),
-    Column('blob_versioned_hashes', String),
-    Column('receipt_blob_gas_price', BigInteger),
-    Column('receipt_blob_gas_used', BigInteger),
 )
 
 LOGS = Table(
-    'logs', metadata,
+    'logs',
+    metadata,
     Column('log_index', BigInteger, primary_key=True),
     Column('transaction_hash', String, primary_key=True),
     Column('transaction_index', BigInteger),
@@ -104,7 +107,8 @@ LOGS = Table(
 )
 
 TOKEN_TRANSFERS = Table(
-    'token_transfers', metadata,
+    'token_transfers',
+    metadata,
     Column('token_address', String),
     Column('from_address', String),
     Column('to_address', String),
@@ -114,10 +118,13 @@ TOKEN_TRANSFERS = Table(
     Column('block_timestamp', TIMESTAMP),
     Column('block_number', BigInteger),
     Column('block_hash', String),
+    Column('token_id', Numeric(78)),  # ERC-721, ERC-1155
+    Column('operator_address', String),  # ERC-721, ERC-1155
 )
 
 TRACES = Table(
-    'traces', metadata,
+    'traces',
+    metadata,
     Column('transaction_hash', String),
     Column('transaction_index', BigInteger),
     Column('from_address', String),
@@ -141,7 +148,8 @@ TRACES = Table(
 )
 
 TOKENS = Table(
-    'tokens', metadata,
+    'tokens',
+    metadata,
     Column('address', VARCHAR(42)),
     Column('name', String),
     Column('symbol', String),
@@ -153,7 +161,8 @@ TOKENS = Table(
 )
 
 CONTRACTS = Table(
-    'contracts', metadata,
+    'contracts',
+    metadata,
     Column('address', VARCHAR(42)),
     Column('bytecode', String),
     Column('function_sighashes', ARRAY(String)),

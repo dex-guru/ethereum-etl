@@ -19,24 +19,22 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from dataclasses import dataclass, field
+from typing import Any
+
+from ethereumetl.domain.receipt_log import EthReceiptLog
 
 
-class EthReceipt(object):
-    def __init__(self):
-        self.transaction_hash = None
-        self.transaction_index = None
-        self.block_hash = None
-        self.block_number = None
-        self.cumulative_gas_used = None
-        self.gas_used = None
-        self.contract_address = None
-        self.logs = []
-        self.root = None
-        self.status = None
-        self.effective_gas_price = None
-        self.l1_fee = None
-        self.l1_gas_used = None
-        self.l1_gas_price = None
-        self.l1_fee_scalar = None
-        self.blob_gas_price = None
-        self.blob_gas_used = None
+@dataclass(slots=True)
+class EthReceipt:
+    transaction_hash: str | None
+    transaction_index: int | None
+    block_hash: str | None
+    block_number: int
+    cumulative_gas_used: int
+    gas_used: int
+    contract_address: str
+    root: Any
+    status: Any
+    effective_gas_price: Any
+    logs: list[EthReceiptLog] = field(default_factory=list)

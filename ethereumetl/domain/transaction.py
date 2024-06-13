@@ -20,22 +20,24 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from dataclasses import dataclass
+from typing import Any
 
-class EthTransaction(object):
-    def __init__(self):
-        self.hash = None
-        self.nonce = None
-        self.block_hash = None
-        self.block_number = None
-        self.transaction_index = None
-        self.from_address = None
-        self.to_address = None
-        self.value = None
-        self.gas = None
-        self.gas_price = None
-        self.input = None
-        self.max_fee_per_gas = None
-        self.max_priority_fee_per_gas = None
-        self.transaction_type = None
-        self.max_fee_per_blob_gas = None
-        self.blob_versioned_hashes = []
+
+@dataclass(slots=True)
+class EthTransaction:
+    hash: Any = None
+    nonce: Any = None
+    block_hash: Any = None
+    block_number: Any = None
+    block_timestamp: Any = None
+    transaction_index: Any = None
+    from_address: Any = None
+    to_address: Any = None
+    value: Any = None
+    gas: Any = None
+    gas_price: Any = None
+    input: Any = None
+    max_fee_per_gas: Any = None
+    max_priority_fee_per_gas: Any = None
+    transaction_type: Any = None
