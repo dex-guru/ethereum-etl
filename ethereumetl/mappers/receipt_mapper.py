@@ -19,44 +19,35 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
+from dataclasses import asdict
+from typing import Any
 
 from ethereumetl.domain.receipt import EthReceipt
+from ethereumetl.enumeration.entity_type import EntityType
 from ethereumetl.mappers.receipt_log_mapper import EthReceiptLogMapper
-from ethereumetl.utils import hex_to_dec, to_normalized_address, to_float_or_none
+from ethereumetl.utils import hex_to_dec, to_normalized_address
 
 
-class EthReceiptMapper(object):
+class EthReceiptMapper:
     def __init__(self, receipt_log_mapper=None):
         if receipt_log_mapper is None:
             self.receipt_log_mapper = EthReceiptLogMapper()
         else:
             self.receipt_log_mapper = receipt_log_mapper
 
-    def json_dict_to_receipt(self, json_dict):
-        receipt = EthReceipt()
-
-        receipt.transaction_hash = json_dict.get('transactionHash')
-        receipt.transaction_index = hex_to_dec(json_dict.get('transactionIndex'))
-        receipt.block_hash = json_dict.get('blockHash')
-        receipt.block_number = hex_to_dec(json_dict.get('blockNumber'))
-        receipt.cumulative_gas_used = hex_to_dec(json_dict.get('cumulativeGasUsed'))
-        receipt.gas_used = hex_to_dec(json_dict.get('gasUsed'))
-
-        receipt.contract_address = to_normalized_address(json_dict.get('contractAddress'))
-
-        receipt.root = json_dict.get('root')
-        receipt.status = hex_to_dec(json_dict.get('status'))
-
-        receipt.effective_gas_price = hex_to_dec(json_dict.get('effectiveGasPrice'))
-
-        receipt.l1_fee = hex_to_dec(json_dict.get('l1Fee'))
-        receipt.l1_gas_used = hex_to_dec(json_dict.get('l1GasUsed'))
-        receipt.l1_gas_price = hex_to_dec(json_dict.get('l1GasPrice'))
-        receipt.l1_fee_scalar = to_float_or_none(json_dict.get('l1FeeScalar'))
-        receipt.blob_gas_price = hex_to_dec(json_dict.get('blobGasPrice'))
-        receipt.blob_gas_used = hex_to_dec(json_dict.get('blobGasUsed'))
-
+    def json_dict_to_receipt(self, json_dict: dict) -> EthReceipt:
+        receipt = EthReceipt(
+            transaction_hash=json_dict.get('transactionHash'),
+            transaction_index=hex_to_dec(json_dict.get('transactionIndex')),
+            block_hash=json_dict.get('blockHash'),
+            block_number=hex_to_dec(json_dict.get('blockNumber')),
+            cumulative_gas_used=hex_to_dec(json_dict.get('cumulativeGasUsed')),
+            gas_used=hex_to_dec(json_dict.get('gasUsed')),
+            contract_address=to_normalized_address(json_dict.get('contractAddress')),
+            root=json_dict.get('root'),
+            status=hex_to_dec(json_dict.get('status')),
+            effective_gas_price=hex_to_dec(json_dict.get('effectiveGasPrice')),
+        )
         if 'logs' in json_dict:
             receipt.logs = [
                 self.receipt_log_mapper.json_dict_to_receipt_log(log) for log in json_dict['logs']
@@ -64,23 +55,10 @@ class EthReceiptMapper(object):
 
         return receipt
 
-    def receipt_to_dict(self, receipt):
-        return {
-            'type': 'receipt',
-            'transaction_hash': receipt.transaction_hash,
-            'transaction_index': receipt.transaction_index,
-            'block_hash': receipt.block_hash,
-            'block_number': receipt.block_number,
-            'cumulative_gas_used': receipt.cumulative_gas_used,
-            'gas_used': receipt.gas_used,
-            'contract_address': receipt.contract_address,
-            'root': receipt.root,
-            'status': receipt.status,
-            'effective_gas_price': receipt.effective_gas_price,
-            'l1_fee': receipt.l1_fee,
-            'l1_gas_used': receipt.l1_gas_used,
-            'l1_gas_price': receipt.l1_gas_price,
-            'l1_fee_scalar': receipt.l1_fee_scalar,
-            'blob_gas_price': receipt.blob_gas_price,
-            'blob_gas_used': receipt.blob_gas_used
-        }
+    @staticmethod
+    def receipt_to_dict(receipt: EthReceipt) -> dict[str, Any]:
+        result = asdict(receipt)
+        result['type'] = str(EntityType.RECEIPT.value)
+        del result['logs']
+        result['logs_count'] = len(receipt.logs)
+        return result

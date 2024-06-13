@@ -11,6 +11,27 @@ Ethereum ETL lets you convert blockchain data into convenient formats like CSVs 
 
 [Full documentation available here](http://ethereum-etl.readthedocs.io/).
 
+## Linters/formatters
+
+### Install
+
+```bash
+pip install black ruff mypy
+```
+
+### Run
+
+TL;DR all-at-once run and fix:
+
+```bash
+ruff check --fix . && black . && mypy .
+```
+
+Or one-by-one:
+* Check and auto-fix with: `ruff --fix .`
+* Check typing: `mypy .`
+* Auto-format all: `black .`
+
 ## Quickstart
 
 Install Ethereum ETL:

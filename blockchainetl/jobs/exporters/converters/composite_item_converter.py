@@ -32,7 +32,6 @@
 
 
 class CompositeItemConverter:
-
     def __init__(self, converters=()):
         self.converters = converters
 

@@ -1,8 +1,9 @@
-import base58
 import logging
 
-from ethereumetl.utils import hex_to_dec, to_normalized_address
+import base58
+
 from ethereumetl.ipfs.origin import get_origin_marketplace_data
+from ethereumetl.utils import hex_to_dec
 
 #
 LISTING_CREATED_TOPIC = '0xec3d306143145322b45d2788d826e3b7b9ad062f16e1ec59a5eaba214f96ee3c'
@@ -28,36 +29,40 @@ def hex_to_ipfs_hash(param):
 # For example:
 #   "1-001-272" refers to listing 272 on marketplace contract version 1, on Mainnet.
 def compose_listing_id(network_id, contract_version, listing_id):
-    return "{}-{}-{}".format(network_id, contract_version, listing_id)
+    return f"{network_id}-{contract_version}-{listing_id}"
 
 
-class OriginEventExtractor(object):
+class OriginEventExtractor:
     def __init__(self, ipfs_client):
         self.ipfs_client = ipfs_client
 
     def extract_event_from_log(self, receipt_log, contract_version):
         topics = receipt_log.topics
         if (topics is None) or (len(topics) == 0):
-            logger.warning("Empty topics in log {} of transaction {}".format(
-                receipt_log.log_index, receipt_log.transaction_hash))
+            logger.warning(
+                f"Empty topics in log {receipt_log.log_index}"
+                f" of transaction {receipt_log.transaction_hash}"
+            )
             return None, []
 
         topic = topics[0]
         if topic not in PROCESSABLE_TOPICS:
-            logger.debug("Skip processing event with signature {}".format(topic))
+            logger.debug(f"Skip processing event with signature {topic}")
             return None, []
 
         if len(topics) < TOPICS_LEN:
-            logger.warning("Unexpected number of topics {} in log {} of transaction {}".format(
-                len(topics),
-                receipt_log.log_index,
-                receipt_log.transaction_hash))
+            logger.warning(
+                f"Unexpected number of topics {len(topics)} in log {receipt_log.log_index}"
+                f" of transaction {receipt_log.transaction_hash}"
+            )
             return None, []
 
         listing_id = hex_to_dec(topics[2])
         ipfs_hash = hex_to_ipfs_hash(receipt_log.data)
 
         full_listing_id = compose_listing_id(1, contract_version, listing_id)
-        marketplace_listing, shop_products = get_origin_marketplace_data(receipt_log, full_listing_id, self.ipfs_client, ipfs_hash)
+        marketplace_listing, shop_products = get_origin_marketplace_data(
+            receipt_log, full_listing_id, self.ipfs_client, ipfs_hash
+        )
 
         return marketplace_listing, shop_products

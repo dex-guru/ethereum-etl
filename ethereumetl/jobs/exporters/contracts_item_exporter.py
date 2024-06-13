@@ -19,9 +19,10 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
+from dataclasses import fields
 
 from blockchainetl.jobs.exporters.composite_item_exporter import CompositeItemExporter
+from ethereumetl.domain.contract import EthContract
 
 FIELDS_TO_EXPORT = [
     'address',
@@ -31,14 +32,11 @@ FIELDS_TO_EXPORT = [
     'is_erc721',
     'block_number',
 ]
+assert {f.name for f in fields(EthContract)} >= set(FIELDS_TO_EXPORT)
 
 
 def contracts_item_exporter(contracts_output):
     return CompositeItemExporter(
-        filename_mapping={
-            'contract': contracts_output
-        },
-        field_mapping={
-            'contract': FIELDS_TO_EXPORT
-        }
+        filename_mapping={'contract': contracts_output},
+        field_mapping={'contract': FIELDS_TO_EXPORT},
     )

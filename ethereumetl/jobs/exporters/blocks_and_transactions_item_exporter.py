@@ -19,9 +19,11 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
+from dataclasses import fields
 
 from blockchainetl.jobs.exporters.composite_item_exporter import CompositeItemExporter
+from ethereumetl.domain.block import EthBlock
+from ethereumetl.domain.transaction import EthTransaction
 
 BLOCK_FIELDS_TO_EXPORT = [
     'number',
@@ -43,11 +45,8 @@ BLOCK_FIELDS_TO_EXPORT = [
     'timestamp',
     'transaction_count',
     'base_fee_per_gas',
-    'withdrawals_root',
-    'withdrawals',
-    'blob_gas_used',
-    'excess_blob_gas'
 ]
+assert {f.name for f in fields(EthBlock)} >= set(BLOCK_FIELDS_TO_EXPORT)
 
 TRANSACTION_FIELDS_TO_EXPORT = [
     'hash',
@@ -65,19 +64,15 @@ TRANSACTION_FIELDS_TO_EXPORT = [
     'max_fee_per_gas',
     'max_priority_fee_per_gas',
     'transaction_type',
-    'max_fee_per_blob_gas',
-    'blob_versioned_hashes'
 ]
+assert {f.name for f in fields(EthTransaction)} >= set(TRANSACTION_FIELDS_TO_EXPORT)
 
 
 def blocks_and_transactions_item_exporter(blocks_output=None, transactions_output=None):
     return CompositeItemExporter(
-        filename_mapping={
-            'block': blocks_output,
-            'transaction': transactions_output
-        },
+        filename_mapping={'block': blocks_output, 'transaction': transactions_output},
         field_mapping={
             'block': BLOCK_FIELDS_TO_EXPORT,
-            'transaction': TRANSACTION_FIELDS_TO_EXPORT
-        }
+            'transaction': TRANSACTION_FIELDS_TO_EXPORT,
+        },
     )

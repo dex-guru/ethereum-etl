@@ -32,7 +32,6 @@
 
 
 class ListFieldItemConverter:
-
     def __init__(self, field, new_field_prefix, fill=0, fill_with=None):
         self.field = field
         self.new_field_prefix = new_field_prefix

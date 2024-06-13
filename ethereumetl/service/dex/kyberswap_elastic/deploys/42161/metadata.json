@@ -1,0 +1,10 @@
+[
+  {
+    "name": "kyberswap_elastic",
+    "type": "kyberswap_elastic",
+    "enabled": true,
+    "contracts": {
+      "Factory": "0xC7a590291e07B9fe9E64b86c58fD8fC764308C4A"
+    }
+  }
+]

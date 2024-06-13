@@ -20,15 +20,26 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from dataclasses import asdict
+from typing import Any
 
-class EthTokenMapper(object):
-    def token_to_dict(self, token):
-        return {
-            'type': 'token',
-            'address': token.address,
-            'symbol': token.symbol,
-            'name': token.name,
-            'decimals': token.decimals,
-            'total_supply': token.total_supply,
-            'block_number': token.block_number
-        }
+from ethereumetl.domain.token import EthToken
+from ethereumetl.enumeration.entity_type import EntityType
+
+
+class EthTokenMapper:
+    @staticmethod
+    def token_to_dict(token: EthToken) -> dict[str, Any]:
+        result = asdict(token)
+        result['type'] = str(EntityType.TOKEN.value)
+        return result
+
+    @staticmethod
+    def dict_to_token(d: dict[str, Any]) -> EthToken:
+        return EthToken(
+            address=d['address'].lower(),
+            name=d['name'],
+            symbol=d['symbol'],
+            decimals=int(d['decimals']),
+            total_supply=int(d['total_supply']),
+        )

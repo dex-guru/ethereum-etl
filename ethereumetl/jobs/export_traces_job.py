@@ -19,14 +19,12 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-import logging
 
-from ethereumetl.executors.batch_work_executor import BatchWorkExecutor
 from blockchainetl.jobs.base_job import BaseJob
+from ethereumetl.executors.batch_work_executor import BatchWorkExecutor
 from ethereumetl.mainnet_daofork_state_changes import DAOFORK_BLOCK_NUMBER
 from ethereumetl.mappers.trace_mapper import EthTraceMapper
 from ethereumetl.service.eth_special_trace_service import EthSpecialTraceService
-
 from ethereumetl.service.trace_id_calculator import calculate_trace_ids
 from ethereumetl.service.trace_status_calculator import calculate_trace_statuses
 from ethereumetl.utils import validate_range
@@ -34,15 +32,15 @@ from ethereumetl.utils import validate_range
 
 class ExportTracesJob(BaseJob):
     def __init__(
-            self,
-            start_block,
-            end_block,
-            batch_size,
-            web3,
-            item_exporter,
-            max_workers,
-            include_genesis_traces=False,
-            include_daofork_traces=False):
+        self,
+        start_block,
+        end_block,
+        web3,
+        item_exporter,
+        max_workers,
+        include_genesis_traces=False,
+        include_daofork_traces=False,
+    ):
         validate_range(start_block, end_block)
         self.start_block = start_block
         self.end_block = end_block
@@ -66,7 +64,7 @@ class ExportTracesJob(BaseJob):
         self.batch_work_executor.execute(
             range(self.start_block, self.end_block + 1),
             self._export_batch,
-            total_items=self.end_block - self.start_block + 1
+            total_items=self.end_block - self.start_block + 1,
         )
 
     def _export_batch(self, block_number_batch):
@@ -90,7 +88,9 @@ class ExportTracesJob(BaseJob):
         json_traces = self.web3.parity.traceBlock(block_number)
 
         if json_traces is None:
-            raise ValueError('Response from the node is None. Is the node fully synced? Is the node started with tracing enabled? Is trace_block API enabled?')
+            raise ValueError(
+                'Response from the node is None. Is the node fully synced? Is the node started with tracing enabled? Is trace_block API enabled?'
+            )
 
         traces = [self.trace_mapper.json_dict_to_trace(json_trace) for json_trace in json_traces]
         all_traces.extend(traces)

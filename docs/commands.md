@@ -65,17 +65,8 @@ You can tune `--batch-size`, `--max-workers` for performance.
 
 #### export_receipts_and_logs
 
-First extract transaction hashes from `transactions.csv`
-(Exported with [export_blocks_and_transactions](#export_blocks_and_transactions)):
-
 ```bash
-> ethereumetl extract_csv_column --input transactions.csv --column hash --output transaction_hashes.txt
-```
-
-Then export receipts and logs:
-
-```bash
-> ethereumetl export_receipts_and_logs --transaction-hashes transaction_hashes.txt \
+> ethereumetl export_receipts_and_logs --transactions transactions.csv \
 --provider-uri file://$HOME/Library/Ethereum/geth.ipc --receipts-output receipts.csv --logs-output logs.csv
 ```
 

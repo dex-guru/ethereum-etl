@@ -50,3 +50,7 @@ ENV/
 
 # etl
 /last_synced_block.txt
+last_synced_block.txt
+
+.idea
+.aider*

@@ -22,10 +22,15 @@
 
 
 import json
+import time
+from collections.abc import Iterable
 
 from blockchainetl.jobs.base_job import BaseJob
+from ethereumetl.config.envs import envs
+from ethereumetl.domain.error import EthError
 from ethereumetl.executors.batch_work_executor import BatchWorkExecutor
 from ethereumetl.json_rpc_requests import generate_get_receipt_json_rpc
+from ethereumetl.mappers.error_mapper import EthErrorMapper
 from ethereumetl.mappers.receipt_log_mapper import EthReceiptLogMapper
 from ethereumetl.mappers.receipt_mapper import EthReceiptMapper
 from ethereumetl.utils import rpc_response_batch_to_results
@@ -34,16 +39,18 @@ from ethereumetl.utils import rpc_response_batch_to_results
 # Exports receipts and logs
 class ExportReceiptsJob(BaseJob):
     def __init__(
-            self,
-            transaction_hashes_iterable,
-            batch_size,
-            batch_web3_provider,
-            max_workers,
-            item_exporter,
-            export_receipts=True,
-            export_logs=True):
+        self,
+        transactions: Iterable[dict],
+        batch_size,
+        batch_web3_provider,
+        max_workers,
+        item_exporter,
+        export_receipts=True,
+        export_logs=True,
+        skip_none_receipts=envs.SKIP_NONE_RECEIPTS,
+    ):
         self.batch_web3_provider = batch_web3_provider
-        self.transaction_hashes_iterable = transaction_hashes_iterable
+        self.transactions = transactions
 
         self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers)
         self.item_exporter = item_exporter
@@ -54,21 +61,59 @@ class ExportReceiptsJob(BaseJob):
             raise ValueError('At least one of export_receipts or export_logs must be True')
 
         self.receipt_mapper = EthReceiptMapper()
+        self.error_mapper = EthErrorMapper()
         self.receipt_log_mapper = EthReceiptLogMapper()
+        self.skip_none_receipts = skip_none_receipts
 
     def _start(self):
         self.item_exporter.open()
 
     def _export(self):
-        self.batch_work_executor.execute(self.transaction_hashes_iterable, self._export_receipts)
+        self.batch_work_executor.execute(self.transactions, self._export_receipts)
 
-    def _export_receipts(self, transaction_hashes):
-        receipts_rpc = list(generate_get_receipt_json_rpc(transaction_hashes))
-        response = self.batch_web3_provider.make_batch_request(json.dumps(receipts_rpc))
-        results = rpc_response_batch_to_results(response)
-        receipts = [self.receipt_mapper.json_dict_to_receipt(result) for result in results]
+    def _export_receipts(self, transactions):
+        transactions = tuple(transactions)
+        receipts_rpc = list(generate_get_receipt_json_rpc(t['hash'] for t in transactions))
+        responses = self.batch_web3_provider.make_batch_request(json.dumps(receipts_rpc))
+        errors = []
+
+        if self.skip_none_receipts:
+            all_responses = responses
+            responses = []
+            receipt_rpc_transaction_by_id = {
+                r['id']: (r, transactions[i]) for i, r in enumerate(receipts_rpc)
+            }
+            for response in all_responses:
+                try:
+                    receipt_rpc, transaction = receipt_rpc_transaction_by_id[response['id']]
+                except KeyError as e:
+                    raise KeyError(f'RPC response id does not match any request id: {e}') from e
+                if response.get('result') is None and response.get('error') is None:
+                    errors.append(
+                        EthError(
+                            block_number=transaction['block_number'],
+                            timestamp=int(time.time()),
+                            kind='get_receipt_result_none',
+                            data={
+                                'transaction_hash': transaction['hash'],
+                                'rpc_request': receipt_rpc,
+                                'rpc_response': response,
+                                'env': envs.dict(),
+                            },
+                        )
+                    )
+                else:
+                    responses.append(response)
+
+        results = rpc_response_batch_to_results(responses)
+        receipts = []
+        for result in results:
+            receipts.append(self.receipt_mapper.json_dict_to_receipt(result))
         for receipt in receipts:
             self._export_receipt(receipt)
+
+        error_items = [self.error_mapper.error_to_dict(error) for error in errors]
+        self.item_exporter.export_items(error_items)
 
     def _export_receipt(self, receipt):
         if self.export_receipts:

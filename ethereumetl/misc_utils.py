@@ -23,11 +23,12 @@
 import contextlib
 import csv
 import json
+from collections.abc import Iterable
 
 import six
 
-from ethereumetl.csv_utils import set_max_field_size_limit
 from blockchainetl.file_utils import get_file_handle, smart_open
+from ethereumetl.csv_utils import set_max_field_size_limit
 
 
 @contextlib.contextmanager
@@ -36,7 +37,7 @@ def get_item_iterable(input_file):
 
     if input_file.endswith('.csv'):
         set_max_field_size_limit()
-        reader = csv.DictReader(fh)
+        reader: Iterable[dict] = csv.DictReader(fh)
     else:
         reader = (json.loads(line) for line in fh)
 
@@ -62,7 +63,9 @@ def get_item_sink(output_file):
                 writer = csv.DictWriter(fh, fieldnames=fields, extrasaction='ignore')
                 writer.writeheader()
             writer.writerow(item)
+
     else:
+
         def sink(item):
             fh.write(json.dumps(item) + '\n')
 

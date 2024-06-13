@@ -1,0 +1,1 @@
+[{"name": "antfarm", "type": "uniswap_v2", "enabled": true, "contracts": {"UniswapV2Factory": "0x8aF94528FBE3c4C148523E7aAD48BcEbcC0A71d7"}}, {"name": "zkMoonSwap", "type": "uniswap_v2", "enabled": true, "contracts": {"UniswapV2Factory": "0x49841094F19659e044671825d7ecb3B79368e6E5"}}]

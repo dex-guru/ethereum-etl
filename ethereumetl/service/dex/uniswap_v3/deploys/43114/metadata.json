@@ -1,0 +1,1 @@
+[{"name": "uniswap_v3", "type": "uniswap_v3", "enabled": true, "contracts": {"UniswapV3Factory": "0x740b1c1de25031C31FF4fC9A62f554A55cdC1baD"}}, {"name": "sushiswap_v3", "type": "uniswap_v3", "enabled": true, "contracts": {"UniswapV3Factory": "0x3e603C14aF37EBdaD31709C4f848Fc6aD5BEc715"}}]

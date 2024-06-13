@@ -1,0 +1,1 @@
+[{"name": "zyberswap_v3", "type": "quickswap_v3", "enabled": true, "contracts": {"Factory": "0x9C2ABD632771b433E5E7507BcaA41cA3b25D8544"}}, {"name": "camelot_v3", "type": "quickswap_v3", "enabled": true, "contracts": {"Factory": "0xd490F2F6990C0291597fd1247651b4E0dCF684Dd"}}]

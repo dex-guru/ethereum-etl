@@ -22,24 +22,22 @@
 
 
 import json
-import socket
+from typing import Any
 
+from web3._utils.threads import Timeout
 from web3.providers.ipc import IPCProvider
-from web3._utils.threads import (
-    Timeout,
-)
 
 try:
     from json import JSONDecodeError
 except ImportError:
-    JSONDecodeError = ValueError
+    JSONDecodeError = ValueError  # type: ignore
 
 
 # Mostly copied from web3.py/providers/ipc.py. Supports batch requests.
 # Will be removed once batch feature is added to web3.py https://github.com/ethereum/web3.py/issues/832
 # Also see this optimization https://github.com/ethereum/web3.py/pull/849
 class BatchIPCProvider(IPCProvider):
-    _socket = None
+    _socket: Any
 
     def make_batch_request(self, text):
         request = text.encode('utf-8')
@@ -56,7 +54,7 @@ class BatchIPCProvider(IPCProvider):
                 while True:
                     try:
                         raw_response += sock.recv(4096)
-                    except socket.timeout:
+                    except TimeoutError:
                         timeout.sleep(0)
                         continue
                     if raw_response == b"":
@@ -76,8 +74,4 @@ class BatchIPCProvider(IPCProvider):
 
 # A valid JSON RPC response can only end in } or ] http://www.jsonrpc.org/specification
 def has_valid_json_rpc_ending(raw_response):
-    for valid_ending in [b"}\n", b"]\n"]:
-        if raw_response.endswith(valid_ending):
-            return True
-    else:
-        return False
+    return any(raw_response.endswith(valid_ending) for valid_ending in [b'}\n', b']\n'])

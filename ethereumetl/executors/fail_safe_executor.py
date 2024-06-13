@@ -22,7 +22,6 @@
 
 
 class FailSafeExecutor:
-
     def __init__(self, delegate):
         self._delegate = delegate
         self._futures = []
@@ -40,7 +39,7 @@ class FailSafeExecutor:
         assert len(self._futures) == 0
 
     def _check_completed_futures(self):
-        """Fail safe in this case means fail fast. TODO: Add retry logic"""
+        """Fail-safe in this case means fail fast. TODO: Add retry logic."""
         for future in self._futures.copy():
             if future.done():
                 # Will throw an exception here if the future failed

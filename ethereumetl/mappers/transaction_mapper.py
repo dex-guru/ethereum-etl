@@ -19,55 +19,38 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
+from dataclasses import asdict
+from typing import Any
 
 from ethereumetl.domain.transaction import EthTransaction
+from ethereumetl.enumeration.entity_type import EntityType
 from ethereumetl.utils import hex_to_dec, to_normalized_address
 
 
-class EthTransactionMapper(object):
-    def json_dict_to_transaction(self, json_dict, **kwargs):
-        transaction = EthTransaction()
-        transaction.hash = json_dict.get('hash')
-        transaction.nonce = hex_to_dec(json_dict.get('nonce'))
-        transaction.block_hash = json_dict.get('blockHash')
-        transaction.block_number = hex_to_dec(json_dict.get('blockNumber'))
-        transaction.block_timestamp = kwargs.get('block_timestamp')
-        transaction.transaction_index = hex_to_dec(json_dict.get('transactionIndex'))
-        transaction.from_address = to_normalized_address(json_dict.get('from'))
-        transaction.to_address = to_normalized_address(json_dict.get('to'))
-        transaction.value = hex_to_dec(json_dict.get('value'))
-        transaction.gas = hex_to_dec(json_dict.get('gas'))
-        transaction.gas_price = hex_to_dec(json_dict.get('gasPrice'))
-        transaction.input = json_dict.get('input')
-        transaction.max_fee_per_gas = hex_to_dec(json_dict.get('maxFeePerGas'))
-        transaction.max_priority_fee_per_gas = hex_to_dec(json_dict.get('maxPriorityFeePerGas'))
-        transaction.transaction_type = hex_to_dec(json_dict.get('type'))
-        transaction.max_fee_per_blob_gas = hex_to_dec(json_dict.get('maxFeePerBlobGas'))
-
-        if 'blobVersionedHashes' in json_dict and isinstance(json_dict['blobVersionedHashes'], list):
-            transaction.blob_versioned_hashes = json_dict['blobVersionedHashes']
-
+class EthTransactionMapper:
+    @staticmethod
+    def json_dict_to_transaction(json_dict: dict, **kwargs) -> EthTransaction:
+        transaction = EthTransaction(
+            hash=json_dict.get('hash'),
+            nonce=hex_to_dec(json_dict.get('nonce')),
+            block_hash=json_dict.get('blockHash'),
+            block_number=hex_to_dec(json_dict.get('blockNumber')),
+            block_timestamp=kwargs.get('block_timestamp'),
+            transaction_index=hex_to_dec(json_dict.get('transactionIndex')),
+            from_address=to_normalized_address(json_dict.get('from')),
+            to_address=to_normalized_address(json_dict.get('to')),
+            value=hex_to_dec(json_dict.get('value')),
+            gas=hex_to_dec(json_dict.get('gas')),
+            gas_price=hex_to_dec(json_dict.get('gasPrice')),
+            input=json_dict.get('input'),
+            max_fee_per_gas=hex_to_dec(json_dict.get('maxFeePerGas')),
+            max_priority_fee_per_gas=hex_to_dec(json_dict.get('maxPriorityFeePerGas')),
+            transaction_type=hex_to_dec(json_dict.get('type')),
+        )
         return transaction
 
-    def transaction_to_dict(self, transaction):
-        return {
-            'type': 'transaction',
-            'hash': transaction.hash,
-            'nonce': transaction.nonce,
-            'block_hash': transaction.block_hash,
-            'block_number': transaction.block_number,
-            'block_timestamp': transaction.block_timestamp,
-            'transaction_index': transaction.transaction_index,
-            'from_address': transaction.from_address,
-            'to_address': transaction.to_address,
-            'value': transaction.value,
-            'gas': transaction.gas,
-            'gas_price': transaction.gas_price,
-            'input': transaction.input,
-            'max_fee_per_gas': transaction.max_fee_per_gas,
-            'max_priority_fee_per_gas': transaction.max_priority_fee_per_gas,
-            'transaction_type': transaction.transaction_type,
-            "max_fee_per_blob_gas": transaction.max_fee_per_blob_gas,
-            "blob_versioned_hashes": transaction.blob_versioned_hashes
-        }
+    @staticmethod
+    def transaction_to_dict(transaction: EthTransaction) -> dict[str, Any]:
+        result = asdict(transaction)
+        result['type'] = str(EntityType.TRANSACTION.value)
+        return result

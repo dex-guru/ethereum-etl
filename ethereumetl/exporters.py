@@ -33,44 +33,46 @@ Item Exporters are used to export/serialize items into different formats.
 import csv
 import io
 import threading
+from abc import ABC, abstractmethod
 from json import JSONEncoder
 
 import six
 
+from blockchainetl.exporters import to_bytes, to_native_str
 
-class BaseItemExporter(object):
 
+class BaseItemExporter(ABC):
     def __init__(self, **kwargs):
         self._configure(kwargs)
 
     def _configure(self, options, dont_fail=False):
-        """Configure the exporter by poping options from the ``options`` dict.
+        """
+        Configure the exporter by poping options from the ``options`` dict.
         If dont_fail is set, it won't raise an exception on unexpected options
-        (useful for using with keyword arguments in subclasses constructors)
+        (useful for using with keyword arguments in subclasses constructors).
         """
         self.encoding = options.pop('encoding', None)
         self.fields_to_export = options.pop('fields_to_export', None)
         self.export_empty_fields = options.pop('export_empty_fields', False)
         self.indent = options.pop('indent', None)
         if not dont_fail and options:
-            raise TypeError("Unexpected options: %s" % ', '.join(options.keys()))
+            raise TypeError(f"Unexpected options: {', '.join(options.keys())}")
 
-    def export_item(self, item):
-        raise NotImplementedError
+    @abstractmethod
+    def export_item(self, item): ...
+
+    def export_items(self, items):
+        for item in items:
+            self.export_item(item)
 
     def serialize_field(self, field, name, value):
         serializer = field.get('serializer', lambda x: x)
         return serializer(value)
 
-    def start_exporting(self):
-        pass
-
-    def finish_exporting(self):
-        pass
-
     def _get_serialized_fields(self, item, default_value=None, include_empty=None):
-        """Return the fields to export as an iterable of tuples
-        (name, serialized_value)
+        """
+        Return the fields to export as an iterable of tuples
+        (name, serialized_value).
         """
         if include_empty is None:
             include_empty = self.export_empty_fields
@@ -96,18 +98,19 @@ class BaseItemExporter(object):
 
 
 class CsvItemExporter(BaseItemExporter):
-
     def __init__(self, file, include_headers_line=True, join_multivalued=',', **kwargs):
+        super().__init__(**kwargs)
         self._configure(kwargs, dont_fail=True)
         if not self.encoding:
             self.encoding = 'utf-8'
         self.include_headers_line = include_headers_line
-        self.stream = io.TextIOWrapper(
-            file,
-            line_buffering=False,
-            write_through=True,
-            encoding=self.encoding
-        ) if six.PY3 else file
+        self.stream = (
+            io.TextIOWrapper(
+                file, line_buffering=False, write_through=True, encoding=self.encoding
+            )
+            if six.PY3
+            else file
+        )
         self.csv_writer = csv.writer(self.stream, **kwargs)
         self._headers_not_written = True
         self._join_multivalued = join_multivalued
@@ -133,8 +136,7 @@ class CsvItemExporter(BaseItemExporter):
                     self._write_headers_and_set_fields_to_export(item)
                     self._headers_not_written = False
 
-        fields = self._get_serialized_fields(item, default_value='',
-                                             include_empty=True)
+        fields = self._get_serialized_fields(item, default_value='', include_empty=True)
         values = list(self._build_row(x for _, x in fields))
         self.csv_writer.writerow(values)
 
@@ -159,8 +161,8 @@ class CsvItemExporter(BaseItemExporter):
 
 
 class JsonLinesItemExporter(BaseItemExporter):
-
     def __init__(self, file, **kwargs):
+        super().__init__(**kwargs)
         self._configure(kwargs, dont_fail=True)
         self.file = file
         kwargs.setdefault('ensure_ascii', not self.encoding)
@@ -170,38 +172,3 @@ class JsonLinesItemExporter(BaseItemExporter):
         itemdict = dict(self._get_serialized_fields(item))
         data = self.encoder.encode(itemdict) + '\n'
         self.file.write(to_bytes(data, self.encoding))
-
-
-def to_native_str(text, encoding=None, errors='strict'):
-    """ Return str representation of `text`
-    (bytes in Python 2.x and unicode in Python 3.x). """
-    if six.PY2:
-        return to_bytes(text, encoding, errors)
-    else:
-        return to_unicode(text, encoding, errors)
-
-
-def to_bytes(text, encoding=None, errors='strict'):
-    """Return the binary representation of `text`. If `text`
-    is already a bytes object, return it as-is."""
-    if isinstance(text, bytes):
-        return text
-    if not isinstance(text, six.string_types):
-        raise TypeError('to_bytes must receive a unicode, str or bytes '
-                        'object, got %s' % type(text).__name__)
-    if encoding is None:
-        encoding = 'utf-8'
-    return text.encode(encoding, errors)
-
-
-def to_unicode(text, encoding=None, errors='strict'):
-    """Return the unicode representation of a bytes object `text`. If `text`
-    is already an unicode object, return it as-is."""
-    if isinstance(text, six.text_type):
-        return text
-    if not isinstance(text, (bytes, six.text_type)):
-        raise TypeError('to_unicode must receive a bytes, str or unicode '
-                        'object, got %s' % type(text).__name__)
-    if encoding is None:
-        encoding = 'utf-8'
-    return text.decode(encoding, errors)

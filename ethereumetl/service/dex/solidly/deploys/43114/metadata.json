@@ -1,0 +1,10 @@
+[
+  {
+    "name": "glacier_finance",
+    "type": "solidly",
+    "enabled": true,
+    "contracts": {
+      "UniswapV2Factory": "0xaC7B7EaC8310170109301034b8FdB75eCa4CC491"
+    }
+  }
+]

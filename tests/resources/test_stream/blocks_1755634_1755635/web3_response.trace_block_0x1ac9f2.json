@@ -1,0 +1,19 @@
+{
+    "id": 1,
+    "jsonrpc": "2.0",
+    "result": [
+        {
+            "action": {
+                "author": "0x61c808d82a3ac53231750dadc13c777b59310bd9",
+                "rewardType": "block",
+                "value": "0x4563918244f40000"
+            },
+            "blockHash": "0xa06fc36a7144c4bbb1f7ab13b541144414fa7808c119e8a4635e392ea544c178",
+            "blockNumber": 1755634,
+            "result": null,
+            "subtraces": 0,
+            "traceAddress": [],
+            "type": "reward"
+        }
+    ]
+}

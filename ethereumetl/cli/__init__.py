@@ -20,11 +20,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from blockchainetl.logging_utils import logging_basic_config
-logging_basic_config()
-
 import click
 
+from blockchainetl.logging_utils import logging_basic_config
+from ethereumetl.cli.amqp_stream import amqp_stream
+from ethereumetl.cli.check_data_consistency import check_data_consistency
 from ethereumetl.cli.export_all import export_all
 from ethereumetl.cli.export_blocks_and_transactions import export_blocks_and_transactions
 from ethereumetl.cli.export_contracts import export_contracts
@@ -44,13 +44,16 @@ from ethereumetl.cli.filter_items import filter_items
 from ethereumetl.cli.get_block_range_for_date import get_block_range_for_date
 from ethereumetl.cli.get_block_range_for_timestamps import get_block_range_for_timestamps
 from ethereumetl.cli.get_keccak_hash import get_keccak_hash
+from ethereumetl.cli.optimize_tables import optimize_tables
 from ethereumetl.cli.stream import stream
+
+logging_basic_config()
 
 
 @click.group()
 @click.version_option(version='2.4.2')
 @click.pass_context
-def cli(ctx):
+def cli(_ctx):
     pass
 
 
@@ -79,3 +82,6 @@ cli.add_command(get_keccak_hash, "get_keccak_hash")
 cli.add_command(extract_csv_column, "extract_csv_column")
 cli.add_command(filter_items, "filter_items")
 cli.add_command(extract_field, "extract_field")
+cli.add_command(optimize_tables, "optimize_tables")
+cli.add_command(check_data_consistency, "check_data_consistency")
+cli.add_command(amqp_stream, "amqp_stream")

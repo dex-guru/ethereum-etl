@@ -20,22 +20,35 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import json
 
 from ethereumetl.domain.geth_trace import EthGethTrace
+from ethereumetl.enumeration.entity_type import EntityType
 
 
-class EthGethTraceMapper(object):
-    def json_dict_to_geth_trace(self, json_dict):
-        geth_trace = EthGethTrace()
+class EthGethTraceMapper:
+    @staticmethod
+    def json_dict_to_geth_trace(json_dict):
+        transaction_hash = json_dict.get('transaction_hash')
+        if json_dict.get('transaction_traces'):
+            if isinstance(json_dict['transaction_traces'], str):
+                transaction_traces = json.loads(json_dict['transaction_traces'])
+            else:
+                transaction_traces = json_dict['transaction_traces']
+        else:
+            transaction_traces = json.loads(json_dict.get('traces_json', '[]'))
 
-        geth_trace.block_number = json_dict.get('block_number')
-        geth_trace.transaction_traces = json_dict.get('transaction_traces')
+        geth_trace = EthGethTrace(
+            transaction_hash=transaction_hash,
+            transaction_traces=transaction_traces,
+        )
 
         return geth_trace
 
-    def geth_trace_to_dict(self, geth_trace):
+    @staticmethod
+    def geth_trace_to_dict(geth_trace: EthGethTrace):
         return {
-            'type': 'geth_trace',
-            'block_number': geth_trace.block_number,
-            'transaction_traces': geth_trace.transaction_traces,
+            'type': str(EntityType.GETH_TRACE.value),
+            'transaction_hash': geth_trace.transaction_hash,
+            'transaction_traces': json.dumps(geth_trace.transaction_traces),
         }

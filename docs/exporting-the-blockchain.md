@@ -42,7 +42,7 @@ output/token_transfers/start_block=00000000/end_block=00099999/token_transfers_0
 
 Should work with geth and parity, on Linux, Mac, Windows.
 If you use Parity you should disable warp mode with `--no-warp` option because warp mode
-does not place all of the block or receipt data into the database [https://wiki.parity.io/Getting-Synced](https://wiki.parity.io/Getting-Synced)
+does not place all the block or receipt data into the database [https://wiki.parity.io/Getting-Synced](https://wiki.parity.io/Getting-Synced)
 
 If you see weird behavior, e.g. wrong number of rows in the CSV files or corrupted files,
 check out this issue: https://github.com/medvedev1088/ethereum-etl/issues/28

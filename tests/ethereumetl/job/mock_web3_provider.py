@@ -28,6 +28,7 @@ from web3 import IPCProvider
 
 class MockWeb3Provider(IPCProvider):
     def __init__(self, read_resource):
+        super().__init__()
         self.read_resource = read_resource
 
     def make_request(self, method, params):
@@ -36,8 +37,34 @@ class MockWeb3Provider(IPCProvider):
         return json.loads(file_content)
 
 
+class MockWeb3OrWeb3Provider(IPCProvider):
+    def __init__(self, read_resource, write_resource, web3):
+        super().__init__()
+        self.read_resource = read_resource
+        self.write_resource = write_resource
+        self.web3 = web3
+
+    def make_request(self, method, params):
+        file_name = build_file_name(method, params)
+        try:
+            file_content = self.read_resource(file_name)
+        except ValueError:
+            response = self.web3.make_request(method, params)
+            file_content = json.dumps(response)
+            print(f'Warning: {file_name} not found, using real web3 response')
+            self.write_resource(file_name, file_content)
+            print(f'Saved real web3 response to {file_name}')
+        return json.loads(file_content)
+
+
 def build_file_name(method, params):
-    return 'web3_response.' + method + '_' + '_'.join([param_to_str(param) for param in params]) + '.json'
+    return (
+        'web3_response.'
+        + method
+        + '_'
+        + '_'.join([param_to_str(param) for param in params])
+        + '.json'
+    )
 
 
 def param_to_str(param):
