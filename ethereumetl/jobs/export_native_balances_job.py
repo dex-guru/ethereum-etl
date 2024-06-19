@@ -37,7 +37,7 @@ class ExportNativeBalancesJob(BaseJob):
         self.internal_transfers = [
             transfer for transfer in internal_transfers if transfer.get('value')
         ]
-        self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers)
+        self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers, job_name='Export Native Balances Job')
 
     def _start(self):
         self.item_exporter.open()

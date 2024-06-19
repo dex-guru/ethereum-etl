@@ -33,6 +33,7 @@ class ExtractInternalTransfersPricedJob(BaseJob):
             batch_size,
             max_workers,
             retry_exceptions=ELASTIC_RETRY_EXCEPTIONS,
+            job_name='Extract Internal Transfers Priced Job',
         )
         self.item_exporter = item_exporter
         self.chain_id = chain_id

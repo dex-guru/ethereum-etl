@@ -34,6 +34,7 @@ class ExtractTokenTransfersPricedJob(BaseJob):
             20,
             max_workers,
             retry_exceptions=ELASTIC_RETRY_EXCEPTIONS,
+            job_name='Extract Token Transfers Priced Job',
         )
         self.prices: dict[str, float] = {}
         self.item_exporter = item_exporter
