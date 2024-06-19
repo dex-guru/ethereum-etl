@@ -27,4 +27,4 @@ from blockchainetl.exporters import BaseItemExporter
 
 class ConsoleItemExporter(BaseItemExporter):
     def export_item(self, item):
-        print(json.dumps(item))
+        print(item)

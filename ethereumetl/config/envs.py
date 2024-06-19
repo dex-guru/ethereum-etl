@@ -26,11 +26,11 @@ class EnvsConfig(BaseSettings):
     # 'or kafka, output name and connection host:port e.g. kafka/127.0.0.1:9092 '
     # 'or Kinesis, e.g. kinesis://your-data-stream-name'
     # 'If not specified will print to console'
-    OUTPUT: str | None = None
+    OUTPUT: str | None = "output.json"
     START_BLOCK: int | None | Literal['latest'] = None
     END_BLOCK: int | None = None
     ENTITY_TYPES: str = ','.join(entity_type.ALL_FOR_STREAMING)
-    POLLING_PERIOD: int = 10
+    POLLING_PERIOD: int = 3
     BATCH_SIZE: int = 10
     BLOCK_BATCH_SIZE: int = 1
     MAX_WORKERS: int = 5
@@ -50,7 +50,7 @@ class EnvsConfig(BaseSettings):
     HEALTH_CHECK_TIMEOUT: int = 600
     IS_VERIFIER: bool = False
     IS_SKIP_CYCLE: bool = True
-    ELASTIC_URL: str | None = None
+    ELASTIC_URL: str | None = "http://localhost:9200"
     AMQP_URL: str | None = 'amqp://guest:guest@localhost:5672/dex'
     ROUTING_KEY: str | None = ''
     QUEUE_NAME: str | None = ''
