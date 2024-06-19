@@ -1,6 +1,30 @@
 version: '3.7'
 
 services:
+  indexer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: dexguru-indexer
+    env_file:
+      - .env
+    environment:
+      # url to clickhouse where run migrations
+      - CLICKHOUSE_URL=clickhouse+http://default:@clickhouse:8123
+      - OUTPUT=output.json
+    restart: on-failure
+    links:
+      - clickhouse
+      - rabbit
+      - elasticsearch
+    depends_on:
+      - clickhouse
+    command: >
+      bash -c "alembic upgrade head
+      && ethereumetl stream"
+    volumes:
+        - .:/app
+
   clickhouse:
     image: clickhouse/clickhouse-server:23.5.4.25
     ports:
@@ -15,6 +39,7 @@ services:
     restart: unless-stopped
 
   rabbit:
+    # Optional
     image: rabbitmq:latest
     environment:
       RABBITMQ_DEFAULT_VHOST: dex
@@ -24,8 +49,8 @@ services:
     restart: on-failure
 
   elasticsearch:
+    # Optional
     image: docker.elastic.co/elasticsearch/elasticsearch:7.17.3
-    container_name: elasticsearch
     environment:
       - discovery.type=single-node
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
