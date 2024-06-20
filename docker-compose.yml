@@ -8,10 +8,6 @@ services:
     image: dexguru-indexer
     env_file:
       - .env
-    environment:
-      # url to clickhouse where run migrations
-      - CLICKHOUSE_URL=clickhouse+http://default:@clickhouse:8123
-      - OUTPUT=output.json
     restart: on-failure
     links:
       - clickhouse
@@ -20,10 +16,11 @@ services:
     depends_on:
       - clickhouse
     command: >
-      bash -c "alembic upgrade head
+      bash -c "CLICKHOUSE_URL=$OUTPUT alembic upgrade head
       && ethereumetl stream"
     volumes:
         - .:/app
+        - clickhouse_data:/var/lib/clickhouse
 
   clickhouse:
     image: clickhouse/clickhouse-server:23.5.4.25
@@ -37,6 +34,15 @@ services:
         soft: 262144
         hard: 262144
     restart: unless-stopped
+
+
+  init-ch-db:
+    image: yandex/clickhouse-client
+    command: -h clickhouse -u default -q 'CREATE DATABASE IF NOT EXISTS ethereum'
+    depends_on:
+      - clickhouse
+    links:
+      - clickhouse
 
   rabbit:
     # Optional
