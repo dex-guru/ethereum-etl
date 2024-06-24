@@ -20,11 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import json
 
 from blockchainetl.exporters import BaseItemExporter
 
 
 class ConsoleItemExporter(BaseItemExporter):
     def export_item(self, item):
-        print(json.dumps(item))
+        print(item)

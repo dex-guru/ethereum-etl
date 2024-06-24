@@ -206,6 +206,7 @@ class EthStreamerAdapter:
                     )
                     if CONTRACT not in self.should_export
                     else lambda: self.extract_tokens(export(CONTRACT))
+                    + self.export_tokens({t["token_address"] for t in export(TOKEN_TRANSFER)})
                 ),
                 (INTERNAL_TRANSFER,): lambda: self.extract_internal_transfers(export(GETH_TRACE)),
                 (NATIVE_BALANCE,): lambda: self.export_native_balances(

@@ -160,6 +160,14 @@ def create_item_exporter(output, chain_id) -> BaseItemExporter:
             },
             chain_id=chain_id,
         )
+    elif item_exporter_type == ItemExporterType.COMPOSITE:
+        from blockchainetl.jobs.exporters.composite_item_exporter import CompositeItemExporter
+
+        item_exporter = CompositeItemExporter(
+            filename_mapping={
+                entity_name: f'output/{entity_name}_{output}' for entity_name in EntityType
+            },
+        )
     else:
         raise ValueError('Unable to determine item exporter type for output ' + output)
 
@@ -180,7 +188,8 @@ def get_bucket_and_path_from_gcs_output(output):
 def determine_item_exporter_type(output: str | None) -> 'ItemExporterType':
     if output is None or output == 'console':
         return ItemExporterType.CONSOLE
-
+    if output.endswith('.json') or output.endswith('.csv'):
+        return ItemExporterType.COMPOSITE
     if output.startswith('projects'):
         return ItemExporterType.PUBSUB
     if output.startswith('kinesis://'):
@@ -216,3 +225,4 @@ class ItemExporterType(Enum):
     UNKNOWN = 'unknown'
     AMQP = 'amqp'
     ELASTIC = 'elastic'
+    COMPOSITE = 'composite'

@@ -40,7 +40,9 @@ class ExportGethTracesJob(BaseJob):
         self.transaction_hashes = transaction_hashes
         self.batch_web3_provider = batch_web3_provider
 
-        self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers)
+        self.batch_work_executor = BatchWorkExecutor(
+            batch_size, max_workers, job_name='Export Geth Traces Job'
+        )
         self.item_exporter = item_exporter
 
         self.geth_trace_mapper = EthGethTraceMapper()

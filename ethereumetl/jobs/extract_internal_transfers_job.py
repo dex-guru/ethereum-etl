@@ -8,7 +8,9 @@ class ExtractInternalTransfersJob(BaseJob):
     def __init__(self, geth_traces_iterable, batch_size, max_workers, item_exporter):
         self.geth_traces_iterable = geth_traces_iterable
 
-        self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers)
+        self.batch_work_executor = BatchWorkExecutor(
+            batch_size, max_workers, job_name='Extract Internal Transfers Job'
+        )
         self.item_exporter = item_exporter
 
         self.geth_trace_mapper = EthGethTraceMapper()

@@ -36,7 +36,6 @@ ALL_FOR_STREAMING = (
     EntityType.TOKEN_TRANSFER,
     EntityType.TOKEN,
     EntityType.TOKEN_BALANCE,
-    EntityType.TRACE,
     EntityType.ERROR,
     EntityType.GETH_TRACE,
     EntityType.INTERNAL_TRANSFER,
