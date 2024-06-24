@@ -65,7 +65,9 @@ class ExportTokenBalancesJob(BaseJob):
 
         rpc_responses = execute_in_batches(  # i/o
             self.batch_web3_provider,
-            BatchWorkExecutor(self.batch_size, self.max_workers, job_name='Export Token Balances Job'),
+            BatchWorkExecutor(
+                self.batch_size, self.max_workers, job_name='Export Token Balances Job'
+            ),
             rpc_requests,
         )
 

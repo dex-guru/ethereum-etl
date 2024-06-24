@@ -34,7 +34,9 @@ class ExtractContractsJob(BaseJob):
     def __init__(self, traces_iterable, batch_size, max_workers, item_exporter):
         self.traces_iterable = traces_iterable
 
-        self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers, job_name='Extract Contracts Job')
+        self.batch_work_executor = BatchWorkExecutor(
+            batch_size, max_workers, job_name='Extract Contracts Job'
+        )
         self.item_exporter = item_exporter
 
         self.contract_service = EthContractService()

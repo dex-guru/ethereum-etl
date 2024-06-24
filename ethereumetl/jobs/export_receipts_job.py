@@ -52,7 +52,9 @@ class ExportReceiptsJob(BaseJob):
         self.batch_web3_provider = batch_web3_provider
         self.transactions = transactions
 
-        self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers, job_name='Export Receipts Job')
+        self.batch_work_executor = BatchWorkExecutor(
+            batch_size, max_workers, job_name='Export Receipts Job'
+        )
         self.item_exporter = item_exporter
 
         self.export_receipts = export_receipts

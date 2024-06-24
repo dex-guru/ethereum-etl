@@ -43,7 +43,9 @@ class ExportTokenTransfersJob(BaseJob):
         self.tokens = tokens
         self.item_exporter = item_exporter
 
-        self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers, job_name='Export Token Transfers Job')
+        self.batch_work_executor = BatchWorkExecutor(
+            batch_size, max_workers, job_name='Export Token Transfers Job'
+        )
 
         self.receipt_log_mapper = EthReceiptLogMapper()
         self.token_transfer_mapper = EthTokenTransferMapper()

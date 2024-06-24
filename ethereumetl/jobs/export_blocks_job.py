@@ -50,7 +50,9 @@ class ExportBlocksJob(BaseJob):
 
         self.batch_web3_provider = batch_web3_provider
 
-        self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers, job_name='Export Blocks job')
+        self.batch_work_executor = BatchWorkExecutor(
+            batch_size, max_workers, job_name='Export Blocks job'
+        )
         self.item_exporter = item_exporter
 
         self.export_blocks = export_blocks
