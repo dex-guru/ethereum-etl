@@ -38,7 +38,9 @@ services:
 
   init-ch-db:
     image: yandex/clickhouse-client
-    command: -h clickhouse -u default -q 'CREATE DATABASE IF NOT EXISTS ethereum'
+    env_file:
+      - .env
+    command: -h clickhouse -u default -q 'CREATE DATABASE IF NOT EXISTS ${DATABASE}'
     depends_on:
       - clickhouse
     links:
