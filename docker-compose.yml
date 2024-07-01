@@ -11,8 +11,6 @@ services:
     restart: on-failure
     links:
       - clickhouse
-      - rabbit
-      - elasticsearch
     depends_on:
       - clickhouse
     command: >
@@ -46,26 +44,25 @@ services:
     links:
       - clickhouse
 
-  rabbit:
-    # Optional
-    image: rabbitmq:latest
-    environment:
-      RABBITMQ_DEFAULT_VHOST: dex
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    restart: on-failure
-
-  elasticsearch:
-    # Optional
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.3
-    environment:
-      - discovery.type=single-node
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-      - "http.cors.enabled=true"
-      - "http.cors.allow-origin=*"
-    ports:
-      - "9200:9200"
+# Optional services
+#  rabbit:
+#    image: rabbitmq:latest
+#    environment:
+#      RABBITMQ_DEFAULT_VHOST: dex
+#    ports:
+#      - "5672:5672"
+#      - "15672:15672"
+#    restart: on-failure
+#
+#  elasticsearch:
+#    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.3
+#    environment:
+#      - discovery.type=single-node
+#      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+#      - "http.cors.enabled=true"
+#      - "http.cors.allow-origin=*"
+#    ports:
+#      - "9200:9200"
 
 
 volumes:
