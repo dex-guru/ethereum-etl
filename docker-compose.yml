@@ -43,6 +43,7 @@ services:
       - clickhouse
     links:
       - clickhouse
+    restart: on-failure
 
 # Optional services
 #  rabbit:
