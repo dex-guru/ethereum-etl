@@ -1,0 +1,10 @@
+[
+    {
+        "name": "carbondefi",
+        "type": "carbondefi",
+        "enabled": true,
+        "contracts": {
+            "CarbonController": "0xe4816658ad10bF215053C533cceAe3f59e1f1087"
+        }
+    }
+]
