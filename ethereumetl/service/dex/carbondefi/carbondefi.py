@@ -72,9 +72,12 @@ class CarbonDeFiAmm(BaseDexClient):
                 if not token_in or not token_out or not fee:
                     return None
 
+                pairs = self.carbon_controller_abi.functions.pairs()
+                unique_tokens = {token for pair in pairs for token in pair}
+
                 return EthDexPool(
                     address=self.CARBON_CONTROLLER,
-                    token_addresses=[token_in, token_out],
+                    token_addresses=unique_tokens,
                     fee=fee,
                 )
             except (ValueError, TypeError, KeyError) as e:
@@ -110,7 +113,9 @@ class CarbonDeFiAmm(BaseDexClient):
                     return None
 
                 amount_in = source_amount / token_scalars[0]
-                amount_out = target_amount / token_scalars[1]
+                amount_out = (
+                    -target_amount / token_scalars[1]
+                )  # negative because user bought this amount
                 prices = [
                     abs(amount_out / amount_in),
                     abs(amount_in / amount_out),
