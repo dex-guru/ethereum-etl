@@ -30,11 +30,13 @@ class CarbonDeFiAmm(BaseDexClient):
     def __init__(self, web3: Web3, chain_id: int | None = None, file_path: str = __file__):
         super().__init__(web3, chain_id, file_path)
         carbon_controller_abi_path = Path(file_path).parent / "CarbonController.json"
-        self.carbon_controller = self._initiate_contract(abi_path=carbon_controller_abi_path)
-
         with open(Path(__file__).parent / "deploys" / str(chain_id) / "metadata.json") as f:
             metadata = json.load(f)
             self.CARBON_CONTROLLER = metadata[0]["contracts"]["CarbonController"]
+
+        self.carbon_controller = self._initiate_contract(
+            abi_path=carbon_controller_abi_path, address=to_checksum(self.CARBON_CONTROLLER)
+        )
 
     @lru_cache(maxsize=128)
     def _get_pair_fee_ppm(self, token0: ChecksumAddress, token1: ChecksumAddress) -> int | None:
@@ -64,21 +66,18 @@ class CarbonDeFiAmm(BaseDexClient):
             try:
                 token_in = parsed_event.get('sourceToken')
                 token_out = parsed_event.get('targetToken')
-                fee = self._get_pair_fee_ppm(
-                    parsed_log.parsed_event.token0,
-                    parsed_log.parsed_event.token1,
-                )
+                fee = self._get_pair_fee_ppm(token_in, token_out)
 
                 if not token_in or not token_out or not fee:
                     return None
 
-                pairs = self.carbon_controller.functions.pairs()
+                pairs = self.carbon_controller.functions.pairs().call()
                 unique_tokens = {token for pair in pairs for token in pair}
 
                 return EthDexPool(
                     address=self.CARBON_CONTROLLER,
                     factory_address=self.CARBON_CONTROLLER,
-                    token_addresses=unique_tokens,
+                    token_addresses=list(unique_tokens),
                     lp_token_addresses=[self.CARBON_CONTROLLER],
                     fee=fee,
                 )
@@ -150,6 +149,7 @@ class CarbonDeFiAmm(BaseDexClient):
                     token_reserves=token_reserves,
                     token_prices=get_prices_for_two_pool(prices[0], prices[1]),
                     token_addresses=[source_token, target_token],
+                    wallet_address=parsed_event.get('trader', '').lower(),
                 )
             except (ValueError, TypeError, KeyError) as e:
                 logs.debug(f"Resolved log not found for ${parsed_receipt_log}: {e}")
