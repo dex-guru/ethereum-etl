@@ -22,6 +22,7 @@ from ethereumetl.service.dex.traderjoe_v2_1.traderjoe_v2_1 import TraderJoeV21Am
 from ethereumetl.service.dex.uniswap_v2.uniswap_v2 import UniswapV2Amm
 from ethereumetl.service.dex.uniswap_v3.uniswap_v3 import UniswapV3Amm
 from ethereumetl.service.dex.wombat.wombat import WombatAmm
+from ethereumetl.service.dex.carbondefi.carbondefi import CarbonDeFiAmm
 from ethereumetl.utils import Singleton
 
 ABI = Sequence[Mapping[str, Any]]
@@ -60,6 +61,7 @@ class ContractAdaptersFactory(metaclass=Singleton):
         "quickswap_v3": QuickswapV3Amm,
         "traderjoe_v2_1": TraderJoeV21Amm,
         "fjord": FjordLBP,
+        "carbondefi": CarbonDeFiAmm,
     }
 
     def __init__(self, web3: Web3, chain_id: int | None = None):

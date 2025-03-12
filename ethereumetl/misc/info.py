@@ -66,6 +66,8 @@ PARSABLE_TRADE_EVENTS = [
     "RemoveLiquidityImbalance",
     "Buy",
     "Sell",
+    "TokensTraded",
+    "SwapSingle",
 ]
 
 INFINITE_PRICE_THRESHOLD = 9.999999999999999e45
