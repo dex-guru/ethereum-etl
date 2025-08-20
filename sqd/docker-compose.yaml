@@ -1,0 +1,89 @@
+services:
+  db: 
+    image: postgres:15
+    environment:
+      POSTGRES_DB: "${DB_NAME}"
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "${DB_PORT}:5432"
+    networks:
+      - squid-network
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    ports:
+      - "8123:8123"   # HTTP interface
+      - "9000:9000"   # Native client
+    environment:
+      CLICKHOUSE_DB: ${CLICKHOUSE_DATABASE}
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: "password123"
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    networks:
+      - squid-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"   # AMQP port
+      - "15672:15672" # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin123
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - squid-network
+
+  indexer:
+    build: .
+    environment:
+      # ClickHouse configuration
+      CLICKHOUSE_HOST: http://clickhouse:8123
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: password123
+      CLICKHOUSE_DATABASE: base
+      
+      # Processing configuration
+      BATCH_SIZE: 100
+      BALANCE_CHANGES_TTL_DAYS: 90
+      
+      # Storage flags
+      STORE_BLOCKS: "false"
+      STORE_TRANSACTIONS: "false"
+      STORE_LOGS: "false"
+      STORE_TRANSFERS: "true"
+      STORE_NATIVE_BALANCES: "true"
+      STORE_BALANCE_INCREASES: "true"
+      STORE_BALANCE_DECREASES: "true"
+      
+      # Network configuration (set these via .env file)
+      GATEWAY_URL: ${GATEWAY_URL}
+      RPC_ETH_HTTP: ${RPC_ETH_HTTP}
+      RPC_ETH_RATE_LIMIT: ${RPC_ETH_RATE_LIMIT:-10}
+      
+      # RabbitMQ configuration
+      RABBITMQ_ENABLED: "true"
+      RABBITMQ_URL: "amqp://admin:admin123@rabbitmq:5672"
+      RABBITMQ_QUEUE: "block_batches"
+      RABBITMQ_EXCHANGE: ""
+      RABBITMQ_ROUTING_KEY: "blocks.batch"
+    depends_on:
+      - clickhouse
+      - rabbitmq
+    networks:
+      - squid-network
+    restart: unless-stopped
+
+volumes:
+  clickhouse_data:
+  rabbitmq_data:
+
+networks:
+  squid-network:
+    driver: bridge
